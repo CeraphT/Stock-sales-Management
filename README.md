@@ -27,15 +27,19 @@ src/
       Migrations/
     Services/                  # FEFO stock deduction, etc. — shared business logic
   PharmaStock.Api/              # ASP.NET Core minimal API
-    Endpoints/                 # one file per feature (Auth, Company, Sale, ...)
-    Services/                  # JWT issuing, etc.
+    Services/                  # one file per feature's endpoint group (AuthEndpoints.cs,
+                                # CompanyEndpoints.cs, SaleEndpoints.cs, ...) plus
+                                # non-endpoint business logic (JwtTokenService.cs)
 ```
 
 Each project keeps a strict one-class-per-file, folder-by-layer structure (Models /
-Data / Services / Endpoints) rather than grouping several related types into one
-file — this mirrors how a Blazor/MVC project is normally laid out in Visual
-Studio, and keeps the same pattern ready to extend once the Web (Blazor) and
-MAUI projects are added (Components/Pages, Components/Layout, etc.).
+Data / Services) rather than grouping several related types into one file — this
+mirrors how a Blazor/MVC project is normally laid out in Visual Studio. There is
+deliberately no separate `Endpoints/` folder in the Api project: endpoint-mapping
+classes and plain business-logic services both live under `Services/`. Keep new
+Api files there too, rather than reintroducing an `Endpoints/` split. This keeps
+the same pattern ready to extend once the Web (Blazor) and MAUI projects are
+added (Components/Pages, Components/Layout, etc.).
 
 ### Why this order
 

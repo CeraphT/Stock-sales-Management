@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using PharmaStock.Api.Services;
 using PharmaStock.Domain.Models;
 using PharmaStock.Infrastructure.Data;
 
-namespace PharmaStock.Api.Endpoints;
+namespace PharmaStock.Api.Services;
 
 public record CreateCompanyRequest(
     string Name, string? Description, string Currency,

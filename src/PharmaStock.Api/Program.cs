@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using PharmaStock.Api.Endpoints;
 using PharmaStock.Api.Services;
 using PharmaStock.Domain.Models;
 using PharmaStock.Infrastructure.Data;

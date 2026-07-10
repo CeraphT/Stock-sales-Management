@@ -1,9 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using PharmaStock.Api.Services;
 using PharmaStock.Domain.Models;
 using PharmaStock.Infrastructure.Data;
 
-namespace PharmaStock.Api.Endpoints;
+namespace PharmaStock.Api.Services;
 
 public record ReceiveStockRequest(string BatchNumber, DateTime? ExpiryDate, int QuantityInBaseUnits);
 public record AdjustStockRequest(Guid BatchId, int DeltaInBaseUnits, string Reason);

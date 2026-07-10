@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using PharmaStock.Api.Services;
 using PharmaStock.Domain.Models;
 using PharmaStock.Infrastructure.Data;
 using PharmaStock.Infrastructure.Services;
 
-namespace PharmaStock.Api.Endpoints;
+namespace PharmaStock.Api.Services;
 
 public record SaleLineRequest(Guid ProductId, int Quantity, Guid? PackagingLevelId);
 public record ServiceLineRequest(Guid ServiceId, int Quantity);

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PharmaStock.Infrastructure.Data;
 
-namespace PharmaStock.Api.Endpoints;
+namespace PharmaStock.Api.Services;
 
 public record PackagingLevelInfo(string UnitName, int QuantityInBaseUnits, decimal UnitPrice);
 
