@@ -4,10 +4,14 @@ using PharmaStock.Infrastructure.Data;
 
 namespace PharmaStock.Api.Services;
 
-public record ReceiveStockRequest(string BatchNumber, DateTime? ExpiryDate, int QuantityInBaseUnits);
+public record ReceiveStockRequest(
+    Guid LocationId, string BatchNumber, DateTime? ExpiryDate,
+    int QuantityInBaseUnits, decimal? PurchasePricePerBaseUnit);
 public record AdjustStockRequest(Guid BatchId, int DeltaInBaseUnits, string Reason);
 
-public record BatchResponse(Guid Id, string BatchNumber, DateTime? ExpiryDate, int QuantityInBaseUnits, DateTime ReceivedAt);
+public record BatchResponse(
+    Guid Id, Guid LocationId, string BatchNumber, DateTime? ExpiryDate,
+    int QuantityInBaseUnits, decimal PurchasePricePerBaseUnit, DateTime ReceivedAt);
 public record StockMovementResponse(
     Guid Id, StockMovementType Type, int QuantityInBaseUnits, string? Reason,
     Guid? BatchId, string? BatchNumber, Guid UserId, string UserName, DateTime Timestamp);
@@ -39,12 +43,20 @@ public static class StockMovementEndpoints
             if (product is null)
                 return Results.NotFound(new { message = "Product not found." });
 
+            var locationExists = await db.Locations.AnyAsync(l => l.Id == request.LocationId && l.CompanyId == companyId);
+            if (!locationExists)
+                return Results.NotFound(new { message = "Location not found." });
+
             var batch = new Batch
             {
                 ProductId = productId,
+                LocationId = request.LocationId,
                 BatchNumber = request.BatchNumber,
                 ExpiryDate = request.ExpiryDate,
                 QuantityInBaseUnits = request.QuantityInBaseUnits,
+                // Falls back to the catalog's estimated cost if this delivery's
+                // actual price isn't given — see Batch.PurchasePricePerBaseUnit.
+                PurchasePricePerBaseUnit = request.PurchasePricePerBaseUnit ?? product.PurchasePrice,
             };
             db.Batches.Add(batch);
 
@@ -52,6 +64,7 @@ public static class StockMovementEndpoints
             {
                 ProductId = productId,
                 BatchId = batch.Id,
+                LocationId = request.LocationId,
                 Type = StockMovementType.Entry,
                 QuantityInBaseUnits = request.QuantityInBaseUnits,
                 UserId = http.User.GetUserId()!.Value,
@@ -60,7 +73,8 @@ public static class StockMovementEndpoints
             await db.SaveChangesAsync();
 
             return Results.Created($"/api/companies/{companyId}/products/{productId}/batches/{batch.Id}",
-                new BatchResponse(batch.Id, batch.BatchNumber, batch.ExpiryDate, batch.QuantityInBaseUnits, batch.ReceivedAt));
+                new BatchResponse(batch.Id, batch.LocationId, batch.BatchNumber, batch.ExpiryDate,
+                    batch.QuantityInBaseUnits, batch.PurchasePricePerBaseUnit, batch.ReceivedAt));
         });
 
         // Section 3.3 — manual adjustment (breakage, theft, expiry write-off,
@@ -102,6 +116,7 @@ public static class StockMovementEndpoints
             {
                 ProductId = productId,
                 BatchId = batch.Id,
+                LocationId = batch.LocationId,
                 Type = StockMovementType.Adjustment,
                 QuantityInBaseUnits = request.DeltaInBaseUnits,
                 Reason = request.Reason,
@@ -111,7 +126,8 @@ public static class StockMovementEndpoints
             await db.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            return Results.Ok(new BatchResponse(batch.Id, batch.BatchNumber, batch.ExpiryDate, batch.QuantityInBaseUnits, batch.ReceivedAt));
+            return Results.Ok(new BatchResponse(batch.Id, batch.LocationId, batch.BatchNumber, batch.ExpiryDate,
+                batch.QuantityInBaseUnits, batch.PurchasePricePerBaseUnit, batch.ReceivedAt));
         });
 
         // Section 3.3 — per-product, per-batch quantity view.
@@ -127,7 +143,8 @@ public static class StockMovementEndpoints
             var batches = await db.Batches
                 .Where(b => b.ProductId == productId)
                 .OrderBy(b => b.ExpiryDate)
-                .Select(b => new BatchResponse(b.Id, b.BatchNumber, b.ExpiryDate, b.QuantityInBaseUnits, b.ReceivedAt))
+                .Select(b => new BatchResponse(b.Id, b.LocationId, b.BatchNumber, b.ExpiryDate,
+                    b.QuantityInBaseUnits, b.PurchasePricePerBaseUnit, b.ReceivedAt))
                 .ToListAsync();
 
             return Results.Ok(batches);

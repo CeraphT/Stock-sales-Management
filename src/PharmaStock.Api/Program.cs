@@ -55,6 +55,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok", timestamp = DateTime
 
 app.MapAuthEndpoints();
 app.MapCompanyEndpoints();
+app.MapLocationEndpoints();
 app.MapProductEndpoints();
 app.MapSaleEndpoints();
 app.MapStockMovementEndpoints();

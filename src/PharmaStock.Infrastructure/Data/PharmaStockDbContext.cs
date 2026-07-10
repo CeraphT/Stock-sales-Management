@@ -17,6 +17,7 @@ public class PharmaStockDbContext : DbContext
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Device> Devices => Set<Device>();
+    public DbSet<Location> Locations => Set<Location>();
 
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ProductPackagingLevel> ProductPackagingLevels => Set<ProductPackagingLevel>();

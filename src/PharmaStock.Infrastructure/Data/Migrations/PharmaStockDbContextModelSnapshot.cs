@@ -35,8 +35,15 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.Property<DateTime?>("ExpiryDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid");
+
+                    b.Property<decimal>("PurchasePricePerBaseUnit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<int>("QuantityInBaseUnits")
                         .HasColumnType("integer");
@@ -45,6 +52,8 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LocationId");
 
                     b.HasIndex("ProductId");
 
@@ -63,6 +72,10 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<decimal>("DefaultTaxRatePercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -284,6 +297,32 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.ToTable("InstallmentPlans");
                 });
 
+            modelBuilder.Entity("PharmaStock.Domain.Models.Location", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.ToTable("Locations");
+                });
+
             modelBuilder.Entity("PharmaStock.Domain.Models.LoyaltyAccount", b =>
                 {
                     b.Property<Guid>("Id")
@@ -367,6 +406,10 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.Property<Guid?>("SupplierId")
                         .HasColumnType("uuid");
 
+                    b.Property<decimal?>("TaxRateOverridePercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SupplierId");
@@ -415,6 +458,9 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.Property<Guid?>("CustomerId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("integer");
 
@@ -436,6 +482,8 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.HasIndex("CompanyId");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("LocationId");
 
                     b.HasIndex("UserId");
 
@@ -462,6 +510,10 @@ namespace PharmaStock.Infrastructure.Data.Migrations
 
                     b.Property<Guid>("SaleId")
                         .HasColumnType("uuid");
+
+                    b.Property<decimal>("TaxRatePercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 2)
@@ -571,6 +623,12 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.Property<Guid?>("BatchId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("DestinationLocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid");
 
@@ -592,6 +650,10 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BatchId");
+
+                    b.HasIndex("DestinationLocationId");
+
+                    b.HasIndex("LocationId");
 
                     b.HasIndex("ProductId");
 
@@ -673,11 +735,19 @@ namespace PharmaStock.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("PharmaStock.Domain.Models.Batch", b =>
                 {
+                    b.HasOne("PharmaStock.Domain.Models.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("PharmaStock.Domain.Models.Product", "Product")
                         .WithMany("Batches")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Location");
 
                     b.Navigation("Product");
                 });
@@ -759,6 +829,17 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.Navigation("Sale");
                 });
 
+            modelBuilder.Entity("PharmaStock.Domain.Models.Location", b =>
+                {
+                    b.HasOne("PharmaStock.Domain.Models.Company", "Company")
+                        .WithMany("Locations")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("PharmaStock.Domain.Models.LoyaltyAccount", b =>
                 {
                     b.HasOne("PharmaStock.Domain.Models.Customer", "Customer")
@@ -821,6 +902,12 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                         .WithMany()
                         .HasForeignKey("CustomerId");
 
+                    b.HasOne("PharmaStock.Domain.Models.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("PharmaStock.Domain.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -830,6 +917,8 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.Navigation("Company");
 
                     b.Navigation("Customer");
+
+                    b.Navigation("Location");
 
                     b.Navigation("User");
                 });
@@ -920,6 +1009,17 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                         .WithMany()
                         .HasForeignKey("BatchId");
 
+                    b.HasOne("PharmaStock.Domain.Models.Location", "DestinationLocation")
+                        .WithMany()
+                        .HasForeignKey("DestinationLocationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PharmaStock.Domain.Models.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("PharmaStock.Domain.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
@@ -933,6 +1033,10 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Batch");
+
+                    b.Navigation("DestinationLocation");
+
+                    b.Navigation("Location");
 
                     b.Navigation("Product");
 
@@ -966,6 +1070,8 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.Navigation("Customers");
 
                     b.Navigation("GiftCards");
+
+                    b.Navigation("Locations");
 
                     b.Navigation("Products");
 

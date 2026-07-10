@@ -40,6 +40,49 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
     }
 }
 
+/// <summary>Section 16.6 — a company's branches. Restrict delete everywhere a
+/// Location is referenced (Batch, Sale, StockMovement) so a branch with any
+/// stock or sales history can't be deleted out from under that history by
+/// accident; deactivate via Location.Active instead.</summary>
+public class LocationConfiguration : IEntityTypeConfiguration<Location>
+{
+    public void Configure(EntityTypeBuilder<Location> builder)
+    {
+        builder.HasIndex(l => l.CompanyId);
+    }
+}
+
+public class BatchConfiguration : IEntityTypeConfiguration<Batch>
+{
+    public void Configure(EntityTypeBuilder<Batch> builder)
+    {
+        builder.HasOne(b => b.Location)
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+/// <summary>Section 16.6 — StockMovement has two independent FKs to Location
+/// (LocationId always; DestinationLocationId only for Type == Transfer), so
+/// both must be configured explicitly with distinct navigations — EF can't
+/// infer which is which from convention alone when a type has more than one
+/// relationship to the same target.</summary>
+public class StockMovementConfiguration : IEntityTypeConfiguration<StockMovement>
+{
+    public void Configure(EntityTypeBuilder<StockMovement> builder)
+    {
+        builder.HasOne(m => m.Location)
+            .WithMany()
+            .HasForeignKey(m => m.LocationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(m => m.DestinationLocation)
+            .WithMany()
+            .HasForeignKey(m => m.DestinationLocationId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 /// <summary>Gift card codes (Section 21.3) must be unique per company so two
 /// customers can never redeem the same code.</summary>
 public class GiftCardConfiguration : IEntityTypeConfiguration<GiftCard>
@@ -70,6 +113,10 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
 {
     public void Configure(EntityTypeBuilder<Sale> builder)
     {
+        builder.HasOne(s => s.Location)
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasMany(s => s.ProductLines)
             .WithOne(l => l.Sale)
             .HasForeignKey(l => l.SaleId)

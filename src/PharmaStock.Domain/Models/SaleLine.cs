@@ -22,4 +22,19 @@ public class SaleLine
     public ProductPackagingLevel? PackagingLevel { get; set; }
 
     public decimal UnitPrice { get; set; }
+
+    /// <summary>Section 18.3 — snapshotted at sale time from
+    /// Product.TaxRateOverridePercent ?? Company.DefaultTaxRatePercent, so a
+    /// later company/product rate change never rewrites the tax on a past
+    /// sale. Different lines on the same sale can carry different rates.</summary>
+    public decimal TaxRatePercent { get; set; }
+
+    /// <summary>Assumes UnitPrice is tax-inclusive (the common convention for
+    /// a Cameroonian shop's sticker/shelf price — the customer pays exactly
+    /// UnitPrice, VAT included), so this extracts the tax portion already
+    /// baked into that price rather than adding tax on top of it. Sale.Total
+    /// and checkout math are unaffected either way. This is a reporting-only
+    /// assumption pending Section 18.3's note that Cameroon's DGI normalized-
+    /// invoice rules "should be verified" before this is relied on for filing.</summary>
+    public decimal TaxAmount => UnitPrice * QuantityInBaseUnits * TaxRatePercent / (100m + TaxRatePercent);
 }

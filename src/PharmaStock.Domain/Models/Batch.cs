@@ -11,6 +11,12 @@ public class Batch
     public Guid ProductId { get; set; }
     public Product? Product { get; set; }
 
+    /// <summary>Section 16.6 — the branch this batch physically sits in. FEFO
+    /// deduction (StockDeductionService) is scoped by this, so a sale at one
+    /// location can never draw down stock actually sitting at another.</summary>
+    public Guid LocationId { get; set; }
+    public Location? Location { get; set; }
+
     public string BatchNumber { get; set; } = string.Empty;
     public DateTime? ExpiryDate { get; set; }
 
@@ -18,6 +24,13 @@ public class Batch
     /// Derived from summing StockMovement rows for this batch, but kept as a
     /// materialized column for fast reads (Section 17 availability checks).</summary>
     public int QuantityInBaseUnits { get; set; }
+
+    /// <summary>Section 18.3 — actual cost paid per base unit for this specific
+    /// delivery, captured at receiving time. Distinct from Product.PurchasePrice
+    /// (a catalog "current estimated cost" used before any stock exists): margin/
+    /// COGS reports join through SaleLine.BatchId to this field for the real,
+    /// historical cost of what was actually sold, not just the latest price.</summary>
+    public decimal PurchasePricePerBaseUnit { get; set; }
 
     public DateTime ReceivedAt { get; set; } = DateTime.UtcNow;
 }

@@ -20,6 +20,11 @@ public class Company
 
     public string Currency { get; set; } = "XAF";
 
+    /// <summary>Section 18.3 — default VAT/TVA rate applied to a product unless
+    /// it sets its own Product.TaxRateOverridePercent (e.g. Cameroon's ~19.25%
+    /// standard TVA doesn't apply uniformly to every pharmaceutical product).</summary>
+    public decimal DefaultTaxRatePercent { get; set; } = 19.25m;
+
     /// <summary>Serialized theme config (Section 10): primary/secondary color, font choice, dark mode.</summary>
     public string? ThemeConfigJson { get; set; }
 
@@ -30,6 +35,7 @@ public class Company
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<User> Users { get; set; } = new List<User>();
+    public ICollection<Location> Locations { get; set; } = new List<Location>();
     public ICollection<Product> Products { get; set; } = new List<Product>();
     public ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
     public ICollection<Customer> Customers { get; set; } = new List<Customer>();

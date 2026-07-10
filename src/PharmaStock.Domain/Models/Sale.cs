@@ -9,6 +9,11 @@ public class Sale
     public Guid CompanyId { get; set; }
     public Company? Company { get; set; }
 
+    /// <summary>Section 16.6 — which branch rang up this sale. Required: FEFO
+    /// deduction is scoped to this location's own batches.</summary>
+    public Guid LocationId { get; set; }
+    public Location? Location { get; set; }
+
     public Guid UserId { get; set; }
     public User? User { get; set; }
 

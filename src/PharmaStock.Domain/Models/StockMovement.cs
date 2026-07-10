@@ -14,6 +14,16 @@ public class StockMovement
     public Guid? BatchId { get; set; }
     public Batch? Batch { get; set; }
 
+    /// <summary>Section 16.6 — where this movement happened. For Type ==
+    /// Transfer, this is the source location and DestinationLocationId is
+    /// where the stock is going; for every other type, only this is set.</summary>
+    public Guid LocationId { get; set; }
+    public Location? Location { get; set; }
+
+    /// <summary>Only set when Type == Transfer.</summary>
+    public Guid? DestinationLocationId { get; set; }
+    public Location? DestinationLocation { get; set; }
+
     public StockMovementType Type { get; set; }
 
     /// <summary>Positive for entries/returns, negative for sales/losses. Always

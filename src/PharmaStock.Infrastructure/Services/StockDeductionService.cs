@@ -33,13 +33,16 @@ public class StockDeductionService
         _db = db;
     }
 
-    /// <summary>Locks the product's in-stock batches for the duration of the
-    /// caller's transaction (SELECT ... FOR UPDATE) so two concurrent sales
-    /// can never both deduct from the same last unit of stock, then consumes
-    /// oldest-expiry-first until the request is satisfied. Does not call
-    /// SaveChanges — the caller commits alongside its own StockMovement rows.</summary>
+    /// <summary>Locks the product's in-stock batches at the given location for
+    /// the duration of the caller's transaction (SELECT ... FOR UPDATE) so two
+    /// concurrent sales can never both deduct from the same last unit of
+    /// stock, then consumes oldest-expiry-first until the request is
+    /// satisfied. Scoped to locationId (Section 16.6): a sale at one branch
+    /// can never draw down stock that's physically sitting at another. Does
+    /// not call SaveChanges — the caller commits alongside its own
+    /// StockMovement rows.</summary>
     public async Task<List<StockDeductionResult>> DeductFefoAsync(
-        Guid productId, int quantityInBaseUnits, CancellationToken ct = default)
+        Guid productId, Guid locationId, int quantityInBaseUnits, CancellationToken ct = default)
     {
         if (quantityInBaseUnits <= 0)
             return new List<StockDeductionResult>();
@@ -47,7 +50,7 @@ public class StockDeductionService
         var batches = await _db.Batches
             .FromSqlInterpolated($@"
                 SELECT * FROM ""Batches""
-                WHERE ""ProductId"" = {productId} AND ""QuantityInBaseUnits"" > 0
+                WHERE ""ProductId"" = {productId} AND ""LocationId"" = {locationId} AND ""QuantityInBaseUnits"" > 0
                 ORDER BY ""ExpiryDate"" ASC NULLS LAST
                 FOR UPDATE")
             .ToListAsync(ct);

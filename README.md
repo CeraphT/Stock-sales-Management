@@ -54,10 +54,22 @@ the MAUI apps later, pointed at a local SQLite file instead of PostgreSQL.
 
 ## What's implemented so far
 
-- Full domain model: Company, User, Device, Product, ProductPackagingLevel,
-  Batch, Supplier, StockMovement, Customer, LoyaltyAccount, GiftCard, Sale,
-  SaleLine, PaymentSplit, Service, ServiceStockLink, ServiceLine,
-  InstallmentPlan, InstallmentPayment, CustomFieldDefinition, CustomFieldValue
+- Full domain model: Company, User, Device, Location, Product,
+  ProductPackagingLevel, Batch, Supplier, StockMovement, Customer,
+  LoyaltyAccount, GiftCard, Sale, SaleLine, PaymentSplit, Service,
+  ServiceStockLink, ServiceLine, InstallmentPlan, InstallmentPayment,
+  CustomFieldDefinition, CustomFieldValue
+- Multi-branch scoping from the start (Section 16.6): Batch, Sale, and
+  StockMovement all carry a LocationId rather than only CompanyId, so a
+  second branch never requires retrofitting these tables. Every company gets
+  one default Location at creation; `POST/GET .../locations` manage more.
+  FEFO deduction (StockDeductionService) is scoped per-location.
+- Per-product VAT/TVA (Section 18.3): Company.DefaultTaxRatePercent (19.25%
+  default) with an optional Product.TaxRateOverridePercent for exempt/
+  different-rate items; SaleLine snapshots the effective rate at sale time.
+- Per-batch purchase cost (Batch.PurchasePricePerBaseUnit, Section 18.3) so
+  margin/COGS reporting can use the real historical cost of what was actually
+  sold (via SaleLine.BatchId) rather than only Product's latest catalog price.
 - EF Core DbContext with key constraints (unique company code, unique gift
   card code, unique user phone-per-company, decimal precision, UTC-normalized
   DateTime columns) — Sections 9, 21.3
@@ -85,9 +97,11 @@ the MAUI apps later, pointed at a local SQLite file instead of PostgreSQL.
 ## What's next (see Roadmap)
 
 Desktop MAUI app (offline-first POS, local SQLite, sync engine), then Web
-(Blazor) and Mobile (MAUI). Still open on the API side: refresh tokens for
-long-lived offline sessions, GiftCard/StoreCredit redemption, held/parked
-sales, and the reporting endpoints (Section 14).
+(Blazor) and Mobile (MAUI). Still open on the API side: cash-register/shift
+reconciliation (Section 3.6), purchase orders with partial receiving
+(Sections 3.4, 18.2), refresh tokens for long-lived offline sessions,
+GiftCard/StoreCredit redemption, held/parked sales, stock transfers between
+locations, and the reporting endpoints (Section 14).
 
 ## Building this locally
 

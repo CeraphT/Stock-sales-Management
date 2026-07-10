@@ -25,6 +25,11 @@ public class Product
     public bool IsFavorite { get; set; } = false;
     public int LowStockThreshold { get; set; } = 0;
 
+    /// <summary>Section 18.3 — null means "use Company.DefaultTaxRatePercent".
+    /// Set explicitly (e.g. to 0) for a VAT-exempt product, since not every
+    /// pharmaceutical item is taxed at the same rate.</summary>
+    public decimal? TaxRateOverridePercent { get; set; }
+
     public ICollection<ProductPackagingLevel> PackagingLevels { get; set; } = new List<ProductPackagingLevel>();
     public ICollection<Batch> Batches { get; set; } = new List<Batch>();
 }

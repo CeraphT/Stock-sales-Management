@@ -21,6 +21,7 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     LogoUrl = table.Column<string>(type: "text", nullable: true),
                     UniqueCode = table.Column<string>(type: "text", nullable: false),
                     Currency = table.Column<string>(type: "text", nullable: false),
+                    DefaultTaxRatePercent = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     ThemeConfigJson = table.Column<string>(type: "text", nullable: true),
                     ServicesModuleEnabled = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -88,6 +89,27 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     table.PrimaryKey("PK_GiftCards", x => x.Id);
                     table.ForeignKey(
                         name: "FK_GiftCards_Companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "Companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Locations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CompanyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Address = table.Column<string>(type: "text", nullable: true),
+                    Active = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Locations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Locations_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
                         principalColumn: "Id",
@@ -215,7 +237,8 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     SalePrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     SupplierId = table.Column<Guid>(type: "uuid", nullable: true),
                     IsFavorite = table.Column<bool>(type: "boolean", nullable: false),
-                    LowStockThreshold = table.Column<int>(type: "integer", nullable: false)
+                    LowStockThreshold = table.Column<int>(type: "integer", nullable: false),
+                    TaxRateOverridePercent = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -263,6 +286,7 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     CompanyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    LocationId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     CustomerId = table.Column<Guid>(type: "uuid", nullable: true),
                     Total = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
@@ -285,6 +309,12 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                         principalTable: "Customers",
                         principalColumn: "Id");
                     table.ForeignKey(
+                        name: "FK_Sales_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Sales_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
@@ -298,14 +328,22 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ProductId = table.Column<Guid>(type: "uuid", nullable: false),
+                    LocationId = table.Column<Guid>(type: "uuid", nullable: false),
                     BatchNumber = table.Column<string>(type: "text", nullable: false),
                     ExpiryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     QuantityInBaseUnits = table.Column<int>(type: "integer", nullable: false),
+                    PurchasePricePerBaseUnit = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     ReceivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Batches", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Batches_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Batches_Products_ProductId",
                         column: x => x.ProductId,
@@ -436,6 +474,8 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ProductId = table.Column<Guid>(type: "uuid", nullable: false),
                     BatchId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LocationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    DestinationLocationId = table.Column<Guid>(type: "uuid", nullable: true),
                     Type = table.Column<int>(type: "integer", nullable: false),
                     QuantityInBaseUnits = table.Column<int>(type: "integer", nullable: false),
                     Reason = table.Column<string>(type: "text", nullable: true),
@@ -450,6 +490,18 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                         column: x => x.BatchId,
                         principalTable: "Batches",
                         principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_StockMovements_Locations_DestinationLocationId",
+                        column: x => x.DestinationLocationId,
+                        principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_StockMovements_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_StockMovements_Products_ProductId",
                         column: x => x.ProductId,
@@ -474,7 +526,8 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     BatchId = table.Column<Guid>(type: "uuid", nullable: true),
                     QuantityInBaseUnits = table.Column<int>(type: "integer", nullable: false),
                     PackagingLevelId = table.Column<Guid>(type: "uuid", nullable: true),
-                    UnitPrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false)
+                    UnitPrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    TaxRatePercent = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -524,6 +577,11 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Batches_LocationId",
+                table: "Batches",
+                column: "LocationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Batches_ProductId",
                 table: "Batches",
                 column: "ProductId");
@@ -570,6 +628,11 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                 table: "InstallmentPlans",
                 column: "SaleId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Locations_CompanyId",
+                table: "Locations",
+                column: "CompanyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LoyaltyAccounts_CustomerId",
@@ -628,6 +691,11 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                 column: "CustomerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Sales_LocationId",
+                table: "Sales",
+                column: "LocationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Sales_UserId",
                 table: "Sales",
                 column: "UserId");
@@ -661,6 +729,16 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                 name: "IX_StockMovements_BatchId",
                 table: "StockMovements",
                 column: "BatchId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StockMovements_DestinationLocationId",
+                table: "StockMovements",
+                column: "DestinationLocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StockMovements_LocationId",
+                table: "StockMovements",
+                column: "LocationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_StockMovements_ProductId",
@@ -740,6 +818,9 @@ namespace PharmaStock.Infrastructure.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Customers");
+
+            migrationBuilder.DropTable(
+                name: "Locations");
 
             migrationBuilder.DropTable(
                 name: "Users");

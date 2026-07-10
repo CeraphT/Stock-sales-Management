@@ -10,6 +10,7 @@ public record ServiceLineRequest(Guid ServiceId, int Quantity);
 public record PaymentSplitRequest(PaymentMethod Method, decimal Amount);
 
 public record CreateSaleRequest(
+    Guid LocationId,
     Guid? CustomerId,
     PaymentMethod PaymentMethod,
     List<SaleLineRequest>? ProductLines,
@@ -18,7 +19,8 @@ public record CreateSaleRequest(
 
 public record SaleLineResponse(
     Guid ProductId, string ProductName, Guid? BatchId, string? BatchNumber,
-    int QuantityInBaseUnits, string? PackagingLevelName, decimal UnitPrice, decimal LineTotal);
+    int QuantityInBaseUnits, string? PackagingLevelName, decimal UnitPrice,
+    decimal TaxRatePercent, decimal LineTotal);
 public record ServiceLineResponse(Guid ServiceId, string ServiceName, int Quantity, decimal BilledPrice, decimal LineTotal);
 public record PaymentSplitResponse(PaymentMethod Method, decimal Amount);
 
@@ -76,11 +78,16 @@ public static class SaleEndpoints
                     return Results.NotFound(new { message = "Customer not found." });
             }
 
+            var locationExists = await db.Locations.AnyAsync(l => l.Id == request.LocationId && l.CompanyId == companyId);
+            if (!locationExists)
+                return Results.NotFound(new { message = "Location not found." });
+
             await using var transaction = await db.Database.BeginTransactionAsync();
 
             var sale = new Sale
             {
                 CompanyId = companyId,
+                LocationId = request.LocationId,
                 UserId = callerUserId.Value,
                 CustomerId = request.CustomerId,
                 PaymentMethod = request.PaymentMethod,
@@ -118,10 +125,14 @@ public static class SaleEndpoints
                         ? product.SalePrice
                         : (level.SalePriceOverride ?? product.SalePrice * level.QuantityInBaseUnits) / level.QuantityInBaseUnits;
 
+                    // Section 18.3 — snapshotted per line so a later rate
+                    // change never rewrites tax on a past sale.
+                    var taxRatePercent = product.TaxRateOverridePercent ?? company.DefaultTaxRatePercent;
+
                     List<StockDeductionResult> deductions;
                     try
                     {
-                        deductions = await deductor.DeductFefoAsync(product.Id, quantityInBaseUnits);
+                        deductions = await deductor.DeductFefoAsync(product.Id, request.LocationId, quantityInBaseUnits);
                     }
                     catch (InsufficientStockException ex)
                     {
@@ -138,6 +149,7 @@ public static class SaleEndpoints
                         {
                             ProductId = product.Id,
                             BatchId = deduction.BatchId,
+                            LocationId = request.LocationId,
                             Type = StockMovementType.Sale,
                             QuantityInBaseUnits = -deduction.QuantityInBaseUnits,
                             UserId = callerUserId.Value,
@@ -151,11 +163,12 @@ public static class SaleEndpoints
                             QuantityInBaseUnits = deduction.QuantityInBaseUnits,
                             PackagingLevelId = level?.Id,
                             UnitPrice = unitPrice,
+                            TaxRatePercent = taxRatePercent,
                         });
 
                         saleLineResponses.Add(new SaleLineResponse(
                             product.Id, product.Name, deduction.BatchId, batch?.BatchNumber,
-                            deduction.QuantityInBaseUnits, level?.UnitName, unitPrice,
+                            deduction.QuantityInBaseUnits, level?.UnitName, unitPrice, taxRatePercent,
                             unitPrice * deduction.QuantityInBaseUnits));
                     }
                 }
@@ -174,7 +187,7 @@ public static class SaleEndpoints
                         List<StockDeductionResult> deductions;
                         try
                         {
-                            deductions = await deductor.DeductFefoAsync(stockLink.ProductId, totalConsumed);
+                            deductions = await deductor.DeductFefoAsync(stockLink.ProductId, request.LocationId, totalConsumed);
                         }
                         catch (InsufficientStockException ex)
                         {
@@ -192,6 +205,7 @@ public static class SaleEndpoints
                             {
                                 ProductId = stockLink.ProductId,
                                 BatchId = deduction.BatchId,
+                                LocationId = request.LocationId,
                                 Type = StockMovementType.ServiceConsumption,
                                 QuantityInBaseUnits = -deduction.QuantityInBaseUnits,
                                 UserId = callerUserId.Value,

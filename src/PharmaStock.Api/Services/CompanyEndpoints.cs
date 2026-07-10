@@ -10,7 +10,7 @@ public record CreateCompanyRequest(
     string AdminName, string AdminPhone, string AdminPassword);
 public record JoinCompanyRequest(string UniqueCode);
 public record CompanyResponse(Guid Id, string Name, string UniqueCode, string Currency, bool ServicesModuleEnabled);
-public record CreateCompanyResponse(CompanyResponse Company, AuthResponse Admin);
+public record CreateCompanyResponse(CompanyResponse Company, AuthResponse Admin, LocationResponse DefaultLocation);
 
 public static class CompanyEndpoints
 {
@@ -50,6 +50,17 @@ public static class CompanyEndpoints
             admin.PasswordHash = hasher.HashPassword(admin, request.AdminPassword);
             db.Users.Add(admin);
 
+            // Section 16.6 — every company starts with one Location so
+            // single-shop usage (the common case) needs no extra setup before
+            // stock can be received or a sale rung up; more branches can be
+            // added later via POST .../locations.
+            var defaultLocation = new Location
+            {
+                CompanyId = company.Id,
+                Name = "Main",
+            };
+            db.Locations.Add(defaultLocation);
+
             await db.SaveChangesAsync();
 
             var (token, expiresAt) = tokens.IssueToken(admin);
@@ -58,7 +69,8 @@ public static class CompanyEndpoints
                 new CompanyResponse(company.Id, company.Name, company.UniqueCode, company.Currency, company.ServicesModuleEnabled),
                 new AuthResponse(token, expiresAt,
                     new UserResponse(admin.Id, admin.Name, admin.Phone, admin.Role, admin.Active),
-                    company.Id)));
+                    company.Id),
+                new LocationResponse(defaultLocation.Id, defaultLocation.Name, defaultLocation.Address, defaultLocation.Active)));
         });
 
         // Section 9 — "Join an existing company" path. A device (Desktop,
