@@ -9,11 +9,11 @@ using PharmaStock.Infrastructure.Data;
 
 #nullable disable
 
-namespace PharmaStock.Infrastructure.Migrations
+namespace PharmaStock.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(PharmaStockDbContext))]
-    [Migration("20260710134709_AddUserPhoneUniqueIndex")]
-    partial class AddUserPhoneUniqueIndex
+    [Migration("20260710142944_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Batch", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Batch", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -54,7 +54,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("Batches");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Company", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Company", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -95,7 +95,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("Companies");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.CustomFieldDefinition", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.CustomFieldDefinition", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -121,7 +121,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("CustomFieldDefinitions");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.CustomFieldValue", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.CustomFieldValue", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -143,7 +143,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("CustomFieldValues");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Customer", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Customer", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -170,7 +170,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("Customers");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Device", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Device", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -205,7 +205,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("Devices");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.GiftCard", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.GiftCard", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -237,7 +237,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("GiftCards");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.InstallmentPayment", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.InstallmentPayment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -260,7 +260,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("InstallmentPayments");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.InstallmentPlan", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.InstallmentPlan", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -287,7 +287,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("InstallmentPlans");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.LoyaltyAccount", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.LoyaltyAccount", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -311,7 +311,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("LoyaltyAccounts");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.PaymentSplit", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.PaymentSplit", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -334,7 +334,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("PaymentSplits");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Product", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -379,7 +379,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.ProductPackagingLevel", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.ProductPackagingLevel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -406,7 +406,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("ProductPackagingLevels");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Sale", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Sale", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -445,7 +445,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("Sales");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.SaleLine", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.SaleLine", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -483,7 +483,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("SaleLines");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Service", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Service", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -513,7 +513,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("Services");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.ServiceLine", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.ServiceLine", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -541,7 +541,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("ServiceLines");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.ServiceStockLink", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.ServiceStockLink", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -565,7 +565,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("ServiceStockLinks");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.StockMovement", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.StockMovement", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -603,7 +603,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("StockMovements");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Supplier", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Supplier", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -629,7 +629,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("Suppliers");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.User", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -674,9 +674,9 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Batch", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Batch", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Product", "Product")
+                    b.HasOne("PharmaStock.Domain.Models.Product", "Product")
                         .WithMany("Batches")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -685,9 +685,9 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.CustomFieldDefinition", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.CustomFieldDefinition", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Company", "Company")
+                    b.HasOne("PharmaStock.Domain.Models.Company", "Company")
                         .WithMany("CustomFieldDefinitions")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -696,9 +696,9 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("Company");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.CustomFieldValue", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.CustomFieldValue", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.CustomFieldDefinition", "CustomFieldDefinition")
+                    b.HasOne("PharmaStock.Domain.Models.CustomFieldDefinition", "CustomFieldDefinition")
                         .WithMany("Values")
                         .HasForeignKey("CustomFieldDefinitionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -707,9 +707,9 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("CustomFieldDefinition");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Customer", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Customer", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Company", "Company")
+                    b.HasOne("PharmaStock.Domain.Models.Company", "Company")
                         .WithMany("Customers")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -718,9 +718,9 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("Company");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Device", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Device", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.User", "User")
+                    b.HasOne("PharmaStock.Domain.Models.User", "User")
                         .WithMany("Devices")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -729,9 +729,9 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.GiftCard", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.GiftCard", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Company", "Company")
+                    b.HasOne("PharmaStock.Domain.Models.Company", "Company")
                         .WithMany("GiftCards")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -740,9 +740,9 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("Company");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.InstallmentPayment", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.InstallmentPayment", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.InstallmentPlan", "InstallmentPlan")
+                    b.HasOne("PharmaStock.Domain.Models.InstallmentPlan", "InstallmentPlan")
                         .WithMany("Payments")
                         .HasForeignKey("InstallmentPlanId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -751,31 +751,31 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("InstallmentPlan");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.InstallmentPlan", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.InstallmentPlan", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Sale", "Sale")
+                    b.HasOne("PharmaStock.Domain.Models.Sale", "Sale")
                         .WithOne("InstallmentPlan")
-                        .HasForeignKey("PharmaStock.Domain.Entities.InstallmentPlan", "SaleId")
+                        .HasForeignKey("PharmaStock.Domain.Models.InstallmentPlan", "SaleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Sale");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.LoyaltyAccount", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.LoyaltyAccount", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Customer", "Customer")
+                    b.HasOne("PharmaStock.Domain.Models.Customer", "Customer")
                         .WithOne("LoyaltyAccount")
-                        .HasForeignKey("PharmaStock.Domain.Entities.LoyaltyAccount", "CustomerId")
+                        .HasForeignKey("PharmaStock.Domain.Models.LoyaltyAccount", "CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.PaymentSplit", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.PaymentSplit", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Sale", "Sale")
+                    b.HasOne("PharmaStock.Domain.Models.Sale", "Sale")
                         .WithMany("PaymentSplits")
                         .HasForeignKey("SaleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -784,15 +784,15 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("Sale");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Product", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Product", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Company", "Company")
+                    b.HasOne("PharmaStock.Domain.Models.Company", "Company")
                         .WithMany("Products")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PharmaStock.Domain.Entities.Supplier", "Supplier")
+                    b.HasOne("PharmaStock.Domain.Models.Supplier", "Supplier")
                         .WithMany()
                         .HasForeignKey("SupplierId");
 
@@ -801,9 +801,9 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("Supplier");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.ProductPackagingLevel", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.ProductPackagingLevel", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Product", "Product")
+                    b.HasOne("PharmaStock.Domain.Models.Product", "Product")
                         .WithMany("PackagingLevels")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -812,19 +812,19 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Sale", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Sale", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Company", "Company")
+                    b.HasOne("PharmaStock.Domain.Models.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PharmaStock.Domain.Entities.Customer", "Customer")
+                    b.HasOne("PharmaStock.Domain.Models.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId");
 
-                    b.HasOne("PharmaStock.Domain.Entities.User", "User")
+                    b.HasOne("PharmaStock.Domain.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -837,23 +837,23 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.SaleLine", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.SaleLine", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Batch", "Batch")
+                    b.HasOne("PharmaStock.Domain.Models.Batch", "Batch")
                         .WithMany()
                         .HasForeignKey("BatchId");
 
-                    b.HasOne("PharmaStock.Domain.Entities.ProductPackagingLevel", "PackagingLevel")
+                    b.HasOne("PharmaStock.Domain.Models.ProductPackagingLevel", "PackagingLevel")
                         .WithMany()
                         .HasForeignKey("PackagingLevelId");
 
-                    b.HasOne("PharmaStock.Domain.Entities.Product", "Product")
+                    b.HasOne("PharmaStock.Domain.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("PharmaStock.Domain.Entities.Sale", "Sale")
+                    b.HasOne("PharmaStock.Domain.Models.Sale", "Sale")
                         .WithMany("ProductLines")
                         .HasForeignKey("SaleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -868,9 +868,9 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("Sale");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Service", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Service", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Company", "Company")
+                    b.HasOne("PharmaStock.Domain.Models.Company", "Company")
                         .WithMany("Services")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -879,15 +879,15 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("Company");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.ServiceLine", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.ServiceLine", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Sale", "Sale")
+                    b.HasOne("PharmaStock.Domain.Models.Sale", "Sale")
                         .WithMany("ServiceLines")
                         .HasForeignKey("SaleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PharmaStock.Domain.Entities.Service", "Service")
+                    b.HasOne("PharmaStock.Domain.Models.Service", "Service")
                         .WithMany()
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -898,15 +898,15 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.ServiceStockLink", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.ServiceStockLink", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Product", "Product")
+                    b.HasOne("PharmaStock.Domain.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("PharmaStock.Domain.Entities.Service", "Service")
+                    b.HasOne("PharmaStock.Domain.Models.Service", "Service")
                         .WithMany("StockLinks")
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -917,19 +917,19 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.StockMovement", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.StockMovement", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Batch", "Batch")
+                    b.HasOne("PharmaStock.Domain.Models.Batch", "Batch")
                         .WithMany()
                         .HasForeignKey("BatchId");
 
-                    b.HasOne("PharmaStock.Domain.Entities.Product", "Product")
+                    b.HasOne("PharmaStock.Domain.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PharmaStock.Domain.Entities.User", "User")
+                    b.HasOne("PharmaStock.Domain.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -942,9 +942,9 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Supplier", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Supplier", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Company", "Company")
+                    b.HasOne("PharmaStock.Domain.Models.Company", "Company")
                         .WithMany("Suppliers")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -953,16 +953,16 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("Company");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.User", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.User", b =>
                 {
-                    b.HasOne("PharmaStock.Domain.Entities.Company", "Company")
+                    b.HasOne("PharmaStock.Domain.Models.Company", "Company")
                         .WithMany("Users")
                         .HasForeignKey("CompanyId");
 
                     b.Navigation("Company");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Company", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Company", b =>
                 {
                     b.Navigation("CustomFieldDefinitions");
 
@@ -979,29 +979,29 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.CustomFieldDefinition", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.CustomFieldDefinition", b =>
                 {
                     b.Navigation("Values");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Customer", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Customer", b =>
                 {
                     b.Navigation("LoyaltyAccount");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.InstallmentPlan", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.InstallmentPlan", b =>
                 {
                     b.Navigation("Payments");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Product", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Product", b =>
                 {
                     b.Navigation("Batches");
 
                     b.Navigation("PackagingLevels");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Sale", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Sale", b =>
                 {
                     b.Navigation("InstallmentPlan");
 
@@ -1012,12 +1012,12 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.Navigation("ServiceLines");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.Service", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.Service", b =>
                 {
                     b.Navigation("StockLinks");
                 });
 
-            modelBuilder.Entity("PharmaStock.Domain.Entities.User", b =>
+            modelBuilder.Entity("PharmaStock.Domain.Models.User", b =>
                 {
                     b.Navigation("Devices");
                 });

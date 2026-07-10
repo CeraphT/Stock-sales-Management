@@ -70,7 +70,7 @@ public static class ProductEndpoints
     /// Blister=10 level becomes "2 boxes + 4 loose capsules".</summary>
     private static string FormatDisplayQuantity(
         int totalBaseUnits,
-        List<Domain.Entities.ProductPackagingLevel> levelsLargestFirst)
+        List<Domain.Models.ProductPackagingLevel> levelsLargestFirst)
     {
         if (totalBaseUnits <= 0) return "0";
 

@@ -20,13 +20,22 @@ One language, C#, end to end.
 PharmaStock.sln
 src/
   PharmaStock.Domain/          # POCO entities only, zero dependencies
-    Entities/
-    Enums/
+    Models/                    # one class/enum per file
   PharmaStock.Infrastructure/   # EF Core DbContext + entity configurations
     Data/
+      Configurations/
+      Migrations/
+    Services/                  # FEFO stock deduction, etc. — shared business logic
   PharmaStock.Api/              # ASP.NET Core minimal API
-    Endpoints/
+    Endpoints/                 # one file per feature (Auth, Company, Sale, ...)
+    Services/                  # JWT issuing, etc.
 ```
+
+Each project keeps a strict one-class-per-file, folder-by-layer structure (Models /
+Data / Services / Endpoints) rather than grouping several related types into one
+file — this mirrors how a Blazor/MVC project is normally laid out in Visual
+Studio, and keeps the same pattern ready to extend once the Web (Blazor) and
+MAUI projects are added (Components/Pages, Components/Layout, etc.).
 
 ### Why this order
 

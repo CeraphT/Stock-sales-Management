@@ -1,9 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using PharmaStock.Api.Auth;
-using PharmaStock.Domain.Entities;
-using PharmaStock.Domain.Enums;
+using PharmaStock.Api.Services;
+using PharmaStock.Domain.Models;
 using PharmaStock.Infrastructure.Data;
-using PharmaStock.Infrastructure.Stock;
+using PharmaStock.Infrastructure.Services;
 
 namespace PharmaStock.Api.Endpoints;
 

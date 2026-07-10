@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PharmaStock.Domain.Entities;
+using PharmaStock.Domain.Models;
 
 namespace PharmaStock.Infrastructure.Data.Configurations;
 

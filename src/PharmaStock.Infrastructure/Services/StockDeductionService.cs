@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PharmaStock.Infrastructure.Data;
 
-namespace PharmaStock.Infrastructure.Stock;
+namespace PharmaStock.Infrastructure.Services;
 
 public class InsufficientStockException : Exception
 {

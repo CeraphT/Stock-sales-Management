@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using PharmaStock.Api.Auth;
 using PharmaStock.Api.Endpoints;
-using PharmaStock.Domain.Entities;
+using PharmaStock.Api.Services;
+using PharmaStock.Domain.Models;
 using PharmaStock.Infrastructure.Data;
-using PharmaStock.Infrastructure.Stock;
+using PharmaStock.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

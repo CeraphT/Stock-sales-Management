@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace PharmaStock.Infrastructure.Migrations
+namespace PharmaStock.Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -678,9 +678,10 @@ namespace PharmaStock.Infrastructure.Migrations
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_CompanyId",
+                name: "IX_Users_CompanyId_Phone",
                 table: "Users",
-                column: "CompanyId");
+                columns: new[] { "CompanyId", "Phone" },
+                unique: true);
         }
 
         /// <inheritdoc />

@@ -2,9 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using PharmaStock.Domain.Entities;
+using PharmaStock.Domain.Models;
 
-namespace PharmaStock.Api.Auth;
+namespace PharmaStock.Api.Services;
 
 /// <summary>Issues access tokens for the JWT bearer scheme configured in
 /// Program.cs. CompanyId is embedded as a custom claim so every downstream
