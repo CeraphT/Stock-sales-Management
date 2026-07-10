@@ -83,14 +83,26 @@ public static class ProductEndpoints
             var count = remaining / level.QuantityInBaseUnits;
             if (count > 0)
             {
-                parts.Add($"{count} {level.UnitName}{(count > 1 ? "s" : "")}");
+                parts.Add($"{count} {Pluralize(level.UnitName, count)}");
                 remaining -= count * level.QuantityInBaseUnits;
             }
         }
 
         if (remaining > 0)
-            parts.Add($"{remaining} loose unit{(remaining > 1 ? "s" : "")}");
+            parts.Add($"{remaining} {Pluralize("loose unit", remaining)}");
 
         return parts.Count > 0 ? string.Join(" + ", parts) : $"{totalBaseUnits}";
+    }
+
+    /// <summary>Naive "+s" pluralization mangles common packaging unit names
+    /// like "box" -> "boxs" instead of "boxes", which would show up on every
+    /// receipt for boxed products. Covers the standard English sibilant-ending
+    /// case (box/es, dish/es); anything else falls back to "+s".</summary>
+    private static string Pluralize(string word, int count)
+    {
+        if (count == 1) return word;
+        return word.EndsWith('s') || word.EndsWith('x') || word.EndsWith("ch") || word.EndsWith("sh")
+            ? $"{word}es"
+            : $"{word}s";
     }
 }

@@ -76,7 +76,15 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
             .WithOne(p => p.Sale)
             .HasForeignKey<InstallmentPlan>(p => p.SaleId)
             .OnDelete(DeleteBehavior.Cascade);
+    }
+}
 
+/// <summary>Restrict delete on Product so a sale's history is never silently
+/// lost if a product referenced by a past sale line is removed.</summary>
+public class SaleLineConfiguration : IEntityTypeConfiguration<SaleLine>
+{
+    public void Configure(EntityTypeBuilder<SaleLine> builder)
+    {
         builder.HasOne(l => l.Product)
             .WithMany()
             .OnDelete(DeleteBehavior.Restrict);
