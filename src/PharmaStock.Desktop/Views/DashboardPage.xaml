@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PharmaStock.Desktop.Views.DashboardPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Dashboard">
+
+    <VerticalStackLayout Padding="30" Spacing="12" VerticalOptions="Center" HorizontalOptions="Center">
+        <Label Text="You're logged in" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" />
+        <Label x:Name="WelcomeLabel" FontSize="16" HorizontalOptions="Center" />
+        <Label x:Name="RoleLabel" FontSize="14" TextColor="Gray" HorizontalOptions="Center" />
+        <Label x:Name="CompanyLabel" FontSize="14" TextColor="Gray" HorizontalOptions="Center" />
+
+        <Label Text="POS, products, and stock screens are next." FontSize="13" TextColor="Gray" Margin="0,20,0,0" HorizontalOptions="Center" />
+
+        <Button Text="Log Out" Clicked="OnLogOutClicked" Margin="0,20,0,0" />
+    </VerticalStackLayout>
+</ContentPage>

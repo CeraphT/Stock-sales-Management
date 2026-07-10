@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PharmaStock.Desktop.Views.LoginPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Log In">
+
+    <VerticalStackLayout Padding="30" Spacing="12" VerticalOptions="Center" MaximumWidthRequest="420" HorizontalOptions="Center">
+        <Label Text="Log in" FontAttributes="Bold" FontSize="18" />
+        <Entry x:Name="PhoneEntry" Placeholder="Phone number" Keyboard="Telephone" />
+        <Entry x:Name="PasswordEntry" Placeholder="Password" IsPassword="True" />
+
+        <Label x:Name="ErrorLabel" TextColor="Red" IsVisible="False" />
+
+        <Button x:Name="SubmitButton" Text="Log In" Clicked="OnSubmitClicked" Margin="0,20,0,0" />
+        <ActivityIndicator x:Name="Spinner" IsRunning="False" IsVisible="False" />
+    </VerticalStackLayout>
+</ContentPage>

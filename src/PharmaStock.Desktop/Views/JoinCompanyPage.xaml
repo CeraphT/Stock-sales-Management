@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PharmaStock.Desktop.Views.JoinCompanyPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Join a Company">
+
+    <VerticalStackLayout Padding="30" Spacing="12" VerticalOptions="Center" MaximumWidthRequest="420" HorizontalOptions="Center">
+        <Label Text="Enter your company's code" FontAttributes="Bold" FontSize="18" />
+        <Entry x:Name="CodeEntry" Placeholder="e.g. PHRM-7X2K9" />
+        <Button x:Name="FindButton" Text="Find Company" Clicked="OnFindClicked" />
+
+        <Label x:Name="ResultLabel" IsVisible="False" Margin="0,20,0,0" FontSize="16" />
+        <Button x:Name="ContinueButton" Text="Continue to Log In" IsVisible="False" Clicked="OnContinueClicked" />
+
+        <Label x:Name="ErrorLabel" TextColor="Red" IsVisible="False" />
+        <ActivityIndicator x:Name="Spinner" IsRunning="False" IsVisible="False" />
+    </VerticalStackLayout>
+</ContentPage>
