@@ -1,10 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<!-- Windows-only for now (Section 13 Phase 1: Desktop first). Android/iOS
-		     targets can be added back once the maui-mobile workloads are
-		     installed and the app is ready for the Mobile phase (Section 4). -->
-		<TargetFrameworks>net10.0-windows10.0.19041.0</TargetFrameworks>
+		<!-- Android is now the primary target: shop staff will mostly use an
+		     Android tablet, not a PC (better battery resilience through
+		     power outages, cheaper/more repairable hardware locally). Windows
+		     stays as a secondary target for businesses that already own a PC.
+		     iOS is deliberately not targeted yet — building/signing an iOS
+		     app requires a Mac (or a cloud Mac CI runner), which isn't set up. -->
+		<TargetFrameworks>net10.0-android;net10.0-windows10.0.19041.0</TargetFrameworks>
 
 		<!-- Note for MacCatalyst:
 		The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
@@ -20,11 +23,11 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
-		<!-- Display name -->
-		<ApplicationTitle>PharmaStock.Desktop</ApplicationTitle>
+		<!-- Display name (shown as the Android app label / Windows window title) -->
+		<ApplicationTitle>PharmaStock</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.pharmastock.desktop</ApplicationId>
+		<ApplicationId>com.pharmastock.app</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>

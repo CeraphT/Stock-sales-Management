@@ -2,6 +2,7 @@
 bin/
 obj/
 out/
+*.Backup.tmp
 
 ## Visual Studio / Rider
 .vs/

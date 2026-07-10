@@ -96,12 +96,48 @@ the MAUI apps later, pointed at a local SQLite file instead of PostgreSQL.
 
 ## What's next (see Roadmap)
 
-Desktop MAUI app (offline-first POS, local SQLite, sync engine), then Web
-(Blazor) and Mobile (MAUI). Still open on the API side: cash-register/shift
-reconciliation (Section 3.6), purchase orders with partial receiving
-(Sections 3.4, 18.2), refresh tokens for long-lived offline sessions,
-GiftCard/StoreCredit redemption, held/parked sales, stock transfers between
-locations, and the reporting endpoints (Section 14).
+**Priority pivot (Cameroon deployment context):** the Android tablet is now
+the *primary* POS device, not the PC. Shop staff mostly have access to an
+Android tablet, not a PC — better battery resilience through power outages,
+cheaper/more repairable hardware locally. The PC Desktop build stays
+secondary/optional, for businesses that already own a PC. Both are the
+*same* MAUI project (`PharmaStock.Desktop`, multi-targeting
+`net10.0-android` and `net10.0-windows...`) — this is a priority/UI-scope
+change, not a separate codebase. iOS is deliberately not targeted yet:
+building/signing an iOS app needs a Mac (or a cloud Mac CI runner), which
+isn't set up.
+
+Concretely, the Mobile build must carry the *full* POS workflow (Section
+3.1: barcode scan, cart, payment, receipt, stock deduction) rather than a
+lighter lookup/scan-only companion scope, and its UI should be responsive to
+`DeviceInfo.Current.Idiom` (tablet gets a fuller multi-column layout closer
+to the desktop POS; phone gets a simplified single-column view).
+
+Onboarding (create/join company, login, dashboard) is done and running on
+both Windows and Android. Still open: the actual POS/cart screen (the big
+one), product catalog and stock screens, then Web (Blazor). On the API
+side: cash-register/shift reconciliation (Section 3.6), purchase orders
+with partial receiving (Sections 3.4, 18.2), refresh tokens for long-lived
+offline sessions, GiftCard/StoreCredit redemption, held/parked sales, stock
+transfers between locations, and the reporting endpoints (Section 14).
+
+### Android dev environment
+
+The `maui-android` workload and Android SDK/JDK aren't part of a default
+.NET install. To reproduce this environment:
+
+```bash
+dotnet workload install maui-android
+dotnet build src/PharmaStock.Desktop/PharmaStock.Desktop.csproj -t:InstallAndroidDependencies -f net10.0-android \
+  -p:AndroidSdkDirectory=C:\android-sdk -p:JavaSdkDirectory=C:\microsoft-jdk -p:AcceptAndroidSdkLicenses=True
+```
+
+Then set `ANDROID_HOME`/`JAVA_HOME` to those paths (session or system env
+vars) so subsequent builds and `adb` find them. Deploying to a USB-connected
+device: `adb reverse tcp:5080 tcp:5080` forwards the device's localhost back
+to the dev machine's API, so the app's existing `http://localhost:5080` base
+address works unchanged over the USB connection — no per-platform URL
+special-casing needed for this setup.
 
 ## Building this locally
 
