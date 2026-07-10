@@ -7,9 +7,21 @@
     Title="PharmaStock"
     FlyoutBehavior="Disabled">
 
-    <ShellContent
-        Title="Welcome"
-        ContentTemplate="{DataTemplate views:OnboardingPage}"
-        Route="OnboardingPage" />
+    <!-- Onboarding and Dashboard each get their own FlyoutItem (even though
+         the flyout itself is disabled) so they're both valid absolute
+         navigation targets ("//OnboardingPage", "//DashboardPage") without
+         being grouped into an implicit tab bar, which is what happens if
+         multiple ShellContent sit directly under one FlyoutItem/Shell. -->
+    <FlyoutItem Title="Welcome" Route="OnboardingSection">
+        <ShellContent
+            ContentTemplate="{DataTemplate views:OnboardingPage}"
+            Route="OnboardingPage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Dashboard" Route="DashboardSection">
+        <ShellContent
+            ContentTemplate="{DataTemplate views:DashboardPage}"
+            Route="DashboardPage" />
+    </FlyoutItem>
 
 </Shell>

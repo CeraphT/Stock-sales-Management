@@ -3,17 +3,27 @@
     x:Class="PharmaStock.Desktop.Views.JoinCompanyPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
     Title="Join a Company">
 
-    <VerticalStackLayout Padding="30" Spacing="12" VerticalOptions="Center" MaximumWidthRequest="420" HorizontalOptions="Center">
-        <Label Text="Enter your company's code" FontAttributes="Bold" FontSize="18" />
-        <Entry x:Name="CodeEntry" Placeholder="e.g. PHRM-7X2K9" />
-        <Button x:Name="FindButton" Text="Find Company" Clicked="OnFindClicked" />
+    <Grid Padding="24">
+        <Border Style="{StaticResource Card}" MaximumWidthRequest="420" HorizontalOptions="Center" VerticalOptions="Center">
+            <VerticalStackLayout Spacing="14">
+                <Label Text="Join your company" Style="{StaticResource PageTitle}" />
+                <Label Text="Enter the code your admin gave you." Style="{StaticResource PageSubtitle}" Margin="0,0,0,6" />
 
-        <Label x:Name="ResultLabel" IsVisible="False" Margin="0,20,0,0" FontSize="16" />
-        <Button x:Name="ContinueButton" Text="Continue to Log In" IsVisible="False" Clicked="OnContinueClicked" />
+                <controls:FormField x:Name="CodeField" Label="COMPANY CODE" Placeholder="e.g. PHRM-7X2K9" />
+                <Button x:Name="FindButton" Text="Find Company" Clicked="OnFindClicked" Margin="0,6,0,0" />
 
-        <Label x:Name="ErrorLabel" TextColor="Red" IsVisible="False" />
-        <ActivityIndicator x:Name="Spinner" IsRunning="False" IsVisible="False" />
-    </VerticalStackLayout>
+                <Border x:Name="ResultCard" IsVisible="False" BackgroundColor="{AppThemeBinding Light=#EAF6F1, Dark=#123027}"
+                        Stroke="{StaticResource SuccessColor}" StrokeThickness="1" StrokeShape="RoundRectangle 10" Padding="14" Margin="0,6,0,0">
+                    <Label x:Name="ResultLabel" TextColor="{StaticResource SuccessColor}" FontAttributes="Bold" />
+                </Border>
+                <Button x:Name="ContinueButton" Text="Continue to Log In" IsVisible="False" Clicked="OnContinueClicked" />
+
+                <Label x:Name="ErrorLabel" Style="{StaticResource ErrorText}" IsVisible="False" />
+                <ActivityIndicator x:Name="Spinner" IsRunning="False" IsVisible="False" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
 </ContentPage>

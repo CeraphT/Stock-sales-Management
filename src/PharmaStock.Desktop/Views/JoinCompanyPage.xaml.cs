@@ -15,10 +15,10 @@ public partial class JoinCompanyPage : ContentPage
     private async void OnFindClicked(object? sender, EventArgs e)
     {
         ErrorLabel.IsVisible = false;
-        ResultLabel.IsVisible = false;
+        ResultCard.IsVisible = false;
         ContinueButton.IsVisible = false;
 
-        if (string.IsNullOrWhiteSpace(CodeEntry.Text))
+        if (string.IsNullOrWhiteSpace(CodeField.Text))
         {
             ShowError("Enter the company code first.");
             return;
@@ -27,14 +27,18 @@ public partial class JoinCompanyPage : ContentPage
         SetBusy(true);
         try
         {
-            var company = await _api.JoinCompanyAsync(CodeEntry.Text.Trim());
+            var company = await _api.JoinCompanyAsync(CodeField.Text.Trim());
             ResultLabel.Text = $"Found: {company.Name}";
-            ResultLabel.IsVisible = true;
+            ResultCard.IsVisible = true;
             ContinueButton.IsVisible = true;
         }
         catch (PharmaStockApiException ex)
         {
             ShowError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            ShowError($"Something went wrong: {ex.Message}");
         }
         finally
         {

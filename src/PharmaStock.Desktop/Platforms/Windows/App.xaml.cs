@@ -17,6 +17,22 @@ public partial class App : MauiWinUIApplication
 	public App()
 	{
 		this.InitializeComponent();
+
+		// Without this, any unhandled exception on the UI thread (e.g. a bad
+		// Shell navigation, a JSON parsing error) silently terminates the
+		// whole process with no dialog and no console output — exactly what
+		// happened before this was added. Now it's shown to the user instead.
+		this.UnhandledException += OnUnhandledException;
+	}
+
+	private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+	{
+		e.Handled = true;
+		System.Diagnostics.Debug.WriteLine($"[UNHANDLED EXCEPTION] {e.Exception}");
+
+		var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
+		if (page is not null)
+			_ = page.DisplayAlertAsync("Unexpected error", e.Exception.Message, "OK");
 	}
 
 	protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();

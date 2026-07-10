@@ -3,14 +3,26 @@
     x:Class="PharmaStock.Desktop.Views.OnboardingPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="Welcome">
+    Title="Welcome"
+    Shell.NavBarIsVisible="False">
 
-    <VerticalStackLayout Padding="40" Spacing="20" VerticalOptions="Center" MaximumWidthRequest="420" HorizontalOptions="Center">
-        <Label Text="PharmaStock" FontSize="32" FontAttributes="Bold" HorizontalOptions="Center" />
-        <Label Text="Stock &amp; sales management for your pharmacy" FontSize="14" HorizontalOptions="Center" TextColor="Gray" />
+    <ScrollView>
+        <Grid Padding="24" MinimumHeightRequest="500" VerticalOptions="Fill">
+            <Border Style="{StaticResource Card}" MaximumWidthRequest="420" HorizontalOptions="Center" VerticalOptions="Center">
+                <VerticalStackLayout Spacing="10">
+                    <Border Style="{StaticResource Badge}">
+                        <Label Text="Rx" TextColor="White" FontSize="22" FontAttributes="Bold"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
 
-        <Button Text="Create a New Company" Clicked="OnCreateCompanyClicked" Margin="0,20,0,0" />
-        <Button Text="Join an Existing Company" Clicked="OnJoinCompanyClicked" />
-        <Button Text="Log In" Clicked="OnLoginClicked" />
-    </VerticalStackLayout>
+                    <Label Text="PharmaStock" Style="{StaticResource PageTitle}" Margin="0,12,0,0" />
+                    <Label Text="Stock &amp; sales management for your pharmacy" Style="{StaticResource PageSubtitle}" Margin="0,0,0,10" />
+
+                    <Button Text="Create a New Company" Clicked="OnCreateCompanyClicked" Margin="0,14,0,0" />
+                    <Button Text="Join an Existing Company" Style="{StaticResource SecondaryButton}" Clicked="OnJoinCompanyClicked" />
+                    <Button Text="Log In" Style="{StaticResource SecondaryButton}" Clicked="OnLoginClicked" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+    </ScrollView>
 </ContentPage>

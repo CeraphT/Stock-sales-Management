@@ -23,6 +23,13 @@ public partial class DashboardPage : ContentPage
     private async void OnLogOutClicked(object? sender, EventArgs e)
     {
         _session.Clear();
-        await Shell.Current.GoToAsync($"//{nameof(Views.OnboardingPage)}");
+        try
+        {
+            await Shell.Current.GoToAsync(AppShell.OnboardingRoute);
+        }
+        catch (Exception ex)
+        {
+            await this.DisplayAlertAsync("Unexpected error", ex.Message, "OK");
+        }
     }
 }

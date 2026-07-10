@@ -18,7 +18,7 @@ public partial class LoginPage : ContentPage
     {
         ErrorLabel.IsVisible = false;
 
-        if (string.IsNullOrWhiteSpace(PhoneEntry.Text) || string.IsNullOrWhiteSpace(PasswordEntry.Text))
+        if (string.IsNullOrWhiteSpace(PhoneField.Text) || string.IsNullOrWhiteSpace(PasswordField.Text))
         {
             ShowError("Enter your phone number and password.");
             return;
@@ -27,13 +27,17 @@ public partial class LoginPage : ContentPage
         SetBusy(true);
         try
         {
-            var auth = await _api.LoginAsync(PhoneEntry.Text.Trim(), PasswordEntry.Text);
+            var auth = await _api.LoginAsync(PhoneField.Text.Trim(), PasswordField.Text);
             _session.Save(auth);
-            await Shell.Current.GoToAsync($"//{nameof(DashboardPage)}");
+            await Shell.Current.GoToAsync(AppShell.DashboardRoute);
         }
         catch (PharmaStockApiException ex)
         {
             ShowError(ex.StatusCode == 401 ? "Incorrect phone number or password." : ex.Message);
+        }
+        catch (Exception ex)
+        {
+            ShowError($"Something went wrong: {ex.Message}");
         }
         finally
         {

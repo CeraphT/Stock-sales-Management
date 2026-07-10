@@ -18,10 +18,10 @@ public partial class CreateCompanyPage : ContentPage
     {
         ErrorLabel.IsVisible = false;
 
-        if (string.IsNullOrWhiteSpace(NameEntry.Text) ||
-            string.IsNullOrWhiteSpace(AdminNameEntry.Text) ||
-            string.IsNullOrWhiteSpace(AdminPhoneEntry.Text) ||
-            string.IsNullOrWhiteSpace(AdminPasswordEntry.Text))
+        if (string.IsNullOrWhiteSpace(NameField.Text) ||
+            string.IsNullOrWhiteSpace(AdminNameField.Text) ||
+            string.IsNullOrWhiteSpace(AdminPhoneField.Text) ||
+            string.IsNullOrWhiteSpace(AdminPasswordField.Text))
         {
             ShowError("Please fill in all required fields.");
             return;
@@ -31,19 +31,26 @@ public partial class CreateCompanyPage : ContentPage
         try
         {
             var response = await _api.CreateCompanyAsync(new CreateCompanyRequest(
-                NameEntry.Text.Trim(),
-                string.IsNullOrWhiteSpace(DescriptionEntry.Text) ? null : DescriptionEntry.Text.Trim(),
-                string.IsNullOrWhiteSpace(CurrencyEntry.Text) ? "XAF" : CurrencyEntry.Text.Trim(),
-                AdminNameEntry.Text.Trim(),
-                AdminPhoneEntry.Text.Trim(),
-                AdminPasswordEntry.Text));
+                NameField.Text.Trim(),
+                string.IsNullOrWhiteSpace(DescriptionField.Text) ? null : DescriptionField.Text.Trim(),
+                string.IsNullOrWhiteSpace(CurrencyField.Text) ? "XAF" : CurrencyField.Text.Trim(),
+                AdminNameField.Text.Trim(),
+                AdminPhoneField.Text.Trim(),
+                AdminPasswordField.Text));
 
             _session.Save(response.Admin);
-            await Shell.Current.GoToAsync($"//{nameof(DashboardPage)}");
+            await Shell.Current.GoToAsync(AppShell.DashboardRoute);
         }
         catch (PharmaStockApiException ex)
         {
             ShowError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            // Anything else (navigation, JSON parsing, ...) still needs to
+            // surface here rather than rely solely on the app-wide handler —
+            // a silent close with no feedback is exactly the bug this guards against.
+            ShowError($"Something went wrong: {ex.Message}");
         }
         finally
         {

@@ -3,16 +3,26 @@
     x:Class="PharmaStock.Desktop.Views.DashboardPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="Dashboard">
+    Title="Dashboard"
+    Shell.NavBarIsVisible="False">
 
-    <VerticalStackLayout Padding="30" Spacing="12" VerticalOptions="Center" HorizontalOptions="Center">
-        <Label Text="You're logged in" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" />
-        <Label x:Name="WelcomeLabel" FontSize="16" HorizontalOptions="Center" />
-        <Label x:Name="RoleLabel" FontSize="14" TextColor="Gray" HorizontalOptions="Center" />
-        <Label x:Name="CompanyLabel" FontSize="14" TextColor="Gray" HorizontalOptions="Center" />
+    <Grid Padding="24">
+        <Border Style="{StaticResource Card}" MaximumWidthRequest="420" HorizontalOptions="Center" VerticalOptions="Center">
+            <VerticalStackLayout Spacing="6">
+                <Border Style="{StaticResource Badge}" BackgroundColor="{StaticResource SuccessColor}">
+                    <Label Text="&#10003;" TextColor="White" FontSize="24" FontAttributes="Bold"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
 
-        <Label Text="POS, products, and stock screens are next." FontSize="13" TextColor="Gray" Margin="0,20,0,0" HorizontalOptions="Center" />
+                <Label Text="You're logged in" Style="{StaticResource PageTitle}" Margin="0,12,0,0" />
+                <Label x:Name="WelcomeLabel" Style="{StaticResource PageSubtitle}" />
+                <Label x:Name="RoleLabel" Style="{StaticResource PageSubtitle}" />
+                <Label x:Name="CompanyLabel" Style="{StaticResource PageSubtitle}" />
 
-        <Button Text="Log Out" Clicked="OnLogOutClicked" Margin="0,20,0,0" />
-    </VerticalStackLayout>
+                <Label Text="POS, products, and stock screens are next." Style="{StaticResource PageSubtitle}" Margin="0,16,0,0" />
+
+                <Button Text="Log Out" Style="{StaticResource SecondaryButton}" Clicked="OnLogOutClicked" Margin="0,16,0,0" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
 </ContentPage>
