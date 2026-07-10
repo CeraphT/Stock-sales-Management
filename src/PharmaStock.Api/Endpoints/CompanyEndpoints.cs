@@ -1,12 +1,18 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using PharmaStock.Api.Auth;
 using PharmaStock.Domain.Entities;
+using PharmaStock.Domain.Enums;
 using PharmaStock.Infrastructure.Data;
 
 namespace PharmaStock.Api.Endpoints;
 
-public record CreateCompanyRequest(string Name, string? Description, string Currency);
+public record CreateCompanyRequest(
+    string Name, string? Description, string Currency,
+    string AdminName, string AdminPhone, string AdminPassword);
 public record JoinCompanyRequest(string UniqueCode);
 public record CompanyResponse(Guid Id, string Name, string UniqueCode, string Currency, bool ServicesModuleEnabled);
+public record CreateCompanyResponse(CompanyResponse Company, AuthResponse Admin);
 
 public static class CompanyEndpoints
 {
@@ -17,8 +23,16 @@ public static class CompanyEndpoints
         // Section 9 — "Create a new company" path of the onboarding flow.
         // Generates the unique code that every other device will use to "join"
         // this same company rather than accidentally creating a duplicate.
-        group.MapPost("/", async (CreateCompanyRequest request, PharmaStockDbContext db) =>
+        // Creates the company's first CompanyAdmin account in the same
+        // transaction — a company must never exist without an admin able to
+        // log into it, so the two are never split across separate requests.
+        group.MapPost("/", async (
+            CreateCompanyRequest request, PharmaStockDbContext db,
+            IPasswordHasher<User> hasher, JwtTokenService tokens) =>
         {
+            if (string.IsNullOrWhiteSpace(request.AdminPassword) || request.AdminPassword.Length < 6)
+                return Results.BadRequest(new { message = "AdminPassword must be at least 6 characters." });
+
             var company = new Company
             {
                 Name = request.Name,
@@ -26,12 +40,27 @@ public static class CompanyEndpoints
                 Currency = string.IsNullOrWhiteSpace(request.Currency) ? "XAF" : request.Currency,
                 UniqueCode = GenerateUniqueCode()
             };
-
             db.Companies.Add(company);
+
+            var admin = new User
+            {
+                CompanyId = company.Id,
+                Name = request.AdminName,
+                Phone = request.AdminPhone,
+                Role = UserRole.CompanyAdmin,
+            };
+            admin.PasswordHash = hasher.HashPassword(admin, request.AdminPassword);
+            db.Users.Add(admin);
+
             await db.SaveChangesAsync();
 
-            return Results.Created($"/api/companies/{company.Id}",
-                new CompanyResponse(company.Id, company.Name, company.UniqueCode, company.Currency, company.ServicesModuleEnabled));
+            var (token, expiresAt) = tokens.IssueToken(admin);
+
+            return Results.Created($"/api/companies/{company.Id}", new CreateCompanyResponse(
+                new CompanyResponse(company.Id, company.Name, company.UniqueCode, company.Currency, company.ServicesModuleEnabled),
+                new AuthResponse(token, expiresAt,
+                    new UserResponse(admin.Id, admin.Name, admin.Phone, admin.Role, admin.Active),
+                    company.Id)));
         });
 
         // Section 9 — "Join an existing company" path. A device (Desktop,

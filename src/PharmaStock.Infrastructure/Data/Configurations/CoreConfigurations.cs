@@ -50,6 +50,19 @@ public class GiftCardConfiguration : IEntityTypeConfiguration<GiftCard>
     }
 }
 
+/// <summary>Phone is the login identifier (Section 3.7). Unique per company
+/// rather than globally, since the same person could legitimately hold a
+/// staff account at two different companies in this multi-tenant system.
+/// SuperAdmin accounts (CompanyId null) are exempt — Postgres treats each
+/// NULL as distinct, so multiple SuperAdmins never collide here.</summary>
+public class UserConfiguration : IEntityTypeConfiguration<User>
+{
+    public void Configure(EntityTypeBuilder<User> builder)
+    {
+        builder.HasIndex(u => new { u.CompanyId, u.Phone }).IsUnique();
+    }
+}
+
 /// <summary>A sale can mix product lines and service lines on the same
 /// receipt (Section 20.2) — both are configured with Restrict delete behavior
 /// so a sale's history is never silently lost if a product or service is removed.</summary>

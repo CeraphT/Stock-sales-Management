@@ -1,5 +1,11 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using PharmaStock.Api.Auth;
 using PharmaStock.Api.Endpoints;
+using PharmaStock.Domain.Entities;
 using PharmaStock.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,10 +18,41 @@ builder.Services.AddDbContext<PharmaStockDbContext>(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddSingleton<JwtTokenService>();
+
+// Dev-only fallback secret, same pattern as the connection string above —
+// production deployments must override Jwt:Secret via environment/user-secrets.
+var jwtSecret = builder.Configuration["Jwt:Secret"]
+    ?? "dev-only-insecure-signing-key-change-before-deploying-32bytes-min";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "PharmaStock";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "PharmaStock";
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", timestamp = DateTime.UtcNow }));
 
+app.MapAuthEndpoints();
 app.MapCompanyEndpoints();
 app.MapProductEndpoints();
 
