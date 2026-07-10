@@ -46,17 +46,35 @@ the MAUI apps later, pointed at a local SQLite file instead of PostgreSQL.
   SaleLine, PaymentSplit, Service, ServiceStockLink, ServiceLine,
   InstallmentPlan, InstallmentPayment, CustomFieldDefinition, CustomFieldValue
 - EF Core DbContext with key constraints (unique company code, unique gift
-  card code, decimal precision) — Sections 9, 21.3
-- `POST /api/companies` — create a company, generating its unique onboarding code (Section 9)
-- `POST /api/companies/join` — join an existing company by that code (Section 9)
+  card code, unique user phone-per-company, decimal precision, UTC-normalized
+  DateTime columns) — Sections 9, 21.3
+- `POST /api/companies` — create a company + its first CompanyAdmin account
+  in one transaction, returns a JWT (Section 9)
+- `POST /api/companies/join` — join an existing company by its unique code (Section 9)
+- `POST /api/auth/login` — phone + password → JWT
+- `POST /api/companies/{companyId}/users` — CompanyAdmin/SuperAdmin-only, adds staff accounts (Section 3.7)
 - `GET /api/companies/{companyId}/products/availability?query=` — Section 17
   Stock Availability Check, including the packaging-hierarchy display logic
   from Section 15 (e.g. "2 boxes + 4 loose capsules")
+- `POST /api/companies/{companyId}/sales` — the Sales endpoint (Section 3.1):
+  FEFO stock deduction (Section 16.1) via StockMovement rows, packaging-aware
+  quantity/pricing (Section 15), mixed product + service lines gated on
+  Company.ServicesModuleEnabled (Section 20), service stock-consumption links
+  (Section 20.6), split payments (Section 18.1), and Credit sales against
+  Customer.CreditBalance (Section 3.5)
+- `POST .../products/{productId}/stock/receive` — supplier receiving, always
+  a new Batch (Section 3.3/3.4)
+- `POST .../products/{productId}/stock/adjust` — manual adjustment with
+  mandatory reason, blocked from driving a batch negative (Section 3.3)
+- `GET .../products/{productId}/batches` / `GET .../movements` — per-batch
+  stock view and full movement history (Section 3.3)
 
 ## What's next (see Roadmap)
 
-Auth/JWT, the sales endpoint (stock deduction via StockMovement, Section
-6.1), stock movement/batch management endpoints, then the Desktop MAUI app.
+Desktop MAUI app (offline-first POS, local SQLite, sync engine), then Web
+(Blazor) and Mobile (MAUI). Still open on the API side: refresh tokens for
+long-lived offline sessions, GiftCard/StoreCredit redemption, held/parked
+sales, and the reporting endpoints (Section 14).
 
 ## Building this locally
 
@@ -89,10 +107,10 @@ dotnet build
 
 ## Roadmap (matches the spec book's Section 13 phasing)
 
-- [x] Domain model + DbContext (this commit)
-- [ ] Auth (JWT) + password hashing, Company/User seeding
-- [ ] Sales endpoint: stock deduction via StockMovement, packaging-aware line items
-- [ ] Stock movement endpoints: entry, adjustment, batch receiving
+- [x] Domain model + DbContext
+- [x] Auth (JWT) + password hashing, Company/User seeding
+- [x] Sales endpoint: stock deduction via StockMovement, packaging-aware line items
+- [x] Stock movement endpoints: entry, adjustment, batch receiving
 - [ ] Desktop (.NET MAUI): offline-first POS, local SQLite, sync engine (Section 6)
 - [ ] Web (Blazor): admin dashboard, reports, Super Admin multi-client view (Section 22)
 - [ ] Mobile (.NET MAUI): stock lookup, barcode scanning, inventory (Section 4)
