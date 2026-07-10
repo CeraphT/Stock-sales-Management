@@ -1,0 +1,24 @@
+## .NET build artifacts
+bin/
+obj/
+out/
+
+## Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+
+## MAUI / mobile build outputs (added once Desktop/Mobile projects exist)
+*.apk
+*.ipa
+*.appx
+
+## Local secrets — never commit connection strings with real credentials
+appsettings.Development.json
+appsettings.*.local.json
+**/secrets.json
+
+## OS noise
+.DS_Store
+Thumbs.db
