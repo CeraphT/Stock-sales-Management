@@ -7,6 +7,7 @@ using PharmaStock.Api.Auth;
 using PharmaStock.Api.Endpoints;
 using PharmaStock.Domain.Entities;
 using PharmaStock.Infrastructure.Data;
+using PharmaStock.Infrastructure.Stock;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddSingleton<JwtTokenService>();
+builder.Services.AddScoped<StockDeductionService>();
 
 // Dev-only fallback secret, same pattern as the connection string above —
 // production deployments must override Jwt:Secret via environment/user-secrets.
@@ -55,5 +57,6 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok", timestamp = DateTime
 app.MapAuthEndpoints();
 app.MapCompanyEndpoints();
 app.MapProductEndpoints();
+app.MapSaleEndpoints();
 
 app.Run();
