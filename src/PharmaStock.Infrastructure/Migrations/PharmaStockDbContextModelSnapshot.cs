@@ -48,7 +48,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Batches");
+                    b.ToTable("Batches", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.Company", b =>
@@ -89,7 +89,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.HasIndex("UniqueCode")
                         .IsUnique();
 
-                    b.ToTable("Companies");
+                    b.ToTable("Companies", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.CustomFieldDefinition", b =>
@@ -115,7 +115,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("CustomFieldDefinitions");
+                    b.ToTable("CustomFieldDefinitions", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.CustomFieldValue", b =>
@@ -137,7 +137,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("CustomFieldDefinitionId");
 
-                    b.ToTable("CustomFieldValues");
+                    b.ToTable("CustomFieldValues", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.Customer", b =>
@@ -164,7 +164,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.Device", b =>
@@ -199,7 +199,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Devices");
+                    b.ToTable("Devices", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.GiftCard", b =>
@@ -231,7 +231,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.HasIndex("CompanyId", "Code")
                         .IsUnique();
 
-                    b.ToTable("GiftCards");
+                    b.ToTable("GiftCards", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.InstallmentPayment", b =>
@@ -254,7 +254,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("InstallmentPlanId");
 
-                    b.ToTable("InstallmentPayments");
+                    b.ToTable("InstallmentPayments", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.InstallmentPlan", b =>
@@ -281,7 +281,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.HasIndex("SaleId")
                         .IsUnique();
 
-                    b.ToTable("InstallmentPlans");
+                    b.ToTable("InstallmentPlans", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.LoyaltyAccount", b =>
@@ -305,7 +305,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.HasIndex("CustomerId")
                         .IsUnique();
 
-                    b.ToTable("LoyaltyAccounts");
+                    b.ToTable("LoyaltyAccounts", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.PaymentSplit", b =>
@@ -328,7 +328,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("SaleId");
 
-                    b.ToTable("PaymentSplits");
+                    b.ToTable("PaymentSplits", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.Product", b =>
@@ -373,7 +373,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("CompanyId", "Barcode");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.ProductPackagingLevel", b =>
@@ -400,7 +400,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductPackagingLevels");
+                    b.ToTable("ProductPackagingLevels", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.Sale", b =>
@@ -439,7 +439,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Sales");
+                    b.ToTable("Sales", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.SaleLine", b =>
@@ -477,7 +477,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("SaleId");
 
-                    b.ToTable("SaleLines");
+                    b.ToTable("SaleLines", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.Service", b =>
@@ -507,7 +507,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("Services");
+                    b.ToTable("Services", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.ServiceLine", b =>
@@ -535,7 +535,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("ServiceLines");
+                    b.ToTable("ServiceLines", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.ServiceStockLink", b =>
@@ -559,7 +559,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("ServiceStockLinks");
+                    b.ToTable("ServiceStockLinks", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.StockMovement", b =>
@@ -597,7 +597,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("StockMovements");
+                    b.ToTable("StockMovements", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.Supplier", b =>
@@ -623,7 +623,7 @@ namespace PharmaStock.Infrastructure.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Suppliers", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.User", b =>
@@ -668,7 +668,7 @@ namespace PharmaStock.Infrastructure.Migrations
                     b.HasIndex("CompanyId", "Phone")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("PharmaStock.Domain.Entities.Batch", b =>

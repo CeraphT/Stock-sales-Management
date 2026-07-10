@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PharmaStock.Domain.Entities;
 
 namespace PharmaStock.Infrastructure.Data;
@@ -54,6 +55,30 @@ public class PharmaStockDbContext : DbContext
         {
             property.SetPrecision(18);
             property.SetScale(2);
+        }
+
+        // Npgsql maps DateTime to Postgres "timestamp with time zone" and
+        // refuses to write any value whose Kind isn't Utc. Server-generated
+        // timestamps (DateTime.UtcNow defaults) already satisfy that, but a
+        // DateTime deserialized from a JSON request body with no offset
+        // (e.g. a batch expiry date like "2027-08-01") comes in as
+        // Kind=Unspecified and would otherwise throw at SaveChanges for
+        // every endpoint that ever accepts a date from a client. Coercing at
+        // the model level here means every current and future DateTime
+        // column is covered, not just the ones we've hit so far.
+        var utcConverter = new ValueConverter<DateTime, DateTime>(
+            v => v.Kind == DateTimeKind.Utc ? v : DateTime.SpecifyKind(v, DateTimeKind.Utc),
+            v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+        var nullableUtcConverter = new ValueConverter<DateTime?, DateTime?>(
+            v => v.HasValue && v.Value.Kind != DateTimeKind.Utc ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v,
+            v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
+
+        foreach (var property in modelBuilder.Model.GetEntityTypes().SelectMany(t => t.GetProperties()))
+        {
+            if (property.ClrType == typeof(DateTime))
+                property.SetValueConverter(utcConverter);
+            else if (property.ClrType == typeof(DateTime?))
+                property.SetValueConverter(nullableUtcConverter);
         }
 
         base.OnModelCreating(modelBuilder);

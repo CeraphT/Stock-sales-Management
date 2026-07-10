@@ -58,5 +58,6 @@ app.MapAuthEndpoints();
 app.MapCompanyEndpoints();
 app.MapProductEndpoints();
 app.MapSaleEndpoints();
+app.MapStockMovementEndpoints();
 
 app.Run();
