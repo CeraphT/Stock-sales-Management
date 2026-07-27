@@ -3,26 +3,24 @@
     x:Class="PharmaStock.Desktop.Views.OnboardingPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="Welcome"
+    xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
+    Title="Bienvenue"
     Shell.NavBarIsVisible="False">
 
-    <ScrollView>
-        <Grid Padding="24" MinimumHeightRequest="500" VerticalOptions="Fill">
-            <Border Style="{StaticResource Card}" MaximumWidthRequest="420" HorizontalOptions="Center" VerticalOptions="Center">
-                <VerticalStackLayout Spacing="10">
-                    <Border Style="{StaticResource Badge}">
-                        <Label Text="Rx" TextColor="White" FontSize="22" FontAttributes="Bold"
-                               HorizontalOptions="Center" VerticalOptions="Center" />
-                    </Border>
+    <Grid Padding="24">
+        <Border Style="{StaticResource Card}" MaximumWidthRequest="420" HorizontalOptions="Center" VerticalOptions="Center">
+            <VerticalStackLayout Spacing="10">
+                <Image Source="pharmastock_logo_full.svg" WidthRequest="280" HeightRequest="91" Aspect="AspectFit" HorizontalOptions="Center" />
 
-                    <Label Text="PharmaStock" Style="{StaticResource PageTitle}" Margin="0,12,0,0" />
-                    <Label Text="Stock &amp; sales management for your pharmacy" Style="{StaticResource PageSubtitle}" Margin="0,0,0,10" />
+                <Label Text="{loc:Translate Onboarding_Subtitle}" Style="{StaticResource PageSubtitle}" HorizontalTextAlignment="Center" Margin="0,0,0,10" />
 
-                    <Button Text="Create a New Company" Clicked="OnCreateCompanyClicked" Margin="0,14,0,0" />
-                    <Button Text="Join an Existing Company" Style="{StaticResource SecondaryButton}" Clicked="OnJoinCompanyClicked" />
-                    <Button Text="Log In" Style="{StaticResource SecondaryButton}" Clicked="OnLoginClicked" />
-                </VerticalStackLayout>
-            </Border>
-        </Grid>
-    </ScrollView>
+                <controls:IconButton Icon="{x:Static loc:BootstrapIcons.PlusLg}" Text="{loc:Translate Onboarding_CreateCompany}" Clicked="OnCreateCompanyClicked" Margin="0,14,0,0" />
+                <controls:IconButton Icon="{x:Static loc:BootstrapIcons.ArrowRight}" Text="{loc:Translate Onboarding_JoinCompany}" Variant="Secondary" Clicked="OnJoinCompanyClicked" />
+                <controls:IconButton Icon="{x:Static loc:BootstrapIcons.ArrowRight}" Text="{loc:Translate Onboarding_Login}" Variant="Secondary" Clicked="OnLoginClicked" />
+
+                <controls:LanguageSwitch HorizontalOptions="Center" Margin="0,10,0,0" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
 </ContentPage>

@@ -37,6 +37,25 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .WithOne(b => b.Product)
             .HasForeignKey(b => b.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // SetNull rather than Restrict: deleting a category should never be
+        // blocked by products still referencing it — it just clears their
+        // category instead of forcing every product to be reassigned first.
+        builder.HasOne(p => p.Category)
+            .WithMany()
+            .HasForeignKey(p => p.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
+    }
+}
+
+/// <summary>Category names are unique per company (case-sensitive at the DB
+/// level) so the picker/management screen never shows visually duplicate
+/// entries created by two people at once.</summary>
+public class CategoryConfiguration : IEntityTypeConfiguration<Category>
+{
+    public void Configure(EntityTypeBuilder<Category> builder)
+    {
+        builder.HasIndex(c => new { c.CompanyId, c.Name }).IsUnique();
     }
 }
 
@@ -93,6 +112,23 @@ public class GiftCardConfiguration : IEntityTypeConfiguration<GiftCard>
     }
 }
 
+/// <summary>Section 21.1. The refresh-token hash is looked up directly on
+/// every /api/auth/refresh call, so it needs an index; unique because two
+/// devices could otherwise theoretically collide on the same stored hash
+/// and silently authenticate as each other.</summary>
+public class DeviceConfiguration : IEntityTypeConfiguration<Device>
+{
+    public void Configure(EntityTypeBuilder<Device> builder)
+    {
+        builder.HasIndex(d => d.RefreshTokenHash).IsUnique();
+
+        builder.HasOne(d => d.User)
+            .WithMany(u => u.Devices)
+            .HasForeignKey(d => d.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
 /// <summary>Phone is the login identifier (Section 3.7). Unique per company
 /// rather than globally, since the same person could legitimately hold a
 /// staff account at two different companies in this multi-tenant system.
@@ -136,6 +172,42 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
             .WithOne(p => p.Sale)
             .HasForeignKey<InstallmentPlan>(p => p.SaleId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(s => s.Shift)
+            .WithMany(sh => sh.Sales)
+            .HasForeignKey(s => s.ShiftId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+/// <summary>Section 3.6. The partial unique index is the actual guarantee
+/// behind "only one open shift per location" — an application-level check
+/// (query-then-insert) has a race window two cashiers opening at the same
+/// moment could slip through; the DB constraint can't be raced. ShiftStatus
+/// is stored as its int value by convention (Open = 0), which HasFilter's
+/// raw SQL predicate has to match directly since it isn't translated.</summary>
+public class CashRegisterShiftConfiguration : IEntityTypeConfiguration<CashRegisterShift>
+{
+    public void Configure(EntityTypeBuilder<CashRegisterShift> builder)
+    {
+        builder.HasIndex(s => s.LocationId)
+            .IsUnique()
+            .HasFilter("\"Status\" = 0");
+
+        builder.HasOne(s => s.Location)
+            .WithMany()
+            .HasForeignKey(s => s.LocationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(s => s.OpenedByUser)
+            .WithMany()
+            .HasForeignKey(s => s.OpenedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(s => s.ClosedByUser)
+            .WithMany()
+            .HasForeignKey(s => s.ClosedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -168,6 +240,44 @@ public class ServiceConfiguration : IEntityTypeConfiguration<Service>
 public class ServiceStockLinkConfiguration : IEntityTypeConfiguration<ServiceStockLink>
 {
     public void Configure(EntityTypeBuilder<ServiceStockLink> builder)
+    {
+        builder.HasOne(l => l.Product)
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+/// <summary>Restrict on every FK (Location, Supplier, CreatedByUser) so a
+/// purchase order's paper trail is never silently lost by deleting something
+/// it references — same reasoning as Sale/CashRegisterShift. Lines cascade
+/// with their parent PO since they have no meaning independent of it.</summary>
+public class PurchaseOrderConfiguration : IEntityTypeConfiguration<PurchaseOrder>
+{
+    public void Configure(EntityTypeBuilder<PurchaseOrder> builder)
+    {
+        builder.HasOne(o => o.Location)
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(o => o.Supplier)
+            .WithMany()
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(o => o.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(o => o.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(o => o.Lines)
+            .WithOne(l => l.PurchaseOrder)
+            .HasForeignKey(l => l.PurchaseOrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class PurchaseOrderLineConfiguration : IEntityTypeConfiguration<PurchaseOrderLine>
+{
+    public void Configure(EntityTypeBuilder<PurchaseOrderLine> builder)
     {
         builder.HasOne(l => l.Product)
             .WithMany()

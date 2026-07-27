@@ -6,24 +6,60 @@ public partial class CreateCompanyPage : ContentPage
 {
     private readonly PharmaStockApiClient _api;
     private readonly SessionService _session;
+    private readonly SyncService _syncService;
+    private int _step = 1;
 
-    public CreateCompanyPage(PharmaStockApiClient api, SessionService session)
+    public CreateCompanyPage(PharmaStockApiClient api, SessionService session, SyncService syncService)
     {
         InitializeComponent();
         _api = api;
         _session = session;
+        _syncService = syncService;
+        // No language toggle lives on this page, so the language can't
+        // change while it's visible — a one-time render here is enough,
+        // unlike DashboardPage's imperative labels which sit next to the
+        // toggle itself and do need a live LanguageChanged subscription.
+        UpdateStepVisibility();
+    }
+
+    private void OnNextClicked(object? sender, EventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(NameField.Text))
+        {
+            ShowError(LocalizationService.Translate("CreateCompany_NameRequired"));
+            return;
+        }
+
+        _step = 2;
+        UpdateStepVisibility();
+    }
+
+    private void OnBackClicked(object? sender, EventArgs e)
+    {
+        _step = 1;
+        UpdateStepVisibility();
+    }
+
+    private void UpdateStepVisibility()
+    {
+        CompanyStep.IsVisible = _step == 1;
+        AdminStep.IsVisible = _step == 2;
+        BackButton.IsVisible = _step == 2;
+        NextButton.IsVisible = _step == 1;
+        SubmitButton.IsVisible = _step == 2;
+        StepLabel.Text = _step == 1
+            ? LocalizationService.Translate("CreateCompany_Step1")
+            : LocalizationService.Translate("CreateCompany_Step2");
     }
 
     private async void OnSubmitClicked(object? sender, EventArgs e)
     {
-        ErrorLabel.IsVisible = false;
-
         if (string.IsNullOrWhiteSpace(NameField.Text) ||
             string.IsNullOrWhiteSpace(AdminNameField.Text) ||
             string.IsNullOrWhiteSpace(AdminPhoneField.Text) ||
             string.IsNullOrWhiteSpace(AdminPasswordField.Text))
         {
-            ShowError("Please fill in all required fields.");
+            ShowError(LocalizationService.Translate("CreateCompany_RequiredFields"));
             return;
         }
 
@@ -36,9 +72,11 @@ public partial class CreateCompanyPage : ContentPage
                 string.IsNullOrWhiteSpace(CurrencyField.Text) ? "XAF" : CurrencyField.Text.Trim(),
                 AdminNameField.Text.Trim(),
                 AdminPhoneField.Text.Trim(),
-                AdminPasswordField.Text));
+                AdminPasswordField.Text.Trim(),
+                _session.DeviceId, DeviceContext.Name, DeviceContext.Platform));
 
             _session.Save(response.Admin);
+            _syncService.StartBackgroundSync();
             await Shell.Current.GoToAsync(AppShell.DashboardRoute);
         }
         catch (PharmaStockApiException ex)
@@ -50,7 +88,7 @@ public partial class CreateCompanyPage : ContentPage
             // Anything else (navigation, JSON parsing, ...) still needs to
             // surface here rather than rely solely on the app-wide handler —
             // a silent close with no feedback is exactly the bug this guards against.
-            ShowError($"Something went wrong: {ex.Message}");
+            ShowError(LocalizationService.Translate("Login_GenericError", ex.Message));
         }
         finally
         {
@@ -58,15 +96,12 @@ public partial class CreateCompanyPage : ContentPage
         }
     }
 
-    private void ShowError(string message)
-    {
-        ErrorLabel.Text = message;
-        ErrorLabel.IsVisible = true;
-    }
+    private void ShowError(string message) => ToastExtensions.ShowError(this, message);
 
     private void SetBusy(bool busy)
     {
         SubmitButton.IsEnabled = !busy;
+        BackButton.IsEnabled = !busy;
         Spinner.IsRunning = busy;
         Spinner.IsVisible = busy;
     }

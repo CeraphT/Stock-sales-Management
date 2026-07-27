@@ -35,17 +35,21 @@ public static class StockMovementEndpoints
             if (forbidden is not null) return forbidden;
 
             if (request.QuantityInBaseUnits <= 0)
-                return Results.BadRequest(new { message = "QuantityInBaseUnits must be positive." });
+                return Results.BadRequest(new { message = "La quantité doit être positive." });
             if (string.IsNullOrWhiteSpace(request.BatchNumber))
-                return Results.BadRequest(new { message = "BatchNumber is required." });
+                return Results.BadRequest(new { message = "Le numéro de lot est requis." });
+            if (request.ExpiryDate is null)
+                return Results.BadRequest(new { message = "La date d'expiration est requise." });
 
             var product = await db.Products.FirstOrDefaultAsync(p => p.Id == productId && p.CompanyId == companyId);
             if (product is null)
-                return Results.NotFound(new { message = "Product not found." });
+                return Results.NotFound(new { message = "Produit introuvable." });
+            if (!product.IsActive)
+                return Results.BadRequest(new { message = "Ce produit est archivé et ne peut plus recevoir de stock." });
 
             var locationExists = await db.Locations.AnyAsync(l => l.Id == request.LocationId && l.CompanyId == companyId);
             if (!locationExists)
-                return Results.NotFound(new { message = "Location not found." });
+                return Results.NotFound(new { message = "Emplacement introuvable." });
 
             var batch = new Batch
             {
@@ -88,9 +92,15 @@ public static class StockMovementEndpoints
             if (forbidden is not null) return forbidden;
 
             if (request.DeltaInBaseUnits == 0)
-                return Results.BadRequest(new { message = "DeltaInBaseUnits must be non-zero." });
+                return Results.BadRequest(new { message = "La variation doit être différente de zéro." });
             if (string.IsNullOrWhiteSpace(request.Reason))
-                return Results.BadRequest(new { message = "Reason is required for a manual adjustment." });
+                return Results.BadRequest(new { message = "Un motif est requis pour un ajustement manuel." });
+
+            var product = await db.Products.FirstOrDefaultAsync(p => p.Id == productId && p.CompanyId == companyId);
+            if (product is null)
+                return Results.NotFound(new { message = "Produit introuvable." });
+            if (!product.IsActive)
+                return Results.BadRequest(new { message = "Ce produit est archivé et ne peut plus être ajusté." });
 
             await using var transaction = await db.Database.BeginTransactionAsync();
 
@@ -98,7 +108,7 @@ public static class StockMovementEndpoints
                 .FromSqlInterpolated($@"SELECT * FROM ""Batches"" WHERE ""Id"" = {request.BatchId} FOR UPDATE")
                 .FirstOrDefaultAsync();
             if (batch is null || batch.ProductId != productId)
-                return Results.NotFound(new { message = "Batch not found for this product." });
+                return Results.NotFound(new { message = "Lot introuvable pour ce produit." });
 
             var newBalance = batch.QuantityInBaseUnits + request.DeltaInBaseUnits;
             if (newBalance < 0)
@@ -106,7 +116,7 @@ public static class StockMovementEndpoints
                 await transaction.RollbackAsync();
                 return Results.Conflict(new
                 {
-                    message = $"Adjustment would leave batch balance negative " +
+                    message = $"Cet ajustement rendrait le solde du lot négatif " +
                         $"({batch.QuantityInBaseUnits} + {request.DeltaInBaseUnits})."
                 });
             }
@@ -138,7 +148,7 @@ public static class StockMovementEndpoints
 
             var productExists = await db.Products.AnyAsync(p => p.Id == productId && p.CompanyId == companyId);
             if (!productExists)
-                return Results.NotFound(new { message = "Product not found." });
+                return Results.NotFound(new { message = "Produit introuvable." });
 
             var batches = await db.Batches
                 .Where(b => b.ProductId == productId)
@@ -158,7 +168,7 @@ public static class StockMovementEndpoints
 
             var productExists = await db.Products.AnyAsync(p => p.Id == productId && p.CompanyId == companyId);
             if (!productExists)
-                return Results.NotFound(new { message = "Product not found." });
+                return Results.NotFound(new { message = "Produit introuvable." });
 
             var movements = await db.StockMovements
                 .Where(m => m.ProductId == productId)

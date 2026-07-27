@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PharmaStock.Desktop.Views.ProductFilterPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
+    Title="{loc:Translate Catalog_Filters_Title}">
+
+    <Grid Padding="24">
+        <Border Style="{StaticResource Card}" MaximumWidthRequest="420" MaximumHeightRequest="1000" HorizontalOptions="Center" VerticalOptions="Center">
+            <ScrollView>
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="{loc:Translate Catalog_Filters_Title}" Style="{StaticResource PageTitle}" />
+
+                    <Label Text="{loc:Translate Filter_StockStatus}" Style="{StaticResource SectionLabel}" />
+                    <HorizontalStackLayout Spacing="10">
+                        <CheckBox x:Name="InStockCheckBox" VerticalOptions="Center" />
+                        <Label Text="{loc:Translate StockStatus_InStock}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Spacing="10">
+                        <CheckBox x:Name="LowStockCheckBox" VerticalOptions="Center" />
+                        <Label Text="{loc:Translate StockStatus_LowStock}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Spacing="10">
+                        <CheckBox x:Name="OutOfStockCheckBox" VerticalOptions="Center" />
+                        <Label Text="{loc:Translate StockStatus_OutOfStock}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+
+                    <Label Text="{loc:Translate Filter_Favorites}" Style="{StaticResource SectionLabel}" />
+                    <HorizontalStackLayout Spacing="10">
+                        <CheckBox x:Name="FavoritesOnlyCheckBox" VerticalOptions="Center" />
+                        <Label Text="{loc:Translate Filter_FavoritesOnly}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+
+                    <Label Text="{loc:Translate Filter_Expiration}" Style="{StaticResource SectionLabel}" />
+                    <HorizontalStackLayout Spacing="10">
+                        <CheckBox x:Name="ExpiringSoonCheckBox" VerticalOptions="Center" />
+                        <Label Text="{loc:Translate Filter_ExpiringSoon}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Spacing="10">
+                        <CheckBox x:Name="ExpiredCheckBox" VerticalOptions="Center" />
+                        <Label Text="{loc:Translate Filter_AlreadyExpired}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+
+                    <Label Text="{loc:Translate Shell_Archives}" Style="{StaticResource SectionLabel}" />
+                    <HorizontalStackLayout Spacing="10">
+                        <CheckBox x:Name="ArchivedOnlyCheckBox" VerticalOptions="Center" />
+                        <Label Text="{loc:Translate Filter_ShowArchived}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+
+                    <controls:IconButton Icon="{x:Static loc:BootstrapIcons.XLg}" Text="{loc:Translate Filter_Reset}" Variant="Secondary" Clicked="OnResetClicked" Margin="0,10,0,0" />
+                    <controls:IconButton Icon="{x:Static loc:BootstrapIcons.Check2}" Text="{loc:Translate Filter_Apply}" Clicked="OnApplyClicked" />
+                </VerticalStackLayout>
+            </ScrollView>
+        </Border>
+    </Grid>
+</ContentPage>

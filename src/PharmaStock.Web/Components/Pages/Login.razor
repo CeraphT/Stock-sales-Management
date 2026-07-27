@@ -1,0 +1,78 @@
+@page "/"
+@page "/login"
+@inject SuperAdminApiClient Api
+@inject SuperAdminSession Session
+@inject NavigationManager Navigation
+
+<PageTitle>Connexion — PharmaStock SuperAdmin</PageTitle>
+
+<div class="centered-card-page">
+    <div class="card centered-card">
+        <h1>PharmaStock SuperAdmin</h1>
+        <p class="page-subtitle">Administration des entreprises enregistrées.</p>
+
+        @if (_error is not null)
+        {
+            <div class="error-banner">@_error</div>
+        }
+
+        <EditForm Model="this" OnValidSubmit="SubmitAsync">
+            <div class="form-field">
+                <label for="phone">Téléphone</label>
+                <input id="phone" type="tel" @bind="_phone" placeholder="ex. 677001122" disabled="@_busy" />
+            </div>
+            <div class="form-field">
+                <label for="password">Mot de passe</label>
+                <input id="password" type="password" @bind="_password" disabled="@_busy" />
+            </div>
+            <button type="submit" class="btn btn-primary" disabled="@_busy">
+                @(_busy ? "Connexion..." : "Se connecter")
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private string _phone = string.Empty;
+    private string _password = string.Empty;
+    private bool _busy;
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        // Already signed in within this circuit (e.g. navigated back here
+        // manually) — no reason to re-prompt.
+        if (Session.IsAuthenticated)
+            Navigation.NavigateTo("/companies", forceLoad: false);
+    }
+
+    private async Task SubmitAsync()
+    {
+        _error = null;
+        _busy = true;
+        try
+        {
+            var auth = await Api.LoginAsync(_phone.Trim(), _password);
+            if (auth.User.Role != PharmaStock.Domain.Models.UserRole.SuperAdmin)
+            {
+                _error = "Ce compte n'a pas accès à l'administration SuperAdmin.";
+                return;
+            }
+
+            Session.SignIn(auth.Token, auth.User.Id, auth.User.Name);
+            Navigation.NavigateTo("/companies", forceLoad: false);
+        }
+        catch (PharmaStockApiException ex) when (ex.StatusCode == 401)
+        {
+            _error = "Numéro ou mot de passe incorrect.";
+        }
+        catch (PharmaStockApiException ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

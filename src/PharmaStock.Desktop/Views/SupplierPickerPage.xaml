@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PharmaStock.Desktop.Views.SupplierPickerPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
+    xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    Title="{loc:Translate SupplierPicker_Title}">
+
+    <Grid Padding="24">
+        <Border Style="{StaticResource Card}" MaximumWidthRequest="480" HorizontalOptions="Center" VerticalOptions="Center">
+            <VerticalStackLayout Spacing="14">
+                <Label Text="{loc:Translate SupplierPicker_Title}" Style="{StaticResource PageTitle}" />
+                <controls:CollapsibleSearchBar x:Name="SearchBarControl" Placeholder="{loc:Translate SupplierPicker_SearchPlaceholder}" TextChanged="OnSearchTextChanged" />
+                <controls:IconButton Icon="{x:Static loc:BootstrapIcons.PlusLg}" Text="{loc:Translate SupplierPicker_New}" Variant="Secondary" Clicked="OnAddSupplierClicked" />
+
+                <CollectionView x:Name="SuppliersView" SelectionMode="Single" SelectionChanged="OnSupplierSelected" HeightRequest="320">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource FieldBorder}" HeightRequest="-1" Padding="12,10" Margin="0,4">
+                                <Label Text="{Binding Name}" VerticalOptions="Center" />
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+                <Label x:Name="EmptyLabel" Text="{loc:Translate SupplierPicker_NoResults}" Style="{StaticResource PageSubtitle}" IsVisible="False" />
+
+                <controls:IconButton Icon="{x:Static loc:BootstrapIcons.XLg}" Text="{loc:Translate Common_Cancel}" Variant="Secondary" Clicked="OnCancelClicked" />
+                <ActivityIndicator x:Name="Spinner" IsRunning="False" IsVisible="False" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentPage>

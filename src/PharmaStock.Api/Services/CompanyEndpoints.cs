@@ -7,10 +7,12 @@ namespace PharmaStock.Api.Services;
 
 public record CreateCompanyRequest(
     string Name, string? Description, string Currency,
-    string AdminName, string AdminPhone, string AdminPassword);
+    string AdminName, string AdminPhone, string AdminPassword,
+    Guid DeviceId, string DeviceName, DevicePlatform Platform);
 public record JoinCompanyRequest(string UniqueCode);
-public record CompanyResponse(Guid Id, string Name, string UniqueCode, string Currency, bool ServicesModuleEnabled);
+public record CompanyResponse(Guid Id, string Name, string UniqueCode, string Currency, bool ServicesModuleEnabled, string? Description, decimal DefaultTaxRatePercent);
 public record CreateCompanyResponse(CompanyResponse Company, AuthResponse Admin, LocationResponse DefaultLocation);
+public record UpdateCompanyRequest(string Name, string? Description, string Currency, decimal DefaultTaxRatePercent);
 
 public static class CompanyEndpoints
 {
@@ -29,7 +31,7 @@ public static class CompanyEndpoints
             IPasswordHasher<User> hasher, JwtTokenService tokens) =>
         {
             if (string.IsNullOrWhiteSpace(request.AdminPassword) || request.AdminPassword.Length < 6)
-                return Results.BadRequest(new { message = "AdminPassword must be at least 6 characters." });
+                return Results.BadRequest(new { message = "Le mot de passe administrateur doit contenir au moins 6 caractères." });
 
             var company = new Company
             {
@@ -63,13 +65,12 @@ public static class CompanyEndpoints
 
             await db.SaveChangesAsync();
 
-            var (token, expiresAt) = tokens.IssueToken(admin);
+            var auth = await AuthEndpoints.IssueAuthResponseAsync(
+                admin, request.DeviceId, request.DeviceName, request.Platform, db, tokens);
 
             return Results.Created($"/api/companies/{company.Id}", new CreateCompanyResponse(
-                new CompanyResponse(company.Id, company.Name, company.UniqueCode, company.Currency, company.ServicesModuleEnabled),
-                new AuthResponse(token, expiresAt,
-                    new UserResponse(admin.Id, admin.Name, admin.Phone, admin.Role, admin.Active),
-                    company.Id),
+                ToResponse(company),
+                auth,
                 new LocationResponse(defaultLocation.Id, defaultLocation.Name, defaultLocation.Address, defaultLocation.Active)));
         });
 
@@ -83,21 +84,50 @@ public static class CompanyEndpoints
                 .FirstOrDefaultAsync(c => c.UniqueCode == request.UniqueCode);
 
             if (company is null)
-                return Results.NotFound(new { message = "No company found with that code." });
+                return Results.NotFound(new { message = "Aucune entreprise trouvée avec ce code." });
 
-            return Results.Ok(new CompanyResponse(
-                company.Id, company.Name, company.UniqueCode, company.Currency, company.ServicesModuleEnabled));
+            return Results.Ok(ToResponse(company));
         });
 
         group.MapGet("/{id:guid}", async (Guid id, PharmaStockDbContext db) =>
         {
             var company = await db.Companies.FindAsync(id);
-            return company is null
-                ? Results.NotFound()
-                : Results.Ok(new CompanyResponse(
-                    company.Id, company.Name, company.UniqueCode, company.Currency, company.ServicesModuleEnabled));
+            return company is null ? Results.NotFound() : Results.Ok(ToResponse(company));
         });
+
+        // "Gérer mon entreprise" — a CompanyAdmin editing their own company's
+        // own details post-onboarding (name, description, currency, default
+        // tax rate). Deliberately not a cross-tenant admin surface: scoped to
+        // the caller's own CompanyId only, via the same role check already
+        // used for staff-account creation. Cross-tenant company management
+        // (Super Admin) is out of scope here — see project decision to build
+        // that as a separate web app instead.
+        group.MapPut("/{id:guid}", async (Guid id, UpdateCompanyRequest request, PharmaStockDbContext db, HttpContext http) =>
+        {
+            if (http.User.GetCompanyId() != id)
+                return Results.Forbid();
+
+            if (string.IsNullOrWhiteSpace(request.Name))
+                return Results.BadRequest(new { message = "Le nom de l'entreprise est requis." });
+
+            var company = await db.Companies.FindAsync(id);
+            if (company is null)
+                return Results.NotFound(new { message = "Entreprise introuvable." });
+
+            company.Name = request.Name.Trim();
+            company.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+            company.Currency = string.IsNullOrWhiteSpace(request.Currency) ? company.Currency : request.Currency.Trim();
+            company.DefaultTaxRatePercent = request.DefaultTaxRatePercent;
+
+            await db.SaveChangesAsync();
+
+            return Results.Ok(ToResponse(company));
+        }).RequireAuthorization(policy => policy.RequireRole(nameof(UserRole.CompanyAdmin), nameof(UserRole.SuperAdmin)));
     }
+
+    private static CompanyResponse ToResponse(Company company) => new(
+        company.Id, company.Name, company.UniqueCode, company.Currency, company.ServicesModuleEnabled,
+        company.Description, company.DefaultTaxRatePercent);
 
     /// <summary>Short, human-typeable code (Section 9): e.g. PHRM-7X2K9.
     /// Collision odds are negligible at this scale, but the database-level

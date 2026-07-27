@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentView
+    x:Class="PharmaStock.Desktop.Controls.FlyoutSection"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Name="Root">
+
+    <VerticalStackLayout>
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Padding="16,12">
+            <Label Grid.Column="0" x:Name="HeaderIconLabel" FontFamily="BootstrapIcons" FontSize="16"
+                   VerticalOptions="Center"
+                   Text="{Binding Source={x:Reference Root}, Path=Icon}" />
+            <Label Grid.Column="1" Style="{StaticResource SectionLabel}" FontSize="14"
+                   VerticalOptions="Center"
+                   Text="{Binding Source={x:Reference Root}, Path=Title}" />
+            <Label Grid.Column="2" x:Name="ChevronLabel" FontFamily="BootstrapIcons" FontSize="14"
+                   VerticalOptions="Center" />
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnHeaderTapped" />
+            </Grid.GestureRecognizers>
+        </Grid>
+        <VerticalStackLayout x:Name="Body" IsVisible="False" Padding="16,0,0,4" Spacing="2" />
+    </VerticalStackLayout>
+</ContentView>

@@ -6,38 +6,41 @@ public partial class LoginPage : ContentPage
 {
     private readonly PharmaStockApiClient _api;
     private readonly SessionService _session;
+    private readonly SyncService _syncService;
 
-    public LoginPage(PharmaStockApiClient api, SessionService session)
+    public LoginPage(PharmaStockApiClient api, SessionService session, SyncService syncService)
     {
         InitializeComponent();
         _api = api;
         _session = session;
+        _syncService = syncService;
     }
 
     private async void OnSubmitClicked(object? sender, EventArgs e)
     {
-        ErrorLabel.IsVisible = false;
-
         if (string.IsNullOrWhiteSpace(PhoneField.Text) || string.IsNullOrWhiteSpace(PasswordField.Text))
         {
-            ShowError("Enter your phone number and password.");
+            ShowError(LocalizationService.Translate("Login_MissingFields"));
             return;
         }
 
         SetBusy(true);
         try
         {
-            var auth = await _api.LoginAsync(PhoneField.Text.Trim(), PasswordField.Text);
+            var auth = await _api.LoginAsync(
+                PhoneField.Text.Trim(), PasswordField.Text.Trim(),
+                _session.DeviceId, DeviceContext.Name, DeviceContext.Platform);
             _session.Save(auth);
+            _syncService.StartBackgroundSync();
             await Shell.Current.GoToAsync(AppShell.DashboardRoute);
         }
         catch (PharmaStockApiException ex)
         {
-            ShowError(ex.StatusCode == 401 ? "Incorrect phone number or password." : ex.Message);
+            ShowError(ex.StatusCode == 401 ? LocalizationService.Translate("Login_InvalidCredentials") : ex.Message);
         }
         catch (Exception ex)
         {
-            ShowError($"Something went wrong: {ex.Message}");
+            ShowError(LocalizationService.Translate("Login_GenericError", ex.Message));
         }
         finally
         {
@@ -45,11 +48,7 @@ public partial class LoginPage : ContentPage
         }
     }
 
-    private void ShowError(string message)
-    {
-        ErrorLabel.Text = message;
-        ErrorLabel.IsVisible = true;
-    }
+    private void ShowError(string message) => ToastExtensions.ShowError(this, message);
 
     private void SetBusy(bool busy)
     {

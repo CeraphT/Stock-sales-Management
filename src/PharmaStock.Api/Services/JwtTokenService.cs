@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using PharmaStock.Domain.Models;
@@ -51,6 +52,20 @@ public class JwtTokenService
 
         return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
     }
+
+    /// <summary>Generates a new refresh token for a device. Returns the raw
+    /// value (sent to the client once, never stored) alongside the hash that
+    /// gets persisted on Device.RefreshTokenHash — mirrors how User.PasswordHash
+    /// never stores the plaintext password.</summary>
+    public (string RawToken, string Hash, DateTime ExpiresAt) IssueRefreshToken()
+    {
+        var days = _configuration.GetValue<int?>("Jwt:RefreshTokenExpiryDays") ?? 30;
+        var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        return (raw, HashRefreshToken(raw), DateTime.UtcNow.AddDays(days));
+    }
+
+    public static string HashRefreshToken(string rawToken) =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken)));
 }
 
 /// <summary>Small helpers for reading the claims JwtTokenService issues, so

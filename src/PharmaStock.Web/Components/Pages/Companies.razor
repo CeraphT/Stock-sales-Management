@@ -1,0 +1,89 @@
+@page "/companies"
+@inject SuperAdminApiClient Api
+@inject SuperAdminSession Session
+@inject NavigationManager Navigation
+
+<PageTitle>Entreprises — PharmaStock SuperAdmin</PageTitle>
+
+<h1>Entreprises</h1>
+<p class="page-subtitle">Toutes les entreprises enregistrées sur PharmaStock.</p>
+
+@if (_error is not null)
+{
+    <div class="error-banner">@_error</div>
+}
+else if (_companies is null)
+{
+    <p>Chargement...</p>
+}
+else
+{
+    <div class="search-box">
+        <input type="search" placeholder="Rechercher une entreprise..." @bind="_filter" @bind:event="oninput" />
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Code</th>
+                <th>Créée le</th>
+                <th>Utilisateurs</th>
+                <th>Produits</th>
+                <th>Ventes</th>
+                <th>Revenu total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var company in FilteredCompanies)
+            {
+                <tr @onclick="() => NavigateToCompany(company.Id)">
+                    <td>@company.Name</td>
+                    <td>@company.UniqueCode</td>
+                    <td>@company.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                    <td>@company.UserCount</td>
+                    <td>@company.ProductCount</td>
+                    <td>@company.SalesCount</td>
+                    <td>@company.TotalRevenue.ToString("N0")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (FilteredCompanies.Count == 0)
+    {
+        <p class="page-subtitle">Aucune entreprise ne correspond à cette recherche.</p>
+    }
+}
+
+@code {
+    private List<SuperAdminCompanySummary>? _companies;
+    private string _filter = string.Empty;
+    private string? _error;
+
+    private List<SuperAdminCompanySummary> FilteredCompanies =>
+        string.IsNullOrWhiteSpace(_filter)
+            ? _companies!
+            : _companies!.Where(c => c.Name.Contains(_filter, StringComparison.OrdinalIgnoreCase)
+                || c.UniqueCode.Contains(_filter, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", forceLoad: false);
+            return;
+        }
+
+        try
+        {
+            _companies = await Api.GetCompaniesAsync();
+        }
+        catch (PharmaStockApiException ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private void NavigateToCompany(Guid id) => Navigation.NavigateTo($"/companies/{id}");
+}

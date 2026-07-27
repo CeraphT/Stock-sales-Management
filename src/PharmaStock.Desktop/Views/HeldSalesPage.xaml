@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PharmaStock.Desktop.Views.HeldSalesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
+    Title="{loc:Translate HeldSales_Title}">
+
+    <Grid Padding="24">
+        <Border Style="{StaticResource Card}" MaximumWidthRequest="480" HorizontalOptions="Center" VerticalOptions="Center">
+            <VerticalStackLayout Spacing="14">
+                <Label Text="{loc:Translate HeldSales_Title}" Style="{StaticResource PageTitle}" />
+
+                <Grid>
+                    <CollectionView x:Name="HeldSalesView" SelectionMode="Single" SelectionChanged="OnHeldSaleSelected" HeightRequest="320">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource FieldBorder}" HeightRequest="-1" Padding="12,10" Margin="0,4">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                            <Label Text="{Binding TimeText}" FontAttributes="Bold" />
+                                            <Label Text="{Binding SubtitleText}" Style="{StaticResource PageSubtitle}" />
+                                        </VerticalStackLayout>
+                                        <Button Grid.Column="1" Text="&#xF5DE;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}"
+                                                Padding="0" WidthRequest="46" VerticalOptions="Center"
+                                                Clicked="OnDeleteHeldSaleClicked" CommandParameter="{Binding .}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                    <Label x:Name="EmptyLabel" Text="{loc:Translate HeldSales_Empty}" Style="{StaticResource PageSubtitle}" IsVisible="False" VerticalOptions="Start" />
+                    <ActivityIndicator x:Name="LoadingSpinner" IsRunning="False" IsVisible="False" VerticalOptions="Start" Margin="0,24,0,0" />
+                </Grid>
+
+                <controls:IconButton Icon="{x:Static loc:BootstrapIcons.XLg}" Text="{loc:Translate Common_Cancel}" Variant="Secondary" Clicked="OnCancelClicked" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentPage>

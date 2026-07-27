@@ -3,7 +3,7 @@ namespace PharmaStock.Domain.Models;
 /// <summary>A product in the catalog (Section 3.2). Stock quantities are always
 /// tracked at the smallest packaging unit internally (Section 15.1) — this
 /// entity itself does not hold a quantity; see Batch and StockMovement.</summary>
-public class Product
+public class Product : ITimestamped
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -12,7 +12,10 @@ public class Product
 
     public string Name { get; set; } = string.Empty;
     public string? Barcode { get; set; }
-    public string? Category { get; set; }
+
+    public Guid? CategoryId { get; set; }
+    public Category? Category { get; set; }
+
     public decimal PurchasePrice { get; set; }
 
     /// <summary>Default sale price at the base (smallest) unit. Higher packaging
@@ -23,6 +26,7 @@ public class Product
     public Supplier? Supplier { get; set; }
 
     public bool IsFavorite { get; set; } = false;
+    public bool IsActive { get; set; } = true;
     public int LowStockThreshold { get; set; } = 0;
 
     /// <summary>Section 18.3 — null means "use Company.DefaultTaxRatePercent".
@@ -32,4 +36,8 @@ public class Product
 
     public ICollection<ProductPackagingLevel> PackagingLevels { get; set; } = new List<ProductPackagingLevel>();
     public ICollection<Batch> Batches { get; set; } = new List<Batch>();
+
+    /// <summary>Section 6 — stamped automatically on every save, drives
+    /// incremental sync pull to offline devices.</summary>
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

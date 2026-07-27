@@ -14,13 +14,12 @@ public partial class JoinCompanyPage : ContentPage
 
     private async void OnFindClicked(object? sender, EventArgs e)
     {
-        ErrorLabel.IsVisible = false;
         ResultCard.IsVisible = false;
         ContinueButton.IsVisible = false;
 
         if (string.IsNullOrWhiteSpace(CodeField.Text))
         {
-            ShowError("Enter the company code first.");
+            ShowError(LocalizationService.Translate("JoinCompany_MissingCode"));
             return;
         }
 
@@ -28,7 +27,7 @@ public partial class JoinCompanyPage : ContentPage
         try
         {
             var company = await _api.JoinCompanyAsync(CodeField.Text.Trim());
-            ResultLabel.Text = $"Found: {company.Name}";
+            ResultLabel.Text = LocalizationService.Translate("JoinCompany_Found", company.Name);
             ResultCard.IsVisible = true;
             ContinueButton.IsVisible = true;
         }
@@ -38,7 +37,7 @@ public partial class JoinCompanyPage : ContentPage
         }
         catch (Exception ex)
         {
-            ShowError($"Something went wrong: {ex.Message}");
+            ShowError(LocalizationService.Translate("Login_GenericError", ex.Message));
         }
         finally
         {
@@ -49,11 +48,7 @@ public partial class JoinCompanyPage : ContentPage
     private async void OnContinueClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync(nameof(LoginPage));
 
-    private void ShowError(string message)
-    {
-        ErrorLabel.Text = message;
-        ErrorLabel.IsVisible = true;
-    }
+    private void ShowError(string message) => ToastExtensions.ShowError(this, message);
 
     private void SetBusy(bool busy)
     {

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PharmaStock.Desktop.Views.CompanySettingsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
+    xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    Title="{loc:Translate CompanySettings_Title}">
+
+    <Grid Padding="16" RowDefinitions="Auto,*,Auto" RowSpacing="12">
+
+        <Label Grid.Row="0" Text="{loc:Translate CompanySettings_Title}" Style="{StaticResource PageTitle}" HorizontalOptions="Start" />
+
+        <ScrollView Grid.Row="1" x:Name="FormScroll">
+            <Border Style="{StaticResource Card}" Padding="18">
+                <VerticalStackLayout Spacing="14">
+                    <controls:FormField x:Name="NameField" Label="{loc:Translate CompanySettings_NameLabel}" Placeholder="{loc:Translate CompanySettings_NamePlaceholder}" />
+                    <controls:FormField x:Name="DescriptionField" Label="{loc:Translate CompanySettings_DescriptionLabel}" Placeholder="{loc:Translate CompanySettings_DescriptionPlaceholder}" />
+                    <controls:FormField x:Name="CurrencyField" Label="{loc:Translate CompanySettings_CurrencyLabel}" Placeholder="ex. XAF" />
+                    <controls:FormField x:Name="TaxRateField" Label="{loc:Translate CompanySettings_TaxRateLabel}" Placeholder="ex. 19.25" Keyboard="Numeric" />
+
+                    <BoxView HeightRequest="1" Color="{StaticResource BorderColor}" />
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="{loc:Translate CompanySettings_InviteCodeLabel}" Style="{StaticResource FieldLabel}" />
+                        <Label x:Name="UniqueCodeLabel" FontAttributes="Bold" FontSize="18" />
+                        <Label Text="{loc:Translate CompanySettings_InviteCodeHint}" Style="{StaticResource PageSubtitle}" />
+                        <controls:IconButton x:Name="ShareInviteButton" Icon="{x:Static loc:BootstrapIcons.Share}" Text="{loc:Translate CompanySettings_ShareInvite}" Variant="Secondary"
+                                Clicked="OnShareInviteClicked" Margin="0,10,0,0" HorizontalOptions="Start" />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+        </ScrollView>
+
+        <ActivityIndicator Grid.Row="1" x:Name="LoadingSpinner" IsRunning="False" IsVisible="False" />
+
+        <VerticalStackLayout Grid.Row="2" Spacing="10">
+            <controls:IconButton x:Name="SaveButton" Icon="{x:Static loc:BootstrapIcons.Check2}" Text="{loc:Translate CompanySettings_Save}" Clicked="OnSaveClicked" />
+            <ActivityIndicator x:Name="Spinner" IsRunning="False" IsVisible="False" />
+        </VerticalStackLayout>
+
+    </Grid>
+</ContentPage>

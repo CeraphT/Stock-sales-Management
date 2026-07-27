@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PharmaStock.Domain.Models;
 using PharmaStock.Infrastructure.Data;
 
 namespace PharmaStock.Infrastructure.Services;
@@ -47,13 +48,33 @@ public class StockDeductionService
         if (quantityInBaseUnits <= 0)
             return new List<StockDeductionResult>();
 
-        var batches = await _db.Batches
-            .FromSqlInterpolated($@"
-                SELECT * FROM ""Batches""
-                WHERE ""ProductId"" = {productId} AND ""LocationId"" = {locationId} AND ""QuantityInBaseUnits"" > 0
-                ORDER BY ""ExpiryDate"" ASC NULLS LAST
-                FOR UPDATE")
-            .ToListAsync(ct);
+        List<Batch> batches;
+        if (_db.Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")
+        {
+            batches = await _db.Batches
+                .FromSqlInterpolated($@"
+                    SELECT * FROM ""Batches""
+                    WHERE ""ProductId"" = {productId} AND ""LocationId"" = {locationId} AND ""QuantityInBaseUnits"" > 0
+                    ORDER BY ""ExpiryDate"" ASC NULLS LAST
+                    FOR UPDATE")
+                .ToListAsync(ct);
+        }
+        else
+        {
+            // SQLite (Desktop/Mobile, Section 6): no FOR UPDATE support, and
+            // none needed — each device's local database is its own file
+            // with no other writer to lock against. Same-process concurrency
+            // (checkout racing a background sync-pull write) is the caller's
+            // responsibility (see LocalDbWriteLock in PharmaStock.Desktop).
+            // Cross-device conflicts (two offline devices both deducting from
+            // the same batch) are resolved at sync-push time on the server,
+            // not here.
+            batches = await _db.Batches
+                .Where(b => b.ProductId == productId && b.LocationId == locationId && b.QuantityInBaseUnits > 0)
+                .OrderBy(b => b.ExpiryDate == null ? 1 : 0)
+                .ThenBy(b => b.ExpiryDate)
+                .ToListAsync(ct);
+        }
 
         var remaining = quantityInBaseUnits;
         var results = new List<StockDeductionResult>();

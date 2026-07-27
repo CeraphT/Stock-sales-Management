@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentView
+    x:Class="PharmaStock.Desktop.Controls.CollapsibleSearchBar"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Name="Root">
+
+    <Grid>
+        <Button x:Name="IconButton" Text="&#xF52A;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}"
+                Padding="0" WidthRequest="44" HorizontalOptions="Start"
+                Clicked="OnExpandClicked" />
+
+        <Grid x:Name="ExpandedRow" ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="False">
+            <SearchBar
+                x:Name="InnerSearchBar" Grid.Column="0"
+                Placeholder="{Binding Source={x:Reference Root}, Path=Placeholder}"
+                Text="{Binding Source={x:Reference Root}, Path=Text, Mode=TwoWay}"
+                TextChanged="OnInnerTextChanged" />
+            <Button Grid.Column="1" Text="&#xF659;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}"
+                    Padding="0" WidthRequest="44" Clicked="OnCollapseClicked" />
+        </Grid>
+    </Grid>
+</ContentView>

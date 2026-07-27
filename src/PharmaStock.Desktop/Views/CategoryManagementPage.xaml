@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PharmaStock.Desktop.Views.CategoryManagementPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
+    xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    Title="{loc:Translate Shell_Categories}">
+
+    <Grid Padding="16" RowDefinitions="Auto,*" RowSpacing="12">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="10">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Label Grid.Column="0" Text="{loc:Translate Shell_Categories}" Style="{StaticResource PageTitle}" HorizontalOptions="Start" />
+                <Button Grid.Column="1" Text="&#xF64D;" FontFamily="BootstrapIcons" WidthRequest="46" Padding="0" Clicked="OnAddCategoryClicked" />
+            </Grid>
+            <controls:CollapsibleSearchBar x:Name="SearchBarControl" Placeholder="{loc:Translate CategoryPicker_SearchPlaceholder}" TextChanged="OnSearchTextChanged" />
+        </VerticalStackLayout>
+
+        <Grid Grid.Row="1" RowDefinitions="*">
+            <CollectionView Grid.Row="0" x:Name="CategoriesView">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource FieldBorder}" HeightRequest="-1" Padding="12,10" Margin="0,4">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="{Binding Name}" VerticalOptions="Center" FontAttributes="Bold" />
+                                <Button Grid.Column="1" Text="&#xF5DE;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}"
+                                        Padding="0" WidthRequest="46" VerticalOptions="Center"
+                                        Clicked="OnDeleteCategoryClicked" CommandParameter="{Binding .}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label Grid.Row="0" x:Name="EmptyLabel" Text="{loc:Translate CategoryManagement_Empty}" Style="{StaticResource PageSubtitle}" IsVisible="False" VerticalOptions="Start" />
+
+            <ActivityIndicator Grid.Row="0" x:Name="LoadingSpinner" IsRunning="False" IsVisible="False" VerticalOptions="Start" Margin="0,24,0,0" />
+        </Grid>
+
+    </Grid>
+</ContentPage>

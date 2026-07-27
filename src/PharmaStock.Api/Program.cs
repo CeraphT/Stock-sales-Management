@@ -44,7 +44,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromMinutes(1)
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+    // The only role check today that must exclude CompanyAdmin — every other
+    // RequireRole call in this codebase deliberately allows CompanyAdmin *or*
+    // SuperAdmin (a company managing its own data). Cross-tenant SuperAdmin
+    // endpoints need this narrower policy instead.
+    options.AddPolicy("SuperAdminOnly", policy => policy.RequireRole(nameof(UserRole.SuperAdmin))));
 
 var app = builder.Build();
 
@@ -59,5 +64,13 @@ app.MapLocationEndpoints();
 app.MapProductEndpoints();
 app.MapSaleEndpoints();
 app.MapStockMovementEndpoints();
+app.MapDashboardEndpoints();
+app.MapCategoryEndpoints();
+app.MapShiftEndpoints();
+app.MapReportingEndpoints();
+app.MapSupplierEndpoints();
+app.MapPurchaseOrderEndpoints();
+app.MapSyncEndpoints();
+app.MapSuperAdminEndpoints();
 
 app.Run();

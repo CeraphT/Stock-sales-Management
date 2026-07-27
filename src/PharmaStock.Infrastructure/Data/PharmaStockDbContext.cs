@@ -14,16 +14,26 @@ public class PharmaStockDbContext : DbContext
 {
     public PharmaStockDbContext(DbContextOptions<PharmaStockDbContext> options) : base(options) { }
 
+    // Registered here (not in each composition root's Program.cs/
+    // MauiProgram.cs) so the UpdatedAt-stamping behavior that Section 6's
+    // sync pull depends on is always active regardless of who instantiates
+    // the context — additive-only, does not change any existing behavior.
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.AddInterceptors(new TimestampSaveChangesInterceptor());
+
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Device> Devices => Set<Device>();
     public DbSet<Location> Locations => Set<Location>();
 
+    public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ProductPackagingLevel> ProductPackagingLevels => Set<ProductPackagingLevel>();
     public DbSet<Batch> Batches => Set<Batch>();
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
     public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
+    public DbSet<PurchaseOrderLine> PurchaseOrderLines => Set<PurchaseOrderLine>();
 
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<LoyaltyAccount> LoyaltyAccounts => Set<LoyaltyAccount>();
@@ -32,6 +42,7 @@ public class PharmaStockDbContext : DbContext
     public DbSet<Sale> Sales => Set<Sale>();
     public DbSet<SaleLine> SaleLines => Set<SaleLine>();
     public DbSet<PaymentSplit> PaymentSplits => Set<PaymentSplit>();
+    public DbSet<CashRegisterShift> CashRegisterShifts => Set<CashRegisterShift>();
 
     public DbSet<Service> Services => Set<Service>();
     public DbSet<ServiceLine> ServiceLines => Set<ServiceLine>();

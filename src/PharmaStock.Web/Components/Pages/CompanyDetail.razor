@@ -1,0 +1,115 @@
+@page "/companies/{Id:guid}"
+@inject SuperAdminApiClient Api
+@inject SuperAdminSession Session
+@inject NavigationManager Navigation
+
+<PageTitle>@(_detail?.Name ?? "Entreprise") — PharmaStock SuperAdmin</PageTitle>
+
+<a class="back-link" href="/companies">&larr; Toutes les entreprises</a>
+
+@if (_error is not null)
+{
+    <div class="error-banner">@_error</div>
+}
+else if (_detail is null)
+{
+    <p>Chargement...</p>
+}
+else
+{
+    <h1>@_detail.Name</h1>
+    <p class="page-subtitle">Code @_detail.UniqueCode &middot; créée le @_detail.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</p>
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-value">@_detail.UserCount</div>
+            <div class="stat-label">Utilisateurs</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@_detail.ProductCount</div>
+            <div class="stat-label">Produits</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@_detail.SalesCount</div>
+            <div class="stat-label">Ventes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@_detail.TotalRevenue.ToString("N0")</div>
+            <div class="stat-label">Revenu total</div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1.5rem">
+        <h2 style="margin-top:0">Emplacements</h2>
+        @if (_detail.Locations.Count == 0)
+        {
+            <p class="page-subtitle">Aucun emplacement.</p>
+        }
+        else
+        {
+            <table class="data-table">
+                <thead><tr><th>Nom</th><th>Adresse</th><th>Actif</th></tr></thead>
+                <tbody>
+                    @foreach (var location in _detail.Locations)
+                    {
+                        <tr>
+                            <td>@location.Name</td>
+                            <td>@(location.Address ?? "—")</td>
+                            <td>@(location.Active ? "Oui" : "Non")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    <div class="card">
+        <h2 style="margin-top:0">Utilisateurs</h2>
+        @if (_detail.Users.Count == 0)
+        {
+            <p class="page-subtitle">Aucun utilisateur.</p>
+        }
+        else
+        {
+            <table class="data-table">
+                <thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Actif</th></tr></thead>
+                <tbody>
+                    @foreach (var user in _detail.Users)
+                    {
+                        <tr>
+                            <td>@user.Name</td>
+                            <td>@user.Phone</td>
+                            <td>@user.Role</td>
+                            <td>@(user.Active ? "Oui" : "Non")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private SuperAdminCompanyDetail? _detail;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", forceLoad: false);
+            return;
+        }
+
+        try
+        {
+            _detail = await Api.GetCompanyDetailAsync(Id);
+        }
+        catch (PharmaStockApiException ex)
+        {
+            _error = ex.Message;
+        }
+    }
+}

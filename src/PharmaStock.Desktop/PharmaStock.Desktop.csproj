@@ -45,10 +45,10 @@
 
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#1F4E5F" />
 
 		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#1F4E5F" BaseSize="128,128" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
@@ -65,6 +65,27 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Essentials" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+		<!-- Camera barcode scanning for the POS screen. Windows decode is not
+		     supported by this package (generation only) — the manual/HID
+		     scanner text entry field on PosPage covers Windows instead. -->
+		<PackageReference Include="ZXing.Net.Maui.Controls" Version="0.10.3" />
+		<!-- Legacy codepages (CP850) for ESC/POS receipt-printer text encoding —
+		     .NET no longer includes these by default (see ReceiptFormatter). -->
+		<PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+		<!-- Local offline-first database (Section 6) — same PharmaStockDbContext
+		     as the server, pointed at a local file instead of Postgres. -->
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.29" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<!-- Microsoft.EntityFrameworkCore.Sqlite's floor pulls SQLitePCLRaw
+		     2.1.6, which has a known high-severity advisory (GHSA-2m69-gcr7-jv3q)
+		     — pin the bundle directly to a patched release. -->
+		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
+		<!-- Styled .xlsx export (Rapports, Ventes en attente) — pure managed,
+		     no System.Drawing dependency, so it works on Android as well as
+		     Windows. -->
+		<PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
 	</ItemGroup>
 
 	<ItemGroup>

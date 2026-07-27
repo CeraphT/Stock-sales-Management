@@ -3,26 +3,102 @@
     x:Class="PharmaStock.Desktop.Views.DashboardPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="Dashboard"
-    Shell.NavBarIsVisible="False">
+    xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    Title="{loc:Translate Dashboard_Title}">
 
-    <Grid Padding="24">
-        <Border Style="{StaticResource Card}" MaximumWidthRequest="420" HorizontalOptions="Center" VerticalOptions="Center">
-            <VerticalStackLayout Spacing="6">
-                <Border Style="{StaticResource Badge}" BackgroundColor="{StaticResource SuccessColor}">
-                    <Label Text="&#10003;" TextColor="White" FontSize="24" FontAttributes="Bold"
-                           HorizontalOptions="Center" VerticalOptions="Center" />
-                </Border>
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="16">
 
-                <Label Text="You're logged in" Style="{StaticResource PageTitle}" Margin="0,12,0,0" />
-                <Label x:Name="WelcomeLabel" Style="{StaticResource PageSubtitle}" />
-                <Label x:Name="RoleLabel" Style="{StaticResource PageSubtitle}" />
-                <Label x:Name="CompanyLabel" Style="{StaticResource PageSubtitle}" />
-
-                <Label Text="POS, products, and stock screens are next." Style="{StaticResource PageSubtitle}" Margin="0,16,0,0" />
-
-                <Button Text="Log Out" Style="{StaticResource SecondaryButton}" Clicked="OnLogOutClicked" Margin="0,16,0,0" />
+            <VerticalStackLayout Spacing="2">
+                <Label Text="{loc:Translate Dashboard_Title}" Style="{StaticResource PageTitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                <Label x:Name="WelcomeLabel" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
             </VerticalStackLayout>
-        </Border>
-    </Grid>
+
+            <ActivityIndicator x:Name="LoadingSpinner" IsRunning="False" IsVisible="False" HorizontalOptions="Center" Margin="0,40,0,0" />
+
+            <VerticalStackLayout x:Name="ContentStack" Spacing="16">
+
+            <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}" Padding="14">
+                    <VerticalStackLayout Spacing="4">
+                        <Label x:Name="RevenueTodayLabel" Text="0" FontSize="20" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                        <Label Text="{loc:Translate Dashboard_RevenueToday}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}" Padding="14">
+                    <VerticalStackLayout Spacing="4">
+                        <Label x:Name="SalesTodayLabel" Text="0" FontSize="20" FontAttributes="Bold" />
+                        <Label Text="{loc:Translate Dashboard_SalesToday}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource Card}" Padding="14">
+                    <VerticalStackLayout Spacing="4">
+                        <Label x:Name="TotalProductsLabel" Text="0" FontSize="20" FontAttributes="Bold" />
+                        <Label Text="{loc:Translate Dashboard_Products}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}" Padding="14">
+                    <VerticalStackLayout Spacing="4">
+                        <Label x:Name="LowStockLabel" Text="0" FontSize="20" FontAttributes="Bold" />
+                        <Label Text="{loc:Translate Dashboard_LowStock}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource Card}" Padding="14">
+                    <VerticalStackLayout Spacing="4">
+                        <Label x:Name="OutOfStockLabel" Text="0" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource ErrorColor}" />
+                        <Label Text="{loc:Translate Dashboard_OutOfStock}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource Card}" Padding="14">
+                    <VerticalStackLayout Spacing="4">
+                        <Label x:Name="ExpiringSoonLabel" Text="0" FontSize="20" FontAttributes="Bold" />
+                        <Label Text="{loc:Translate Dashboard_ExpiringSoon}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource Card}" Padding="14">
+                    <VerticalStackLayout Spacing="4">
+                        <Label x:Name="ExpiredLabel" Text="0" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource ErrorColor}" />
+                        <Label Text="{loc:Translate Dashboard_Expired}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource Card}" Padding="14">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnArchivedCardTapped" />
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout Spacing="4">
+                        <Label x:Name="ArchivedProductsLabel" Text="0" FontSize="20" FontAttributes="Bold" />
+                        <Label Text="{loc:Translate Dashboard_Archived}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border x:Name="NegativeStockCard" Grid.Row="2" Grid.Column="2" Style="{StaticResource Card}" Padding="14" IsVisible="False">
+                    <VerticalStackLayout Spacing="4">
+                        <Label x:Name="NegativeStockLabel" Text="0" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource ErrorColor}" />
+                        <Label Text="{loc:Translate Dashboard_NegativeStock}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <Label Text="{loc:Translate Dashboard_RecentSales}" Style="{StaticResource SectionLabel}" />
+            <Label x:Name="NoRecentSalesLabel" Text="{loc:Translate Dashboard_NoRecentSales}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+            <CollectionView x:Name="RecentSalesView" IsVisible="False">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource FieldBorder}" HeightRequest="-1" Padding="12,8" Margin="0,4">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <Label Text="{Binding TimeText}" FontAttributes="Bold" />
+                                    <Label Text="{Binding PaymentMethodText}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                                    <Label Text="{Binding ItemsSummaryText}" Style="{StaticResource PageSubtitle}" FontSize="12" LineBreakMode="TailTruncation" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="1" Text="{Binding TotalText}" VerticalOptions="Center" FontAttributes="Bold" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

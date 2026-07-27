@@ -21,7 +21,7 @@ public static class LocationEndpoints
                 return Results.Forbid();
 
             if (string.IsNullOrWhiteSpace(request.Name))
-                return Results.BadRequest(new { message = "Name is required." });
+                return Results.BadRequest(new { message = "Le nom est requis." });
 
             var location = new Location
             {

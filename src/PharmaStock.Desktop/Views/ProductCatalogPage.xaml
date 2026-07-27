@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PharmaStock.Desktop.Views.ProductCatalogPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
+    xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    Title="{loc:Translate Shell_Products}">
+
+    <Grid Padding="16" RowDefinitions="Auto,*" RowSpacing="12">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="10">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                <Label Grid.Column="0" Text="{loc:Translate Shell_Products}" Style="{StaticResource PageTitle}" HorizontalOptions="Start" />
+                <controls:IconButton Grid.Column="1" x:Name="FilterButton" Icon="{x:Static loc:BootstrapIcons.Funnel}" Text="{loc:Translate Catalog_Filters}" Variant="Secondary" Clicked="OnFilterClicked" />
+                <Button Grid.Column="2" Text="&#xF64D;" FontFamily="BootstrapIcons" WidthRequest="46" Padding="0" Clicked="OnNewProductClicked" />
+            </Grid>
+            <controls:CollapsibleSearchBar x:Name="SearchBarControl" Placeholder="{loc:Translate Catalog_SearchPlaceholder}" TextChanged="OnSearchTextChanged" />
+        </VerticalStackLayout>
+
+        <Grid Grid.Row="1" RowDefinitions="*,Auto" RowSpacing="8">
+            <CollectionView Grid.Row="0" x:Name="ProductsView" SelectionMode="Single" SelectionChanged="OnProductSelected">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Card}" Padding="14,12" Margin="0,6">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Label Text="★" TextColor="{StaticResource SuccessColor}" FontAttributes="Bold" IsVisible="{Binding IsFavorite}" />
+                                        <Label Text="{Binding Name}" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                                    </HorizontalStackLayout>
+                                    <Label Text="{Binding SubtitleText}" Style="{StaticResource PageSubtitle}" />
+                                    <Label Text="{Binding ExpiryBadgeText}" TextColor="{Binding ExpiryBadgeColor}" FontSize="12" IsVisible="{Binding HasExpiryBadge}" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="1" Spacing="4" HorizontalOptions="End">
+                                    <Label Text="{Binding PriceText}" HorizontalOptions="End" FontAttributes="Bold" />
+                                    <Border BackgroundColor="{Binding StatusColor}" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="8,2" HorizontalOptions="End">
+                                        <Label Text="{Binding StatusText}" TextColor="White" FontSize="11" />
+                                    </Border>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label Grid.Row="0" x:Name="EmptyLabel" Text="{loc:Translate Catalog_NoProducts}" Style="{StaticResource PageSubtitle}" IsVisible="False" VerticalOptions="Start" />
+
+            <ActivityIndicator Grid.Row="0" x:Name="LoadingSpinner" IsRunning="False" IsVisible="False" VerticalOptions="Start" Margin="0,24,0,0" />
+
+            <controls:IconButton Grid.Row="1" x:Name="LoadMoreButton" Icon="{x:Static loc:BootstrapIcons.ChevronDown}" Text="{loc:Translate Common_LoadMore}" Variant="Secondary" Clicked="OnLoadMoreClicked" IsVisible="False" />
+        </Grid>
+
+    </Grid>
+</ContentPage>

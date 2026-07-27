@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PharmaStock.Desktop.Views.SupplierManagementPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
+    xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    Title="{loc:Translate Shell_Suppliers}">
+
+    <Grid Padding="16" RowDefinitions="Auto,*" RowSpacing="12">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="10">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Label Grid.Column="0" Text="{loc:Translate Shell_Suppliers}" Style="{StaticResource PageTitle}" HorizontalOptions="Start" />
+                <Button Grid.Column="1" Text="&#xF64D;" FontFamily="BootstrapIcons" WidthRequest="46" Padding="0" Clicked="OnAddSupplierClicked" />
+            </Grid>
+            <controls:CollapsibleSearchBar x:Name="SearchBarControl" Placeholder="{loc:Translate SupplierPicker_SearchPlaceholder}" TextChanged="OnSearchTextChanged" />
+        </VerticalStackLayout>
+
+        <Grid Grid.Row="1">
+            <CollectionView x:Name="SuppliersView" SelectionMode="Single" SelectionChanged="OnSupplierSelected">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource FieldBorder}" HeightRequest="-1" Padding="12,10" Margin="0,4">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <Label Text="{Binding Name}" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                                    <Label Text="{Binding SubtitleText}" Style="{StaticResource PageSubtitle}" IsVisible="{Binding HasSubtitle}" />
+                                </VerticalStackLayout>
+                                <Button Grid.Column="1" Text="&#xF5DE;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}"
+                                        Padding="0" WidthRequest="46" VerticalOptions="Center"
+                                        Clicked="OnDeleteSupplierClicked" CommandParameter="{Binding .}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label x:Name="EmptyLabel" Text="{loc:Translate SupplierManagement_Empty}" Style="{StaticResource PageSubtitle}" IsVisible="False" VerticalOptions="Start" />
+
+            <ActivityIndicator x:Name="LoadingSpinner" IsRunning="False" IsVisible="False" VerticalOptions="Start" Margin="0,24,0,0" />
+        </Grid>
+
+    </Grid>
+</ContentPage>

@@ -1,0 +1,142 @@
+@page "/admins"
+@inject SuperAdminApiClient Api
+@inject SuperAdminSession Session
+@inject NavigationManager Navigation
+
+<PageTitle>Administrateurs — PharmaStock SuperAdmin</PageTitle>
+
+<a class="back-link" href="/companies">&larr; Entreprises</a>
+
+<h1>Administrateurs</h1>
+<p class="page-subtitle">Comptes ayant accès à cette administration SuperAdmin.</p>
+
+@if (_error is not null)
+{
+    <div class="error-banner">@_error</div>
+}
+
+<div class="card" style="margin-bottom:1.5rem; max-width:420px">
+    <h2 style="margin-top:0">Ajouter un administrateur</h2>
+    <EditForm Model="this" OnValidSubmit="CreateAsync">
+        <div class="form-field">
+            <label for="new-name">Nom</label>
+            <input id="new-name" @bind="_newName" disabled="@_creating" />
+        </div>
+        <div class="form-field">
+            <label for="new-phone">Téléphone</label>
+            <input id="new-phone" type="tel" @bind="_newPhone" placeholder="ex. 677001122" disabled="@_creating" />
+        </div>
+        <div class="form-field">
+            <label for="new-password">Mot de passe</label>
+            <input id="new-password" type="password" @bind="_newPassword" disabled="@_creating" />
+        </div>
+        <button type="submit" class="btn btn-primary" disabled="@_creating">
+            @(_creating ? "Création..." : "Créer")
+        </button>
+    </EditForm>
+</div>
+
+@if (_admins is null)
+{
+    <p>Chargement...</p>
+}
+else
+{
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Téléphone</th>
+                <th>Statut</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var admin in _admins)
+            {
+                <tr>
+                    <td>@admin.Name @(admin.Id == Session.UserId ? "(vous)" : "")</td>
+                    <td>@admin.Phone</td>
+                    <td>@(admin.Active ? "Actif" : "Désactivé")</td>
+                    <td>
+                        @if (admin.Id != Session.UserId)
+                        {
+                            <button class="btn btn-secondary" @onclick="() => ToggleActiveAsync(admin)">
+                                @(admin.Active ? "Désactiver" : "Réactiver")
+                            </button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<SuperAdminAccountResponse>? _admins;
+    private string? _error;
+
+    private string _newName = string.Empty;
+    private string _newPhone = string.Empty;
+    private string _newPassword = string.Empty;
+    private bool _creating;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", forceLoad: false);
+            return;
+        }
+
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _admins = await Api.GetAdminsAsync();
+        }
+        catch (PharmaStockApiException ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private async Task CreateAsync()
+    {
+        _error = null;
+        _creating = true;
+        try
+        {
+            await Api.CreateAdminAsync(_newName.Trim(), _newPhone.Trim(), _newPassword);
+            _newName = string.Empty;
+            _newPhone = string.Empty;
+            _newPassword = string.Empty;
+            await LoadAsync();
+        }
+        catch (PharmaStockApiException ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _creating = false;
+        }
+    }
+
+    private async Task ToggleActiveAsync(SuperAdminAccountResponse admin)
+    {
+        _error = null;
+        try
+        {
+            await Api.SetAdminActiveAsync(admin.Id, !admin.Active);
+            await LoadAsync();
+        }
+        catch (PharmaStockApiException ex)
+        {
+            _error = ex.Message;
+        }
+    }
+}

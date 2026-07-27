@@ -26,4 +26,11 @@ public class Device
     /// The device checks this flag on its next successful contact and wipes
     /// its local database before anything else happens.</summary>
     public bool RemoteWipeRequested { get; set; } = false;
+
+    /// <summary>SHA-256 hex hash of the current refresh token, never the raw
+    /// value (same reasoning as User.PasswordHash: a stolen DB dump must not
+    /// hand out live sessions). Null means this device has no active refresh
+    /// token and must fully re-authenticate with phone+password.</summary>
+    public string? RefreshTokenHash { get; set; }
+    public DateTime? RefreshTokenExpiresAt { get; set; }
 }

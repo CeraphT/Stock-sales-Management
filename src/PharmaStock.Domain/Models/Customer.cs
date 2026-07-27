@@ -1,6 +1,6 @@
 namespace PharmaStock.Domain.Models;
 
-public class Customer
+public class Customer : ITimestamped
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -18,4 +18,8 @@ public class Customer
     /// <summary>Section 21.3 — one-to-one, kept as a separate entity so a
     /// company that never enables loyalty/credit has simply no rows here.</summary>
     public LoyaltyAccount? LoyaltyAccount { get; set; }
+
+    /// <summary>Section 6 — stamped automatically on every save, drives
+    /// incremental sync pull to offline devices.</summary>
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

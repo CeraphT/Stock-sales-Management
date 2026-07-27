@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PharmaStock.Desktop.Views.ReportsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    Title="{loc:Translate Reports_Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="16">
+
+            <Label Text="{loc:Translate Reports_Title}" Style="{StaticResource PageTitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+
+            <Grid ColumnDefinitions="*,*,*,*,Auto" ColumnSpacing="6">
+                <Button Grid.Column="0" x:Name="TodayChip" Text="{loc:Translate SalesHistory_Today}" Style="{StaticResource ChipButtonUnselected}" FontSize="12" Padding="4,10" Clicked="OnTodayClicked" />
+                <Button Grid.Column="1" x:Name="Last7Chip" Text="{loc:Translate SalesHistory_Last7Days}" Style="{StaticResource ChipButtonUnselected}" FontSize="12" Padding="4,10" Clicked="OnLast7Clicked" />
+                <Button Grid.Column="2" x:Name="Last30Chip" Text="{loc:Translate SalesHistory_Last30Days}" Style="{StaticResource ChipButtonSelected}" FontSize="12" Padding="4,10" Clicked="OnLast30Clicked" />
+                <Button Grid.Column="3" x:Name="AllChip" Text="{loc:Translate SalesHistory_All}" Style="{StaticResource ChipButtonUnselected}" FontSize="12" Padding="4,10" Clicked="OnAllClicked" />
+                <Button Grid.Column="4" x:Name="CustomRangeToggle" Text="&#xF214;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}" Padding="0" WidthRequest="46" Clicked="OnCustomRangeToggleClicked" />
+            </Grid>
+
+            <Grid x:Name="CustomRangeRow" ColumnDefinitions="*,*,Auto" ColumnSpacing="8" IsVisible="False">
+                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                    <Label Text="{loc:Translate SalesHistory_From}" Style="{StaticResource FieldLabel}" />
+                    <DatePicker x:Name="FromDatePicker" Format="dd/MM/yyyy" />
+                </VerticalStackLayout>
+                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                    <Label Text="{loc:Translate SalesHistory_To}" Style="{StaticResource FieldLabel}" />
+                    <DatePicker x:Name="ToDatePicker" Format="dd/MM/yyyy" />
+                </VerticalStackLayout>
+                <Button Grid.Column="2" Text="&#xF272;" FontFamily="BootstrapIcons" VerticalOptions="End" WidthRequest="46" Clicked="OnApplyCustomRangeClicked" />
+            </Grid>
+
+            <ActivityIndicator x:Name="LoadingSpinner" IsRunning="False" IsVisible="False" HorizontalOptions="Center" Margin="0,40,0,0" />
+
+            <VerticalStackLayout x:Name="ContentStack" Spacing="16">
+
+                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+                    <Border Grid.Column="0" Style="{StaticResource Card}" Padding="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label x:Name="RevenueLabel" Text="0" FontSize="18" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                            <Label Text="{loc:Translate Reports_Revenue}" Style="{StaticResource PageSubtitle}" FontSize="11" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource Card}" Padding="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label x:Name="ProfitLabel" Text="0" FontSize="18" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                            <Label Text="{loc:Translate Reports_Profit}" Style="{StaticResource PageSubtitle}" FontSize="11" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource Card}" Padding="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label x:Name="SalesCountLabel" Text="0" FontSize="18" FontAttributes="Bold" />
+                            <Label Text="{loc:Translate Reports_SalesCount}" Style="{StaticResource PageSubtitle}" FontSize="11" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="3" Style="{StaticResource Card}" Padding="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label x:Name="AverageSaleLabel" Text="0" FontSize="18" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                            <Label Text="{loc:Translate Reports_AverageSale}" Style="{StaticResource PageSubtitle}" FontSize="11" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Grid.Column="0" Text="{loc:Translate Reports_DailyBreakdown}" Style="{StaticResource SectionLabel}" VerticalOptions="Center" />
+                    <Button Grid.Column="1" x:Name="ExportDailyButton" Text="&#xF30A;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}" FontSize="18" Padding="0" WidthRequest="46" HeightRequest="46" Clicked="OnExportDailyClicked" SemanticProperties.Hint="{loc:Translate Reports_Export}" />
+                </Grid>
+                <Label x:Name="DailyEmptyLabel" Text="{loc:Translate Reports_DailyBreakdownEmpty}" Style="{StaticResource PageSubtitle}" IsVisible="False" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                <CollectionView x:Name="DailyBreakdownView" IsVisible="False">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource FieldBorder}" HeightRequest="-1" Padding="12,8" Margin="0,4">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                        <Label Text="{Binding DateText}" FontAttributes="Bold" />
+                                        <Label Text="{Binding CountText}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="1" Text="{Binding RevenueText}" VerticalOptions="Center" FontAttributes="Bold" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Grid.Column="0" Text="{loc:Translate Reports_TopProducts}" Style="{StaticResource SectionLabel}" VerticalOptions="Center" />
+                    <Button Grid.Column="1" x:Name="ExportTopProductsButton" Text="&#xF30A;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}" FontSize="18" Padding="0" WidthRequest="46" HeightRequest="46" Clicked="OnExportTopProductsClicked" SemanticProperties.Hint="{loc:Translate Reports_Export}" />
+                </Grid>
+                <Label x:Name="TopProductsEmptyLabel" Text="{loc:Translate Reports_TopProductsEmpty}" Style="{StaticResource PageSubtitle}" IsVisible="False" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                <CollectionView x:Name="TopProductsView" IsVisible="False">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource FieldBorder}" HeightRequest="-1" Padding="12,8" Margin="0,4">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                        <Label Text="{Binding ProductName}" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding SubtitleText}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="1" Text="{Binding RevenueText}" VerticalOptions="Center" FontAttributes="Bold" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

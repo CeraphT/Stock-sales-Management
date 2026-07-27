@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentView
+    x:Class="PharmaStock.Desktop.Controls.LanguageSwitch"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Name="Root">
+
+    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+        <Label
+            Text="FR"
+            FontSize="12"
+            FontAttributes="Bold"
+            VerticalOptions="Center"
+            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource Gray300}}" />
+        <Switch x:Name="SwitchControl" OnColor="{StaticResource Primary}" Toggled="OnToggled" />
+        <Label
+            Text="EN"
+            FontSize="12"
+            FontAttributes="Bold"
+            VerticalOptions="Center"
+            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource Gray300}}" />
+    </HorizontalStackLayout>
+</ContentView>

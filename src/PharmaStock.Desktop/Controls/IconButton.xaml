@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentView
+    x:Class="PharmaStock.Desktop.Controls.IconButton"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Name="Root">
+
+    <Border x:Name="ButtonBorder" Style="{StaticResource IconButtonPrimaryBorder}">
+        <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+            <Label x:Name="IconLabel" FontFamily="BootstrapIcons" FontSize="16" VerticalOptions="Center"
+                   Text="{Binding Source={x:Reference Root}, Path=Icon}" />
+            <Label x:Name="TextLabel" FontFamily="OpenSansRegular" FontSize="14" VerticalOptions="Center"
+                   Text="{Binding Source={x:Reference Root}, Path=Text}" />
+        </HorizontalStackLayout>
+        <Border.GestureRecognizers>
+            <TapGestureRecognizer Tapped="OnTapped" />
+        </Border.GestureRecognizers>
+    </Border>
+</ContentView>

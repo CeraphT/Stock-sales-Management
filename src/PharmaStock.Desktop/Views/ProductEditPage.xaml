@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PharmaStock.Desktop.Views.ProductEditPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
+    xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    Title="{loc:Translate ProductEdit_HeaderTitle}">
+
+    <Grid Padding="16" RowDefinitions="Auto,*,Auto" RowSpacing="12">
+
+        <Label Grid.Row="0" x:Name="TitleLabel" Style="{StaticResource PageTitle}" HorizontalOptions="Start" />
+
+        <ScrollView Grid.Row="1" x:Name="FormScroll">
+            <VerticalStackLayout Spacing="14">
+
+                <Border Style="{StaticResource Card}" Padding="18">
+                    <VerticalStackLayout Spacing="14">
+                        <Label Text="{loc:Translate ProductEdit_GeneralInfo}" Style="{StaticResource SectionLabel}" />
+                        <controls:FormField x:Name="NameField" Label="{loc:Translate ProductEdit_NameLabel}" Placeholder="{loc:Translate ProductEdit_NamePlaceholder}" />
+                        <controls:FormField x:Name="BarcodeField" Label="{loc:Translate ProductEdit_BarcodeLabel}" Placeholder="ex. 8412345678901" />
+
+                        <Label Text="{loc:Translate ProductEdit_CategoryLabel}" Style="{StaticResource FieldLabel}" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Border Grid.Column="0" Style="{StaticResource FieldBorder}">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnCategoryFieldTapped" />
+                                </Border.GestureRecognizers>
+                                <Label x:Name="CategoryLabel" VerticalOptions="Center" />
+                            </Border>
+                            <Button Grid.Column="1" Text="&#xF64D;" FontFamily="BootstrapIcons" WidthRequest="46" Padding="0" Clicked="OnQuickAddCategoryClicked" />
+                        </Grid>
+
+                        <Label Text="{loc:Translate ProductEdit_SupplierLabel}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource FieldBorder}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnSupplierFieldTapped" />
+                            </Border.GestureRecognizers>
+                            <Label x:Name="SupplierLabel" VerticalOptions="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Style="{StaticResource Card}" Padding="18">
+                    <VerticalStackLayout Spacing="14">
+                        <Label Text="{loc:Translate ProductEdit_PriceAndStock}" Style="{StaticResource SectionLabel}" />
+                        <controls:FormField x:Name="PurchasePriceField" Label="{loc:Translate ProductEdit_PurchasePriceLabel}" Placeholder="0" Keyboard="Numeric" />
+                        <controls:FormField x:Name="SalePriceField" Label="{loc:Translate ProductEdit_SalePriceLabel}" Placeholder="0" Keyboard="Numeric" />
+                        <controls:FormField x:Name="LowStockThresholdField" Label="{loc:Translate ProductEdit_LowStockThresholdLabel}" Placeholder="0" Keyboard="Numeric" />
+                        <controls:FormField x:Name="TaxRateField" Label="{loc:Translate ProductEdit_TaxRateLabel}" Placeholder="{loc:Translate ProductEdit_TaxRatePlaceholder}" Keyboard="Numeric" />
+                        <HorizontalStackLayout Spacing="10">
+                            <CheckBox x:Name="FavoriteCheckBox" VerticalOptions="Center" />
+                            <Label Text="{loc:Translate ProductEdit_FavoriteLabel}" Style="{StaticResource PageSubtitle}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Style="{StaticResource Card}" Padding="18">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Text="{loc:Translate ProductEdit_PackagingLevels}" Style="{StaticResource SectionLabel}" VerticalOptions="Center" />
+                            <Button Grid.Column="1" Text="&#xF64D;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}" WidthRequest="46" Padding="0" Clicked="OnAddPackagingLevelClicked" />
+                        </Grid>
+                        <Label Text="{loc:Translate ProductEdit_PackagingLevelsHint}" Style="{StaticResource PageSubtitle}" />
+
+                        <!-- BindableLayout, not CollectionView: this list is always a handful of
+                             rows (never needs virtualization), and CollectionView nested inside
+                             the page's outer ScrollView fails to re-measure reliably when rows are
+                             added at runtime — items land in the visual tree but don't get drawn
+                             or become reachable by scrolling. BindableLayout has no such issue
+                             since it just stacks views like any other layout. -->
+                        <VerticalStackLayout x:Name="PackagingLevelsView" Spacing="0">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource FieldBorder}" HeightRequest="-1" Padding="12,10" Margin="0,4">
+                                        <Grid ColumnDefinitions="*,*,*,Auto" ColumnSpacing="8">
+                                            <Border Grid.Column="0" Style="{StaticResource FieldBorder}" Padding="10,6">
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Tapped="OnPackagingUnitNameTapped" CommandParameter="{Binding .}" />
+                                                </Border.GestureRecognizers>
+                                                <Label Text="{Binding UnitNameDisplay}" VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                                            </Border>
+                                            <Entry Grid.Column="1" Placeholder="{loc:Translate ProductEdit_QuantityPlaceholder}" Keyboard="Numeric" Text="{Binding QuantityText}" />
+                                            <Entry Grid.Column="2" Placeholder="{loc:Translate ProductEdit_PriceOptionalPlaceholder}" Keyboard="Numeric" Text="{Binding SalePriceOverrideText}" />
+                                            <Button Grid.Column="3" Text="&#xF659;" FontFamily="BootstrapIcons" WidthRequest="40" Padding="0" Clicked="OnRemovePackagingLevelClicked" CommandParameter="{Binding .}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <ActivityIndicator Grid.Row="1" x:Name="LoadingSpinner" IsRunning="False" IsVisible="False" />
+
+        <VerticalStackLayout Grid.Row="2" Spacing="10">
+            <Label x:Name="ArchivedNoticeLabel" Text="{loc:Translate ProductEdit_ArchivedNotice}" Style="{StaticResource PageSubtitle}" IsVisible="False" />
+            <Grid x:Name="StockActionsRow" ColumnDefinitions="*,*,*" ColumnSpacing="10" IsVisible="False">
+                <Button Grid.Column="0" Text="&#xF1BC;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}" Padding="0" Clicked="OnReceiveStockClicked" />
+                <Button Grid.Column="1" Text="&#xF790;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}" Padding="0" Clicked="OnAdjustStockClicked" />
+                <Button Grid.Column="2" x:Name="DeleteButton" Text="&#xF5DE;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}" Padding="0" Clicked="OnDeleteProductClicked" />
+                <Button Grid.Column="2" x:Name="RestoreButton" Text="&#xF117;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}" Padding="0" IsVisible="False" Clicked="OnRestoreProductClicked" />
+            </Grid>
+            <controls:IconButton x:Name="SaveButton" Icon="{x:Static loc:BootstrapIcons.Check2}" Clicked="OnSaveClicked" />
+            <ActivityIndicator x:Name="Spinner" IsRunning="False" IsVisible="False" />
+        </VerticalStackLayout>
+
+    </Grid>
+</ContentPage>

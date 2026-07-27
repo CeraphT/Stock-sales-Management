@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PharmaStock.Desktop.Views.StockReceivePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
+    xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    Title="{loc:Translate StockReceive_Title}">
+
+    <ScrollView>
+        <Grid Padding="24">
+            <Border Style="{StaticResource Card}" MaximumWidthRequest="480" HorizontalOptions="Center" VerticalOptions="Center">
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="{loc:Translate StockReceive_Title}" Style="{StaticResource PageTitle}" />
+                    <Label x:Name="ProductNameLabel" Style="{StaticResource PageSubtitle}" Margin="0,0,0,6" />
+
+                    <controls:FormField x:Name="BatchNumberField" Label="{loc:Translate StockReceive_BatchNumberLabel}" Placeholder="ex. LOT-2026-001" />
+
+                    <Label Text="{loc:Translate StockReceive_ExpiryLabel}" Style="{StaticResource SectionLabel}" />
+                    <DatePicker x:Name="ExpiryDatePicker" />
+
+                    <controls:FormField x:Name="QuantityField" Label="{loc:Translate StockReceive_QuantityLabel}" Placeholder="0" Keyboard="Numeric" />
+                    <controls:FormField x:Name="PurchasePriceField" Label="{loc:Translate StockReceive_PurchasePriceLabel}" Placeholder="{loc:Translate StockReceive_PurchasePricePlaceholder}" Keyboard="Numeric" />
+
+                    <controls:IconButton x:Name="SaveButton" Icon="{x:Static loc:BootstrapIcons.Check2}" Text="{loc:Translate StockReceive_Save}" Clicked="OnSaveClicked" Margin="0,10,0,0" />
+                    <controls:IconButton Icon="{x:Static loc:BootstrapIcons.ArrowLeft}" Text="{loc:Translate Common_BackToPage}" Variant="Secondary" Clicked="OnBackClicked" />
+                    <ActivityIndicator x:Name="Spinner" IsRunning="False" IsVisible="False" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+    </ScrollView>
+</ContentPage>

@@ -55,4 +55,14 @@ public partial class FormField : ContentView
     {
         InitializeComponent();
     }
+
+    // The 👁/🙈 toggle only ever flips EntryControl.IsPassword directly —
+    // it never touches the Root.IsPassword bindable property, which stays
+    // fixed as "this field is a password field" (drives the toggle's own
+    // visibility) rather than "currently masked".
+    private void OnToggleVisibilityTapped(object? sender, TappedEventArgs e)
+    {
+        EntryControl.IsPassword = !EntryControl.IsPassword;
+        ToggleVisibilityLabel.Text = EntryControl.IsPassword ? Services.BootstrapIcons.Eye : Services.BootstrapIcons.EyeSlash;
+    }
 }

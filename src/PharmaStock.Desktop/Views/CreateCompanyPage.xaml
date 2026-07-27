@@ -4,31 +4,36 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
-    Title="Create a Company">
+    xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    Title="{loc:Translate CreateCompany_Title}">
 
-    <ScrollView>
-        <Grid Padding="24">
-            <Border Style="{StaticResource Card}" MaximumWidthRequest="480" HorizontalOptions="Center">
-                <VerticalStackLayout Spacing="14">
-                    <Label Text="Create your company" Style="{StaticResource PageTitle}" />
-                    <Label Text="This sets up your pharmacy and your own admin account." Style="{StaticResource PageSubtitle}" Margin="0,0,0,6" />
+    <Grid Padding="24">
+        <Border Style="{StaticResource Card}" MaximumWidthRequest="480" HorizontalOptions="Center" VerticalOptions="Center">
+            <VerticalStackLayout Spacing="14">
+                <Label Text="{loc:Translate CreateCompany_Heading}" Style="{StaticResource PageTitle}" />
+                <Label x:Name="StepLabel" Style="{StaticResource PageSubtitle}" Margin="0,0,0,6" />
 
-                    <Label Text="COMPANY" Style="{StaticResource SectionLabel}" Margin="0,10,0,0" />
-                    <controls:FormField x:Name="NameField" Label="NAME" Placeholder="e.g. Pharmacie Centrale" />
-                    <controls:FormField x:Name="DescriptionField" Label="DESCRIPTION (OPTIONAL)" Placeholder="A short description" />
-                    <controls:FormField x:Name="CurrencyField" Label="CURRENCY" Placeholder="XAF" Text="XAF" />
-
-                    <Label Text="YOUR ADMIN ACCOUNT" Style="{StaticResource SectionLabel}" Margin="0,10,0,0" />
-                    <controls:FormField x:Name="AdminNameField" Label="YOUR NAME" Placeholder="e.g. Aline Mballa" />
-                    <controls:FormField x:Name="AdminPhoneField" Label="PHONE NUMBER" Placeholder="e.g. 677001122" Keyboard="Telephone" />
-                    <controls:FormField x:Name="AdminPasswordField" Label="PASSWORD" Placeholder="Min. 6 characters" IsPassword="True" />
-
-                    <Label x:Name="ErrorLabel" Style="{StaticResource ErrorText}" IsVisible="False" Margin="0,6,0,0" />
-
-                    <Button x:Name="SubmitButton" Text="Create Company" Clicked="OnSubmitClicked" Margin="0,14,0,0" />
-                    <ActivityIndicator x:Name="Spinner" IsRunning="False" IsVisible="False" />
+                <VerticalStackLayout x:Name="CompanyStep" Spacing="14">
+                    <Label Text="{loc:Translate CreateCompany_CompanySection}" Style="{StaticResource SectionLabel}" />
+                    <controls:FormField x:Name="NameField" Label="{loc:Translate CreateCompany_NameLabel}" Placeholder="{loc:Translate CreateCompany_NamePlaceholder}" />
+                    <controls:FormField x:Name="DescriptionField" Label="{loc:Translate CreateCompany_DescriptionLabel}" Placeholder="{loc:Translate CreateCompany_DescriptionPlaceholder}" />
+                    <controls:FormField x:Name="CurrencyField" Label="{loc:Translate CreateCompany_CurrencyLabel}" Placeholder="XAF" Text="XAF" />
                 </VerticalStackLayout>
-            </Border>
-        </Grid>
-    </ScrollView>
+
+                <VerticalStackLayout x:Name="AdminStep" Spacing="14" IsVisible="False">
+                    <Label Text="{loc:Translate CreateCompany_AdminSection}" Style="{StaticResource SectionLabel}" />
+                    <controls:FormField x:Name="AdminNameField" Label="{loc:Translate CreateCompany_AdminNameLabel}" Placeholder="ex. Aline Mballa" />
+                    <controls:FormField x:Name="AdminPhoneField" Label="{loc:Translate Login_PhoneLabel}" Placeholder="ex. 677001122" Keyboard="Telephone" />
+                    <controls:FormField x:Name="AdminPasswordField" Label="{loc:Translate Login_PasswordLabel}" Placeholder="{loc:Translate CreateCompany_AdminPasswordPlaceholder}" IsPassword="True" />
+                </VerticalStackLayout>
+
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" Margin="0,14,0,0">
+                    <controls:IconButton x:Name="BackButton" Grid.Column="0" Icon="{x:Static loc:BootstrapIcons.ArrowLeft}" Text="{loc:Translate Common_Back}" Variant="Secondary" IsVisible="False" Clicked="OnBackClicked" />
+                    <controls:IconButton x:Name="NextButton" Grid.Column="1" Icon="{x:Static loc:BootstrapIcons.ArrowRight}" Text="{loc:Translate Common_Next}" Clicked="OnNextClicked" HorizontalOptions="Fill" />
+                    <controls:IconButton x:Name="SubmitButton" Grid.Column="1" Icon="{x:Static loc:BootstrapIcons.Check2}" Text="{loc:Translate CreateCompany_Submit}" Clicked="OnSubmitClicked" IsVisible="False" HorizontalOptions="Fill" />
+                </Grid>
+                <ActivityIndicator x:Name="Spinner" IsRunning="False" IsVisible="False" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
 </ContentPage>

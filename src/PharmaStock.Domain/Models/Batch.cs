@@ -4,7 +4,7 @@ namespace PharmaStock.Domain.Models;
 /// expiry are tracked here; StockMovement rows reference a batch so that
 /// FEFO rotation (Section 16.1) and expiry alerts (Section 3.3) both work
 /// off the same data.</summary>
-public class Batch
+public class Batch : ITimestamped
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -33,4 +33,9 @@ public class Batch
     public decimal PurchasePricePerBaseUnit { get; set; }
 
     public DateTime ReceivedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>Section 6 — stamped automatically on every save, including
+    /// every FEFO deduction that mutates QuantityInBaseUnits. Drives
+    /// incremental sync pull to offline devices.</summary>
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

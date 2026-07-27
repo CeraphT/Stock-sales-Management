@@ -6,10 +6,11 @@ using PharmaStock.Infrastructure.Data;
 
 namespace PharmaStock.Api.Services;
 
-public record LoginRequest(string Phone, string Password);
+public record LoginRequest(string Phone, string Password, Guid DeviceId, string DeviceName, DevicePlatform Platform);
+public record RefreshRequest(Guid DeviceId, string RefreshToken);
 public record CreateStaffUserRequest(string Name, string Phone, string Password, UserRole Role);
 public record UserResponse(Guid Id, string Name, string Phone, UserRole Role, bool Active);
-public record AuthResponse(string Token, DateTime ExpiresAt, UserResponse User, Guid? CompanyId);
+public record AuthResponse(string Token, DateTime ExpiresAt, string RefreshToken, Guid DeviceId, UserResponse User, Guid? CompanyId);
 
 public static class AuthEndpoints
 {
@@ -32,15 +33,39 @@ public static class AuthEndpoints
                 if (hasher.VerifyHashedPassword(user, user.PasswordHash, request.Password)
                     == PasswordVerificationResult.Success)
                 {
-                    var (token, expiresAt) = tokens.IssueToken(user);
-                    return Results.Ok(new AuthResponse(
-                        token, expiresAt,
-                        new UserResponse(user.Id, user.Name, user.Phone, user.Role, user.Active),
-                        user.CompanyId));
+                    var auth = await IssueAuthResponseAsync(
+                        user, request.DeviceId, request.DeviceName, request.Platform, db, tokens);
+                    return Results.Ok(auth);
                 }
             }
 
             return Results.Unauthorized();
+        });
+
+        // Section 21.1 — exchanges a still-valid refresh token for a new JWT
+        // without re-prompting for phone+password, so a session survives past
+        // the (deliberately short) JWT expiry. Rotates the refresh token on
+        // every use: the old hash stops working the moment a new one is
+        // issued, so a leaked-then-replayed old token is only ever usable once.
+        app.MapPost("/api/auth/refresh", async (
+            RefreshRequest request, PharmaStockDbContext db, JwtTokenService tokens) =>
+        {
+            var device = await db.Devices
+                .Include(d => d.User)
+                .FirstOrDefaultAsync(d => d.Id == request.DeviceId);
+
+            if (device is null || device.User is null || !device.User.Active
+                || device.IsRevoked || device.RemoteWipeRequested
+                || device.RefreshTokenHash is null
+                || device.RefreshTokenExpiresAt is null || device.RefreshTokenExpiresAt < DateTime.UtcNow
+                || device.RefreshTokenHash != JwtTokenService.HashRefreshToken(request.RefreshToken))
+            {
+                return Results.Unauthorized();
+            }
+
+            var auth = await IssueAuthResponseAsync(
+                device.User, device.Id, device.DeviceName, device.Platform, db, tokens);
+            return Results.Ok(auth);
         });
 
         // Section 3.7 — a CompanyAdmin adds staff accounts (cashiers, or a
@@ -59,11 +84,11 @@ public static class AuthEndpoints
                 return Results.Forbid();
 
             if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
-                return Results.BadRequest(new { message = "Password must be at least 6 characters." });
+                return Results.BadRequest(new { message = "Le mot de passe doit contenir au moins 6 caractères." });
 
             var companyExists = await db.Companies.AnyAsync(c => c.Id == companyId);
             if (!companyExists)
-                return Results.NotFound(new { message = "Company not found." });
+                return Results.NotFound(new { message = "Entreprise introuvable." });
 
             var user = new User
             {
@@ -80,5 +105,41 @@ public static class AuthEndpoints
             return Results.Created($"/api/companies/{companyId}/users/{user.Id}",
                 new UserResponse(user.Id, user.Name, user.Phone, user.Role, user.Active));
         }).RequireAuthorization(policy => policy.RequireRole(nameof(UserRole.CompanyAdmin), nameof(UserRole.SuperAdmin)));
+    }
+
+    /// <summary>Upserts the Device row identified by deviceId (the client
+    /// generates and persists this Guid once, on first run, and resends it on
+    /// every login/refresh) and issues a fresh JWT + rotated refresh token.
+    /// Shared by login, refresh, and company creation — every path that
+    /// starts or renews a session goes through here so device bookkeeping
+    /// (Section 21.1) never drifts between them.</summary>
+    internal static async Task<AuthResponse> IssueAuthResponseAsync(
+        User user, Guid deviceId, string deviceName, DevicePlatform platform,
+        PharmaStockDbContext db, JwtTokenService tokens)
+    {
+        var (token, expiresAt) = tokens.IssueToken(user);
+        var (rawRefreshToken, refreshHash, refreshExpiresAt) = tokens.IssueRefreshToken();
+
+        var device = await db.Devices.FirstOrDefaultAsync(d => d.Id == deviceId);
+        if (device is null)
+        {
+            device = new Device { Id = deviceId, UserId = user.Id };
+            db.Devices.Add(device);
+        }
+
+        device.UserId = user.Id;
+        device.CompanyId = user.CompanyId;
+        device.Platform = platform;
+        device.DeviceName = deviceName;
+        device.LastActiveAt = DateTime.UtcNow;
+        device.RefreshTokenHash = refreshHash;
+        device.RefreshTokenExpiresAt = refreshExpiresAt;
+
+        await db.SaveChangesAsync();
+
+        return new AuthResponse(
+            token, expiresAt, rawRefreshToken, device.Id,
+            new UserResponse(user.Id, user.Name, user.Phone, user.Role, user.Active),
+            user.CompanyId);
     }
 }
