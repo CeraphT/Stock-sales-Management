@@ -6,7 +6,8 @@
     xmlns:views="clr-namespace:PharmaStock.Desktop.Views"
     xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
     Title="PharmaStock"
-    FlyoutBehavior="Flyout">
+    FlyoutBehavior="Flyout"
+    FlyoutWidth="320">
 
     <!-- Every top-level page gets its own FlyoutItem so each is a valid
          absolute navigation target ("//DashboardPage", etc.) without being

@@ -67,10 +67,36 @@ public partial class AppShell : Shell
 	{
 		var session = IPlatformApplication.Current?.Services.GetService<SessionService>();
 
-		var appNameLabel = new Label { Text = "PharmaStock", FontAttributes = FontAttributes.Bold, FontSize = 18 };
+		var appNameLabel = new Label { Text = "PharmaStock", FontAttributes = FontAttributes.Bold, FontSize = 18, VerticalOptions = LayoutOptions.Center };
 		appNameLabel.SetAppThemeColor(Label.TextColorProperty,
 			(Color)Application.Current!.Resources["Black"],
 			(Color)Application.Current!.Resources["SecondaryDarkText"]);
+
+		// Explicit, always-in-the-same-place close affordance for the open
+		// flyout — Desktop's own hamburger toggle (see PageHeaderExtensions)
+		// sits in the page underneath and can be effectively hidden behind
+		// the flyout panel once it's open, so relying on tapping that same
+		// button again isn't a reliable way to close it. This is separate
+		// from — and in addition to — tapping outside the flyout, which
+		// still also dismisses it.
+		var closeLabel = new Label
+		{
+			Text = "✕", FontSize = 16, VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.End,
+			Padding = new Thickness(10, 6),
+		};
+		closeLabel.SetAppThemeColor(Label.TextColorProperty,
+			(Color)Application.Current!.Resources["TextSecondary"],
+			(Color)Application.Current!.Resources["Gray300"]);
+		closeLabel.GestureRecognizers.Add(new TapGestureRecognizer
+		{
+			Command = new Command(() => Shell.Current.FlyoutIsPresented = false),
+		});
+
+		var titleRow = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) } };
+		titleRow.Children.Add(appNameLabel);
+		Grid.SetColumn(appNameLabel, 0);
+		titleRow.Children.Add(closeLabel);
+		Grid.SetColumn(closeLabel, 1);
 
 		var userLabel = new Label { FontSize = 12 };
 		userLabel.SetAppThemeColor(Label.TextColorProperty,
@@ -94,7 +120,7 @@ public partial class AppShell : Shell
 		{
 			Padding = new Thickness(16, 24, 16, 16),
 			Spacing = 2,
-			Children = { appNameLabel, userLabel },
+			Children = { titleRow, userLabel },
 		};
 	}
 
