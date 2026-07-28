@@ -15,16 +15,18 @@ public partial class PosPage : ContentPage
     private readonly BarcodeScannerPage _scannerPage;
     private readonly ReceiptPrintingService _printing;
     private readonly HeldSalesPage _heldSalesPage;
+    private readonly CustomerPickerPage _customerPickerPage;
     private readonly ObservableCollection<CartLine> _cart = new();
 
     private CancellationTokenSource? _searchDebounceCts;
     private PaymentMethod _selectedPaymentMethod = PaymentMethod.Cash;
+    private CustomerResponse? _selectedCustomer;
     private bool _checkoutInProgress;
     private string? _companyName;
     private string? _companyCurrency;
     private string? _locationName;
 
-    public PosPage(LocalSalesService localSales, LocalCatalogQueryService localCatalog, SessionService session, SyncService sync, BarcodeScannerPage scannerPage, ReceiptPrintingService printing, HeldSalesPage heldSalesPage, ThemeService themeService)
+    public PosPage(LocalSalesService localSales, LocalCatalogQueryService localCatalog, SessionService session, SyncService sync, BarcodeScannerPage scannerPage, ReceiptPrintingService printing, HeldSalesPage heldSalesPage, CustomerPickerPage customerPickerPage, ThemeService themeService)
     {
         InitializeComponent();
         _localSales = localSales;
@@ -34,6 +36,7 @@ public partial class PosPage : ContentPage
         _scannerPage = scannerPage;
         _printing = printing;
         _heldSalesPage = heldSalesPage;
+        _customerPickerPage = customerPickerPage;
         this.AttachStandardHeader(themeService, session);
 
         CartView.ItemsSource = _cart;
@@ -350,6 +353,12 @@ public partial class PosPage : ContentPage
 
     private void OnSplitChipClicked(object? sender, EventArgs e) => SelectPaymentMethod(PaymentMethod.Split);
 
+    private void OnCreditChipClicked(object? sender, EventArgs e) => SelectPaymentMethod(PaymentMethod.Credit);
+
+    private void OnGiftCardChipClicked(object? sender, EventArgs e) => SelectPaymentMethod(PaymentMethod.GiftCard);
+
+    private void OnStoreCreditChipClicked(object? sender, EventArgs e) => SelectPaymentMethod(PaymentMethod.StoreCredit);
+
     private void SelectPaymentMethod(PaymentMethod method)
     {
         // Re-tapping the already-active chip must not wipe whatever the
@@ -368,14 +377,23 @@ public partial class PosPage : ContentPage
         CashChip.Style = (Style)Application.Current!.Resources[_selectedPaymentMethod == PaymentMethod.Cash ? "ChipButtonSelected" : "ChipButtonUnselected"];
         MobileMoneyChip.Style = (Style)Application.Current!.Resources[_selectedPaymentMethod == PaymentMethod.MobileMoney ? "ChipButtonSelected" : "ChipButtonUnselected"];
         SplitChip.Style = (Style)Application.Current!.Resources[_selectedPaymentMethod == PaymentMethod.Split ? "ChipButtonSelected" : "ChipButtonUnselected"];
+        CreditChip.Style = (Style)Application.Current!.Resources[_selectedPaymentMethod == PaymentMethod.Credit ? "ChipButtonSelected" : "ChipButtonUnselected"];
+        GiftCardChip.Style = (Style)Application.Current!.Resources[_selectedPaymentMethod == PaymentMethod.GiftCard ? "ChipButtonSelected" : "ChipButtonUnselected"];
+        StoreCreditChip.Style = (Style)Application.Current!.Resources[_selectedPaymentMethod == PaymentMethod.StoreCredit ? "ChipButtonSelected" : "ChipButtonUnselected"];
 
         SplitCashEntry.Text = string.Empty;
         SplitMobileMoneyEntry.Text = string.Empty;
         TenderedEntry.Text = string.Empty;
+        GiftCardCodeEntry.Text = string.Empty;
 
         SplitPaymentDetail.IsVisible = _selectedPaymentMethod == PaymentMethod.Split;
         TenderedDetail.IsVisible = _selectedPaymentMethod is PaymentMethod.Cash or PaymentMethod.Split;
+        GiftCardDetail.IsVisible = _selectedPaymentMethod == PaymentMethod.GiftCard;
 
+        // CustomerRequiredHint's own visibility is (re)computed inside
+        // UpdateTotalsAndButtons, since it depends on _selectedCustomer too
+        // (changed independently via OnPickCustomerClicked/OnClearCustomerClicked,
+        // not just the payment method changes this method handles).
         UpdateTotalsAndButtons();
     }
 
@@ -384,6 +402,41 @@ public partial class PosPage : ContentPage
     private void OnSplitCashTextChanged(object? sender, TextChangedEventArgs e) => UpdateTotalsAndButtons();
 
     private void OnSplitMobileMoneyTextChanged(object? sender, TextChangedEventArgs e) => UpdateTotalsAndButtons();
+
+    private void OnGiftCardCodeTextChanged(object? sender, TextChangedEventArgs e) => UpdateTotalsAndButtons();
+
+    private async void OnPickCustomerClicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            var pickTask = _customerPickerPage.PickAsync();
+            await Navigation.PushModalAsync(_customerPickerPage);
+            var customer = await pickTask;
+            if (customer is null) return;
+
+            _selectedCustomer = customer;
+            UpdateSelectedCustomerLabel();
+        }
+        catch (Exception ex)
+        {
+            this.ShowError(ex.Message);
+        }
+    }
+
+    private void OnClearCustomerClicked(object? sender, EventArgs e)
+    {
+        _selectedCustomer = null;
+        UpdateSelectedCustomerLabel();
+    }
+
+    private void UpdateSelectedCustomerLabel()
+    {
+        SelectedCustomerLabel.Text = _selectedCustomer is null
+            ? LocalizationService.Translate("Pos_NoCustomerSelected")
+            : _selectedCustomer.Name;
+        ClearCustomerButton.IsVisible = _selectedCustomer is not null;
+        UpdateTotalsAndButtons();
+    }
 
     private async void OnCheckoutClicked(object? sender, EventArgs e)
     {
@@ -411,16 +464,19 @@ public partial class PosPage : ContentPage
                 };
             }
             var amountTendered = TenderedDetail.IsVisible ? ParseDecimal(TenderedEntry.Text) : null;
+            var giftCardCode = _selectedPaymentMethod == PaymentMethod.GiftCard ? GiftCardCodeEntry.Text?.Trim() : null;
 
             var request = new CreateSaleRequest(
-                locationId.Value, null, _selectedPaymentMethod,
+                locationId.Value, _selectedCustomer?.Id, _selectedPaymentMethod,
                 _cart.Select(l => new SaleLineRequest(l.ProductId, l.Quantity, l.PackagingLevelId)).ToList(),
-                null, paymentSplits, amountTendered);
+                null, paymentSplits, amountTendered, giftCardCode);
 
             var sale = await _localSales.CreateSaleAsync(companyId.Value, request);
 
             _cart.Clear();
             _selectedPaymentMethod = PaymentMethod.Cash;
+            _selectedCustomer = null;
+            UpdateSelectedCustomerLabel();
             ApplyPaymentModeUi();
 
             var wantsPrint = await this.DisplayAlertAsync(
@@ -638,7 +694,17 @@ public partial class PosPage : ContentPage
             ChangeDueLabel.IsVisible = false;
         }
 
-        CheckoutButton.IsEnabled = _cart.Count > 0 && !_checkoutInProgress && splitValid && tenderedValid;
+        // Credit/StoreCredit both draw down a customer-scoped balance — the
+        // server would reject either with no CustomerId, so it's blocked
+        // here too rather than letting the cashier discover that only after
+        // tapping "Encaisser" (see CustomerRequiredHint, kept in sync in
+        // ApplyPaymentModeUi whenever the payment method itself changes).
+        var customerRequirementMet = _selectedPaymentMethod is not (PaymentMethod.Credit or PaymentMethod.StoreCredit) || _selectedCustomer is not null;
+        CustomerRequiredHint.IsVisible = !customerRequirementMet;
+
+        var giftCardValid = _selectedPaymentMethod != PaymentMethod.GiftCard || !string.IsNullOrWhiteSpace(GiftCardCodeEntry.Text);
+
+        CheckoutButton.IsEnabled = _cart.Count > 0 && !_checkoutInProgress && splitValid && tenderedValid && customerRequirementMet && giftCardValid;
         HoldButton.IsEnabled = _cart.Count > 0 && !_checkoutInProgress;
     }
 

@@ -20,6 +20,8 @@ public partial class AppShell : Shell
 	public const string ReportsRoute = "//ReportsSection/ReportsPage";
 	public const string PurchaseOrdersRoute = "//PurchaseOrdersSection/PurchaseOrdersListPage";
 	public const string SupplierManagementRoute = "//SupplierManagementSection/SupplierManagementPage";
+	public const string CustomerManagementRoute = "//CustomerManagementSection/CustomerManagementPage";
+	public const string GiftCardManagementRoute = "//GiftCardManagementSection/GiftCardManagementPage";
 	public const string CompanySettingsRoute = "//CompanySettingsSection/CompanySettingsPage";
 	public const string PrinterSettingsRoute = "//PrinterSettingsSection/PrinterSettingsPage";
 	public const string CashRegisterRoute = "//CashRegisterSection/CashRegisterPage";
@@ -110,6 +112,12 @@ public partial class AppShell : Shell
 		purchasing.AddRow(BuildNavRow(BootstrapIcons.Truck, "Shell_Suppliers", SupplierManagementRoute));
 		purchasing.AddRow(BuildNavRow(BootstrapIcons.ClipboardCheck, "Shell_PurchaseOrders", PurchaseOrdersRoute));
 		stack.Children.Add(purchasing);
+
+		var clients = new FlyoutSection { Icon = BootstrapIcons.Phone };
+		BindTranslatedTitle(clients, "Shell_ClientsGroup");
+		clients.AddRow(BuildNavRow(BootstrapIcons.Phone, "Shell_Customers", CustomerManagementRoute));
+		clients.AddRow(BuildNavRow(BootstrapIcons.Wallet2, "Shell_GiftCards", GiftCardManagementRoute));
+		stack.Children.Add(clients);
 
 		var management = new FlyoutSection { Icon = BootstrapIcons.Gear };
 		BindTranslatedTitle(management, "Shell_ManagementGroup");

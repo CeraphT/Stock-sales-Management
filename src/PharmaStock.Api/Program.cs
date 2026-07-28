@@ -72,5 +72,8 @@ app.MapSupplierEndpoints();
 app.MapPurchaseOrderEndpoints();
 app.MapSyncEndpoints();
 app.MapSuperAdminEndpoints();
+app.MapCustomerEndpoints();
+app.MapGiftCardEndpoints();
+app.MapLoyaltyEndpoints();
 
 app.Run();

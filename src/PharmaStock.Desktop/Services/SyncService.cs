@@ -244,7 +244,8 @@ public class SyncService
             // movement needs — no SaleId FK on StockMovement required.
             sale.ProductLines.Where(l => l.BatchId is not null).Select(l => new SyncPushStockMovement(
                 Guid.NewGuid(), l.ProductId, l.BatchId, sale.LocationId, null, StockMovementType.Sale,
-                -l.QuantityInBaseUnits, null, sale.UserId, sale.Timestamp)).ToList()
+                -l.QuantityInBaseUnits, null, sale.UserId, sale.Timestamp)).ToList(),
+            sale.GiftCardCode
         )).ToList();
 
         var shiftOpens = pendingShifts.Select(s => new SyncPushShiftOpen(
@@ -349,8 +350,23 @@ public class SyncService
 
             foreach (var cust in pull.Customers)
             {
-                await UpsertAsync(db.Customers, c => c.Id == cust.Id, () => new Customer { Id = cust.Id, CompanyId = companyId },
+                var customer = await UpsertAsync(db.Customers, c => c.Id == cust.Id, () => new Customer { Id = cust.Id, CompanyId = companyId },
                     c => { c.Name = cust.Name; c.Phone = cust.Phone; c.CreditBalance = cust.CreditBalance; c.UpdatedAt = cust.UpdatedAt; }, ct);
+
+                // LoyaltyAccount is a separate table (one-to-one, see
+                // Customer.LoyaltyAccount's own doc comment) — upserted here
+                // rather than via a top-level pull.LoyaltyAccounts list since
+                // it's meaningless without its Customer and every pulled
+                // Customer already carries its own current balances.
+                await UpsertAsync(db.LoyaltyAccounts, l => l.CustomerId == customer.Id, () => new LoyaltyAccount { CustomerId = customer.Id },
+                    l => { l.PointsBalance = cust.LoyaltyPointsBalance; l.StoreCreditBalance = cust.LoyaltyStoreCreditBalance; }, ct);
+                count++;
+            }
+
+            foreach (var card in pull.GiftCards)
+            {
+                await UpsertAsync(db.GiftCards, g => g.Id == card.Id, () => new GiftCard { Id = card.Id, CompanyId = companyId },
+                    g => { g.Code = card.Code; g.InitialValue = card.InitialValue; g.RemainingValue = card.RemainingValue; g.Active = card.Active; }, ct);
                 count++;
             }
 
@@ -427,7 +443,11 @@ public class SyncService
         var company = await db.Companies.FirstOrDefaultAsync(c => c.Id == companyId, ct);
         if (company is null)
         {
-            db.Companies.Add(new Company { Id = companyId, Name = info.Name, UniqueCode = info.UniqueCode, Currency = info.Currency, DefaultTaxRatePercent = info.DefaultTaxRatePercent });
+            db.Companies.Add(new Company
+            {
+                Id = companyId, Name = info.Name, UniqueCode = info.UniqueCode, Currency = info.Currency, DefaultTaxRatePercent = info.DefaultTaxRatePercent,
+                LoyaltyEnabled = info.LoyaltyEnabled, LoyaltyEarnRateAmount = info.LoyaltyEarnRateAmount, LoyaltyPointValue = info.LoyaltyPointValue,
+            });
         }
         else
         {
@@ -435,6 +455,9 @@ public class SyncService
             company.UniqueCode = info.UniqueCode;
             company.Currency = info.Currency;
             company.DefaultTaxRatePercent = info.DefaultTaxRatePercent;
+            company.LoyaltyEnabled = info.LoyaltyEnabled;
+            company.LoyaltyEarnRateAmount = info.LoyaltyEarnRateAmount;
+            company.LoyaltyPointValue = info.LoyaltyPointValue;
         }
     }
 

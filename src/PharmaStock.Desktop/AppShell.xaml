@@ -75,6 +75,18 @@
             Route="PurchaseOrdersListPage" />
     </FlyoutItem>
 
+    <FlyoutItem Title="{loc:Translate Shell_Customers}" Route="CustomerManagementSection" Shell.FlyoutItemIsVisible="False">
+        <ShellContent
+            ContentTemplate="{DataTemplate views:CustomerManagementPage}"
+            Route="CustomerManagementPage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="{loc:Translate Shell_GiftCards}" Route="GiftCardManagementSection" Shell.FlyoutItemIsVisible="False">
+        <ShellContent
+            ContentTemplate="{DataTemplate views:GiftCardManagementPage}"
+            Route="GiftCardManagementPage" />
+    </FlyoutItem>
+
     <FlyoutItem Title="{loc:Translate Shell_SalesHistory}" Route="SalesHistorySection" Shell.FlyoutItemIsVisible="False">
         <ShellContent
             ContentTemplate="{DataTemplate views:SalesHistoryPage}"

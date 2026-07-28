@@ -18,8 +18,12 @@ public record JoinCompanyRequest(string UniqueCode);
 public record LoginRequest(string Phone, string Password, Guid DeviceId, string DeviceName, DevicePlatform Platform);
 public record RefreshRequest(Guid DeviceId, string RefreshToken);
 
-public record CompanyResponse(Guid Id, string Name, string UniqueCode, string Currency, bool ServicesModuleEnabled, string? Description, decimal DefaultTaxRatePercent);
-public record UpdateCompanyRequest(string Name, string? Description, string Currency, decimal DefaultTaxRatePercent);
+public record CompanyResponse(
+    Guid Id, string Name, string UniqueCode, string Currency, bool ServicesModuleEnabled, string? Description, decimal DefaultTaxRatePercent,
+    bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue);
+public record UpdateCompanyRequest(
+    string Name, string? Description, string Currency, decimal DefaultTaxRatePercent,
+    bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue);
 public record UserResponse(Guid Id, string Name, string Phone, UserRole Role, bool Active);
 public record LocationResponse(Guid Id, string Name, string? Address, bool Active);
 public record AuthResponse(string Token, DateTime ExpiresAt, string RefreshToken, Guid DeviceId, UserResponse User, Guid? CompanyId);
@@ -93,7 +97,7 @@ public record PaymentSplitRequest(PaymentMethod Method, decimal Amount);
 public record CreateSaleRequest(
     Guid LocationId, Guid? CustomerId, PaymentMethod PaymentMethod,
     List<SaleLineRequest>? ProductLines, List<object>? ServiceLines, List<PaymentSplitRequest>? PaymentSplits,
-    decimal? AmountTendered = null);
+    decimal? AmountTendered = null, string? GiftCardCode = null);
 public record SaleLineResponse(
     Guid ProductId, string ProductName, Guid? BatchId, string? BatchNumber,
     int QuantityInBaseUnits, Guid? PackagingLevelId, string? PackagingLevelName, int UnitsPerPackagingLevel, decimal UnitPrice,
@@ -128,6 +132,19 @@ public record TopProductItem(Guid ProductId, string ProductName, int QuantitySol
 public record SupplierRequest(string Name, string? ContactPhone, string? ContactEmail);
 public record SupplierResponse(Guid Id, string Name, string? ContactPhone, string? ContactEmail);
 
+// Mirrors PharmaStock.Api.Services.CustomerEndpoints — Section 3.5/21.3
+public record CustomerRequest(string Name, string? Phone);
+public record CustomerResponse(Guid Id, string Name, string? Phone, decimal CreditBalance, int LoyaltyPointsBalance, decimal LoyaltyStoreCreditBalance);
+
+// Mirrors PharmaStock.Api.Services.GiftCardEndpoints — Section 21.3
+public record IssueGiftCardRequest(decimal InitialValue);
+public record GiftCardResponse(Guid Id, string Code, decimal InitialValue, decimal RemainingValue, bool Active, DateTime CreatedAt);
+public record SetGiftCardActiveRequest(bool Active);
+
+// Mirrors PharmaStock.Api.Services.LoyaltyEndpoints — Section 21.3
+public record RedeemLoyaltyPointsRequest(int Points);
+public record LoyaltyAccountResponse(int PointsBalance, decimal StoreCreditBalance);
+
 // Mirrors PharmaStock.Api.Services.PurchaseOrderEndpoints — Section 3.4
 public record PurchaseOrderLineRequest(Guid ProductId, int QuantityOrdered, decimal UnitCost);
 public record CreatePurchaseOrderRequest(Guid LocationId, Guid SupplierId, string? Notes, List<PurchaseOrderLineRequest> Lines);
@@ -160,7 +177,8 @@ public record SyncPushSale(
     decimal Total, PaymentMethod PaymentMethod, SaleStatus Status,
     decimal? AmountTendered, decimal? ChangeDue, DateTime Timestamp,
     List<SyncPushSaleLine> ProductLines, List<object> ServiceLines,
-    List<SyncPushPaymentSplit> PaymentSplits, List<SyncPushStockMovement> StockMovements);
+    List<SyncPushPaymentSplit> PaymentSplits, List<SyncPushStockMovement> StockMovements,
+    string? GiftCardCode = null);
 public record SyncPushShiftOpen(Guid Id, Guid LocationId, Guid OpenedByUserId, decimal OpeningCashAmount, DateTime OpenedAt);
 public record SyncPushShiftClose(Guid ShiftId, Guid ClosedByUserId, decimal ClosingCashAmount, string? ClosingNotes, DateTime ClosedAt);
 public record SyncPushRequest(Guid DeviceId, List<SyncPushSale> Sales, List<SyncPushShiftOpen> ShiftOpens, List<SyncPushShiftClose> ShiftCloses);
@@ -170,11 +188,14 @@ public record SyncPushResponse(List<SyncPushResult> SaleResults, List<SyncPushRe
 public record SyncPullPackagingLevel(Guid Id, Guid ProductId, string UnitName, int QuantityInBaseUnits, decimal? SalePriceOverride);
 public record SyncPullProduct(Guid Id, string Name, string? Barcode, Guid? CategoryId, decimal PurchasePrice, decimal SalePrice, Guid? SupplierId, bool IsFavorite, bool IsActive, int LowStockThreshold, decimal? TaxRateOverridePercent, DateTime UpdatedAt, List<SyncPullPackagingLevel> PackagingLevels);
 public record SyncPullCategory(Guid Id, string Name, DateTime UpdatedAt);
-public record SyncPullCustomer(Guid Id, string Name, string? Phone, decimal CreditBalance, DateTime UpdatedAt);
+public record SyncPullCustomer(Guid Id, string Name, string? Phone, decimal CreditBalance, int LoyaltyPointsBalance, decimal LoyaltyStoreCreditBalance, DateTime UpdatedAt);
 public record SyncPullSupplier(Guid Id, string Name, string? ContactPhone, string? ContactEmail, DateTime UpdatedAt);
 public record SyncPullBatch(Guid Id, Guid ProductId, Guid LocationId, string BatchNumber, DateTime? ExpiryDate, int QuantityInBaseUnits, decimal PurchasePricePerBaseUnit, DateTime UpdatedAt);
 public record SyncPullLocation(Guid Id, string Name, string? Address, bool Active);
-public record SyncPullCompanyInfo(Guid Id, string Name, string UniqueCode, string Currency, decimal DefaultTaxRatePercent);
+public record SyncPullCompanyInfo(
+    Guid Id, string Name, string UniqueCode, string Currency, decimal DefaultTaxRatePercent,
+    bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue);
+public record SyncPullGiftCard(Guid Id, string Code, decimal InitialValue, decimal RemainingValue, bool Active);
 public record SyncPullStockMovement(Guid Id, Guid ProductId, Guid? BatchId, Guid LocationId, Guid? DestinationLocationId, StockMovementType Type, int QuantityInBaseUnits, string? Reason, Guid UserId, DateTime Timestamp);
 public record SyncPullUser(Guid Id, string Name, string Phone);
 public record SyncPullResponse(
@@ -182,7 +203,7 @@ public record SyncPullResponse(
     List<SyncPullProduct> Products, List<SyncPullCategory> Categories,
     List<SyncPullCustomer> Customers, List<SyncPullSupplier> Suppliers,
     List<SyncPullBatch> Batches, List<SyncPullStockMovement> StockMovements,
-    List<SyncPullUser> Users);
+    List<SyncPullUser> Users, List<SyncPullGiftCard> GiftCards);
 
 public class PharmaStockApiException : Exception
 {
@@ -319,6 +340,28 @@ public class PharmaStockApiClient
 
     public Task DeleteSupplierAsync(Guid companyId, Guid supplierId, CancellationToken ct = default)
         => DeleteAsync($"/api/companies/{companyId}/suppliers/{supplierId}", ct);
+
+    public Task<List<CustomerResponse>> GetCustomersAsync(Guid companyId, string? search = null, CancellationToken ct = default)
+        => GetAsync<List<CustomerResponse>>(
+            $"/api/companies/{companyId}/customers" +
+            (string.IsNullOrWhiteSpace(search) ? "" : $"?search={Uri.EscapeDataString(search)}"), ct);
+
+    public Task<CustomerResponse> CreateCustomerAsync(Guid companyId, string name, string? phone, CancellationToken ct = default)
+        => PostAsync<CustomerRequest, CustomerResponse>($"/api/companies/{companyId}/customers", new CustomerRequest(name, phone), ct);
+
+    public Task<List<GiftCardResponse>> GetGiftCardsAsync(Guid companyId, string? search = null, CancellationToken ct = default)
+        => GetAsync<List<GiftCardResponse>>(
+            $"/api/companies/{companyId}/giftcards" +
+            (string.IsNullOrWhiteSpace(search) ? "" : $"?search={Uri.EscapeDataString(search)}"), ct);
+
+    public Task<GiftCardResponse> IssueGiftCardAsync(Guid companyId, decimal initialValue, CancellationToken ct = default)
+        => PostAsync<IssueGiftCardRequest, GiftCardResponse>($"/api/companies/{companyId}/giftcards", new IssueGiftCardRequest(initialValue), ct);
+
+    public Task<GiftCardResponse> SetGiftCardActiveAsync(Guid companyId, Guid giftCardId, bool active, CancellationToken ct = default)
+        => PutAsync<SetGiftCardActiveRequest, GiftCardResponse>($"/api/companies/{companyId}/giftcards/{giftCardId}/active", new SetGiftCardActiveRequest(active), ct);
+
+    public Task<LoyaltyAccountResponse> RedeemLoyaltyPointsAsync(Guid companyId, Guid customerId, int points, CancellationToken ct = default)
+        => PostAsync<RedeemLoyaltyPointsRequest, LoyaltyAccountResponse>($"/api/companies/{companyId}/customers/{customerId}/loyalty/redeem", new RedeemLoyaltyPointsRequest(points), ct);
 
     public Task<PurchaseOrderDetailResponse> CreatePurchaseOrderAsync(Guid companyId, CreatePurchaseOrderRequest request, CancellationToken ct = default)
         => PostAsync<CreatePurchaseOrderRequest, PurchaseOrderDetailResponse>($"/api/companies/{companyId}/purchase-orders", request, ct);

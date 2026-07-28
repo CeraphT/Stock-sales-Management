@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PharmaStock.Infrastructure.Data;
 
@@ -10,9 +11,11 @@ using PharmaStock.Infrastructure.Data;
 namespace PharmaStock.Desktop.Data.SqliteMigrations
 {
     [DbContext(typeof(PharmaStockDbContext))]
-    partial class PharmaStockDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260728045458_AddLoyaltyAndGiftCardSupport")]
+    partial class AddLoyaltyAndGiftCardSupport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.29");

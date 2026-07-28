@@ -10,9 +10,13 @@ public record CreateCompanyRequest(
     string AdminName, string AdminPhone, string AdminPassword,
     Guid DeviceId, string DeviceName, DevicePlatform Platform);
 public record JoinCompanyRequest(string UniqueCode);
-public record CompanyResponse(Guid Id, string Name, string UniqueCode, string Currency, bool ServicesModuleEnabled, string? Description, decimal DefaultTaxRatePercent);
+public record CompanyResponse(
+    Guid Id, string Name, string UniqueCode, string Currency, bool ServicesModuleEnabled, string? Description, decimal DefaultTaxRatePercent,
+    bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue);
 public record CreateCompanyResponse(CompanyResponse Company, AuthResponse Admin, LocationResponse DefaultLocation);
-public record UpdateCompanyRequest(string Name, string? Description, string Currency, decimal DefaultTaxRatePercent);
+public record UpdateCompanyRequest(
+    string Name, string? Description, string Currency, decimal DefaultTaxRatePercent,
+    bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue);
 
 public static class CompanyEndpoints
 {
@@ -109,6 +113,8 @@ public static class CompanyEndpoints
 
             if (string.IsNullOrWhiteSpace(request.Name))
                 return Results.BadRequest(new { message = "Le nom de l'entreprise est requis." });
+            if (request.LoyaltyEarnRateAmount <= 0 || request.LoyaltyPointValue <= 0)
+                return Results.BadRequest(new { message = "Les paramètres de fidélité doivent être des montants positifs." });
 
             var company = await db.Companies.FindAsync(id);
             if (company is null)
@@ -118,6 +124,9 @@ public static class CompanyEndpoints
             company.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
             company.Currency = string.IsNullOrWhiteSpace(request.Currency) ? company.Currency : request.Currency.Trim();
             company.DefaultTaxRatePercent = request.DefaultTaxRatePercent;
+            company.LoyaltyEnabled = request.LoyaltyEnabled;
+            company.LoyaltyEarnRateAmount = request.LoyaltyEarnRateAmount;
+            company.LoyaltyPointValue = request.LoyaltyPointValue;
 
             await db.SaveChangesAsync();
 
@@ -127,7 +136,8 @@ public static class CompanyEndpoints
 
     private static CompanyResponse ToResponse(Company company) => new(
         company.Id, company.Name, company.UniqueCode, company.Currency, company.ServicesModuleEnabled,
-        company.Description, company.DefaultTaxRatePercent);
+        company.Description, company.DefaultTaxRatePercent,
+        company.LoyaltyEnabled, company.LoyaltyEarnRateAmount, company.LoyaltyPointValue);
 
     /// <summary>Short, human-typeable code (Section 9): e.g. PHRM-7X2K9.
     /// Collision odds are negligible at this scale, but the database-level

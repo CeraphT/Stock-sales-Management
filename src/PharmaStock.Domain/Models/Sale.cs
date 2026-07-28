@@ -39,6 +39,15 @@ public class Sale
     public decimal? AmountTendered { get; set; }
     public decimal? ChangeDue { get; set; }
 
+    /// <summary>Section 21.3 — which gift card was redeemed against this
+    /// sale, if PaymentMethod (or a PaymentSplits leg) is GiftCard. Null
+    /// otherwise. Stored on the sale itself (not just applied to
+    /// GiftCard.RemainingValue and forgotten) so a receipt/sale-detail can
+    /// show which card paid for it, and so sync push can carry it along for
+    /// the server to independently re-derive and re-apply the same
+    /// deduction when the sale eventually syncs.</summary>
+    public string? GiftCardCode { get; set; }
+
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
     public ICollection<SaleLine> ProductLines { get; set; } = new List<SaleLine>();

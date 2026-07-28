@@ -97,6 +97,9 @@ public static class MauiProgram
 		builder.Services.AddTransient<SupplierEditPage>();
 		builder.Services.AddTransient<SupplierManagementPage>();
 		builder.Services.AddTransient<CompanySettingsPage>();
+		builder.Services.AddTransient<CustomerPickerPage>();
+		builder.Services.AddTransient<CustomerManagementPage>();
+		builder.Services.AddTransient<GiftCardManagementPage>();
 
 #if DEBUG
 		builder.Logging.AddDebug();

@@ -38,6 +38,12 @@ public partial class CompanySettingsPage : ContentPage
             CurrencyField.Text = company.Currency;
             TaxRateField.Text = company.DefaultTaxRatePercent.ToString(CultureInfo.InvariantCulture);
             UniqueCodeLabel.Text = company.UniqueCode;
+
+            LoyaltyEnabledSwitch.IsToggled = company.LoyaltyEnabled;
+            LoyaltyEarnRateField.Text = company.LoyaltyEarnRateAmount.ToString(CultureInfo.InvariantCulture);
+            LoyaltyPointValueField.Text = company.LoyaltyPointValue.ToString(CultureInfo.InvariantCulture);
+            LoyaltyEarnRateField.IsEnabled = company.LoyaltyEnabled;
+            LoyaltyPointValueField.IsEnabled = company.LoyaltyEnabled;
         }
         catch (PharmaStockApiException ex)
         {
@@ -55,6 +61,12 @@ public partial class CompanySettingsPage : ContentPage
         }
     }
 
+    private void OnLoyaltyEnabledToggled(object? sender, ToggledEventArgs e)
+    {
+        LoyaltyEarnRateField.IsEnabled = e.Value;
+        LoyaltyPointValueField.IsEnabled = e.Value;
+    }
+
     private async void OnSaveClicked(object? sender, EventArgs e)
     {
         if (string.IsNullOrWhiteSpace(NameField.Text))
@@ -64,6 +76,11 @@ public partial class CompanySettingsPage : ContentPage
         }
 
         var taxRate = ParseDecimal(TaxRateField.Text) ?? 0;
+        // Fields disabled while loyalty is off can be blank — fall back to
+        // sane positive defaults so a later re-enable doesn't leave the
+        // server with the request-validation's rejected 0.
+        var loyaltyEarnRate = ParseDecimal(LoyaltyEarnRateField.Text) is > 0 ? ParseDecimal(LoyaltyEarnRateField.Text)!.Value : 100m;
+        var loyaltyPointValue = ParseDecimal(LoyaltyPointValueField.Text) is > 0 ? ParseDecimal(LoyaltyPointValueField.Text)!.Value : 10m;
 
         SetBusy(true);
         try
@@ -73,7 +90,8 @@ public partial class CompanySettingsPage : ContentPage
                 NameField.Text.Trim(),
                 string.IsNullOrWhiteSpace(DescriptionField.Text) ? null : DescriptionField.Text.Trim(),
                 string.IsNullOrWhiteSpace(CurrencyField.Text) ? "XAF" : CurrencyField.Text.Trim(),
-                taxRate);
+                taxRate,
+                LoyaltyEnabledSwitch.IsToggled, loyaltyEarnRate, loyaltyPointValue);
 
             await _api.UpdateCompanyAsync(companyId, request);
             this.ShowSuccess(LocalizationService.Translate("CompanySettings_Saved"));

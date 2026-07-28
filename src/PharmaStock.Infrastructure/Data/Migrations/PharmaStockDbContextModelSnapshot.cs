@@ -174,6 +174,17 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.Property<string>("LogoUrl")
                         .HasColumnType("text");
 
+                    b.Property<decimal>("LoyaltyEarnRateAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<bool>("LoyaltyEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("LoyaltyPointValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -333,6 +344,9 @@ namespace PharmaStock.Infrastructure.Data.Migrations
 
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("InitialValue")
                         .HasPrecision(18, 2)
@@ -647,6 +661,9 @@ namespace PharmaStock.Infrastructure.Data.Migrations
 
                     b.Property<Guid?>("CustomerId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("GiftCardCode")
+                        .HasColumnType("text");
 
                     b.Property<Guid>("LocationId")
                         .HasColumnType("uuid");

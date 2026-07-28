@@ -16,7 +16,8 @@ public record CreateSaleRequest(
     List<SaleLineRequest>? ProductLines,
     List<ServiceLineRequest>? ServiceLines,
     List<PaymentSplitRequest>? PaymentSplits,
-    decimal? AmountTendered = null);
+    decimal? AmountTendered = null,
+    string? GiftCardCode = null);
 
 public record SaleLineResponse(
     Guid ProductId, string ProductName, Guid? BatchId, string? BatchNumber,
@@ -55,16 +56,6 @@ public record SaleDetailResponse(
 
 public static class SaleEndpoints
 {
-    // Payment methods that settle immediately at sale time. Credit is handled
-    // separately (adds to Customer.CreditBalance); GiftCard/StoreCredit need
-    // balance-redemption logic this endpoint does not implement yet — rejected
-    // explicitly rather than silently accepted, since silently accepting would
-    // record revenue that was never actually collected.
-    private static readonly HashSet<PaymentMethod> UnsupportedPaymentMethods = new()
-    {
-        PaymentMethod.GiftCard, PaymentMethod.StoreCredit
-    };
-
     public static void MapSaleEndpoints(this WebApplication app)
     {
         app.MapPost("/api/companies/{companyId:guid}/sales", async (
@@ -88,11 +79,6 @@ public static class SaleEndpoints
                 return Results.NotFound(new { message = "Entreprise introuvable." });
             if (serviceLines.Count > 0 && !company.ServicesModuleEnabled)
                 return Results.BadRequest(new { message = "Le module Services n'est pas activé pour cette entreprise." });
-
-            var requestedMethods = (request.PaymentSplits?.Select(s => s.Method) ?? Enumerable.Empty<PaymentMethod>())
-                .Append(request.PaymentMethod);
-            if (requestedMethods.Any(UnsupportedPaymentMethods.Contains))
-                return Results.BadRequest(new { message = "Le paiement par carte-cadeau ou crédit-magasin n'est pas encore pris en charge." });
 
             if (request.CustomerId.HasValue)
             {
@@ -330,6 +316,89 @@ public static class SaleEndpoints
                     }
                     var customer = await db.Customers.FindAsync(request.CustomerId.Value);
                     customer!.CreditBalance += creditAmount;
+                }
+
+                // Section 21.3 — a GiftCard sale (whole or split) draws down
+                // the redeemed card's prepaid balance. The code travels with
+                // the sale itself (Sale.GiftCardCode) so a receipt/history
+                // view can show which card paid for it, and so sync push
+                // carries it along for the server to re-derive this same
+                // amount when a locally-created sale eventually syncs.
+                var giftCardAmount = request.PaymentSplits is { Count: > 0 }
+                    ? request.PaymentSplits.Where(s => s.Method == PaymentMethod.GiftCard).Sum(s => s.Amount)
+                    : (request.PaymentMethod == PaymentMethod.GiftCard ? sale.Total : 0m);
+                if (giftCardAmount > 0)
+                {
+                    if (string.IsNullOrWhiteSpace(request.GiftCardCode))
+                    {
+                        await transaction.RollbackAsync();
+                        return Results.BadRequest(new { message = "Un paiement par carte-cadeau nécessite un code de carte." });
+                    }
+
+                    var normalizedCode = request.GiftCardCode.Trim().ToUpperInvariant();
+                    var giftCard = await db.GiftCards.FirstOrDefaultAsync(g => g.CompanyId == companyId && g.Code == normalizedCode);
+                    if (giftCard is null)
+                    {
+                        await transaction.RollbackAsync();
+                        return Results.NotFound(new { message = "Carte-cadeau introuvable." });
+                    }
+                    if (!giftCard.Active)
+                    {
+                        await transaction.RollbackAsync();
+                        return Results.BadRequest(new { message = "Cette carte-cadeau est désactivée." });
+                    }
+                    if (giftCard.RemainingValue < giftCardAmount)
+                    {
+                        await transaction.RollbackAsync();
+                        return Results.BadRequest(new { message = $"Solde de la carte-cadeau insuffisant : {giftCard.RemainingValue} disponible." });
+                    }
+
+                    giftCard.RemainingValue -= giftCardAmount;
+                    sale.GiftCardCode = normalizedCode;
+                }
+
+                // Section 21.3 — a StoreCredit sale (whole or split) draws
+                // down the customer's LoyaltyAccount.StoreCreditBalance,
+                // built up by earlier point redemptions (see LoyaltyEndpoints).
+                var storeCreditAmount = request.PaymentSplits is { Count: > 0 }
+                    ? request.PaymentSplits.Where(s => s.Method == PaymentMethod.StoreCredit).Sum(s => s.Amount)
+                    : (request.PaymentMethod == PaymentMethod.StoreCredit ? sale.Total : 0m);
+                if (storeCreditAmount > 0)
+                {
+                    if (request.CustomerId is null)
+                    {
+                        await transaction.RollbackAsync();
+                        return Results.BadRequest(new { message = "Un paiement par crédit-magasin nécessite un client." });
+                    }
+
+                    var loyaltyAccount = await db.LoyaltyAccounts.FirstOrDefaultAsync(l => l.CustomerId == request.CustomerId);
+                    if (loyaltyAccount is null || loyaltyAccount.StoreCreditBalance < storeCreditAmount)
+                    {
+                        await transaction.RollbackAsync();
+                        return Results.BadRequest(new { message = $"Solde de crédit-magasin insuffisant : {loyaltyAccount?.StoreCreditBalance ?? 0} disponible." });
+                    }
+
+                    loyaltyAccount.StoreCreditBalance -= storeCreditAmount;
+                }
+
+                // Section 21.3 — every sale attributed to a customer earns
+                // loyalty points, independent of payment method (even a
+                // Credit or StoreCredit sale still earns) — floor division
+                // means a sale smaller than LoyaltyEarnRateAmount earns
+                // nothing rather than a fractional point.
+                if (company.LoyaltyEnabled && request.CustomerId is not null && sale.Total > 0)
+                {
+                    var pointsEarned = (int)Math.Floor(sale.Total / company.LoyaltyEarnRateAmount);
+                    if (pointsEarned > 0)
+                    {
+                        var loyaltyAccount = await db.LoyaltyAccounts.FirstOrDefaultAsync(l => l.CustomerId == request.CustomerId);
+                        if (loyaltyAccount is null)
+                        {
+                            loyaltyAccount = new LoyaltyAccount { CustomerId = request.CustomerId.Value };
+                            db.LoyaltyAccounts.Add(loyaltyAccount);
+                        }
+                        loyaltyAccount.PointsBalance += pointsEarned;
+                    }
                 }
 
                 db.Sales.Add(sale);

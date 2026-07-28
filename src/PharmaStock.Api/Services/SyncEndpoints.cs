@@ -16,7 +16,8 @@ public record SyncPushSale(
     decimal Total, PaymentMethod PaymentMethod, SaleStatus Status,
     decimal? AmountTendered, decimal? ChangeDue, DateTime Timestamp,
     List<SyncPushSaleLine> ProductLines, List<SyncPushServiceLine> ServiceLines,
-    List<SyncPushPaymentSplit> PaymentSplits, List<SyncPushStockMovement> StockMovements);
+    List<SyncPushPaymentSplit> PaymentSplits, List<SyncPushStockMovement> StockMovements,
+    string? GiftCardCode = null);
 
 public record SyncPushShiftOpen(Guid Id, Guid LocationId, Guid OpenedByUserId, decimal OpeningCashAmount, DateTime OpenedAt);
 public record SyncPushShiftClose(Guid ShiftId, Guid ClosedByUserId, decimal ClosingCashAmount, string? ClosingNotes, DateTime ClosedAt);
@@ -31,11 +32,14 @@ public record SyncPushResponse(List<SyncPushResult> SaleResults, List<SyncPushRe
 public record SyncPullPackagingLevel(Guid Id, Guid ProductId, string UnitName, int QuantityInBaseUnits, decimal? SalePriceOverride);
 public record SyncPullProduct(Guid Id, string Name, string? Barcode, Guid? CategoryId, decimal PurchasePrice, decimal SalePrice, Guid? SupplierId, bool IsFavorite, bool IsActive, int LowStockThreshold, decimal? TaxRateOverridePercent, DateTime UpdatedAt, List<SyncPullPackagingLevel> PackagingLevels);
 public record SyncPullCategory(Guid Id, string Name, DateTime UpdatedAt);
-public record SyncPullCustomer(Guid Id, string Name, string? Phone, decimal CreditBalance, DateTime UpdatedAt);
+public record SyncPullCustomer(Guid Id, string Name, string? Phone, decimal CreditBalance, int LoyaltyPointsBalance, decimal LoyaltyStoreCreditBalance, DateTime UpdatedAt);
 public record SyncPullSupplier(Guid Id, string Name, string? ContactPhone, string? ContactEmail, DateTime UpdatedAt);
 public record SyncPullBatch(Guid Id, Guid ProductId, Guid LocationId, string BatchNumber, DateTime? ExpiryDate, int QuantityInBaseUnits, decimal PurchasePricePerBaseUnit, DateTime UpdatedAt);
 public record SyncPullLocation(Guid Id, string Name, string? Address, bool Active);
-public record SyncPullCompanyInfo(Guid Id, string Name, string UniqueCode, string Currency, decimal DefaultTaxRatePercent);
+public record SyncPullCompanyInfo(
+    Guid Id, string Name, string UniqueCode, string Currency, decimal DefaultTaxRatePercent,
+    bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue);
+public record SyncPullGiftCard(Guid Id, string Code, decimal InitialValue, decimal RemainingValue, bool Active);
 
 // A pulled StockMovement/Sale/CashRegisterShift always carries a real
 // UserId FK (e.g. "who rang up this sale") — without a matching local User
@@ -55,7 +59,7 @@ public record SyncPullResponse(
     List<SyncPullProduct> Products, List<SyncPullCategory> Categories,
     List<SyncPullCustomer> Customers, List<SyncPullSupplier> Suppliers,
     List<SyncPullBatch> Batches, List<SyncPullStockMovement> StockMovements,
-    List<SyncPullUser> Users);
+    List<SyncPullUser> Users, List<SyncPullGiftCard> GiftCards);
 
 /// <summary>Section 6 — offline-first sync for the POS/sales workflow.
 /// Push applies Sales/StockMovements/shift events a device created while
@@ -154,7 +158,21 @@ public static class SyncEndpoints
             var customersQuery = db.Customers.Where(c => c.CompanyId == companyId);
             if (since is not null) customersQuery = customersQuery.Where(c => c.UpdatedAt > since);
             var customers = await customersQuery
-                .Select(c => new SyncPullCustomer(c.Id, c.Name, c.Phone, c.CreditBalance, c.UpdatedAt))
+                .Include(c => c.LoyaltyAccount)
+                .Select(c => new SyncPullCustomer(
+                    c.Id, c.Name, c.Phone, c.CreditBalance,
+                    c.LoyaltyAccount != null ? c.LoyaltyAccount.PointsBalance : 0,
+                    c.LoyaltyAccount != null ? c.LoyaltyAccount.StoreCreditBalance : 0,
+                    c.UpdatedAt))
+                .ToListAsync();
+
+            // Always pulled in full, same reasoning as Users below: gift
+            // cards are few and a device needs the CURRENT RemainingValue to
+            // validate an offline redemption against, not a stale
+            // incrementally-filtered one.
+            var giftCards = await db.GiftCards
+                .Where(g => g.CompanyId == companyId)
+                .Select(g => new SyncPullGiftCard(g.Id, g.Code, g.InitialValue, g.RemainingValue, g.Active))
                 .ToListAsync();
 
             var suppliersQuery = db.Suppliers.Where(s => s.CompanyId == companyId);
@@ -182,8 +200,10 @@ public static class SyncEndpoints
 
             return Results.Ok(new SyncPullResponse(
                 serverTimestamp,
-                new SyncPullCompanyInfo(company.Id, company.Name, company.UniqueCode, company.Currency, company.DefaultTaxRatePercent),
-                locations, products, categories, customers, suppliers, batches, movements, users));
+                new SyncPullCompanyInfo(
+                    company.Id, company.Name, company.UniqueCode, company.Currency, company.DefaultTaxRatePercent,
+                    company.LoyaltyEnabled, company.LoyaltyEarnRateAmount, company.LoyaltyPointValue),
+                locations, products, categories, customers, suppliers, batches, movements, users, giftCards));
         }).RequireAuthorization();
     }
 
@@ -265,6 +285,54 @@ public static class SyncEndpoints
                 var customer = await db.Customers.FindAsync(pushed.CustomerId.Value);
                 if (customer is not null)
                     customer.CreditBalance += creditAmount;
+            }
+
+            // Section 21.3 — the device already deducted its own local
+            // GiftCard/LoyaltyAccount rows optimistically at sale-creation
+            // time (see LocalSalesService); this independently re-derives
+            // and re-applies the exact same deterministic amounts against
+            // the server's authoritative rows, same pattern as CreditBalance
+            // above. Never trust a device-computed delta for money fields —
+            // recompute from Total/PaymentSplits/PaymentMethod every time.
+            sale.GiftCardCode = pushed.GiftCardCode;
+            var giftCardAmount = pushed.PaymentSplits.Count > 0
+                ? pushed.PaymentSplits.Where(s => s.Method == PaymentMethod.GiftCard).Sum(s => s.Amount)
+                : (pushed.PaymentMethod == PaymentMethod.GiftCard ? pushed.Total : 0m);
+            if (giftCardAmount > 0 && !string.IsNullOrWhiteSpace(pushed.GiftCardCode))
+            {
+                var giftCard = await db.GiftCards.FirstOrDefaultAsync(g => g.CompanyId == companyId && g.Code == pushed.GiftCardCode);
+                // Missing card (stale device cache): the sale still applies —
+                // same leniency as a missing Batch below — a balance that
+                // can't be found can't be corrupted, but the sale itself
+                // must not be lost over it.
+                if (giftCard is not null)
+                    giftCard.RemainingValue -= giftCardAmount;
+            }
+
+            var storeCreditAmount = pushed.PaymentSplits.Count > 0
+                ? pushed.PaymentSplits.Where(s => s.Method == PaymentMethod.StoreCredit).Sum(s => s.Amount)
+                : (pushed.PaymentMethod == PaymentMethod.StoreCredit ? pushed.Total : 0m);
+            if (storeCreditAmount > 0 && pushed.CustomerId is not null)
+            {
+                var loyaltyAccount = await db.LoyaltyAccounts.FirstOrDefaultAsync(l => l.CustomerId == pushed.CustomerId);
+                if (loyaltyAccount is not null)
+                    loyaltyAccount.StoreCreditBalance -= storeCreditAmount;
+            }
+
+            var company = await db.Companies.FindAsync(companyId);
+            if (company is { LoyaltyEnabled: true } && pushed.CustomerId is not null && pushed.Total > 0)
+            {
+                var pointsEarned = (int)Math.Floor(pushed.Total / company.LoyaltyEarnRateAmount);
+                if (pointsEarned > 0)
+                {
+                    var loyaltyAccount = await db.LoyaltyAccounts.FirstOrDefaultAsync(l => l.CustomerId == pushed.CustomerId);
+                    if (loyaltyAccount is null)
+                    {
+                        loyaltyAccount = new LoyaltyAccount { CustomerId = pushed.CustomerId.Value };
+                        db.LoyaltyAccounts.Add(loyaltyAccount);
+                    }
+                    loyaltyAccount.PointsBalance += pointsEarned;
+                }
             }
 
             foreach (var movement in pushed.StockMovements)

@@ -37,7 +37,26 @@ public class LocalCatalogQueryService
             throw new PharmaStockApiException(404, "Entreprise introuvable localement — synchronisez avant de continuer hors-ligne.");
 
         return new CompanyResponse(company.Id, company.Name, company.UniqueCode, company.Currency,
-            company.ServicesModuleEnabled, company.Description, company.DefaultTaxRatePercent);
+            company.ServicesModuleEnabled, company.Description, company.DefaultTaxRatePercent,
+            company.LoyaltyEnabled, company.LoyaltyEarnRateAmount, company.LoyaltyPointValue);
+    }
+
+    // Local, offline-safe — the customer picker lives inside PosPage
+    // (the offline-critical screen), unlike SupplierPickerPage which calls
+    // the live API directly since it's only ever used from purchase-order
+    // creation, a management flow that already assumes connectivity.
+    public async Task<List<CustomerResponse>> SearchCustomersAsync(Guid companyId, string search, CancellationToken ct = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var pattern = $"%{search}%";
+        var query = db.Customers.Include(c => c.LoyaltyAccount).Where(c => c.CompanyId == companyId);
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(c => EF.Functions.Like(c.Name, pattern) || (c.Phone != null && EF.Functions.Like(c.Phone, pattern)));
+
+        var customers = await query.OrderBy(c => c.Name).Take(MaxSearchResults).ToListAsync(ct);
+        return customers.Select(c => new CustomerResponse(
+            c.Id, c.Name, c.Phone, c.CreditBalance,
+            c.LoyaltyAccount?.PointsBalance ?? 0, c.LoyaltyAccount?.StoreCreditBalance ?? 0)).ToList();
     }
 
     public async Task<List<ProductSearchResult>> SearchProductsAsync(Guid companyId, string search, CancellationToken ct = default)

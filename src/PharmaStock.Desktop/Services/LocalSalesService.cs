@@ -203,6 +203,66 @@ public class LocalSalesService
                     customer!.CreditBalance += creditAmount;
                 }
 
+                // Mirrors SaleEndpoints.cs's GiftCard/StoreCredit/loyalty
+                // blocks exactly (see its comments for the "why") — gift
+                // cards and loyalty accounts sync down to this device the
+                // same way Customers already do (see SyncService.PullAsync),
+                // so a redemption here is validated against the last-synced
+                // balance and applied optimistically, then re-derived and
+                // re-applied server-side from Sale.GiftCardCode/Total when
+                // this sale eventually pushes — exactly how CreditBalance
+                // above already works offline-first.
+                var giftCardAmount = request.PaymentSplits is { Count: > 0 }
+                    ? request.PaymentSplits.Where(s => s.Method == PaymentMethod.GiftCard).Sum(s => s.Amount)
+                    : (request.PaymentMethod == PaymentMethod.GiftCard ? sale.Total : 0m);
+                if (giftCardAmount > 0)
+                {
+                    if (string.IsNullOrWhiteSpace(request.GiftCardCode))
+                        throw new PharmaStockApiException(400, "Un paiement par carte-cadeau nécessite un code de carte.");
+
+                    var normalizedCode = request.GiftCardCode.Trim().ToUpperInvariant();
+                    var giftCard = await db.GiftCards.FirstOrDefaultAsync(g => g.CompanyId == companyId && g.Code == normalizedCode, ct);
+                    if (giftCard is null)
+                        throw new PharmaStockApiException(404, "Carte-cadeau introuvable.");
+                    if (!giftCard.Active)
+                        throw new PharmaStockApiException(400, "Cette carte-cadeau est désactivée.");
+                    if (giftCard.RemainingValue < giftCardAmount)
+                        throw new PharmaStockApiException(400, $"Solde de la carte-cadeau insuffisant : {giftCard.RemainingValue} disponible.");
+
+                    giftCard.RemainingValue -= giftCardAmount;
+                    sale.GiftCardCode = normalizedCode;
+                }
+
+                var storeCreditAmount = request.PaymentSplits is { Count: > 0 }
+                    ? request.PaymentSplits.Where(s => s.Method == PaymentMethod.StoreCredit).Sum(s => s.Amount)
+                    : (request.PaymentMethod == PaymentMethod.StoreCredit ? sale.Total : 0m);
+                if (storeCreditAmount > 0)
+                {
+                    if (request.CustomerId is null)
+                        throw new PharmaStockApiException(400, "Un paiement par crédit-magasin nécessite un client.");
+
+                    var loyaltyAccount = await db.LoyaltyAccounts.FirstOrDefaultAsync(l => l.CustomerId == request.CustomerId, ct);
+                    if (loyaltyAccount is null || loyaltyAccount.StoreCreditBalance < storeCreditAmount)
+                        throw new PharmaStockApiException(400, $"Solde de crédit-magasin insuffisant : {loyaltyAccount?.StoreCreditBalance ?? 0} disponible.");
+
+                    loyaltyAccount.StoreCreditBalance -= storeCreditAmount;
+                }
+
+                if (company.LoyaltyEnabled && request.CustomerId is not null && sale.Total > 0)
+                {
+                    var pointsEarned = (int)Math.Floor(sale.Total / company.LoyaltyEarnRateAmount);
+                    if (pointsEarned > 0)
+                    {
+                        var loyaltyAccount = await db.LoyaltyAccounts.FirstOrDefaultAsync(l => l.CustomerId == request.CustomerId, ct);
+                        if (loyaltyAccount is null)
+                        {
+                            loyaltyAccount = new LoyaltyAccount { CustomerId = request.CustomerId.Value };
+                            db.LoyaltyAccounts.Add(loyaltyAccount);
+                        }
+                        loyaltyAccount.PointsBalance += pointsEarned;
+                    }
+                }
+
                 db.Sales.Add(sale);
                 await db.SaveChangesAsync(ct);
                 await transaction.CommitAsync(ct);

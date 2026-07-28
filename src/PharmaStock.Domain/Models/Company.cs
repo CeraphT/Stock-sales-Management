@@ -32,6 +32,22 @@ public class Company
     /// False by default — when false, no service-related screen or report renders anywhere.</summary>
     public bool ServicesModuleEnabled { get; set; } = false;
 
+    /// <summary>Section 21.3 — master toggle for loyalty points. False by
+    /// default: a company that never turns this on simply never accrues
+    /// LoyaltyAccount.PointsBalance on any sale, same pattern as
+    /// ServicesModuleEnabled.</summary>
+    public bool LoyaltyEnabled { get; set; } = false;
+
+    /// <summary>A customer earns 1 point per this many currency units spent
+    /// on a sale attributed to them (floor division — partial points don't
+    /// accrue). E.g. 100 with Sale.Total = 250 earns 2 points.</summary>
+    public decimal LoyaltyEarnRateAmount { get; set; } = 100m;
+
+    /// <summary>Currency value of a single point when a customer redeems
+    /// points into LoyaltyAccount.StoreCreditBalance (Section 21.3) — e.g. 10
+    /// means 1 point = 10 XAF of spendable store credit.</summary>
+    public decimal LoyaltyPointValue { get; set; } = 10m;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<User> Users { get; set; } = new List<User>();

@@ -13,4 +13,6 @@ public class GiftCard
     public decimal InitialValue { get; set; }
     public decimal RemainingValue { get; set; }
     public bool Active { get; set; } = true;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

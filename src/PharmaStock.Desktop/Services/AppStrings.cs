@@ -305,6 +305,59 @@ public static class AppStrings
         ["Printer_TestPageLabel"] = ("Test d'impression", "Print test"),
         ["Printer_TestPageItem"] = ("Article de test", "Test item"),
 
+        // Shell — Customers/Gift cards nav group
+        ["Shell_ClientsGroup"] = ("Clients", "Customers"),
+        ["Shell_Customers"] = ("Clients", "Customers"),
+        ["Shell_GiftCards"] = ("Cartes-cadeaux", "Gift cards"),
+
+        // PosPage — customer attach + Credit/GiftCard/StoreCredit payment
+        ["Pos_Customer"] = ("CLIENT", "CUSTOMER"),
+        ["Pos_NoCustomerSelected"] = ("Aucun client sélectionné", "No customer selected"),
+        ["Pos_ChooseCustomer"] = ("Choisir", "Choose"),
+        ["Pos_Credit"] = ("Crédit", "Credit"),
+        ["Pos_GiftCard"] = ("Carte-cadeau", "Gift card"),
+        ["Pos_StoreCredit"] = ("Crédit-magasin", "Store credit"),
+        ["Pos_GiftCardCodePlaceholder"] = ("Code de la carte-cadeau (ex. GC-7X2K9ABC)", "Gift card code (e.g. GC-7X2K9ABC)"),
+        ["Pos_CustomerRequiredForPaymentMethod"] = ("Ce mode de paiement nécessite un client — choisissez-en un ci-dessus.", "This payment method requires a customer — choose one above."),
+
+        // CustomerPickerPage
+        ["CustomerPicker_Title"] = ("Choisir un client", "Choose a customer"),
+        ["CustomerPicker_SearchPlaceholder"] = ("Rechercher par nom ou téléphone…", "Search by name or phone…"),
+        ["CustomerPicker_New"] = ("Nouveau client", "New customer"),
+        ["CustomerPicker_NoResults"] = ("Aucun client trouvé.", "No customer found."),
+        ["CustomerPicker_NewTitle"] = ("Nouveau client", "New customer"),
+        ["CustomerPicker_NamePrompt"] = ("Nom du client", "Customer name"),
+        ["CustomerPicker_PhonePrompt"] = ("Téléphone (facultatif)", "Phone (optional)"),
+
+        // CustomerManagementPage
+        ["CustomerManagement_Empty"] = ("Aucun client. Ajoutez-en un avec le bouton +.", "No customers yet. Add one with the + button."),
+        ["CustomerManagement_NoPoints"] = ("Ce client n'a pas encore de points de fidélité.", "This customer has no loyalty points yet."),
+        ["CustomerManagement_RedeemPoints"] = ("Convertir des points en crédit-magasin", "Convert points to store credit"),
+        ["CustomerManagement_RedeemPointsPrompt"] = ("Points à convertir (max {0})", "Points to convert (max {0})"),
+        ["CustomerManagement_RedeemSuccess"] = ("Points convertis en crédit-magasin.", "Points converted to store credit."),
+        ["CustomerManagement_CreditLine"] = ("Crédit dû : {0:N0}", "Credit owed: {0:N0}"),
+        ["CustomerManagement_PointsLine"] = ("{0} points", "{0} points"),
+        ["CustomerManagement_StoreCreditLine"] = ("Crédit-magasin : {0:N0}", "Store credit: {0:N0}"),
+        ["CustomerManagement_NoBalance"] = ("Aucun solde", "No balance"),
+
+        // GiftCardManagementPage
+        ["GiftCardManagement_SearchPlaceholder"] = ("Rechercher un code…", "Search a code…"),
+        ["GiftCardManagement_Empty"] = ("Aucune carte-cadeau. Émettez-en une avec le bouton +.", "No gift cards yet. Issue one with the + button."),
+        ["GiftCardManagement_IssueTitle"] = ("Émettre une carte-cadeau", "Issue a gift card"),
+        ["GiftCardManagement_AmountPrompt"] = ("Valeur initiale", "Initial value"),
+        ["GiftCardManagement_IssueSuccess"] = ("Carte émise : {0}", "Card issued: {0}"),
+        ["GiftCardManagement_Deactivate"] = ("Désactiver", "Deactivate"),
+        ["GiftCardManagement_Reactivate"] = ("Réactiver", "Reactivate"),
+        ["GiftCardManagement_Active"] = ("Active", "Active"),
+        ["GiftCardManagement_Inactive"] = ("Désactivée", "Inactive"),
+        ["GiftCardManagement_BalanceLine"] = ("{0:N0} restant sur {1:N0}", "{0:N0} remaining of {1:N0}"),
+
+        // CompanySettingsPage — loyalty settings
+        ["CompanySettings_LoyaltyLabel"] = ("Programme de fidélité", "Loyalty program"),
+        ["CompanySettings_LoyaltyHint"] = ("Quand activé, chaque vente attribuée à un client accumule des points, convertibles en crédit-magasin.", "When enabled, every sale attributed to a customer earns points, convertible to store credit."),
+        ["CompanySettings_LoyaltyEarnRateLabel"] = ("Dépense pour gagner 1 point", "Spend to earn 1 point"),
+        ["CompanySettings_LoyaltyPointValueLabel"] = ("Valeur d'1 point (crédit-magasin)", "Value of 1 point (store credit)"),
+
         // BarcodeScannerPage
         ["Scanner_Title"] = ("Scanner un code-barres", "Scan a barcode"),
         ["Scanner_Instruction"] = ("Pointez la caméra vers un code-barres", "Point the camera at a barcode"),
