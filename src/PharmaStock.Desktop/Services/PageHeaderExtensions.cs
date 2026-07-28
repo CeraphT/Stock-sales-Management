@@ -43,48 +43,21 @@ public static class PageHeaderExtensions
         // for free — no separate LanguageChanged subscription needed.
         titleLabel.SetBinding(Label.TextProperty, new Binding(nameof(Page.Title), source: page));
 
+        // One flyout toggle only — the native Shell one (AppShell.xaml.cs
+        // controls its icon directly via Shell.FlyoutIcon, swapping to a
+        // close "X" while open). An earlier version of this method added a
+        // second, custom Desktop-only toggle here on the theory that the
+        // native one might render unreliably; that wasn't actually
+        // confirmed and just produced multiple menu icons on screen at
+        // once — removed.
         var grid = new Grid { Padding = new Thickness(0, 0, 4, 0), ColumnSpacing = 10 };
-        var titleColumn = 0;
-
-        // Windows' WinUI Shell chrome renders its own flyout hamburger far
-        // less reliably than Android's (thin, low-contrast, occasionally
-        // squeezed out once a custom TitleView is set at all) — rather than
-        // trust that per-platform default, Desktop gets its own explicit,
-        // always-there, always-clickable toggle button matching the rest of
-        // the app's icon styling. Android already has a reliable native one
-        // (confirmed on-device), so it isn't duplicated there.
-        if (DeviceInfo.Current.Platform == DevicePlatform.WinUI)
-        {
-            grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
-            // Plain Unicode (U+2630 TRIGRAM FOR HEAVEN, the standard "hamburger"
-            // glyph) rather than a BootstrapIcons codepoint — confirmed
-            // rendering correctly via the default font on this platform
-            // already (it's what WinUI's own native Shell chrome falls back
-            // to), so there's no risk of an unverified glyph rendering blank.
-            var flyoutToggle = new Label
-            {
-                Text = "☰", FontSize = 20,
-                VerticalOptions = LayoutOptions.Center, Padding = new Thickness(4, 4, 12, 4),
-            };
-            flyoutToggle.SetAppThemeColor(Label.TextColorProperty,
-                (Color)Application.Current!.Resources["Black"],
-                (Color)Application.Current!.Resources["SecondaryDarkText"]);
-            flyoutToggle.GestureRecognizers.Add(new TapGestureRecognizer
-            {
-                Command = new Command(() => Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented),
-            });
-            grid.Children.Add(flyoutToggle);
-            Grid.SetColumn(flyoutToggle, 0);
-            titleColumn = 1;
-        }
-
         grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
         grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
         grid.Children.Add(titleLabel);
-        Grid.SetColumn(titleLabel, titleColumn);
+        Grid.SetColumn(titleLabel, 0);
         var languageSwitch = new LanguageSwitch { VerticalOptions = LayoutOptions.Center };
         grid.Children.Add(languageSwitch);
-        Grid.SetColumn(languageSwitch, titleColumn + 1);
+        Grid.SetColumn(languageSwitch, 1);
         Shell.SetTitleView(page, grid);
 
         var themeToggleItem = new ToolbarItem { IconImageSource = MakeToolbarIcon(themeService.IsDark ? BootstrapIcons.Sun : BootstrapIcons.MoonStars) };

@@ -56,6 +56,35 @@ public partial class AppShell : Shell
 		// helper instead of repeating {loc:Translate ...} by hand 13 times.
 		FlyoutHeader = BuildFlyoutHeader();
 		FlyoutContent = BuildFlyoutContent();
+
+		// One single flyout icon, in the one place it's ever shown (the
+		// Shell's own nav bar) — swaps to a close "X" while the flyout is
+		// open instead of leaving the hamburger showing (which read as "tap
+		// to open" even when it was already open) or requiring a second,
+		// separately-drawn icon just to close it. FlyoutIsPresented is a
+		// bindable property, so any change to it (this icon, tapping
+		// outside the flyout, a swipe) raises PropertyChanged here.
+		UpdateFlyoutIcon();
+		PropertyChanged += (_, e) =>
+		{
+			if (e.PropertyName == nameof(FlyoutIsPresented)) UpdateFlyoutIcon();
+		};
+	}
+
+	// Leaving FlyoutIcon null restores each platform's own default hamburger
+	// rendering (confirmed reliable on both Android and Windows) — only the
+	// "open" state needs an explicit override, using the same verified
+	// XLg glyph every Cancel button in the app already uses, so there's no
+	// risk of an unverified codepoint rendering blank here.
+	private void UpdateFlyoutIcon()
+	{
+		if (!FlyoutIsPresented) { FlyoutIcon = null; return; }
+
+		var icon = new FontImageSource { FontFamily = "BootstrapIcons", Glyph = BootstrapIcons.XLg, Size = 18 };
+		icon.SetAppThemeColor(FontImageSource.ColorProperty,
+			(Color)Application.Current!.Resources["Black"],
+			(Color)Application.Current!.Resources["SecondaryDarkText"]);
+		FlyoutIcon = icon;
 	}
 
 	// AppShell is constructed once and lives for the app's whole process
@@ -67,36 +96,10 @@ public partial class AppShell : Shell
 	{
 		var session = IPlatformApplication.Current?.Services.GetService<SessionService>();
 
-		var appNameLabel = new Label { Text = "PharmaStock", FontAttributes = FontAttributes.Bold, FontSize = 18, VerticalOptions = LayoutOptions.Center };
+		var appNameLabel = new Label { Text = "PharmaStock", FontAttributes = FontAttributes.Bold, FontSize = 18 };
 		appNameLabel.SetAppThemeColor(Label.TextColorProperty,
 			(Color)Application.Current!.Resources["Black"],
 			(Color)Application.Current!.Resources["SecondaryDarkText"]);
-
-		// Explicit, always-in-the-same-place close affordance for the open
-		// flyout — Desktop's own hamburger toggle (see PageHeaderExtensions)
-		// sits in the page underneath and can be effectively hidden behind
-		// the flyout panel once it's open, so relying on tapping that same
-		// button again isn't a reliable way to close it. This is separate
-		// from — and in addition to — tapping outside the flyout, which
-		// still also dismisses it.
-		var closeLabel = new Label
-		{
-			Text = "✕", FontSize = 16, VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.End,
-			Padding = new Thickness(10, 6),
-		};
-		closeLabel.SetAppThemeColor(Label.TextColorProperty,
-			(Color)Application.Current!.Resources["TextSecondary"],
-			(Color)Application.Current!.Resources["Gray300"]);
-		closeLabel.GestureRecognizers.Add(new TapGestureRecognizer
-		{
-			Command = new Command(() => Shell.Current.FlyoutIsPresented = false),
-		});
-
-		var titleRow = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) } };
-		titleRow.Children.Add(appNameLabel);
-		Grid.SetColumn(appNameLabel, 0);
-		titleRow.Children.Add(closeLabel);
-		Grid.SetColumn(closeLabel, 1);
 
 		var userLabel = new Label { FontSize = 12 };
 		userLabel.SetAppThemeColor(Label.TextColorProperty,
@@ -120,7 +123,7 @@ public partial class AppShell : Shell
 		{
 			Padding = new Thickness(16, 24, 16, 16),
 			Spacing = 2,
-			Children = { titleRow, userLabel },
+			Children = { appNameLabel, userLabel },
 		};
 	}
 
