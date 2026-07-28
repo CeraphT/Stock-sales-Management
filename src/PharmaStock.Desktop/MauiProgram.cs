@@ -52,14 +52,17 @@ public static class MauiProgram
 		builder.Services.AddSingleton<LocalShiftService>();
 		builder.Services.AddSingleton<SyncService>();
 
-		// Receipt printer transports: Android-only (see IPrinterTransport) — a
-		// 58mm thermal printer is an Android-primary POS accessory, not a
-		// Windows one. ReceiptPrintingService still resolves cleanly on
-		// Windows with zero transports registered; printing there just
-		// reports "no printer found" instead of crashing.
+		// Receipt printer transports (see IPrinterTransport): Android gets
+		// Bluetooth SPP + USB Host talking to the radio/bus directly; Windows
+		// gets one transport that goes through the OS print spooler instead
+		// (any printer with a driver installed, USB or Bluetooth, "just
+		// works" through it — the platform-appropriate way to reach a
+		// receipt printer on each OS).
 #if ANDROID
 		builder.Services.AddSingleton<IPrinterTransport, PharmaStock.Desktop.Platforms.Android.Services.BluetoothPrinterTransport>();
 		builder.Services.AddSingleton<IPrinterTransport, PharmaStock.Desktop.Platforms.Android.Services.UsbPrinterTransport>();
+#elif WINDOWS
+		builder.Services.AddSingleton<IPrinterTransport, PharmaStock.Desktop.Platforms.Windows.Services.WindowsPrinterTransport>();
 #endif
 		builder.Services.AddSingleton<ReceiptPrintingService>();
 

@@ -1,16 +1,16 @@
 namespace PharmaStock.Desktop.Services;
 
-public enum PrinterConnectionType { Bluetooth, Usb }
+public enum PrinterConnectionType { Bluetooth, Usb, Windows }
 
 public record PrinterDevice(string Id, string Name, PrinterConnectionType ConnectionType);
 
 /// <summary>One physical transport for sending raw ESC/POS bytes to a
 /// receipt printer. Android gets two real implementations (Bluetooth SPP,
-/// USB Host) under Platforms/Android/Services — see ReceiptPrintingService,
-/// which fans out to whichever transports are registered for the current
-/// platform. Windows registers none, so printing there simply reports "no
-/// printer found" rather than crashing (thermal receipt printers are an
-/// Android-primary feature, per the project's POS priority).</summary>
+/// USB Host) under Platforms/Android/Services; Windows gets one
+/// (WindowsPrinterTransport, under Platforms/Windows/Services) that goes
+/// through the OS print spooler instead of talking to the radio/bus
+/// directly — see ReceiptPrintingService, which fans out to whichever
+/// transports are registered for the current platform.</summary>
 public interface IPrinterTransport
 {
     PrinterConnectionType ConnectionType { get; }

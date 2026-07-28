@@ -7,20 +7,22 @@
     xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
     Title="{loc:Translate Login_Title}">
 
-    <Grid Padding="24">
-        <Border Style="{StaticResource Card}" MaximumWidthRequest="420" HorizontalOptions="Center" VerticalOptions="Center">
-            <VerticalStackLayout Spacing="14">
-                <Label Text="{loc:Translate Login_Title}" Style="{StaticResource PageTitle}" />
-                <Label Text="{loc:Translate Login_Subtitle}" Style="{StaticResource PageSubtitle}" Margin="0,0,0,6" />
+    <ScrollView>
+        <Grid Padding="24">
+            <Border Style="{StaticResource Card}" MaximumWidthRequest="420" HorizontalOptions="Center" VerticalOptions="Center">
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="{loc:Translate Login_Title}" Style="{StaticResource PageTitle}" />
+                    <Label Text="{loc:Translate Login_Subtitle}" Style="{StaticResource PageSubtitle}" Margin="0,0,0,6" />
 
-                <controls:FormField x:Name="PhoneField" Label="{loc:Translate Login_PhoneLabel}" Placeholder="ex. 677001122" Keyboard="Telephone" />
-                <controls:FormField x:Name="PasswordField" Label="{loc:Translate Login_PasswordLabel}" Placeholder="{loc:Translate Login_PasswordPlaceholder}" IsPassword="True" />
+                    <controls:FormField x:Name="PhoneField" Label="{loc:Translate Login_PhoneLabel}" Placeholder="ex. 677001122" Keyboard="Telephone" />
+                    <controls:FormField x:Name="PasswordField" Label="{loc:Translate Login_PasswordLabel}" Placeholder="{loc:Translate Login_PasswordPlaceholder}" IsPassword="True" />
 
-                <controls:IconButton x:Name="SubmitButton" Icon="{x:Static loc:BootstrapIcons.Key}" Text="{loc:Translate Login_Submit}" Clicked="OnSubmitClicked" Margin="0,10,0,0" />
-                <ActivityIndicator x:Name="Spinner" IsRunning="False" IsVisible="False" />
+                    <controls:IconButton x:Name="SubmitButton" Icon="{x:Static loc:BootstrapIcons.Key}" Text="{loc:Translate Login_Submit}" Clicked="OnSubmitClicked" Margin="0,10,0,0" />
+                    <ActivityIndicator x:Name="Spinner" IsRunning="False" IsVisible="False" />
 
-                <controls:LanguageSwitch HorizontalOptions="Center" Margin="0,6,0,0" />
-            </VerticalStackLayout>
-        </Border>
-    </Grid>
+                    <controls:LanguageSwitch HorizontalOptions="Center" Margin="0,6,0,0" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+    </ScrollView>
 </ContentPage>

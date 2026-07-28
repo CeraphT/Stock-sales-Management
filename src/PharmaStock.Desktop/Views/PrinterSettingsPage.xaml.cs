@@ -18,7 +18,7 @@ public partial class PrinterSettingsPage : ContentPage
     {
         base.OnAppearing();
         UpdateSelectedLabel();
-        PairBluetoothButton.IsVisible = _printing.Transports.Any(t => t.HasPairingSettingsScreen);
+        UpdatePairingButton();
         try
         {
             await RefreshAsync();
@@ -61,6 +61,8 @@ public partial class PrinterSettingsPage : ContentPage
             var devices = await _printing.DiscoverAllAsync();
             DevicesView.ItemsSource = devices.Select(d => new DeviceRow(d)).ToList();
             EmptyLabel.IsVisible = devices.Count == 0;
+            var isWindows = _printing.Transports.Any(t => t.ConnectionType == PrinterConnectionType.Windows);
+            EmptyLabel.Text = LocalizationService.Translate(isWindows ? "Printer_NoDevicesFoundWindows" : "Printer_NoDevicesFound");
         }
         finally
         {
@@ -69,6 +71,21 @@ public partial class PrinterSettingsPage : ContentPage
             LoadingSpinner.IsRunning = false;
             LoadingSpinner.IsVisible = false;
         }
+    }
+
+    // The pairing button's action differs per platform (Android: jump to the
+    // OS Bluetooth pairing screen; Windows: jump to Settings > Printers,
+    // since "pairing" there means installing a printer driver) — label and
+    // icon follow whichever transport actually registers HasPairingSettingsScreen.
+    private void UpdatePairingButton()
+    {
+        var transport = _printing.Transports.FirstOrDefault(t => t.HasPairingSettingsScreen);
+        PairBluetoothButton.IsVisible = transport is not null;
+        if (transport is null) return;
+
+        var isWindows = transport.ConnectionType == PrinterConnectionType.Windows;
+        PairBluetoothButton.Icon = isWindows ? BootstrapIcons.Gear : BootstrapIcons.Bluetooth;
+        PairBluetoothButton.Text = LocalizationService.Translate(isWindows ? "Printer_OpenWindowsSettings" : "Printer_PairBluetooth");
     }
 
     private void UpdateSelectedLabel()
@@ -130,8 +147,12 @@ public partial class PrinterSettingsPage : ContentPage
         }
     }
 
-    private static string ConnectionTypeText(PrinterConnectionType type) =>
-        type == PrinterConnectionType.Bluetooth ? "Bluetooth" : "USB";
+    private static string ConnectionTypeText(PrinterConnectionType type) => type switch
+    {
+        PrinterConnectionType.Bluetooth => "Bluetooth",
+        PrinterConnectionType.Windows => "Windows",
+        _ => "USB",
+    };
 
     private sealed class DeviceRow
     {
