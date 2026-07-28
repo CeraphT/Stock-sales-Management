@@ -95,6 +95,14 @@ public class SessionService
 
     public bool IsLoggedIn => Token is not null;
 
+    /// <summary>Fired after Save()/Clear() — AppShell's flyout header
+    /// subscribes to this so the displayed name/role stays correct across a
+    /// login/logout within the same running process. Without it, the header
+    /// (built once at app startup, before any session existed) keeps
+    /// showing whatever was true then — including a previous user's name
+    /// after a different account logs in on the same device.</summary>
+    public event EventHandler? Changed;
+
     public void Save(AuthResponse auth)
     {
         Preferences.Default.Set(TokenKey, auth.Token);
@@ -109,6 +117,7 @@ public class SessionService
         Preferences.Default.Set(UserRoleKey, auth.User.Role.ToString());
         Preferences.Default.Set(UserIdKey, auth.User.Id.ToString());
         Preferences.Default.Set(CompanyIdKey, auth.CompanyId?.ToString() ?? string.Empty);
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
     public void SaveLocationId(Guid locationId) => Preferences.Default.Set(LocationIdKey, locationId.ToString());
@@ -126,5 +135,6 @@ public class SessionService
         Preferences.Default.Remove(UserRoleKey);
         Preferences.Default.Remove(UserIdKey);
         Preferences.Default.Remove(LocationIdKey);
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 }

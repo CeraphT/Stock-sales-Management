@@ -58,7 +58,12 @@ public partial class AppShell : Shell
 		FlyoutContent = BuildFlyoutContent();
 	}
 
-	private static View BuildFlyoutHeader()
+	// AppShell is constructed once and lives for the app's whole process
+	// lifetime (same reasoning as every FlyoutItem page never being torn
+	// down — see the comment above), so these subscriptions are never
+	// unsubscribed; there's nothing to leak since there's only ever one
+	// AppShell instance.
+	private View BuildFlyoutHeader()
 	{
 		var session = IPlatformApplication.Current?.Services.GetService<SessionService>();
 
@@ -67,13 +72,23 @@ public partial class AppShell : Shell
 			(Color)Application.Current!.Resources["Black"],
 			(Color)Application.Current!.Resources["SecondaryDarkText"]);
 
-		var subtitleText = session?.UserName is { Length: > 0 } name
-			? (session.UserRole is { Length: > 0 } role ? $"{name} · {role}" : name)
-			: string.Empty;
-		var userLabel = new Label { Text = subtitleText, FontSize = 12 };
+		var userLabel = new Label { FontSize = 12 };
 		userLabel.SetAppThemeColor(Label.TextColorProperty,
 			(Color)Application.Current!.Resources["TextSecondary"],
 			(Color)Application.Current!.Resources["Gray300"]);
+
+		// Built once at app startup, this label used to be permanently stuck
+		// on whatever was true at that instant — including a previous user's
+		// name still on screen after a different account logged in on the
+		// same device (session.Changed didn't exist to begin with). Also
+		// needs a live LanguageChanged refresh: the role is displayed
+		// translated (TranslateRole), not the raw enum value.
+		void UpdateUserLabel(object? sender, EventArgs e) => userLabel.Text = session?.UserName is { Length: > 0 } name
+			? (session.UserRole is { Length: > 0 } role ? $"{name} · {LocalizationService.TranslateRole(role)}" : name)
+			: string.Empty;
+		UpdateUserLabel(this, EventArgs.Empty);
+		if (session is not null) session.Changed += UpdateUserLabel;
+		LocalizationService.LanguageChanged += UpdateUserLabel;
 
 		return new VerticalStackLayout
 		{
