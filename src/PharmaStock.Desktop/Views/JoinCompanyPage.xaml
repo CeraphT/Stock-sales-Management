@@ -14,7 +14,7 @@
                     <Label Text="{loc:Translate JoinCompany_Heading}" Style="{StaticResource PageTitle}" />
                     <Label Text="{loc:Translate JoinCompany_Subtitle}" Style="{StaticResource PageSubtitle}" Margin="0,0,0,6" />
 
-                    <controls:FormField x:Name="CodeField" Label="{loc:Translate JoinCompany_CodeLabel}" Placeholder="ex. PHRM-7X2K9" />
+                    <controls:FormField x:Name="CodeField" Label="{loc:Translate JoinCompany_CodeLabel}" Placeholder="ex. PHRM-7X2K9" ReturnType="Search" Completed="OnFindClicked" />
                     <controls:IconButton x:Name="FindButton" Icon="{x:Static loc:BootstrapIcons.Search}" Text="{loc:Translate JoinCompany_Find}" Clicked="OnFindClicked" Margin="0,6,0,0" />
 
                     <Border x:Name="ResultCard" IsVisible="False" BackgroundColor="{AppThemeBinding Light=#EAF6F1, Dark=#123027}"

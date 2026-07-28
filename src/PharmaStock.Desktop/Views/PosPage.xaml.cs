@@ -40,20 +40,34 @@ public partial class PosPage : ContentPage
         ScanButton.IsVisible = DeviceInfo.Current.Platform == Microsoft.Maui.Devices.DevicePlatform.Android;
         ApplyResponsiveLayout();
         ApplyPaymentModeUi();
+
+        // A static Idiom check alone would only ever give the wide layout to
+        // Android tablets — a resizable Windows window reports
+        // DeviceIdiom.Desktop, not Tablet, so without this it would be stuck
+        // in the phone-style stacked layout forever, at any window size.
+        // SizeChanged also fires once the page's real width is known (it's
+        // still unset in the constructor), and again on every resize, so the
+        // layout switches live as the window is dragged wider/narrower.
+        SizeChanged += (_, _) => ApplyResponsiveLayout();
     }
 
-    // Phone: MainColumnGrid (search/cart) stacked above FooterPanel (payment/
-    // checkout), same as every other page — one column, whole thing scrolls
-    // top to bottom. Tablet: side by side instead, so the checkout panel
-    // stays pinned and visible no matter how long the cart gets, rather than
-    // requiring a scroll past every line to reach "Encaisser". Same two
-    // control instances either way — only their Grid.Row/Column changes.
+    // Phone (and a narrow desktop window): MainColumnGrid (search/cart)
+    // stacked above FooterPanel (payment/checkout), same as every other
+    // page — one column, whole thing scrolls top to bottom. Tablet (and a
+    // wide-enough desktop window): side by side instead, so the checkout
+    // panel stays pinned and visible no matter how long the cart gets,
+    // rather than requiring a scroll past every line to reach "Encaisser".
+    // Same two control instances either way — only their Grid.Row/Column
+    // changes.
     private void ApplyResponsiveLayout()
     {
         RootLayoutGrid.RowDefinitions.Clear();
         RootLayoutGrid.ColumnDefinitions.Clear();
 
-        if (DeviceInfo.Current.Idiom == DeviceIdiom.Tablet)
+        var useWideLayout = DeviceInfo.Current.Idiom == DeviceIdiom.Tablet
+            || (DeviceInfo.Current.Idiom == DeviceIdiom.Desktop && Width >= 700);
+
+        if (useWideLayout)
         {
             RootLayoutGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
             RootLayoutGrid.ColumnDefinitions.Add(new ColumnDefinition(420));

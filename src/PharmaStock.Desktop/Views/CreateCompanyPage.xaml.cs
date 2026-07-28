@@ -34,6 +34,11 @@ public partial class CreateCompanyPage : ContentPage
         UpdateStepVisibility();
     }
 
+    private void OnNameFieldCompleted(object? sender, EventArgs e) => DescriptionField.FocusField();
+    private void OnDescriptionFieldCompleted(object? sender, EventArgs e) => CurrencyField.FocusField();
+    private void OnAdminNameFieldCompleted(object? sender, EventArgs e) => AdminPhoneField.FocusField();
+    private void OnAdminPhoneFieldCompleted(object? sender, EventArgs e) => AdminPasswordField.FocusField();
+
     private void OnBackClicked(object? sender, EventArgs e)
     {
         _step = 1;

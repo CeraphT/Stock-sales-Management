@@ -8,9 +8,10 @@
     Title="{loc:Translate Pos_Title}">
 
     <!-- RowDefinitions/ColumnDefinitions are set in code-behind (ApplyResponsiveLayout)
-         based on DeviceInfo.Current.Idiom — phone stacks MainColumnGrid above
-         FooterPanel (single column, matches every other page in the app);
-         tablet places them side by side so the payment/checkout panel stays
+         based on DeviceInfo.Current.Idiom and, on Desktop, actual window
+         width — phone/narrow-window stacks MainColumnGrid above FooterPanel
+         (single column, matches every other page in the app); tablet/wide
+         window places them side by side so the payment/checkout panel stays
          visible without scrolling past a long cart. Same two controls either
          way, just reparented into different Grid.Row/Column slots, so there's
          only ever one instance of each named element. -->

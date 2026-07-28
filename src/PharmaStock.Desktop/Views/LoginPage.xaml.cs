@@ -16,6 +16,8 @@ public partial class LoginPage : ContentPage
         _syncService = syncService;
     }
 
+    private void OnPhoneFieldCompleted(object? sender, EventArgs e) => PasswordField.FocusField();
+
     private async void OnSubmitClicked(object? sender, EventArgs e)
     {
         if (string.IsNullOrWhiteSpace(PhoneField.Text) || string.IsNullOrWhiteSpace(PasswordField.Text))

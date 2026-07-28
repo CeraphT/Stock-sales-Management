@@ -21,6 +21,9 @@ public partial class FormField : ContentView
     public static readonly BindableProperty TextProperty =
         BindableProperty.Create(nameof(Text), typeof(string), typeof(FormField), string.Empty, BindingMode.TwoWay);
 
+    public static readonly BindableProperty ReturnTypeProperty =
+        BindableProperty.Create(nameof(ReturnType), typeof(ReturnType), typeof(FormField), Microsoft.Maui.ReturnType.Default);
+
     public string Label
     {
         get => (string)GetValue(LabelProperty);
@@ -51,10 +54,31 @@ public partial class FormField : ContentView
         set => SetValue(TextProperty, value);
     }
 
+    public ReturnType ReturnType
+    {
+        get => (ReturnType)GetValue(ReturnTypeProperty);
+        set => SetValue(ReturnTypeProperty, value);
+    }
+
+    /// <summary>Fires when the user presses Enter/Return in this field —
+    /// physical Enter key on Windows, the soft keyboard's action key on
+    /// Android — so a form can submit or advance to the next field without
+    /// requiring a mouse/touch tap on a button. Forwarded straight from the
+    /// inner Entry, which pages wire directly to their existing
+    /// button-click handlers (both are plain EventHandler).</summary>
+    public event EventHandler? Completed;
+
     public FormField()
     {
         InitializeComponent();
     }
+
+    /// <summary>Moves keyboard focus into this field's Entry — used to chain
+    /// fields together (e.g. phone field's Completed focuses the password
+    /// field) so Enter can walk through a whole form without a pointer.</summary>
+    public bool FocusField() => EntryControl.Focus();
+
+    private void OnEntryControlCompleted(object? sender, EventArgs e) => Completed?.Invoke(this, e);
 
     // The 👁/🙈 toggle only ever flips EntryControl.IsPassword directly —
     // it never touches the Root.IsPassword bindable property, which stays

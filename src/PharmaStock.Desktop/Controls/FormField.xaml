@@ -16,6 +16,8 @@
                     IsPassword="{Binding Source={x:Reference Root}, Path=IsPassword}"
                     Keyboard="{Binding Source={x:Reference Root}, Path=Keyboard}"
                     Text="{Binding Source={x:Reference Root}, Path=Text, Mode=TwoWay}"
+                    ReturnType="{Binding Source={x:Reference Root}, Path=ReturnType}"
+                    Completed="OnEntryControlCompleted"
                     VerticalOptions="Center" />
                 <Label
                     Grid.Column="1"
