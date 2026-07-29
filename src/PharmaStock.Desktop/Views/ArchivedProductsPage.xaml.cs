@@ -90,6 +90,22 @@ public partial class ArchivedProductsPage : ContentPage
         }
     }
 
+    private async void OnRefreshing(object? sender, EventArgs e)
+    {
+        try
+        {
+            await LoadFirstPageAsync();
+        }
+        catch (Exception ex)
+        {
+            this.ShowError(ex.Message);
+        }
+        finally
+        {
+            PullToRefreshView.IsRefreshing = false;
+        }
+    }
+
     private Task LoadFirstPageAsync() => LoadPageAsync(1, append: false);
 
     private async Task LoadPageAsync(int page, bool append)

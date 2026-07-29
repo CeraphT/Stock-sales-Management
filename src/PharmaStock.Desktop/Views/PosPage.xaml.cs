@@ -793,7 +793,7 @@ public partial class PosPage : ContentPage
         public Color StatusColor => Result.StockStatus switch
         {
             "out_of_stock" => (Color)Application.Current!.Resources["ErrorColor"],
-            "low_stock" => (Color)Application.Current!.Resources["Gray400"],
+            "low_stock" => (Color)Application.Current!.Resources["AccentAmber"],
             _ => (Color)Application.Current!.Resources["SuccessColor"]
         };
 

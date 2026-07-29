@@ -28,7 +28,7 @@
         <Setter Property="FontFamily" Value="OpenSansRegular"/>
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="BorderWidth" Value="0"/>
-        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="CornerRadius" Value="12"/>
         <Setter Property="Padding" Value="14,10"/>
         <Setter Property="MinimumHeightRequest" Value="44"/>
         <Setter Property="MinimumWidthRequest" Value="44"/>
@@ -403,6 +403,14 @@
     <Style TargetType="Page" ApplyToDerivedTypes="True">
         <Setter Property="Padding" Value="0"/>
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Background}, Dark={StaticResource OffBlack}}" />
+        <!-- Windows gets its header from the app-wide Window.TitleBar (see
+             App.xaml.cs) instead — Shell's own per-page NavBar rendered its
+             default title text independently of that (and independently of
+             AttachStandardHeader, which stopped setting a Windows TitleView
+             for the same reason), so without this it showed a second,
+             flush-left "page name" heading nothing else on the page
+             accounts for. Android keeps its NavBar exactly as before. -->
+        <Setter Property="Shell.NavBarIsVisible" Value="{OnPlatform Default=True, WinUI=False}" />
     </Style>
 
     <!-- ============================================================
@@ -415,11 +423,32 @@
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource Gray900}}" />
         <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource BorderColor}, Dark={StaticResource Gray600}}" />
         <Setter Property="StrokeThickness" Value="1" />
-        <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 18" />
         <Setter Property="Padding" Value="36" />
         <Setter Property="Shadow">
             <Shadow Brush="Black" Opacity="0.08" Radius="24" Offset="0,6" />
         </Setter>
+    </Style>
+
+    <!-- Stat-tile icon badge (Dashboard): a soft-tint circle behind a glyph,
+         instance sets BackgroundColor to the accent's *Soft color and the
+         inner Label's TextColor to the matching solid accent. -->
+    <Style x:Key="StatTileIconBadge" TargetType="Border">
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 24" />
+        <Setter Property="WidthRequest" Value="48" />
+        <Setter Property="HeightRequest" Value="48" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+    </Style>
+
+    <!-- Colored status pill: the small badge shape already duplicated inline
+         across PosPage/ProductCatalogPage/GiftCardManagementPage, now a
+         single style the StatusBadge control uses. -->
+    <Style x:Key="StatusPill" TargetType="Border">
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+        <Setter Property="Padding" Value="8,2" />
+        <Setter Property="HorizontalOptions" Value="Start" />
     </Style>
 
     <Style x:Key="Badge" TargetType="Border">
@@ -443,6 +472,15 @@
              ellipsis instead of wrapping into a ragged two-line heading. -->
         <Setter Property="LineBreakMode" Value="TailTruncation" />
         <Setter Property="MaxLines" Value="1" />
+        <!-- Every page using this style repeats its own Page.Title as this
+             big heading — redundant with Android's Shell NavBar title too,
+             but harmless there since that bar is thin/unobtrusive. On
+             Windows the page title now also renders in the full-width
+             Window.TitleBar (see App.xaml.cs), where it's much more
+             prominent — showing it a second time here read as a genuine
+             visual bug ("three Dashboard texts"), so it's collapsed
+             specifically on that platform. -->
+        <Setter Property="IsVisible" Value="{OnPlatform Default=True, WinUI=False}" />
     </Style>
 
     <Style x:Key="PageSubtitle" TargetType="Label">
@@ -468,7 +506,7 @@
     <Style x:Key="FieldBorder" TargetType="Border">
         <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource BorderColor}, Dark={StaticResource Gray600}}" />
         <Setter Property="StrokeThickness" Value="1" />
-        <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 12" />
         <Setter Property="Padding" Value="12,0" />
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Background}, Dark={StaticResource Gray950}}" />
         <Setter Property="HeightRequest" Value="46" />
@@ -487,7 +525,7 @@
         <Setter Property="BorderWidth" Value="1.5" />
         <Setter Property="FontFamily" Value="OpenSansRegular" />
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="14,10" />
         <Setter Property="MinimumHeightRequest" Value="44" />
         <Setter Property="MinimumWidthRequest" Value="44" />
@@ -522,7 +560,7 @@
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
         <Setter Property="Stroke" Value="Transparent" />
         <Setter Property="StrokeThickness" Value="0" />
-        <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 12" />
         <Setter Property="Padding" Value="14,10" />
         <Setter Property="MinimumHeightRequest" Value="44" />
         <Setter Property="MinimumWidthRequest" Value="44" />
@@ -531,7 +569,7 @@
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
         <Setter Property="StrokeThickness" Value="1.5" />
-        <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 12" />
         <Setter Property="Padding" Value="14,10" />
         <Setter Property="MinimumHeightRequest" Value="44" />
         <Setter Property="MinimumWidthRequest" Value="44" />
@@ -539,7 +577,18 @@
 
     <Style TargetType="Shell" ApplyToDerivedTypes="True">
         <Setter Property="Shell.BackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}" />
-        <Setter Property="Shell.FlyoutBackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}" />
+        <!-- Colored sidebar (Discord/Slack-style), deliberately theme-invariant:
+             it's the brand statement, not content chrome, so it stays the same
+             rich green-to-near-black diagonal regardless of light/dark mode. -->
+        <Setter Property="Shell.FlyoutBackgroundColor" Value="{StaticResource Primary}" />
+        <Setter Property="Shell.FlyoutBackground">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{StaticResource Primary}" Offset="0.0" />
+                    <GradientStop Color="{StaticResource PrimaryDarkText}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
         <Setter Property="Shell.ForegroundColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource SecondaryDarkText}}" />
         <Setter Property="Shell.TitleColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource SecondaryDarkText}}" />
         <Setter Property="Shell.DisabledColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray950}}" />

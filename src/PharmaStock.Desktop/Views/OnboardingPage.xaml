@@ -6,10 +6,17 @@
     xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
     xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
     Title="Bienvenue"
-    Shell.NavBarIsVisible="False">
+    Shell.NavBarIsVisible="False"
+    Shell.FlyoutBehavior="Disabled">
 
     <ScrollView>
         <Grid Padding="24">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{AppThemeBinding Light={StaticResource Background}, Dark={StaticResource OffBlack}}" Offset="0.0" />
+                    <GradientStop Color="{AppThemeBinding Light={StaticResource AccentBlueSoft}, Dark={StaticResource Gray950}}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Grid.Background>
             <Border Style="{StaticResource Card}" MaximumWidthRequest="420" HorizontalOptions="Center" VerticalOptions="Center">
                 <VerticalStackLayout Spacing="10">
                     <Image Source="pharmastock_logo_full.svg" WidthRequest="280" HeightRequest="91" Aspect="AspectFit" HorizontalOptions="Center" />
@@ -20,7 +27,10 @@
                     <controls:IconButton Icon="{x:Static loc:BootstrapIcons.ArrowRight}" Text="{loc:Translate Onboarding_JoinCompany}" Variant="Secondary" Clicked="OnJoinCompanyClicked" />
                     <controls:IconButton Icon="{x:Static loc:BootstrapIcons.ArrowRight}" Text="{loc:Translate Onboarding_Login}" Variant="Secondary" Clicked="OnLoginClicked" />
 
-                    <controls:LanguageSwitch HorizontalOptions="Center" Margin="0,10,0,0" />
+                    <!-- Windows gets this in the app-wide Window.TitleBar instead
+                         (see App.xaml.cs) — Android has no TitleBar equivalent
+                         and keeps it here as before. -->
+                    <controls:LanguageSwitch HorizontalOptions="Center" Margin="0,10,0,0" IsVisible="{OnPlatform Default=True, WinUI=False}" />
                 </VerticalStackLayout>
             </Border>
         </Grid>

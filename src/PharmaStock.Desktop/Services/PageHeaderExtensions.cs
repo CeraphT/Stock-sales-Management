@@ -16,7 +16,10 @@ public static class PageHeaderExtensions
     // Label/ToolbarItem's sibling MenuItem types) — an icon-font glyph has
     // to be rendered as a FontImageSource and assigned to IconImageSource
     // instead of set as Text.
-    private static FontImageSource MakeToolbarIcon(string glyph)
+    // Internal (not private): App.xaml.cs's Windows-only Window.TitleBar
+    // reuses this for its own ImageButtons rather than re-implementing the
+    // same glyph-rendering logic a second time.
+    internal static FontImageSource MakeToolbarIcon(string glyph)
     {
         var icon = new FontImageSource { FontFamily = "BootstrapIcons", Glyph = glyph, Size = 20 };
         icon.SetAppThemeColor(FontImageSource.ColorProperty,
@@ -27,6 +30,14 @@ public static class PageHeaderExtensions
 
     public static void AttachStandardHeader(this ContentPage page, ThemeService themeService, SessionService session)
     {
+        // Windows builds its equivalent header once, app-wide, as a real
+        // Window.TitleBar (see App.xaml.cs) instead of per-page — a
+        // TitleBar spans the full window width above the docked flyout
+        // sidebar, which a per-page Shell.TitleView can't do (it only ever
+        // renders within the content pane beside a Locked flyout, not above
+        // it). Android has no TitleBar concept at all, so it keeps this
+        // original per-page approach unchanged.
+#if ANDROID
         var titleLabel = new Label
         {
             FontSize = 18,
@@ -119,5 +130,6 @@ public static class PageHeaderExtensions
             }
         };
         page.ToolbarItems.Add(logoutItem);
+#endif
     }
 }

@@ -30,6 +30,15 @@ public partial class AppShell : Shell
 	{
 		InitializeComponent();
 
+		// Desktop (wide window, mouse+keyboard) gets a permanently-docked,
+		// collapsible sidebar instead of phone/tablet's toggleable overlay
+		// drawer (Flyout, the XAML default — screen space is too precious
+		// there for a permanent column). Ownership of FlyoutBehavior/
+		// FlyoutWidth for Windows lives entirely in App.xaml.cs's
+		// Window.TitleBar setup now (both the pre-auth-page check and the
+		// user's manual collapse toggle) — not here, to avoid two competing
+		// places mutating the same Shell properties on every navigation.
+
 		// OnboardingPage, DashboardPage, PosPage, ProductCatalogPage, and
 		// CategoryManagementPage are declared in the XAML above (each in its
 		// own FlyoutItem) since they're absolute-navigation targets; only the
@@ -78,6 +87,9 @@ public partial class AppShell : Shell
 	// risk of an unverified codepoint rendering blank here.
 	private void UpdateFlyoutIcon()
 	{
+		// Locked (Desktop) has no open/closed state to toggle — the sidebar
+		// is just always there, so there's nothing for this icon to do.
+		if (FlyoutBehavior == FlyoutBehavior.Locked) { FlyoutIcon = null; return; }
 		if (!FlyoutIsPresented) { FlyoutIcon = null; return; }
 
 		var icon = new FontImageSource { FontFamily = "BootstrapIcons", Glyph = BootstrapIcons.XLg, Size = 18 };
@@ -96,15 +108,12 @@ public partial class AppShell : Shell
 	{
 		var session = IPlatformApplication.Current?.Services.GetService<SessionService>();
 
-		var appNameLabel = new Label { Text = "PharmaStock", FontAttributes = FontAttributes.Bold, FontSize = 18 };
-		appNameLabel.SetAppThemeColor(Label.TextColorProperty,
-			(Color)Application.Current!.Resources["Black"],
-			(Color)Application.Current!.Resources["SecondaryDarkText"]);
+		// Plain White (not theme-bound) — the flyout background is now a
+		// deliberately theme-invariant colored gradient (see Shell style in
+		// Styles.xaml), so its text stays white regardless of light/dark mode.
+		var appNameLabel = new Label { Text = "PharmaStock", FontAttributes = FontAttributes.Bold, FontSize = 18, TextColor = Colors.White };
 
-		var userLabel = new Label { FontSize = 12 };
-		userLabel.SetAppThemeColor(Label.TextColorProperty,
-			(Color)Application.Current!.Resources["TextSecondary"],
-			(Color)Application.Current!.Resources["Gray300"]);
+		var userLabel = new Label { FontSize = 12, TextColor = Colors.White, Opacity = 0.85 };
 
 		// Built once at app startup, this label used to be permanently stuck
 		// on whatever was true at that instant — including a previous user's
@@ -173,6 +182,17 @@ public partial class AppShell : Shell
 		return new ScrollView { Content = stack };
 	}
 
+#if WINDOWS
+	// CurrentPage is null for the brief moment before Shell finishes
+	// navigating to its initial content — treated as pre-auth (Disabled),
+	// which is correct anyway since the app always starts on OnboardingPage.
+	// Internal (not private): App.xaml.cs's Window.TitleBar also needs this,
+	// to know when to show/hide the same logout/sync/theme actions this
+	// page's own flyout-lock state depends on.
+	internal static bool IsPreAuthPage(Page? page) =>
+		page is null or OnboardingPage or LoginPage or CreateCompanyPage or JoinCompanyPage;
+#endif
+
 	private static void BindTranslatedTitle(FlyoutSection section, string key) =>
 		section.SetBinding(FlyoutSection.TitleProperty, new Binding(nameof(LocalizedString.Value), source: new LocalizedString(key)));
 
@@ -185,17 +205,13 @@ public partial class AppShell : Shell
 			Padding = new Thickness(16, 10, 0, 10),
 		};
 
-		var iconLabel = new Label { Text = icon, FontFamily = "BootstrapIcons", FontSize = 14, VerticalOptions = LayoutOptions.Center };
-		iconLabel.SetAppThemeColor(Label.TextColorProperty,
-			(Color)Application.Current!.Resources["TextPrimary"],
-			(Color)Application.Current!.Resources["White"]);
+		// Plain White for the same reason as the flyout header labels above —
+		// this sits on the theme-invariant colored sidebar, not page content.
+		var iconLabel = new Label { Text = icon, FontFamily = "BootstrapIcons", FontSize = 14, VerticalOptions = LayoutOptions.Center, TextColor = Colors.White };
 		Grid.SetColumn(iconLabel, 0);
 
-		var textLabel = new Label { FontSize = 14, VerticalOptions = LayoutOptions.Center };
+		var textLabel = new Label { FontSize = 14, VerticalOptions = LayoutOptions.Center, TextColor = Colors.White };
 		textLabel.SetBinding(Label.TextProperty, new Binding(nameof(LocalizedString.Value), source: new LocalizedString(titleKey)));
-		textLabel.SetAppThemeColor(Label.TextColorProperty,
-			(Color)Application.Current!.Resources["TextPrimary"],
-			(Color)Application.Current!.Resources["White"]);
 		Grid.SetColumn(textLabel, 1);
 
 		grid.Children.Add(iconLabel);
@@ -210,10 +226,19 @@ public partial class AppShell : Shell
 			// GoToAsync call must not be allowed to escape unhandled here.
 			try
 			{
+#if ANDROID
 				// Built-in FlyoutItem selection auto-closes the flyout; a
 				// fully custom Shell.FlyoutContent doesn't get that for
-				// free, so it has to be done explicitly here.
+				// free, so it has to be done explicitly here. Windows must
+				// NOT do this: the sidebar there is Locked (always
+				// "presented" by design — App.xaml.cs's Window.TitleBar
+				// toggle instead collapses it via FlyoutWidth), and forcing
+				// FlyoutIsPresented false on a Locked shell left it in a
+				// state neither that toggle nor anything else could undo —
+				// the sidebar vanished on the very first navigation and
+				// never came back.
 				Shell.Current.FlyoutIsPresented = false;
+#endif
 				await Shell.Current.GoToAsync(route);
 			}
 			catch (Exception ex)

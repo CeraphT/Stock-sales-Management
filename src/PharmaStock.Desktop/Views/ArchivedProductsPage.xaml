@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
     xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
+    xmlns:toolkit="http://schemas.syncfusion.com/maui/toolkit"
     Title="{loc:Translate Shell_Archives}">
 
     <Grid Padding="16" RowDefinitions="Auto,*" RowSpacing="12">
@@ -15,23 +16,25 @@
         </VerticalStackLayout>
 
         <Grid Grid.Row="1" RowDefinitions="*,Auto" RowSpacing="8">
-            <CollectionView Grid.Row="0" x:Name="ProductsView" SelectionMode="Single" SelectionChanged="OnProductSelected">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Border Style="{StaticResource Card}" Padding="14,12" Margin="0,6">
-                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-                                <VerticalStackLayout Grid.Column="0" Spacing="2">
-                                    <Label Text="{Binding Name}" FontAttributes="Bold" LineBreakMode="TailTruncation" />
-                                    <Label Text="{Binding SubtitleText}" Style="{StaticResource PageSubtitle}" />
-                                </VerticalStackLayout>
-                                <Label Grid.Column="1" Text="{Binding PriceText}" VerticalOptions="Center" FontAttributes="Bold" />
-                                <Button Grid.Column="2" Text="&#xF117;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}"
-                                        Padding="0" WidthRequest="46" Clicked="OnRestoreClicked" CommandParameter="{Binding .}" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+            <toolkit:SfPullToRefresh Grid.Row="0" x:Name="PullToRefreshView" Refreshing="OnRefreshing">
+                <CollectionView x:Name="ProductsView" SelectionMode="Single" SelectionChanged="OnProductSelected">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Card}" Padding="14,12" Margin="0,6">
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                        <Label Text="{Binding Name}" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding SubtitleText}" Style="{StaticResource PageSubtitle}" />
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="1" Text="{Binding PriceText}" VerticalOptions="Center" FontAttributes="Bold" />
+                                    <Button Grid.Column="2" Text="&#xF117;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}"
+                                            Padding="0" WidthRequest="46" Clicked="OnRestoreClicked" CommandParameter="{Binding .}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </toolkit:SfPullToRefresh>
 
             <Label Grid.Row="0" x:Name="EmptyLabel" Text="{loc:Translate Archived_NoProducts}" Style="{StaticResource PageSubtitle}" IsVisible="False" VerticalOptions="Start" />
 

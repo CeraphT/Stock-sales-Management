@@ -1,4 +1,3 @@
-using System.Globalization;
 using PharmaStock.Desktop.Services;
 
 namespace PharmaStock.Desktop.Views;
@@ -89,7 +88,7 @@ public partial class StockAdjustPage : ContentPage
             return;
         }
 
-        var delta = ParseInt(DeltaField.Text);
+        var delta = DeltaEntry.Value.HasValue ? (int)DeltaEntry.Value.Value : (int?)null;
         if (delta is null || delta == 0)
         {
             ShowError(LocalizationService.Translate("StockAdjust_InvalidDelta"));
@@ -114,7 +113,7 @@ public partial class StockAdjustPage : ContentPage
             await this.DisplayAlertAsync(LocalizationService.Translate("StockAdjust_SavedTitle"),
                 LocalizationService.Translate("StockAdjust_SavedMessage", updated.BatchNumber, updated.QuantityInBaseUnits), LocalizationService.Translate("Common_OK"));
 
-            DeltaField.Text = string.Empty;
+            DeltaEntry.Value = null;
             ReasonField.Text = string.Empty;
             await LoadBatchesAsync();
         }
@@ -139,11 +138,5 @@ public partial class StockAdjustPage : ContentPage
         SaveButton.IsEnabled = !busy;
         Spinner.IsRunning = busy;
         Spinner.IsVisible = busy;
-    }
-
-    private static int? ParseInt(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text)) return null;
-        return int.TryParse(text.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var value) ? value : null;
     }
 }

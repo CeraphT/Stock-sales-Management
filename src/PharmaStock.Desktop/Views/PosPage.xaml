@@ -42,9 +42,7 @@
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                                 <VerticalStackLayout Grid.Column="0" Spacing="4">
                                     <Label Text="{Binding Name}" FontAttributes="Bold" LineBreakMode="TailTruncation" />
-                                    <Border BackgroundColor="{Binding StatusColor}" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="8,2" HorizontalOptions="Start">
-                                        <Label Text="{Binding StatusText}" TextColor="White" FontSize="11" FontAttributes="Bold" />
-                                    </Border>
+                                    <controls:StatusBadge Text="{Binding StatusText}" Color="{Binding StatusColor}" />
                                 </VerticalStackLayout>
                                 <Label Grid.Column="1" Text="{Binding PriceText}" VerticalOptions="Center" FontAttributes="Bold" />
                             </Grid>

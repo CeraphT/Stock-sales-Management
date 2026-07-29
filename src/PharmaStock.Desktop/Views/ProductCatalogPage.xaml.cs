@@ -199,7 +199,7 @@ public partial class ProductCatalogPage : ContentPage
                 ? item.StockStatus switch
                 {
                     "out_of_stock" => (LocalizationService.Translate("Catalog_StatusOutOfStock"), (Color)Application.Current!.Resources["ErrorColor"]),
-                    "low_stock" => (LocalizationService.Translate("StockStatus_LowStock"), (Color)Application.Current!.Resources["Gray400"]),
+                    "low_stock" => (LocalizationService.Translate("StockStatus_LowStock"), (Color)Application.Current!.Resources["AccentAmber"]),
                     _ => (LocalizationService.Translate("StockStatus_InStock"), (Color)Application.Current!.Resources["SuccessColor"])
                 }
                 : (LocalizationService.Translate("Catalog_StatusArchived"), (Color)Application.Current!.Resources["Gray400"]);

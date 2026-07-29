@@ -5,19 +5,27 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Name="Root">
 
-    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-        <Label
-            Text="FR"
-            FontSize="12"
-            FontAttributes="Bold"
-            VerticalOptions="Center"
-            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource Gray300}}" />
-        <Switch x:Name="SwitchControl" OnColor="{StaticResource Primary}" Toggled="OnToggled" />
-        <Label
-            Text="EN"
-            FontSize="12"
-            FontAttributes="Bold"
-            VerticalOptions="Center"
-            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource Gray300}}" />
-    </HorizontalStackLayout>
+    <!-- A compact FR/EN segmented pill, replacing a native Switch: WinUI's
+         ToggleSwitch ignores WidthRequest and keeps ~100px+ of its own
+         internal footprint regardless, which stranded the "EN" label far
+         from the toggle on Windows. This is fully custom-sized instead, and
+         matches the pill look already established by PosPage's payment-
+         method chips. -->
+    <Border StrokeShape="RoundRectangle 14" StrokeThickness="1" HeightRequest="28" Padding="2"
+            Stroke="{AppThemeBinding Light={StaticResource BorderColor}, Dark={StaticResource Gray600}}">
+        <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="0">
+            <Border x:Name="FrPill" Grid.Column="0" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="10,0">
+                <Label Text="FR" FontSize="11" FontAttributes="Bold" VerticalOptions="Center" HorizontalTextAlignment="Center" />
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnFrTapped" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="EnPill" Grid.Column="1" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="10,0">
+                <Label Text="EN" FontSize="11" FontAttributes="Bold" VerticalOptions="Center" HorizontalTextAlignment="Center" />
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnEnTapped" />
+                </Border.GestureRecognizers>
+            </Border>
+        </Grid>
+    </Border>
 </ContentView>

@@ -397,6 +397,7 @@ public static class AppStrings
 
         // ProductCatalogPage
         ["Catalog_Filters"] = ("Filtres", "Filters"),
+        ["Catalog_NewProduct"] = ("Nouveau", "New"),
         ["Catalog_SearchPlaceholder"] = ("Rechercher un produit", "Search for a product"),
         ["Catalog_NoProducts"] = ("Aucun produit trouvé.", "No products found."),
         ["Catalog_StatusOutOfStock"] = ("Rupture", "Out of stock"),

@@ -5,16 +5,20 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Name="Root">
 
+    <!-- TextColor="White" throughout (not the SectionLabel style's default,
+         theme-bound color): this sits on the flyout's theme-invariant
+         colored sidebar background (see Shell style in Styles.xaml), not
+         page content. -->
     <VerticalStackLayout>
         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Padding="16,12">
             <Label Grid.Column="0" x:Name="HeaderIconLabel" FontFamily="BootstrapIcons" FontSize="16"
-                   VerticalOptions="Center"
+                   VerticalOptions="Center" TextColor="White"
                    Text="{Binding Source={x:Reference Root}, Path=Icon}" />
-            <Label Grid.Column="1" Style="{StaticResource SectionLabel}" FontSize="14"
-                   VerticalOptions="Center"
+            <Label Grid.Column="1" FontFamily="OpenSansSemibold" FontSize="14"
+                   VerticalOptions="Center" TextColor="White"
                    Text="{Binding Source={x:Reference Root}, Path=Title}" />
             <Label Grid.Column="2" x:Name="ChevronLabel" FontFamily="BootstrapIcons" FontSize="14"
-                   VerticalOptions="Center" />
+                   VerticalOptions="Center" TextColor="White" />
             <Grid.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnHeaderTapped" />
             </Grid.GestureRecognizers>

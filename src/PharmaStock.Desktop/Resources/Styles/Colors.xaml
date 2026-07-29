@@ -26,6 +26,20 @@
     <Color x:Key="ErrorColor">#DC2626</Color>
     <Color x:Key="SuccessColor">#16A34A</Color>
 
+    <!-- Vibrant-retail accent set: a solid + soft-tint pair per accent, for
+         the "icon in a colored circle" stat-tile badges and colored status
+         pills. AccentAmber specifically replaces low-stock's old plain-gray
+         treatment (ProductCatalogPage/PosPage), which read as "disabled"
+         rather than "needs attention". -->
+    <Color x:Key="AccentBlue">#2563EB</Color>
+    <Color x:Key="AccentBlueSoft">#DBEAFE</Color>
+    <Color x:Key="AccentPurple">#7C3AED</Color>
+    <Color x:Key="AccentPurpleSoft">#EDE3FC</Color>
+    <Color x:Key="AccentAmber">#D97706</Color>
+    <Color x:Key="AccentAmberSoft">#FEF3C7</Color>
+    <Color x:Key="AccentOrange">#EA580C</Color>
+    <Color x:Key="AccentOrangeSoft">#FFE4D5</Color>
+
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>
     <Color x:Key="Magenta">#D600AA</Color>

@@ -1,4 +1,3 @@
-using System.Globalization;
 using PharmaStock.Desktop.Services;
 
 namespace PharmaStock.Desktop.Views;
@@ -22,7 +21,7 @@ public partial class StockReceivePage : ContentPage
         InitializeComponent();
         _api = api;
         _session = session;
-        ExpiryDatePicker.Date = DateTime.Today.AddYears(1);
+        ExpiryDatePicker.SelectedDate = DateTime.Today.AddYears(1);
     }
 
     protected override async void OnAppearing()
@@ -99,7 +98,7 @@ public partial class StockReceivePage : ContentPage
             return;
         }
 
-        var quantity = ParseInt(QuantityField.Text);
+        var quantity = QuantityEntry.Value.HasValue ? (int)QuantityEntry.Value.Value : (int?)null;
         if (quantity is null || quantity <= 0)
         {
             ShowError(LocalizationService.Translate("StockReceive_InvalidQuantity"));
@@ -109,9 +108,9 @@ public partial class StockReceivePage : ContentPage
         var request = new ReceiveStockRequest(
             locationId.Value,
             BatchNumberField.Text.Trim(),
-            ExpiryDatePicker.Date,
+            ExpiryDatePicker.SelectedDate ?? DateTime.Today,
             quantity.Value,
-            ParseDecimal(PurchasePriceField.Text));
+            (decimal?)PurchasePriceEntry.Value);
 
         SetBusy(true);
         try
@@ -123,8 +122,8 @@ public partial class StockReceivePage : ContentPage
                 LocalizationService.Translate("StockReceive_SavedMessage", batch.BatchNumber, batch.QuantityInBaseUnits), LocalizationService.Translate("Common_OK"));
 
             BatchNumberField.Text = string.Empty;
-            QuantityField.Text = string.Empty;
-            PurchasePriceField.Text = string.Empty;
+            QuantityEntry.Value = null;
+            PurchasePriceEntry.Value = null;
         }
         catch (PharmaStockApiException ex)
         {
@@ -147,18 +146,5 @@ public partial class StockReceivePage : ContentPage
         SaveButton.IsEnabled = !busy;
         Spinner.IsRunning = busy;
         Spinner.IsVisible = busy;
-    }
-
-    private static int? ParseInt(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text)) return null;
-        return int.TryParse(text.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var value) ? value : null;
-    }
-
-    private static decimal? ParseDecimal(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text)) return null;
-        var normalized = text.Trim().Replace(',', '.');
-        return decimal.TryParse(normalized, NumberStyles.Any, CultureInfo.InvariantCulture, out var value) ? value : null;
     }
 }

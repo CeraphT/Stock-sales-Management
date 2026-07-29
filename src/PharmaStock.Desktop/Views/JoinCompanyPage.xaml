@@ -5,7 +5,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
     xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
-    Title="{loc:Translate JoinCompany_Title}">
+    Title="{loc:Translate JoinCompany_Title}"
+    Shell.FlyoutBehavior="Disabled">
 
     <ScrollView>
         <Grid Padding="24">

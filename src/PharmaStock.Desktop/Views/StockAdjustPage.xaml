@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
     xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    xmlns:toolkit="http://schemas.syncfusion.com/maui/toolkit"
     Title="{loc:Translate StockAdjust_Title}">
 
     <ScrollView>
@@ -19,9 +20,11 @@
                         <Picker x:Name="BatchPicker" Title="{loc:Translate StockAdjust_BatchPickerTitle}" />
                     </Border>
 
-                    <!-- Plain keyboard, not Numeric: a negative delta needs a typeable minus sign,
-                         which the restricted numeric keypad doesn't reliably offer on Android. -->
-                    <controls:FormField x:Name="DeltaField" Label="{loc:Translate StockAdjust_DeltaLabel}" Placeholder="ex. -5" />
+                    <!-- SfNumericEntry (no Minimum set, so negatives are allowed) replaces a
+                         plain-keyboard Entry: the old native numeric keypad couldn't reliably
+                         offer a typeable minus sign on Android for a negative delta. -->
+                    <Label Text="{loc:Translate StockAdjust_DeltaLabel}" Style="{StaticResource FieldLabel}" />
+                    <toolkit:SfNumericEntry x:Name="DeltaEntry" HeightRequest="46" />
                     <controls:FormField x:Name="ReasonField" Label="{loc:Translate StockAdjust_ReasonLabel}" Placeholder="{loc:Translate StockAdjust_ReasonPlaceholder}" />
 
                     <controls:IconButton x:Name="SaveButton" Icon="{x:Static loc:BootstrapIcons.Check2}" Text="{loc:Translate StockAdjust_Save}" Clicked="OnSaveClicked" Margin="0,10,0,0" />

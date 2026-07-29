@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using PharmaStock.Desktop.Services;
 using PharmaStock.Desktop.Views;
 using PharmaStock.Infrastructure.Data;
+using Syncfusion.Maui.Toolkit.Hosting;
 using ZXing.Net.Maui.Controls;
 
 namespace PharmaStock.Desktop;
@@ -24,6 +25,7 @@ public static class MauiProgram
 		builder
 			.UseMauiApp<App>()
 			.UseBarcodeReader()
+			.ConfigureSyncfusionToolkit()
 			.ConfigureFonts(fonts =>
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

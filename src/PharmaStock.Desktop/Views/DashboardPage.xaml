@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
     Title="{loc:Translate Dashboard_Title}">
 
     <ScrollView>
@@ -19,63 +20,42 @@
             <VerticalStackLayout x:Name="ContentStack" Spacing="16">
 
             <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}" Padding="14">
-                    <VerticalStackLayout Spacing="4">
-                        <Label x:Name="RevenueTodayLabel" Text="0" FontSize="20" FontAttributes="Bold" LineBreakMode="TailTruncation" />
-                        <Label Text="{loc:Translate Dashboard_RevenueToday}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
-                    </VerticalStackLayout>
-                </Border>
-                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}" Padding="14">
-                    <VerticalStackLayout Spacing="4">
-                        <Label x:Name="SalesTodayLabel" Text="0" FontSize="20" FontAttributes="Bold" />
-                        <Label Text="{loc:Translate Dashboard_SalesToday}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
-                    </VerticalStackLayout>
-                </Border>
-                <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource Card}" Padding="14">
-                    <VerticalStackLayout Spacing="4">
-                        <Label x:Name="TotalProductsLabel" Text="0" FontSize="20" FontAttributes="Bold" />
-                        <Label Text="{loc:Translate Dashboard_Products}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
-                    </VerticalStackLayout>
-                </Border>
-                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}" Padding="14">
-                    <VerticalStackLayout Spacing="4">
-                        <Label x:Name="LowStockLabel" Text="0" FontSize="20" FontAttributes="Bold" />
-                        <Label Text="{loc:Translate Dashboard_LowStock}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
-                    </VerticalStackLayout>
-                </Border>
-                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource Card}" Padding="14">
-                    <VerticalStackLayout Spacing="4">
-                        <Label x:Name="OutOfStockLabel" Text="0" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource ErrorColor}" />
-                        <Label Text="{loc:Translate Dashboard_OutOfStock}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
-                    </VerticalStackLayout>
-                </Border>
-                <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource Card}" Padding="14">
-                    <VerticalStackLayout Spacing="4">
-                        <Label x:Name="ExpiringSoonLabel" Text="0" FontSize="20" FontAttributes="Bold" />
-                        <Label Text="{loc:Translate Dashboard_ExpiringSoon}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
-                    </VerticalStackLayout>
-                </Border>
-                <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource Card}" Padding="14">
-                    <VerticalStackLayout Spacing="4">
-                        <Label x:Name="ExpiredLabel" Text="0" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource ErrorColor}" />
-                        <Label Text="{loc:Translate Dashboard_Expired}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
-                    </VerticalStackLayout>
-                </Border>
-                <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource Card}" Padding="14">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnArchivedCardTapped" />
-                    </Border.GestureRecognizers>
-                    <VerticalStackLayout Spacing="4">
-                        <Label x:Name="ArchivedProductsLabel" Text="0" FontSize="20" FontAttributes="Bold" />
-                        <Label Text="{loc:Translate Dashboard_Archived}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
-                    </VerticalStackLayout>
-                </Border>
-                <Border x:Name="NegativeStockCard" Grid.Row="2" Grid.Column="2" Style="{StaticResource Card}" Padding="14" IsVisible="False">
-                    <VerticalStackLayout Spacing="4">
-                        <Label x:Name="NegativeStockLabel" Text="0" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource ErrorColor}" />
-                        <Label Text="{loc:Translate Dashboard_NegativeStock}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
-                    </VerticalStackLayout>
-                </Border>
+                <controls:StatTile Grid.Row="0" Grid.Column="0" x:Name="RevenueTodayTile"
+                        IconGlyph="{x:Static loc:BootstrapIcons.CashCoin}"
+                        AccentColor="{StaticResource SuccessColor}" AccentSoftColor="#DCFCE7"
+                        Label="{loc:Translate Dashboard_RevenueToday}" />
+                <controls:StatTile Grid.Row="0" Grid.Column="1" x:Name="SalesTodayTile"
+                        IconGlyph="{x:Static loc:BootstrapIcons.Cart3}"
+                        AccentColor="{StaticResource AccentBlue}" AccentSoftColor="{StaticResource AccentBlueSoft}"
+                        Label="{loc:Translate Dashboard_SalesToday}" />
+                <controls:StatTile Grid.Row="0" Grid.Column="2" x:Name="TotalProductsTile"
+                        IconGlyph="{x:Static loc:BootstrapIcons.BoxSeam}"
+                        AccentColor="{StaticResource AccentPurple}" AccentSoftColor="{StaticResource AccentPurpleSoft}"
+                        Label="{loc:Translate Dashboard_Products}" />
+                <controls:StatTile Grid.Row="1" Grid.Column="0" x:Name="LowStockTile"
+                        IconGlyph="{x:Static loc:BootstrapIcons.BoxSeam}"
+                        AccentColor="{StaticResource AccentAmber}" AccentSoftColor="{StaticResource AccentAmberSoft}"
+                        Label="{loc:Translate Dashboard_LowStock}" />
+                <controls:StatTile Grid.Row="1" Grid.Column="1" x:Name="OutOfStockTile"
+                        IconGlyph="{x:Static loc:BootstrapIcons.BoxSeam}"
+                        AccentColor="{StaticResource ErrorColor}" AccentSoftColor="#FCE4E4"
+                        Label="{loc:Translate Dashboard_OutOfStock}" />
+                <controls:StatTile Grid.Row="1" Grid.Column="2" x:Name="ExpiringSoonTile"
+                        IconGlyph="{x:Static loc:BootstrapIcons.ClockHistory}"
+                        AccentColor="{StaticResource AccentOrange}" AccentSoftColor="{StaticResource AccentOrangeSoft}"
+                        Label="{loc:Translate Dashboard_ExpiringSoon}" />
+                <controls:StatTile Grid.Row="2" Grid.Column="0" x:Name="ExpiredTile"
+                        IconGlyph="{x:Static loc:BootstrapIcons.Calendar3}"
+                        AccentColor="{StaticResource ErrorColor}" AccentSoftColor="#FCE4E4"
+                        Label="{loc:Translate Dashboard_Expired}" />
+                <controls:StatTile Grid.Row="2" Grid.Column="1" x:Name="ArchivedProductsTile"
+                        IconGlyph="{x:Static loc:BootstrapIcons.Archive}"
+                        AccentColor="{StaticResource Gray500}" AccentSoftColor="{StaticResource Gray100}"
+                        Label="{loc:Translate Dashboard_Archived}" Tapped="OnArchivedCardTapped" />
+                <controls:StatTile x:Name="NegativeStockCard" Grid.Row="2" Grid.Column="2" IsVisible="False"
+                        IconGlyph="{x:Static loc:BootstrapIcons.BoxSeam}"
+                        AccentColor="{StaticResource ErrorColor}" AccentSoftColor="#FCE4E4"
+                        Label="{loc:Translate Dashboard_NegativeStock}" />
             </Grid>
 
             <Label Text="{loc:Translate Dashboard_RecentSales}" Style="{StaticResource SectionLabel}" />

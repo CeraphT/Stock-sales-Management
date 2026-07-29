@@ -87,14 +87,14 @@ public partial class DashboardPage : ContentPage
 
     private void Render(DashboardSummaryResponse summary)
     {
-        RevenueTodayLabel.Text = MoneyFormatter.Format(summary.TodayRevenue, _currency);
-        SalesTodayLabel.Text = summary.TodaySalesCount.ToString(CultureInfo.InvariantCulture);
-        TotalProductsLabel.Text = summary.TotalProducts.ToString(CultureInfo.InvariantCulture);
-        LowStockLabel.Text = summary.LowStockCount.ToString(CultureInfo.InvariantCulture);
-        OutOfStockLabel.Text = summary.OutOfStockCount.ToString(CultureInfo.InvariantCulture);
-        ExpiringSoonLabel.Text = summary.ExpiringSoonCount.ToString(CultureInfo.InvariantCulture);
-        ExpiredLabel.Text = summary.ExpiredCount.ToString(CultureInfo.InvariantCulture);
-        ArchivedProductsLabel.Text = summary.ArchivedProductsCount.ToString(CultureInfo.InvariantCulture);
+        RevenueTodayTile.Value = MoneyFormatter.Format(summary.TodayRevenue, _currency);
+        SalesTodayTile.Value = summary.TodaySalesCount.ToString(CultureInfo.InvariantCulture);
+        TotalProductsTile.Value = summary.TotalProducts.ToString(CultureInfo.InvariantCulture);
+        LowStockTile.Value = summary.LowStockCount.ToString(CultureInfo.InvariantCulture);
+        OutOfStockTile.Value = summary.OutOfStockCount.ToString(CultureInfo.InvariantCulture);
+        ExpiringSoonTile.Value = summary.ExpiringSoonCount.ToString(CultureInfo.InvariantCulture);
+        ExpiredTile.Value = summary.ExpiredCount.ToString(CultureInfo.InvariantCulture);
+        ArchivedProductsTile.Value = summary.ArchivedProductsCount.ToString(CultureInfo.InvariantCulture);
 
         // Section 6 — only surfaces when there's actually something for an
         // admin to reconcile (two offline devices oversold the same batch,
@@ -102,7 +102,7 @@ public partial class DashboardPage : ContentPage
         // otherwise, rather than a permanent "0" tile.
         var conflictCount = summary.NegativeStockBatchCount + summary.AutoClosedShiftConflictCount;
         NegativeStockCard.IsVisible = conflictCount > 0;
-        NegativeStockLabel.Text = conflictCount.ToString(CultureInfo.InvariantCulture);
+        NegativeStockCard.Value = conflictCount.ToString(CultureInfo.InvariantCulture);
 
         var rows = summary.RecentSales.Select(s => new RecentSaleRow(s, _currency)).ToList();
         RecentSalesView.ItemsSource = rows;
