@@ -67,7 +67,8 @@ public partial class SaleDetailPage : ContentPage
 
         LinesView.ItemsSource = BuildReceiptLines(sale);
         TotalLabel.Text = MoneyFormatter.Format(sale.Total, _currency);
-        PaymentMethodLabel.Text = LocalizationService.Translate("SaleDetail_Payment", LocalizationService.TranslatePaymentMethod(sale.PaymentMethod));
+        PaymentBadge.Text = LocalizationService.TranslatePaymentMethod(sale.PaymentMethod);
+        PaymentBadge.Color = LocalizationService.PaymentMethodColor(sale.PaymentMethod);
 
         var splits = sale.PaymentSplits.Select(p => new PaymentSplitRow(
             LocalizationService.TranslatePaymentMethod(p.Method), MoneyFormatter.Format(p.Amount, _currency))).ToList();

@@ -16,14 +16,15 @@
                     <CollectionView x:Name="HeldSalesView" SelectionMode="Single" SelectionChanged="OnHeldSaleSelected" HeightRequest="320">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Border Style="{StaticResource FieldBorder}" HeightRequest="-1" Padding="12,10" Margin="0,4">
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Border Style="{StaticResource FieldBorder}" HeightRequest="-1" Padding="0" Margin="0,4">
+                                    <Grid ColumnDefinitions="4,*,Auto" ColumnSpacing="0">
+                                        <BoxView Grid.Column="0" Color="{StaticResource AccentAmber}" />
+                                        <VerticalStackLayout Grid.Column="1" Spacing="2" Padding="12,10">
                                             <Label Text="{Binding TimeText}" FontAttributes="Bold" />
                                             <Label Text="{Binding SubtitleText}" Style="{StaticResource PageSubtitle}" />
                                         </VerticalStackLayout>
-                                        <Button Grid.Column="1" Text="&#xF5DE;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}"
-                                                Padding="0" WidthRequest="46" VerticalOptions="Center"
+                                        <Button Grid.Column="2" Text="&#xF5DE;" FontFamily="BootstrapIcons" Style="{StaticResource SecondaryButton}"
+                                                Padding="0" WidthRequest="46" VerticalOptions="Center" Margin="0,0,8,0"
                                                 Clicked="OnDeleteHeldSaleClicked" CommandParameter="{Binding .}" />
                                     </Grid>
                                 </Border>

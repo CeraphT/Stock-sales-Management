@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
+    xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
     Title="{loc:Translate SaleDetail_Title}">
 
     <ContentPage.ToolbarItems>
@@ -48,14 +49,16 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <BoxView HeightRequest="1" Color="{StaticResource BorderColor}" />
+            <!-- Dashed rule (StrokeDashArray on a zero-height Border) for an
+                 authentic torn-receipt feel, in place of a plain solid line. -->
+            <Border HeightRequest="1" StrokeThickness="1" StrokeDashArray="4,3" Stroke="{StaticResource BorderColor}" HorizontalOptions="Fill" />
 
             <Grid ColumnDefinitions="*,Auto">
                 <Label Grid.Column="0" Text="{loc:Translate Pos_Total}" Style="{StaticResource SectionLabel}" VerticalOptions="Center" />
-                <Label Grid.Column="1" x:Name="TotalLabel" Text="0" FontSize="22" FontAttributes="Bold"
+                <Label Grid.Column="1" x:Name="TotalLabel" Text="0" FontSize="24" FontAttributes="Bold"
                        TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
             </Grid>
-            <Label x:Name="PaymentMethodLabel" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+            <controls:StatusBadge x:Name="PaymentBadge" HorizontalOptions="Start" />
 
             <Label x:Name="PaymentBreakdownLabel" Text="{loc:Translate SaleDetail_PaymentBreakdown}" Style="{StaticResource SectionLabel}" IsVisible="False" />
             <CollectionView x:Name="PaymentSplitsView" IsVisible="False">

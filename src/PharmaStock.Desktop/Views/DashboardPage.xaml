@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:loc="clr-namespace:PharmaStock.Desktop.Services"
     xmlns:controls="clr-namespace:PharmaStock.Desktop.Controls"
+    xmlns:toolkit="http://schemas.syncfusion.com/maui/toolkit"
     Title="{loc:Translate Dashboard_Title}">
 
     <ScrollView>
@@ -57,6 +58,44 @@
                         AccentColor="{StaticResource ErrorColor}" AccentSoftColor="#FCE4E4"
                         Label="{loc:Translate Dashboard_NegativeStock}" />
             </Grid>
+
+            <!-- Trend a raw "today" number can't show: is business up or down
+                 this week? ColumnSeries over the last 7 days (including
+                 $0 days — see DashboardEndpoints.RevenueTrend). -->
+            <Border Style="{StaticResource Card}" Padding="16,14">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{loc:Translate Dashboard_RevenueTrend}" Style="{StaticResource SectionLabel}" />
+                    <toolkit:SfCartesianChart x:Name="RevenueTrendChart" HeightRequest="200">
+                        <toolkit:SfCartesianChart.XAxes>
+                            <toolkit:CategoryAxis ShowMajorGridLines="False" />
+                        </toolkit:SfCartesianChart.XAxes>
+                        <toolkit:SfCartesianChart.YAxes>
+                            <toolkit:NumericalAxis ShowMajorGridLines="True" />
+                        </toolkit:SfCartesianChart.YAxes>
+                        <toolkit:ColumnSeries x:Name="RevenueTrendSeries"
+                                XBindingPath="DayLabel" YBindingPath="Revenue"
+                                Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                CornerRadius="6,6,0,0" />
+                    </toolkit:SfCartesianChart>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Stock-health proportion at a glance — complements (doesn't
+                 replace) the Low stock/Out of stock number tiles above,
+                 which stay as exact counts for "needs action now" scanning. -->
+            <Border Style="{StaticResource Card}" Padding="16,14">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{loc:Translate Dashboard_StockHealth}" Style="{StaticResource SectionLabel}" />
+                    <toolkit:SfCircularChart x:Name="StockHealthChart" HeightRequest="220">
+                        <toolkit:SfCircularChart.Legend>
+                            <toolkit:ChartLegend Placement="Bottom" />
+                        </toolkit:SfCircularChart.Legend>
+                        <toolkit:DoughnutSeries x:Name="StockHealthSeries"
+                                XBindingPath="Label" YBindingPath="Value"
+                                ShowDataLabels="True" />
+                    </toolkit:SfCircularChart>
+                </VerticalStackLayout>
+            </Border>
 
             <Label Text="{loc:Translate Dashboard_RecentSales}" Style="{StaticResource SectionLabel}" />
             <Label x:Name="NoRecentSalesLabel" Text="{loc:Translate Dashboard_NoRecentSales}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />

@@ -11,12 +11,18 @@ public record RecentSaleLineItem(string Name, int Quantity, string UnitLabel);
 
 public record RecentSaleItem(Guid Id, decimal Total, PaymentMethod PaymentMethod, DateTime Timestamp, List<RecentSaleLineItem> Items);
 
+// One point per calendar day, always exactly 7 of them (today back to 6 days
+// ago) — including zero-revenue days, so the Desktop chart never has to
+// guess whether a missing day means "no sales" or "not fetched yet".
+public record DailyRevenuePoint(DateTime Date, decimal Revenue);
+
 public record DashboardSummaryResponse(
     decimal TodayRevenue, int TodaySalesCount,
     int TotalProducts, int LowStockCount, int OutOfStockCount,
     int ExpiringSoonCount, int ExpiredCount, int ArchivedProductsCount,
     List<RecentSaleItem> RecentSales,
-    int NegativeStockBatchCount, int AutoClosedShiftConflictCount
+    int NegativeStockBatchCount, int AutoClosedShiftConflictCount,
+    List<DailyRevenuePoint> RevenueTrend
 );
 
 public static class DashboardEndpoints
@@ -49,6 +55,23 @@ public static class DashboardEndpoints
                     s.Timestamp >= todayStart && s.Timestamp < todayEnd)
                 .Select(s => s.Total)
                 .ToListAsync();
+
+            // Last 7 days (today back to 6 days ago) for the Desktop revenue
+            // trend chart. Fetched as flat (Timestamp, Total) rows and
+            // grouped by calendar day in memory rather than a SQL GROUP BY —
+            // this is what fills in a $0 point for a day with zero sales,
+            // which a GROUP BY (over rows that don't exist) can't produce
+            // without a separate calendar-table join.
+            var trendStart = todayStart.AddDays(-6);
+            var trendSales = await db.Sales
+                .Where(s => s.CompanyId == companyId && s.Status == SaleStatus.Completed &&
+                    s.Timestamp >= trendStart && s.Timestamp < todayEnd)
+                .Select(s => new { s.Timestamp, s.Total })
+                .ToListAsync();
+            var revenueTrend = Enumerable.Range(0, 7)
+                .Select(offset => trendStart.AddDays(offset))
+                .Select(date => new DailyRevenuePoint(date, trendSales.Where(s => s.Timestamp.Date == date).Sum(s => s.Total)))
+                .ToList();
 
             // Archived products are excluded from stock-health counts — they
             // can't be sold regardless of their stock level, so counting them
@@ -132,7 +155,8 @@ public static class DashboardEndpoints
                 archivedProductsCount,
                 recentSales,
                 negativeStockBatchCount,
-                autoClosedShiftConflictCount));
+                autoClosedShiftConflictCount,
+                revenueTrend));
         }).RequireAuthorization();
     }
 }

@@ -24,8 +24,13 @@
             </Border>
 
             <!-- A shift is currently open -->
-            <Border x:Name="ActiveShiftCard" Style="{StaticResource Card}" IsVisible="False">
-                <VerticalStackLayout Spacing="10">
+            <Border x:Name="ActiveShiftCard" Style="{StaticResource Card}" Padding="0" IsVisible="False">
+                <VerticalStackLayout Spacing="0">
+                    <!-- Live/open indicator: a thin success-colored top bar,
+                         so an open shift reads as "active" at a glance even
+                         before the eye reaches the text below it. -->
+                    <BoxView HeightRequest="4" Color="{StaticResource SuccessColor}" />
+                    <VerticalStackLayout Spacing="10" Padding="36">
                     <Label Text="{loc:Translate Shift_ActiveTitle}" Style="{StaticResource SectionLabel}" TextColor="{StaticResource SuccessColor}" />
                     <Label x:Name="OpenedInfoLabel" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
 
@@ -56,6 +61,7 @@
                         <controls:FormField x:Name="ClosingNotesField" Label="{loc:Translate Shift_NotesLabel}" Placeholder="{loc:Translate Shift_NotesPlaceholder}" />
                         <controls:IconButton x:Name="ConfirmCloseButton" Icon="{x:Static loc:BootstrapIcons.Check2}" Text="{loc:Translate Shift_ConfirmClose}" Clicked="OnConfirmCloseClicked" />
                     </VerticalStackLayout>
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
             </Border>
 
@@ -64,25 +70,28 @@
             <CollectionView x:Name="HistoryView">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Border Style="{StaticResource Card}" Padding="14,12" Margin="0,6">
-                            <VerticalStackLayout Spacing="4">
-                                <Label Text="{Binding DateRangeText}" FontAttributes="Bold" />
-                                <Label Text="{Binding OpenedByText}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
-                                <Grid ColumnDefinitions="*,*,*" Margin="0,4,0,0">
-                                    <VerticalStackLayout Grid.Column="0">
-                                        <Label Text="{Binding OpeningText}" FontAttributes="Bold" FontSize="14" />
-                                        <Label Text="{loc:Translate Shift_OpeningAmountShort}" Style="{StaticResource PageSubtitle}" FontSize="11" />
-                                    </VerticalStackLayout>
-                                    <VerticalStackLayout Grid.Column="1">
-                                        <Label Text="{Binding ClosingText}" FontAttributes="Bold" FontSize="14" />
-                                        <Label Text="{loc:Translate Shift_ClosingAmountShort}" Style="{StaticResource PageSubtitle}" FontSize="11" />
-                                    </VerticalStackLayout>
-                                    <VerticalStackLayout Grid.Column="2">
-                                        <Label Text="{Binding DiscrepancyText}" TextColor="{Binding DiscrepancyColor}" FontAttributes="Bold" FontSize="14" />
-                                        <Label Text="{loc:Translate Shift_DiscrepancyShort}" Style="{StaticResource PageSubtitle}" FontSize="11" />
-                                    </VerticalStackLayout>
-                                </Grid>
-                            </VerticalStackLayout>
+                        <Border Style="{StaticResource Card}" Padding="0" Margin="0,6">
+                            <Grid ColumnDefinitions="4,*" ColumnSpacing="0">
+                                <BoxView Grid.Column="0" Color="{Binding DiscrepancyColor}" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="4" Padding="14,12">
+                                    <Label Text="{Binding DateRangeText}" FontAttributes="Bold" />
+                                    <Label Text="{Binding OpenedByText}" Style="{StaticResource PageSubtitle}" HorizontalOptions="Start" HorizontalTextAlignment="Start" />
+                                    <Grid ColumnDefinitions="*,*,*" Margin="0,4,0,0">
+                                        <VerticalStackLayout Grid.Column="0">
+                                            <Label Text="{Binding OpeningText}" FontAttributes="Bold" FontSize="14" />
+                                            <Label Text="{loc:Translate Shift_OpeningAmountShort}" Style="{StaticResource PageSubtitle}" FontSize="11" />
+                                        </VerticalStackLayout>
+                                        <VerticalStackLayout Grid.Column="1">
+                                            <Label Text="{Binding ClosingText}" FontAttributes="Bold" FontSize="14" />
+                                            <Label Text="{loc:Translate Shift_ClosingAmountShort}" Style="{StaticResource PageSubtitle}" FontSize="11" />
+                                        </VerticalStackLayout>
+                                        <VerticalStackLayout Grid.Column="2">
+                                            <Label Text="{Binding DiscrepancyText}" TextColor="{Binding DiscrepancyColor}" FontAttributes="Bold" FontSize="14" />
+                                            <Label Text="{loc:Translate Shift_DiscrepancyShort}" Style="{StaticResource PageSubtitle}" FontSize="11" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </Grid>
                         </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>

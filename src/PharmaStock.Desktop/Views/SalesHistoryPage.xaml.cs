@@ -250,6 +250,11 @@ public partial class SalesHistoryPage : ContentPage
         public string TimeText { get; }
         public string SubtitleText { get; }
         public string TotalText { get; }
+        // A slim leading accent bar colored by payment method — lets the eye
+        // scan a long history list for "was this a credit sale?" without
+        // reading each subtitle, the same visual language as the Catalog's
+        // stock-status accent bar.
+        public Color AccentColor { get; }
 
         public SaleRow(SaleSummaryResponse item, string? currency)
         {
@@ -257,6 +262,7 @@ public partial class SalesHistoryPage : ContentPage
             TimeText = item.Timestamp.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
             SubtitleText = $"{item.CashierName} · {LocalizationService.TranslatePaymentMethod(item.PaymentMethod)} · {item.ItemCount} {LocalizationService.Translate("SalesHistory_Articles")}";
             TotalText = MoneyFormatter.Format(item.Total, currency);
+            AccentColor = LocalizationService.PaymentMethodColor(item.PaymentMethod);
         }
     }
 }

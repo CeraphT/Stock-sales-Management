@@ -70,6 +70,8 @@ public static class AppStrings
         ["Dashboard_Expired"] = ("Expiré", "Expired"),
         ["Dashboard_Archived"] = ("Archivés", "Archived"),
         ["Dashboard_NegativeStock"] = ("Conflits de synchro", "Sync conflicts"),
+        ["Dashboard_RevenueTrend"] = ("Revenu sur 7 jours", "7-day revenue"),
+        ["Dashboard_StockHealth"] = ("État du stock", "Stock health"),
         ["Dashboard_RecentSales"] = ("VENTES RÉCENTES", "RECENT SALES"),
         ["Dashboard_NoRecentSales"] = ("Aucune vente pour le moment.", "No sales yet."),
         ["Dashboard_NoItems"] = ("Aucun article", "No items"),

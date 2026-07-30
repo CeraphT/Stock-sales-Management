@@ -68,6 +68,19 @@ public static class LocalizationService
         _ => method.ToString()
     };
 
+    // A distinct color per payment method — used as a leading accent bar on
+    // Sales History rows and a badge on the receipt (SaleDetailPage), so a
+    // credit sale (say) is visually scannable without reading the subtitle.
+    public static Color PaymentMethodColor(PaymentMethod method) => (Color)Application.Current!.Resources[method switch
+    {
+        PaymentMethod.Cash => "SuccessColor",
+        PaymentMethod.MobileMoney => "AccentBlue",
+        PaymentMethod.Credit => "AccentAmber",
+        PaymentMethod.StoreCredit => "AccentPurple",
+        PaymentMethod.GiftCard => "AccentOrange",
+        _ => "Gray400",
+    }];
+
     // UserRole is persisted as its raw enum ToString() (see SessionService.Save).
     public static string TranslateRole(string? role) => role switch
     {

@@ -75,12 +75,14 @@ public record CategoryResponse(Guid Id, string Name);
 // Mirrors PharmaStock.Api.Services.DashboardEndpoints
 public record RecentSaleLineItem(string Name, int Quantity, string UnitLabel);
 public record RecentSaleItem(Guid Id, decimal Total, PaymentMethod PaymentMethod, DateTime Timestamp, List<RecentSaleLineItem> Items);
+public record DailyRevenuePoint(DateTime Date, decimal Revenue);
 public record DashboardSummaryResponse(
     decimal TodayRevenue, int TodaySalesCount,
     int TotalProducts, int LowStockCount, int OutOfStockCount,
     int ExpiringSoonCount, int ExpiredCount, int ArchivedProductsCount,
     List<RecentSaleItem> RecentSales,
-    int NegativeStockBatchCount, int AutoClosedShiftConflictCount);
+    int NegativeStockBatchCount, int AutoClosedShiftConflictCount,
+    List<DailyRevenuePoint> RevenueTrend);
 
 // Mirrors PharmaStock.Api.Services.StockMovementEndpoints
 public record ReceiveStockRequest(

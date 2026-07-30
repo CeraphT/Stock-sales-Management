@@ -108,6 +108,39 @@ public partial class DashboardPage : ContentPage
         RecentSalesView.ItemsSource = rows;
         RecentSalesView.IsVisible = rows.Count > 0;
         NoRecentSalesLabel.IsVisible = rows.Count == 0;
+
+        RenderRevenueTrend(summary.RevenueTrend);
+        RenderStockHealth(summary.TotalProducts, summary.LowStockCount, summary.OutOfStockCount);
+    }
+
+    private void RenderRevenueTrend(List<DailyRevenuePoint> trend)
+    {
+        // "ddd" (short weekday) in the app's own chosen language, not the
+        // OS locale — French speakers get "Lun/Mar/Mer...", not "Mon/Tue".
+        var culture = new CultureInfo(LocalizationService.IsEnglish ? "en-US" : "fr-FR");
+        RevenueTrendSeries.ItemsSource = trend
+            .Select(p => new RevenueTrendRow(p.Date.ToString("ddd", culture), p.Revenue))
+            .ToList();
+    }
+
+    private void RenderStockHealth(int totalProducts, int lowStockCount, int outOfStockCount)
+    {
+        // "Healthy" = active products that are neither low nor out of stock —
+        // the same three-way split ProductCatalogPage's status badge/accent
+        // bar already uses, just aggregated into one chart instead of a list.
+        var healthyCount = Math.Max(totalProducts - lowStockCount - outOfStockCount, 0);
+        StockHealthSeries.ItemsSource = new List<StockHealthSlice>
+        {
+            new(LocalizationService.Translate("StockStatus_InStock"), healthyCount),
+            new(LocalizationService.Translate("StockStatus_LowStock"), lowStockCount),
+            new(LocalizationService.Translate("Catalog_StatusOutOfStock"), outOfStockCount),
+        };
+        StockHealthSeries.PaletteBrushes = new List<Brush>
+        {
+            new SolidColorBrush((Color)Application.Current!.Resources["SuccessColor"]),
+            new SolidColorBrush((Color)Application.Current!.Resources["AccentAmber"]),
+            new SolidColorBrush((Color)Application.Current!.Resources["ErrorColor"]),
+        };
     }
 
     private async void OnArchivedCardTapped(object? sender, EventArgs e)
@@ -121,6 +154,9 @@ public partial class DashboardPage : ContentPage
             this.ShowError(ex.Message);
         }
     }
+
+    private sealed record RevenueTrendRow(string DayLabel, decimal Revenue);
+    private sealed record StockHealthSlice(string Label, int Value);
 
     private sealed class RecentSaleRow
     {
