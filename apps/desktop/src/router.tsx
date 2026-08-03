@@ -16,8 +16,11 @@ import { Categories } from "@/screens/Categories";
 import { Dashboard } from "@/screens/Dashboard";
 import { Placeholder } from "@/screens/Placeholder";
 import { Pos } from "@/screens/Pos";
+import { ProductForm } from "@/screens/ProductForm";
 import { Products } from "@/screens/Products";
 import { SaleDetail } from "@/screens/SaleDetail";
+import { StockAdjust } from "@/screens/StockAdjust";
+import { StockReceive } from "@/screens/StockReceive";
 import { SalesHistory } from "@/screens/SalesHistory";
 import { Shell } from "@/screens/Shell";
 import { CreateCompany } from "@/screens/auth/CreateCompany";
@@ -57,6 +60,10 @@ export const router = createHashRouter([
     children: [
       { path: "/dashboard", element: <Dashboard /> },
       { path: "/products", element: <Products /> },
+      { path: "/products/new", element: <ProductForm /> },
+      { path: "/products/:productId/edit", element: <ProductForm /> },
+      { path: "/products/:productId/receive", element: <StockReceive /> },
+      { path: "/products/:productId/adjust", element: <StockAdjust /> },
       { path: "/pos", element: <Pos /> },
       { path: "/sales", element: <SalesHistory /> },
       { path: "/sales/:saleId", element: <SaleDetail /> },

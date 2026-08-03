@@ -1,13 +1,16 @@
 import { formatCurrency } from "@stockflow/core/format";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
+import { Button } from "@/components/Button";
 import { StockBadge } from "@/components/StockBadge";
 import { listProducts } from "@/data/products";
 import { useAuthStore } from "@/lib/stores";
 import { useCurrency } from "@/lib/useCompany";
 
 export function Products() {
+  const navigate = useNavigate();
   const companyId = useAuthStore((s) => s.companyId);
   const currency = useCurrency();
   const [q, setQ] = useState("");
@@ -34,7 +37,10 @@ export function Products() {
           placeholder="Search products by name or barcode…"
           className="h-10 w-80 rounded-xl border border-border bg-surface px-3.5 text-sm text-text-primary outline-none focus:border-primary"
         />
-        <span className="text-sm text-text-secondary">{filtered.length} products</span>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-text-secondary">{filtered.length} products</span>
+          <Button onClick={() => navigate("/products/new")}>+ New product</Button>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-card border border-border bg-surface">
@@ -63,7 +69,11 @@ export function Products() {
               </tr>
             ) : (
               filtered.map((p) => (
-                <tr key={p.id} className="border-b border-border/60 last:border-0 hover:bg-background/60">
+                <tr
+                  key={p.id}
+                  onClick={() => navigate(`/products/${p.id}/edit`)}
+                  className="cursor-pointer border-b border-border/60 last:border-0 hover:bg-background/60"
+                >
                   <td className="px-4 py-3">
                     <span className="font-medium text-text-primary">
                       {p.isFavorite ? "★ " : ""}
