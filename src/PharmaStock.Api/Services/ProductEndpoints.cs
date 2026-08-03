@@ -303,6 +303,9 @@ public static class ProductEndpoints
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
 
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictCatalog);
+            if (restricted is not null) return restricted;
+
             if (string.IsNullOrWhiteSpace(request.Name))
                 return Results.BadRequest(new { message = "Le nom du produit est requis." });
 
@@ -337,6 +340,9 @@ public static class ProductEndpoints
         {
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
+
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictCatalog);
+            if (restricted is not null) return restricted;
 
             if (string.IsNullOrWhiteSpace(request.Name))
                 return Results.BadRequest(new { message = "Le nom du produit est requis." });
@@ -429,6 +435,9 @@ public static class ProductEndpoints
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
 
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictCatalog);
+            if (restricted is not null) return restricted;
+
             var product = await db.Products.FirstOrDefaultAsync(p => p.Id == productId && p.CompanyId == companyId);
             if (product is null)
                 return Results.NotFound(new { message = "Produit introuvable." });
@@ -445,6 +454,9 @@ public static class ProductEndpoints
         {
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
+
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictCatalog);
+            if (restricted is not null) return restricted;
 
             var product = await db.Products.FirstOrDefaultAsync(p => p.Id == productId && p.CompanyId == companyId);
             if (product is null)

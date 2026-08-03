@@ -45,6 +45,9 @@ public static class CustomerEndpoints
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
 
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictCustomers);
+            if (restricted is not null) return restricted;
+
             if (string.IsNullOrWhiteSpace(request.Name))
                 return Results.BadRequest(new { message = "Le nom du client est requis." });
 

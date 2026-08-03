@@ -75,5 +75,7 @@ app.MapSuperAdminEndpoints();
 app.MapCustomerEndpoints();
 app.MapGiftCardEndpoints();
 app.MapLoyaltyEndpoints();
+app.MapRefundEndpoints();
+app.MapServiceEndpoints();
 
 app.Run();

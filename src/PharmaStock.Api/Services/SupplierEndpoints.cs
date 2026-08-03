@@ -43,6 +43,9 @@ public static class SupplierEndpoints
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
 
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictPurchasing);
+            if (restricted is not null) return restricted;
+
             if (string.IsNullOrWhiteSpace(request.Name))
                 return Results.BadRequest(new { message = "Le nom du fournisseur est requis." });
 
@@ -65,6 +68,9 @@ public static class SupplierEndpoints
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
 
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictPurchasing);
+            if (restricted is not null) return restricted;
+
             if (string.IsNullOrWhiteSpace(request.Name))
                 return Results.BadRequest(new { message = "Le nom du fournisseur est requis." });
 
@@ -84,6 +90,9 @@ public static class SupplierEndpoints
         {
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
+
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictPurchasing);
+            if (restricted is not null) return restricted;
 
             var supplier = await db.Suppliers.FirstOrDefaultAsync(s => s.Id == supplierId && s.CompanyId == companyId);
             if (supplier is null)

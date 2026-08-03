@@ -26,5 +26,14 @@ public class User
 
     public bool Active { get; set; } = true;
 
+    /// <summary>Per-user feature restrictions, Cashier accounts only — all default
+    /// false (unrestricted) so a new/existing cashier keeps full access unless a
+    /// CompanyAdmin explicitly locks a feature down. Meaningless for Admin/SuperAdmin
+    /// callers, who always pass every check regardless of these values.</summary>
+    public bool RestrictCatalog { get; set; } = false;
+    public bool RestrictPurchasing { get; set; } = false;
+    public bool RestrictCustomers { get; set; } = false;
+    public bool RestrictReportsAndFullSales { get; set; } = false;
+
     public ICollection<Device> Devices { get; set; } = new List<Device>();
 }

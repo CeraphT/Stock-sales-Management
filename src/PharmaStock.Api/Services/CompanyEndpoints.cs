@@ -16,7 +16,8 @@ public record CompanyResponse(
 public record CreateCompanyResponse(CompanyResponse Company, AuthResponse Admin, LocationResponse DefaultLocation);
 public record UpdateCompanyRequest(
     string Name, string? Description, string Currency, decimal DefaultTaxRatePercent,
-    bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue);
+    bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue,
+    bool ServicesModuleEnabled);
 
 public static class CompanyEndpoints
 {
@@ -127,6 +128,7 @@ public static class CompanyEndpoints
             company.LoyaltyEnabled = request.LoyaltyEnabled;
             company.LoyaltyEarnRateAmount = request.LoyaltyEarnRateAmount;
             company.LoyaltyPointValue = request.LoyaltyPointValue;
+            company.ServicesModuleEnabled = request.ServicesModuleEnabled;
 
             await db.SaveChangesAsync();
 

@@ -29,6 +29,9 @@ public static class PurchaseOrderEndpoints
             if (http.User.GetCompanyId() != companyId || callerUserId is null)
                 return Results.Forbid();
 
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictPurchasing);
+            if (restricted is not null) return restricted;
+
             if (request.Lines.Count == 0)
                 return Results.BadRequest(new { message = "La commande doit contenir au moins une ligne." });
             if (request.Lines.Any(l => l.QuantityOrdered <= 0))
@@ -78,6 +81,9 @@ public static class PurchaseOrderEndpoints
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
 
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictPurchasing);
+            if (restricted is not null) return restricted;
+
             var query = db.PurchaseOrders.Where(o => o.CompanyId == companyId);
             if (status is not null) query = query.Where(o => o.Status == status);
             if (locationId is not null) query = query.Where(o => o.LocationId == locationId);
@@ -112,6 +118,9 @@ public static class PurchaseOrderEndpoints
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
 
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictPurchasing);
+            if (restricted is not null) return restricted;
+
             var detail = await LoadDetailAsync(db, companyId, id);
             return detail is null ? Results.NotFound(new { message = "Commande introuvable." }) : Results.Ok(detail);
         });
@@ -122,6 +131,9 @@ public static class PurchaseOrderEndpoints
             var callerUserId = http.User.GetUserId();
             if (http.User.GetCompanyId() != companyId || callerUserId is null)
                 return Results.Forbid();
+
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictPurchasing);
+            if (restricted is not null) return restricted;
 
             if (request.QuantityReceivedNow <= 0)
                 return Results.BadRequest(new { message = "La quantité reçue doit être positive." });
@@ -182,6 +194,9 @@ public static class PurchaseOrderEndpoints
         {
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
+
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictPurchasing);
+            if (restricted is not null) return restricted;
 
             var order = await db.PurchaseOrders.FirstOrDefaultAsync(o => o.Id == id && o.CompanyId == companyId);
             if (order is null)

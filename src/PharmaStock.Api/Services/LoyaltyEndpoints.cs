@@ -25,6 +25,9 @@ public static class LoyaltyEndpoints
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
 
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictCustomers);
+            if (restricted is not null) return restricted;
+
             if (request.Points <= 0)
                 return Results.BadRequest(new { message = "Le nombre de points doit être positif." });
 

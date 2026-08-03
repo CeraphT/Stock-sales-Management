@@ -30,6 +30,9 @@ public static class ReportingEndpoints
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
 
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictReportsAndFullSales);
+            if (restricted is not null) return restricted;
+
             var salesQuery = db.Sales.Where(s => s.CompanyId == companyId && s.Status == SaleStatus.Completed);
             if (locationId is not null) salesQuery = salesQuery.Where(s => s.LocationId == locationId);
             if (from is not null) salesQuery = salesQuery.Where(s => s.Timestamp >= from.Value.Date);
@@ -72,6 +75,9 @@ public static class ReportingEndpoints
         {
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
+
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictReportsAndFullSales);
+            if (restricted is not null) return restricted;
 
             var query = db.SaleLines.Where(l => l.Sale!.CompanyId == companyId && l.Sale.Status == SaleStatus.Completed);
             if (locationId is not null) query = query.Where(l => l.Sale!.LocationId == locationId);

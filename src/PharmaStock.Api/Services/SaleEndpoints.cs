@@ -568,6 +568,20 @@ public static class SaleEndpoints
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
 
+            // RestrictReportsAndFullSales doesn't Forbid this endpoint — it
+            // silently narrows it. A restricted Cashier still needs their own
+            // sales history (e.g. to reprint a receipt), just never anyone
+            // else's. Always derived from the caller's own fresh DB row, never
+            // a client-supplied flag; CompanyAdmin/SuperAdmin always see
+            // everything, same exemption as every other restriction check.
+            var caller = await http.GetCallerAsync(db);
+            if (caller is null)
+                return Results.Unauthorized();
+
+            var callerRole = http.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            var scopeToOwnSales = callerRole != nameof(UserRole.CompanyAdmin) && callerRole != nameof(UserRole.SuperAdmin)
+                && caller.RestrictReportsAndFullSales;
+
             var pageNumber = page is > 0 ? page.Value : 1;
 
             // from/to are date-only (e.g. "2026-07-01") from the client's date
@@ -577,6 +591,8 @@ public static class SaleEndpoints
             // Held sales are deliberately excluded — this is a history of what
             // was actually sold, not of every cart that was ever started.
             var query = db.Sales.Where(s => s.CompanyId == companyId && s.Status == SaleStatus.Completed);
+            if (scopeToOwnSales)
+                query = query.Where(s => s.UserId == caller.Id);
             if (from is not null)
                 query = query.Where(s => s.Timestamp >= from.Value.Date);
             if (to is not null)

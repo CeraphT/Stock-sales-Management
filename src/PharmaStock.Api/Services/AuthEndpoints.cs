@@ -9,7 +9,14 @@ namespace PharmaStock.Api.Services;
 public record LoginRequest(string Phone, string Password, Guid DeviceId, string DeviceName, DevicePlatform Platform);
 public record RefreshRequest(Guid DeviceId, string RefreshToken);
 public record CreateStaffUserRequest(string Name, string Phone, string Password, UserRole Role);
-public record UserResponse(Guid Id, string Name, string Phone, UserRole Role, bool Active);
+public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
+public record SetUserActiveRequest(bool Active);
+public record AdminResetPasswordRequest(string NewPassword);
+public record SetUserPermissionsRequest(
+    bool RestrictCatalog, bool RestrictPurchasing, bool RestrictCustomers, bool RestrictReportsAndFullSales);
+public record UserResponse(
+    Guid Id, string Name, string Phone, UserRole Role, bool Active,
+    bool RestrictCatalog, bool RestrictPurchasing, bool RestrictCustomers, bool RestrictReportsAndFullSales);
 public record AuthResponse(string Token, DateTime ExpiresAt, string RefreshToken, Guid DeviceId, UserResponse User, Guid? CompanyId);
 
 public static class AuthEndpoints
@@ -103,8 +110,136 @@ public static class AuthEndpoints
             await db.SaveChangesAsync();
 
             return Results.Created($"/api/companies/{companyId}/users/{user.Id}",
-                new UserResponse(user.Id, user.Name, user.Phone, user.Role, user.Active));
+                ToUserResponse(user));
         }).RequireAuthorization(policy => policy.RequireRole(nameof(UserRole.CompanyAdmin), nameof(UserRole.SuperAdmin)));
+
+        // Staff/cashier management (Section 3.7) — a CompanyAdmin's roster
+        // view of everyone (including other admins) in their own company.
+        // Same tenant-isolation check as staff creation above.
+        app.MapGet("/api/companies/{companyId:guid}/users", async (
+            Guid companyId, PharmaStockDbContext db, HttpContext http) =>
+        {
+            var callerRole = http.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            var callerCompanyId = http.User.GetCompanyId();
+
+            if (callerRole != nameof(UserRole.SuperAdmin) && callerCompanyId != companyId)
+                return Results.Forbid();
+
+            var users = await db.Users.Where(u => u.CompanyId == companyId)
+                .OrderBy(u => u.Name)
+                .ToListAsync();
+
+            return Results.Ok(users.Select(ToUserResponse));
+        }).RequireAuthorization(policy => policy.RequireRole(nameof(UserRole.CompanyAdmin), nameof(UserRole.SuperAdmin)));
+
+        // Deactivate/reactivate a staff account — soft-disable only, same
+        // pattern as every other Active flag in this system. Self-deactivation
+        // is blocked (mirrors SuperAdminEndpoints' /admins/{id}/active guard)
+        // so an admin can never lock themselves out with no one else able to
+        // undo it.
+        app.MapPut("/api/companies/{companyId:guid}/users/{userId:guid}/active", async (
+            Guid companyId, Guid userId, SetUserActiveRequest request, PharmaStockDbContext db, HttpContext http) =>
+        {
+            var callerRole = http.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            var callerCompanyId = http.User.GetCompanyId();
+
+            if (callerRole != nameof(UserRole.SuperAdmin) && callerCompanyId != companyId)
+                return Results.Forbid();
+
+            if (http.User.GetUserId() == userId && !request.Active)
+                return Results.BadRequest(new { message = "Vous ne pouvez pas désactiver votre propre compte." });
+
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.CompanyId == companyId);
+            if (user is null)
+                return Results.NotFound(new { message = "Utilisateur introuvable." });
+
+            user.Active = request.Active;
+            await db.SaveChangesAsync();
+
+            return Results.Ok(ToUserResponse(user));
+        }).RequireAuthorization(policy => policy.RequireRole(nameof(UserRole.CompanyAdmin), nameof(UserRole.SuperAdmin)));
+
+        // Per-user feature restrictions — a CompanyAdmin locks a Cashier out of
+        // specific management screens (Catalog/Purchasing/Customers/Reports).
+        // Meaningless for Admin/SuperAdmin accounts, but not blocked here — the
+        // client only ever shows this editor for Cashier rows, and every gated
+        // endpoint checks the caller's own role first anyway.
+        app.MapPut("/api/companies/{companyId:guid}/users/{userId:guid}/permissions", async (
+            Guid companyId, Guid userId, SetUserPermissionsRequest request, PharmaStockDbContext db, HttpContext http) =>
+        {
+            var callerRole = http.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            var callerCompanyId = http.User.GetCompanyId();
+
+            if (callerRole != nameof(UserRole.SuperAdmin) && callerCompanyId != companyId)
+                return Results.Forbid();
+
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.CompanyId == companyId);
+            if (user is null)
+                return Results.NotFound(new { message = "Utilisateur introuvable." });
+
+            user.RestrictCatalog = request.RestrictCatalog;
+            user.RestrictPurchasing = request.RestrictPurchasing;
+            user.RestrictCustomers = request.RestrictCustomers;
+            user.RestrictReportsAndFullSales = request.RestrictReportsAndFullSales;
+            await db.SaveChangesAsync();
+
+            return Results.Ok(ToUserResponse(user));
+        }).RequireAuthorization(policy => policy.RequireRole(nameof(UserRole.CompanyAdmin), nameof(UserRole.SuperAdmin)));
+
+        // Admin-driven password reset — unlike the self-service change-password
+        // endpoint below, this skips the current-password check entirely
+        // (an admin resetting a cashier's forgotten password doesn't know it).
+        app.MapPut("/api/companies/{companyId:guid}/users/{userId:guid}/password", async (
+            Guid companyId, Guid userId, AdminResetPasswordRequest request, PharmaStockDbContext db,
+            IPasswordHasher<User> hasher, HttpContext http) =>
+        {
+            var callerRole = http.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            var callerCompanyId = http.User.GetCompanyId();
+
+            if (callerRole != nameof(UserRole.SuperAdmin) && callerCompanyId != companyId)
+                return Results.Forbid();
+
+            if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 6)
+                return Results.BadRequest(new { message = "Le mot de passe doit contenir au moins 6 caractères." });
+
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.CompanyId == companyId);
+            if (user is null)
+                return Results.NotFound(new { message = "Utilisateur introuvable." });
+
+            user.PasswordHash = hasher.HashPassword(user, request.NewPassword);
+            await db.SaveChangesAsync();
+
+            return Results.Ok();
+        }).RequireAuthorization(policy => policy.RequireRole(nameof(UserRole.CompanyAdmin), nameof(UserRole.SuperAdmin)));
+
+        // Any authenticated user (Cashier/CompanyAdmin/SuperAdmin) changes
+        // their own password — requires knowing the current one, unlike the
+        // CompanyAdmin-driven staff-creation path above which sets an
+        // initial password with no prior secret to check.
+        app.MapPost("/api/auth/change-password", async (
+            ChangePasswordRequest request, PharmaStockDbContext db,
+            IPasswordHasher<User> hasher, HttpContext http) =>
+        {
+            var userId = http.User.GetUserId();
+            if (userId is null)
+                return Results.Unauthorized();
+
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user is null || !user.Active)
+                return Results.Unauthorized();
+
+            if (hasher.VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword)
+                != PasswordVerificationResult.Success)
+                return Results.BadRequest(new { message = "Current password is incorrect." });
+
+            if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 6)
+                return Results.BadRequest(new { message = "New password must be at least 6 characters." });
+
+            user.PasswordHash = hasher.HashPassword(user, request.NewPassword);
+            await db.SaveChangesAsync();
+
+            return Results.NoContent();
+        }).RequireAuthorization();
     }
 
     /// <summary>Upserts the Device row identified by deviceId (the client
@@ -139,7 +274,11 @@ public static class AuthEndpoints
 
         return new AuthResponse(
             token, expiresAt, rawRefreshToken, device.Id,
-            new UserResponse(user.Id, user.Name, user.Phone, user.Role, user.Active),
+            ToUserResponse(user),
             user.CompanyId);
     }
+
+    internal static UserResponse ToUserResponse(User user) => new(
+        user.Id, user.Name, user.Phone, user.Role, user.Active,
+        user.RestrictCatalog, user.RestrictPurchasing, user.RestrictCustomers, user.RestrictReportsAndFullSales);
 }
