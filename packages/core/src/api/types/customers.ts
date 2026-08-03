@@ -1,0 +1,39 @@
+export interface CustomerRequest {
+  name: string;
+  phone: string | null;
+}
+
+export interface CustomerResponse {
+  id: string;
+  name: string;
+  phone: string | null;
+  creditBalance: number;
+  loyaltyPointsBalance: number;
+  loyaltyStoreCreditBalance: number;
+}
+
+export interface IssueGiftCardRequest {
+  initialValue: number;
+}
+
+export interface GiftCardResponse {
+  id: string;
+  code: string;
+  initialValue: number;
+  remainingValue: number;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface SetGiftCardActiveRequest {
+  active: boolean;
+}
+
+export interface RedeemLoyaltyPointsRequest {
+  points: number;
+}
+
+export interface LoyaltyAccountResponse {
+  pointsBalance: number;
+  storeCreditBalance: number;
+}

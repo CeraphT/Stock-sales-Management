@@ -26,15 +26,85 @@ it out of any sync folder.
 
 ## Stack & architecture
 
-One language (C#) end to end:
-- **Backend**: ASP.NET Core Web API (.NET 8) + EF Core + PostgreSQL — `src/PharmaStock.Api`, `.Domain`, `.Infrastructure`
-- **Client**: .NET MAUI — `src/PharmaStock.Desktop` (name is historical; it now multi-targets `net10.0-android` *and* `net10.0-windows10.0.19041.0` from one codebase)
-- **Web (Blazor)**: not started yet
+- **Backend**: ASP.NET Core Web API (.NET 8) + EF Core + PostgreSQL — `src/PharmaStock.Api`, `.Domain`, `.Infrastructure`. Unchanged by the client rewrite below.
+- **Client (being rewritten, in progress)**: `apps/mobile/` — Expo/React Native (Expo Router, NativeWind, TanStack Query, Zustand, expo-sqlite+Drizzle planned). Android only for now. See "Client rewrite: MAUI → Expo/React Native" below for why and current status.
+- **Client (legacy, still in repo, not deleted yet)**: .NET MAUI — `src/PharmaStock.Desktop` (name is historical; multi-targets `net10.0-android` and `net10.0-windows10.0.19041.0`). Kept working as a fallback until the Expo app reaches parity; not receiving new feature work.
+- **Web (Blazor)**: not started, and now superseded by the Expo plan for the client layer — unlikely to happen.
 
-Dependency direction: `Api → Infrastructure → Domain`, never reversed — this
-is what lets `Domain`/`Infrastructure` be reused unmodified inside the MAUI
-client pointed at local SQLite instead of Postgres, once offline-first sync
-(Section 6) is built.
+Dependency direction on the backend: `Api → Infrastructure → Domain`, never
+reversed.
+
+## Client rewrite: MAUI → Expo/React Native (apps/mobile/)
+
+Mid-project, the user asked to integrate expo.dev's visual design and then,
+after discussion of the tradeoffs, explicitly chose a **full rewrite** of the
+client to Expo/React Native over continuing to restyle MAUI. This is a
+deliberate, confirmed decision — not an experiment. Full plan (architecture
+decisions, 8-phase build order, verification strategy) is preserved in the
+plan file the session generated; ask the user if you need the complete
+phase-by-phase breakdown, or re-derive it from `apps/mobile/`'s current state.
+
+Key decisions:
+- **Android only for now** — no Windows target in the new stack; MAUI Desktop
+  keeps serving Windows users until this is revisited.
+- **Full offline-first sync from the start** (not deferred) — local SQLite +
+  Drizzle, porting the exact push/pull protocol (FEFO deduction, idempotent
+  push, shift-conflict auto-close, server-side money-field re-derivation)
+  already implemented in the MAUI client's `SyncService`/`LocalSalesService`/
+  `LocalShiftService`/`LocalCatalogQueryService`.
+- **MAUI is not deleted** until the Expo app reaches parity. Both live in the
+  repo simultaneously.
+- Business-generic copy/branding throughout (not pharmacy-specific wording),
+  consistent with the resale-to-other-businesses positioning.
+
+Current status: **All 8 phases built** (including Phase 8 — Printing; older
+notes calling it "not started" are stale — see "Immediate next steps" for the
+real state and what's left, which is on-device verification, not
+construction). Phase 1 — Expo Router set up, NativeWind theme ported
+from MAUI's `Colors.xaml`, full TS API client (types for every endpoint),
+auth screens (Login/Create Company/Join Company) working end-to-end against
+the real API on-device, verified via a local native dev client (not Expo
+Go — see gotcha below). Phase 2 — expo-sqlite + Drizzle ORM local DB
+(`src/lib/db/`), a read-only Product Catalog screen reactively driven by
+the local DB via `useLiveQuery`. Phase 3 — full local schema (17 tables
+mirroring `PharmaStockDbContext`, `src/lib/db/schema.ts`); full sync pull
+(`src/lib/sync/syncPull.ts`, correct dependency order, since-reset
+self-heal) and push (`src/lib/sync/syncPush.ts`, idempotent) wired by a
+push-then-pull orchestrator (`src/lib/sync/syncNow.ts`); `localDbWriteLock`;
+FEFO stock deduction (`src/lib/local/stockDeduction.ts`); the three
+local-first service modules ported from the MAUI client —
+`localSalesService`, `localShiftService`, `localCatalogQueryService` under
+`src/lib/local/`. Phase 4 — Dashboard (stat tiles + SVG revenue-trend/
+stock-health charts, `src/components/RevenueTrendChart.tsx`/
+`StockHealthDonut.tsx`), POS/Cart with barcode scanning
+(`src/app/(app)/scanner.tsx`, `expo-camera`) and manual search, checkout
+across all payment methods, hold/resume sales (with a stock-shortfall
+warning on resume — `held-sales.tsx`). Phase 5 — full Product Catalog CRUD
+(add/edit/archive/restore), Categories, Stock Receive/Adjust with a real
+date picker (`src/components/DateField.tsx`), a custom in-app Alert system
+(`src/lib/ui/alertStore.ts` + `AppAlertHost.tsx`, replacing RN's
+`Alert.alert` which rendered dark/broken on-device) used everywhere.
+Phase 6 — Sales History (paginated, infinite scroll) + Sale Detail, a
+grouped/collapsible custom drawer sidebar mirroring MAUI's flyout
+structure (`(drawer)/_layout.tsx`). Then, per explicit request: currency
+formatting everywhere an amount is shown (`formatCurrency` +
+`useCompanyCurrency`/`useCompanyInfo` hooks, reading the company's own
+`currency` field reactively from the local DB) and a full PDF receipt
+system (`src/lib/receipt/` — `generateReceiptHtml.ts` template,
+`receiptActions.ts` using `expo-print`/`expo-sharing` for view/print/
+share), wired into checkout's post-sale success alert and into Sale
+Detail. **Phase 7** — Suppliers CRUD, Customers CRUD + detail (credit
+balance, loyalty points, redeem-to-store-credit), Gift Cards (issue/list/
+toggle active), Purchase Orders (create with a product-line builder,
+per-line partial receiving that creates a real Batch+StockMovement,
+cancel-while-Pending-only), Reports (date-range sales summary + top
+products), and a "My business" company-settings screen (name/currency/tax
+rate/loyalty rates, read-only join code, branch list). All the drawer's
+"coming soon" stub items now route to real screens except Printer (Phase
+8). Verified on-device throughout: a full sync pull's row counts matched
+Postgres exactly across every table after a fresh app-data clear, and
+every phase was type-checked (`npx tsc --noEmit` clean) before each native
+rebuild.
 
 ### Folder convention (apply to all new files)
 
@@ -85,10 +155,27 @@ generate/build for iOS until the user says that's ready.
   "Main" location; `Batch`/`Sale`/`StockMovement` all carry `LocationId`;
   FEFO deduction is scoped per-location (verified: a sale at a branch with
   no local stock correctly 409s even if another branch has stock)
-- Known model gaps not yet closed: cash-register/shift reconciliation
-  (Section 3.6 — the one remaining Phase-1 MVP item), purchase orders,
-  refresh tokens, GiftCard/StoreCredit redemption, held/parked sales,
-  reporting endpoints (Section 14)
+- Confirmed built (contrary to earlier notes in this file): refresh tokens
+  (`POST /api/auth/refresh`, rotates on every use), Suppliers/Customers/
+  GiftCards/Loyalty-redeem/PurchaseOrders/Reports endpoints all exist and
+  match what the Expo client's Phase 7 screens consume — see
+  `SupplierEndpoints.cs`, `CustomerEndpoints.cs`, `GiftCardEndpoints.cs`,
+  `LoyaltyEndpoints.cs`, `PurchaseOrderEndpoints.cs`,
+  `ReportingEndpoints.cs` in `PharmaStock.Api/Services/`. Note: no
+  `JsonStringEnumConverter` is registered anywhere in the API, so every
+  C# enum (`PurchaseOrderStatus`, `PaymentMethod`, `DevicePlatform`, etc.)
+  serializes as a raw integer over the wire, not a string — client-side
+  enums must match the C# declaration order exactly (see
+  `apps/mobile/src/lib/api/enums.ts`).
+- Customers are intentionally **list/create only** — no update or delete
+  endpoint, since a customer accumulates real financial history
+  (`CreditBalance`, `LoyaltyAccount`) that must never be silently
+  discarded. There's also no get-by-id; fetch the list and filter
+  client-side for a single customer's detail view.
+- Gift cards are **standalone**, not nested under a customer — no
+  `CustomerId` FK on `GiftCard` at all, they're anonymous bearer
+  instruments identified by an auto-generated `Code` (format
+  `GC-XXXXXXXX`).
 
 ### Client (MAUI) — onboarding flow only, both platforms confirmed working
 - Screens built: Onboarding (landing) → Create Company / Join Company /
@@ -213,16 +300,182 @@ doesn't match reality, trust the machine over this file and update it.*
   files** (this is how `.git/HEAD`, `.git/config` etc. were first "lost"
   before we found the real cloud copy) — use `Copy-Item -Recurse` in
   PowerShell instead if you ever need to script-copy a git repo.
+- **Expo Go crashes on boot on the MIUI test phone — don't waste time
+  debugging the JS for this, use a local dev client instead.** Symptom:
+  Expo Go connects fine (bundle fetches successfully, confirmed via Metro
+  log and even a raw on-device `curl` to the forwarded port), the app
+  starts loading, then a native `SIGSEGV` in `libhermesvm.so` kills it —
+  `adb logcat` shows `Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR)` in
+  thread `mqt_v_js`, always at the *same* fault address, ~400ms after
+  `ReactNativeJS: Running "main"`, no JS console output first. Ruled out by
+  isolation testing (each made zero difference, still same fault address):
+  disabling the `reactCompiler` experiment, replacing `crypto.randomUUID()`
+  with `expo-crypto`, removing NativeWind's CSS import, and stripping
+  NativeWind out of `babel.config.js` entirely. Conclusion: it's Expo Go's
+  generic precompiled binary itself misbehaving on this device (MIUI is
+  already known — see the ADB-install gotcha above — to interfere
+  aggressively with non-Play-Store apps; likely the same root cause class,
+  e.g. reclaimed shared-memory segments). **Fix: skip Expo Go, build and
+  sideload a real native dev client**, same manual-install workaround as
+  the MAUI app:
+  1. `cd apps/mobile && npx expo run:android` — this prebuilds the native
+     `android/` folder and runs a full Gradle build (~15-20 min the first
+     time; fast on rebuilds). It will fail at the very last step trying to
+     `adb install` — that failure is expected and fine, the APK is already
+     built by then at
+     `apps\mobile\android\app\build\outputs\apk\debug\app-debug.apk`.
+  2. `adb push` that APK to `/sdcard/Download/PharmaStockDev.apk`, media-
+     scan broadcast if needed, manual Files-app install — identical steps
+     to the MAUI gotcha above.
+  3. Start Metro separately for subsequent JS-only iteration:
+     `npx expo start` (no `--android`, so it doesn't retry the doomed
+     auto-install) — the installed dev client connects to it automatically
+     over the same `adb reverse tcp:8081 tcp:8081`.
+  4. This dev client is a real compiled binary tied to this exact
+     `node_modules` state — re-run `npx expo run:android` (and re-sideload)
+     whenever a *native* dependency changes (new native module, Expo SDK
+     bump), not for everyday JS/TSX changes (Metro Fast Refresh handles
+     those against the already-installed client, same as normal RN dev).
+  5. Once the app is already installed once via manual sideload, MIUI
+     appears to allow subsequent `adb install` *upgrades* to the same
+     package without the manual-tap step — seen on a later `npx expo
+     run:android` re-run (new native module added) installing and
+     launching automatically with no `INSTALL_FAILED_USER_RESTRICTED`.
+     Only the very first install of a given package needs the manual
+     Files-app tap; don't assume every rebuild needs it, but don't be
+     surprised if it's still needed either (untested whether this holds
+     after a full uninstall or a signature change).
+- **`drizzle-orm`'s `db.transaction(async (tx) => {...})` on the
+  expo-sqlite driver silently drops writes** (drizzle-orm 0.45.2 +
+  expo-sqlite 57.0.1, tested 2026-07-30) — a pull-and-upsert function that
+  awaited a long sequence of `tx.insert(...).onConflictDoUpdate(...)`
+  calls inside one `db.transaction()` completed with no error, and the
+  *last* statement (a `sync_state` bookkeeping row) landed correctly, but
+  every insert before it silently didn't — confirmed by pulling the
+  on-device SQLite file (`adb exec-out run-as <pkg> cat
+  files/SQLite/<name>.db > local.db`, then inspect with
+  `platform-tools/sqlite3.exe`, which ships alongside adb — note plain
+  `adb shell ... cat` mangles binary data via the PTY, must use `adb
+  exec-out`). **Fix: don't wrap multi-statement upsert sequences in
+  `db.transaction()` on this driver** — issue each `db.insert()`/`db
+  .update()`/`db.delete()` as its own top-level awaited statement instead
+  (SQLite auto-commits per-statement anyway, so no atomicity is lost for a
+  read-only sync mirror like this). Revisit if a future drizzle-orm/
+  expo-sqlite version fixes this, but don't assume it's fixed without
+  testing again the same way.
+- **Expo Router group segments are transparent to the URL.** After nesting
+  screens into `(app)/(drawer)/`, `router.push('/(app)/dashboard')`-style
+  hrefs stopped type-checking. The correct, stable form is the plain
+  `/dashboard` — confirmed via Metro's generated `.expo/types/router.d.ts`.
+  Always use the plain form; never include the `(group)` segment in a href.
+- **React Native's `Alert.alert` rendered dark/theme-broken on the MIUI
+  test device**, ignoring the app's light theme entirely. Fixed once,
+  app-wide, with a custom system: `src/lib/ui/alertStore.ts` (Zustand) +
+  `src/components/AppAlertHost.tsx` (a themed `Modal`) + a `showAlert(title,
+  message?, buttons?)` helper. Every new screen must use `showAlert`, never
+  the bare `Alert.alert` — grep for `Alert\.alert` before adding a new
+  confirmation dialog to confirm none crept back in.
+- **Barcode scanner tuning**: narrowing `expo-camera`'s
+  `barcodeScannerSettings.barcodeTypes` to "well-checksummed" formats
+  seemed like the fix for wrong-product matches, but it silently excluded
+  real physical product barcodes and broke detection entirely — reverted.
+  The broad format list (`ean13, ean8, upc_a, upc_e, code128, code39,
+  code93, itf14, codabar, qr`) is deliberate; don't narrow it again without
+  testing against a real product barcode, not seed data. The actual fix
+  for wrong-product matches was `findByBarcode`'s **exact**-only lookup
+  (vs. the fuzzy name-substring fallback `getProductAvailability` uses for
+  manual typing) plus a `CONFIRM_READS = 2` two-consecutive-frame
+  confirmation before acting on a scan, in `src/app/(app)/scanner.tsx`.
+  Per explicit user instruction, further scanner accuracy tuning was
+  deliberately deprioritized in favor of finishing the feature phases —
+  treat it as "good enough, not bulletproof," not "solved."
+- **Debug-escalation rule** (learned from the Expo Go SIGSEGV saga): cap
+  narrow same-shaped fix attempts at **2** before switching to a
+  structurally different approach, rather than iterating small variations
+  on a hunch that isn't panning out. The user will call out wasted
+  iteration explicitly if this is ignored.
+- **ADB/Gradle rebuild reliability**: (1) `adb kill-server && adb
+  start-server` fixes most inexplicable hangs; (2) never run concurrent
+  manual diagnostic `adb` commands while a build's own adb calls are
+  in-flight — they queue/contend and look like a hang that isn't one; (3)
+  a background build's output file can sit at 0 bytes for a long stretch
+  on a genuinely healthy build (buffering, not hanging) — check the
+  *newest* node/java process's CPU-time delta over an interval instead of
+  trusting file size; (4) don't misattribute a stale leftover Gradle
+  daemon's accumulated CPU time to the current build attempt — check
+  `StartTime`, not just raw CPU, when there are multiple node/java
+  processes running; (5) once an app is installed once via manual MIUI
+  sideload, later `npx expo run:android`/`dotnet ... -t:Run` reruns
+  auto-install fine without the manual Files-app step.
+- **Currency formatting is deliberately not `Intl.NumberFormat`'s
+  `currency` style** — a company's `currency` field is free text (not
+  guaranteed ISO-4217), so `formatCurrency(amount, currency)` in
+  `src/lib/format.ts` is a plain `amount.toLocaleString() + " " +
+  currency`. Every amount shown anywhere in the app must go through this
+  (or the `useCompanyCurrency`/`useCompanyInfo` hooks that supply the
+  currency reactively from the local DB) — don't hardcode "XAF" or a `$`
+  sign in a new screen.
+- **PDF receipts** use `expo-print` + `expo-sharing`, not a native print
+  library — `Print.printAsync({ html })` opens Android's native
+  print-preview dialog, which doubles as both a PDF preview and "Save as
+  PDF" (no separate download step needed). `Print.printToFileAsync` +
+  `Sharing.shareAsync` handle direct share-sheet sending. The HTML/CSS
+  template lives in `src/lib/receipt/generateReceiptHtml.ts` — always run
+  interpolated values through its `escapeHtml()` helper.
 
 ## Immediate next steps (pick up here)
 
-1. Confirm with the user the tablet still shows the onboarding screen
-   correctly from `C:\Dev\PharmaStock` (last verified: yes, installed and
-   running, `com.pharmastock.app` process confirmed via `adb shell ps`).
-2. Build the actual POS/cart screen for Mobile (Section 3.1) — full
-   workflow: barcode scan, cart, payment, receipt, stock deduction — using
-   the existing Sales endpoint. This is the big remaining piece.
-3. Adaptive layout: branch on `DeviceInfo.Current.Idiom` once the POS
-   screen exists (tablet = fuller/multi-column, phone = simplified).
-4. Product catalog and stock screens (receiving, adjustment) in the client.
-5. Cash-register/shift reconciliation on the API side (last Phase-1 MVP gap).
+**All 8 phases of the original Expo plan are built.** The remaining work is
+verification and a codebase reorg that a prior session started — not new
+feature construction. State as of 2026-08-03:
+
+**Phase 8 — Printing: DONE (was mislabeled "not started" in older notes).**
+Built exactly as the plan sketched, including the bespoke native module:
+- Pure-TS ESC/POS layer — `src/lib/printer/escpos.ts` + `cp850.ts` (CP850
+  codepage, 32-char width), building receipt/test-page byte sequences.
+- A real native Kotlin Expo module, **`apps/mobile/modules/pharmastock-printer/`**
+  (`PharmastockPrinterModule.kt`), covering Bluetooth Classic SPP + USB Host
+  raw bulk transfer, permission/enable prompts, and a deep link to Android's
+  Bluetooth settings. Its generated `android/build/` + `android/.gradle/`
+  are gitignored (some `.dex` names are too long for Windows to even index —
+  see the root/`apps/mobile` `.gitignore`); the `android/src/` Kotlin IS
+  tracked.
+- `src/lib/printer/printingService.ts` (discover-all/select/authorize/print)
+  + `printer-settings.tsx` screen, replacing the drawer's old "Printer" stub.
+
+**New backend endpoints (also built this stretch, all mapped in `Program.cs`,
+API builds clean):** per-user feature restrictions
+(`FeatureRestrictionExtensions.cs` + `User.Restrict*` flags), staff roster /
+activate / admin-password-reset / self-service change-password
+(`AuthEndpoints.cs`), full-refund reversal (`RefundEndpoints.cs`), and the
+Section 20 Services module CRUD (`ServiceEndpoints.cs`). Mobile consumers:
+`staff.tsx`, `services.tsx`/`service-picker.tsx`, `change-password.tsx`,
+`useFeatureGuard.ts`, refund in `sale-detail.tsx`. `AddUserFeatureRestrictions`
+migration created.
+
+**In-progress reorg:** `packages/core` (`@stockflow/core`) is a shared
+workspace package being extracted from `apps/mobile/src/lib` (same subfolder
+layout — api/printer/receipt/sync/…), toward the resale/multi-app goal. Root
+is now an npm-workspaces monorepo (`apps/*` + `packages/*`, root
+`package.json` name `stockflow`). This extraction is partial — expect some
+duplication between `apps/mobile/src/lib` and `packages/core/src` until it's
+finished.
+
+**What's actually left:**
+1. **On-device verification** (needs the physical MIUI device + a fresh
+   `npx expo run:android` because the printer native module changes native
+   code): click-test Phase 7 (Suppliers/Customers/Gift Cards/POs/Reports/
+   Company settings/Staff/Services) *and* the printing feature (pair a real
+   Bluetooth/USB thermal printer, test page, live receipt). None of this has
+   been confirmed on-device by the user yet — it's all type-checked
+   (`tsc --noEmit` clean) but unverified in the hand.
+2. Finish (or deliberately pause) the `@stockflow/core` extraction so
+   `apps/mobile` imports shared logic from the package instead of duplicating
+   it.
+
+The MAUI client (`src/PharmaStock.Desktop`) is frozen/legacy — don't add
+features there; it stays only until the Expo app reaches parity. Its last
+confirmed-working state: onboarding through login/dashboard-placeholder on
+both Windows and Android (Samsung SM-T733 tablet), plus a full UI redesign
+(vibrant colors, Syncfusion controls, charts) — see git history around
+commits `6bcc8ef`/`4ab4848` if reviving it is ever needed.

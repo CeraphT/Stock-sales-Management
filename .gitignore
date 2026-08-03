@@ -20,6 +20,15 @@ appsettings.Development.json
 appsettings.*.local.json
 **/secrets.json
 
+## Node / JS workspace (root + packages/* + apps/* hoisted deps)
+node_modules/
+.expo/
+dist/
+*.tsbuildinfo
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
 ## OS noise
 .DS_Store
 Thumbs.db

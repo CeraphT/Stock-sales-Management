@@ -1,0 +1,9 @@
+{
+  "name": "pharmastock-printer",
+  "version": "1.0.0",
+  "description": "Bluetooth Classic (SPP) and USB Host raw-transfer thermal receipt printer support for PharmaStock — a local Expo module, Android only.",
+  "main": "index.ts",
+  "types": "index.ts",
+  "license": "UNLICENSED",
+  "private": true
+}
