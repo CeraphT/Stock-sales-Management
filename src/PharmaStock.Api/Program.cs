@@ -44,6 +44,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromMinutes(1)
         };
     });
+// CORS for the browser-engine clients (the Tauri desktop webview, and the
+// Vite dev server when running the desktop UI in a plain browser). The API is
+// otherwise called by native HTTP stacks (MAUI/Expo) that aren't subject to
+// CORS. Dev-permissive on purpose — tighten WithOrigins for production, where
+// the desktop app is served from a fixed tauri:// / app origin.
+const DevClientsCors = "DevClients";
+builder.Services.AddCors(options =>
+    options.AddPolicy(DevClientsCors, policy => policy
+        .SetIsOriginAllowed(_ => true)
+        .AllowAnyHeader()
+        .AllowAnyMethod()));
+
 builder.Services.AddAuthorization(options =>
     // The only role check today that must exclude CompanyAdmin — every other
     // RequireRole call in this codebase deliberately allows CompanyAdmin *or*
@@ -53,6 +65,7 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+app.UseCors(DevClientsCors);
 app.UseAuthentication();
 app.UseAuthorization();
 

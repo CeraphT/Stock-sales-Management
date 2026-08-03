@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Palette mirrors @stockflow/core/theme/colors.ts (LIGHT/DARK). Toggling the
+   `.dark` class on <html> swaps every token below. */
+:root {
+  --color-primary: #4f46e5;
+  --color-primary-dark: #818cf8;
+  --color-background: #f5f8f7;
+  --color-surface: #ffffff;
+  --color-border: #e3e7e5;
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-error: #dc2626;
+  --color-success: #059669;
+  --color-accent-blue: #2563eb;
+  --color-accent-purple: #7c3aed;
+  --color-accent-amber: #d97706;
+  --color-accent-orange: #ea580c;
+}
+
+.dark {
+  --color-primary: #818cf8;
+  --color-primary-dark: #4f46e5;
+  --color-background: #111827;
+  --color-surface: #1f2937;
+  --color-border: #374151;
+  --color-text-primary: #f3f4f6;
+  --color-text-secondary: #9ca3af;
+  --color-error: #f87171;
+  --color-success: #34d399;
+  --color-accent-blue: #60a5fa;
+  --color-accent-purple: #c084fc;
+  --color-accent-amber: #fbbf24;
+  --color-accent-orange: #fb923c;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tauri: disable text selection / right-click drag feel that reads as "web". */
+:root {
+  user-select: none;
+  -webkit-user-select: none;
+}
+input,
+textarea,
+[contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
+}
