@@ -16,6 +16,8 @@ import { Dashboard } from "@/screens/Dashboard";
 import { Placeholder } from "@/screens/Placeholder";
 import { Pos } from "@/screens/Pos";
 import { Products } from "@/screens/Products";
+import { SaleDetail } from "@/screens/SaleDetail";
+import { SalesHistory } from "@/screens/SalesHistory";
 import { Shell } from "@/screens/Shell";
 import { CreateCompany } from "@/screens/auth/CreateCompany";
 import { JoinCompany } from "@/screens/auth/JoinCompany";
@@ -55,8 +57,10 @@ export const router = createHashRouter([
       { path: "/dashboard", element: <Dashboard /> },
       { path: "/products", element: <Products /> },
       { path: "/pos", element: <Pos /> },
+      { path: "/sales", element: <SalesHistory /> },
+      { path: "/sales/:saleId", element: <SaleDetail /> },
       // Every other nav destination is a placeholder until its screen is built.
-      ...ALL_NAV_ITEMS.filter((i) => !["/dashboard", "/products", "/pos"].includes(i.path)).map((i) => ({
+      ...ALL_NAV_ITEMS.filter((i) => !["/dashboard", "/products", "/pos", "/sales"].includes(i.path)).map((i) => ({
         path: i.path,
         element: <Placeholder title={i.label} />,
       })),
