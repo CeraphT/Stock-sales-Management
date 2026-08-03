@@ -27,9 +27,10 @@ it out of any sync folder.
 ## Stack & architecture
 
 - **Backend**: ASP.NET Core Web API (.NET 8) + EF Core + PostgreSQL — `src/PharmaStock.Api`, `.Domain`, `.Infrastructure`. Unchanged by the client rewrite below.
-- **Client (being rewritten, in progress)**: `apps/mobile/` — Expo/React Native (Expo Router, NativeWind, TanStack Query, Zustand, expo-sqlite+Drizzle planned). Android only for now. See "Client rewrite: MAUI → Expo/React Native" below for why and current status.
-- **Client (legacy, still in repo, not deleted yet)**: .NET MAUI — `src/PharmaStock.Desktop` (name is historical; multi-targets `net10.0-android` and `net10.0-windows10.0.19041.0`). Kept working as a fallback until the Expo app reaches parity; not receiving new feature work.
-- **Web (Blazor)**: not started, and now superseded by the Expo plan for the client layer — unlikely to happen.
+- **Client — Android**: `apps/mobile/` — Expo/React Native (Expo Router, NativeWind, TanStack Query, Zustand, expo-sqlite+Drizzle). All 8 phases built. See "Client rewrite: MAUI → Expo/React Native" below.
+- **Client — Desktop**: **being rebuilt in Tauri + React** (chosen 2026-08-03 for a better desktop UI than MAUI). Not scaffolded yet — the full rebuild guide (backend API, reusable `@stockflow/core`, MAUI UX/design reference, phased plan) is **[`docs/desktop-rebuild.md`](docs/desktop-rebuild.md)**. Target location `apps/desktop/`.
+- **Client — legacy MAUI: DELETED** (2026-08-03). Was `src/PharmaStock.Desktop` (multi-targeted Windows + Android, ~34 screens). Recoverable from git history if ever needed; everything it did is captured in `docs/desktop-rebuild.md`.
+- **Web (Blazor)**: `src/PharmaStock.Web` — a real SuperAdmin web app exists (companies/admins/company-detail/login pages, `SuperAdminApiClient`), contrary to older "not started" notes. Not the main client layer; left as-is.
 
 Dependency direction on the backend: `Api → Infrastructure → Domain`, never
 reversed.
@@ -52,8 +53,10 @@ Key decisions:
   push, shift-conflict auto-close, server-side money-field re-derivation)
   already implemented in the MAUI client's `SyncService`/`LocalSalesService`/
   `LocalShiftService`/`LocalCatalogQueryService`.
-- **MAUI is not deleted** until the Expo app reaches parity. Both live in the
-  repo simultaneously.
+- **MAUI has since been DELETED** (2026-08-03) — the user opted to rebuild the
+  desktop client in Tauri + React instead of keeping MAUI. See
+  `docs/desktop-rebuild.md`. (This bullet is kept for historical context on the
+  original plan.)
 - Business-generic copy/branding throughout (not pharmacy-specific wording),
   consistent with the resale-to-other-businesses positioning.
 
@@ -177,21 +180,15 @@ generate/build for iOS until the user says that's ready.
   instruments identified by an auto-generated `Code` (format
   `GC-XXXXXXXX`).
 
-### Client (MAUI) — onboarding flow only, both platforms confirmed working
-- Screens built: Onboarding (landing) → Create Company / Join Company /
-  Log In → Dashboard (placeholder showing session info)
-- `PharmaStockApiClient` (Services/) wraps the API over plain HTTP;
-  `SessionService` persists the JWT via MAUI Preferences (stopgap — real
-  design is local SQLite + device-bound refresh token, once Section 6 sync
-  is built)
-- **Confirmed running on both Windows and the user's physical Android
-  tablet** (Samsung SM-T733, connected via USB, `adb reverse tcp:5080
-  tcp:5080` forwards the API so the app's `http://localhost:5080` constant
-  works unchanged from the device)
-- Not yet built: the actual POS/cart screen (Section 3.1, the big one),
-  product catalog UI, stock screens, adaptive tablet/phone layout (only
-  matters once there's a screen complex enough to need it — onboarding is
-  fine as-is on any screen size)
+### Client (legacy MAUI) — DELETED 2026-08-03
+The .NET MAUI client (`src/PharmaStock.Desktop`) has been removed from the repo
+and the solution. It had grown to a near-complete cross-platform (Windows +
+Android) POS — ~34 screens, full offline sync, ESC/POS printing — far beyond
+the "onboarding only" this section used to claim. The user chose to rebuild the
+**desktop** client in Tauri + React for a better UI; Android is served by
+`apps/mobile` (Expo). Its entire feature set, UX, and design system are
+preserved in **`docs/desktop-rebuild.md`**, and the code is recoverable from git
+history (last present just before the deletion commit).
 
 ## Dev environment (this machine)
 
@@ -471,11 +468,14 @@ finished.
    (`tsc --noEmit` clean) but unverified in the hand.
 2. Finish (or deliberately pause) the `@stockflow/core` extraction so
    `apps/mobile` imports shared logic from the package instead of duplicating
-   it.
+   it. This also unblocks the desktop rebuild, which consumes `@stockflow/core`.
+3. **Build the desktop client in Tauri + React** — not started. The complete
+   guide (backend API reference, what to reuse from `@stockflow/core` vs
+   replace, MAUI UX/design-system reference, and a 10-step build order) is
+   **`docs/desktop-rebuild.md`**. Target `apps/desktop/`.
 
-The MAUI client (`src/PharmaStock.Desktop`) is frozen/legacy — don't add
-features there; it stays only until the Expo app reaches parity. Its last
-confirmed-working state: onboarding through login/dashboard-placeholder on
-both Windows and Android (Samsung SM-T733 tablet), plus a full UI redesign
-(vibrant colors, Syncfusion controls, charts) — see git history around
-commits `6bcc8ef`/`4ab4848` if reviving it is ever needed.
+The legacy MAUI client was **deleted** on 2026-08-03 (see the "Client (legacy
+MAUI)" note above and `docs/desktop-rebuild.md`). Don't try to revive it — the
+desktop path forward is Tauri + React. If you ever need the old code for
+reference, it's in git history (commits around `6bcc8ef`/`4ab4848`, and the
+tree just before the deletion commit).
