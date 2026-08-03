@@ -8,9 +8,10 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
+import { printReceipt } from "@/lib/receipt";
 import { queryClient } from "@/lib/queryClient";
 import { useAuthStore } from "@/lib/stores";
-import { useCurrency } from "@/lib/useCompany";
+import { useCompany, useCurrency } from "@/lib/useCompany";
 
 const STATUS_LABEL: Record<SaleStatus, { text: string; cls: string }> = {
   [SaleStatus.Completed]: { text: "Completed", cls: "bg-success/15 text-success" },
@@ -25,6 +26,7 @@ export function SaleDetail() {
   const companyId = useAuthStore((s) => s.companyId);
   const role = useAuthStore((s) => s.user?.role);
   const currency = useCurrency();
+  const company = useCompany().data;
   const [refunding, setRefunding] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -68,7 +70,15 @@ export function SaleDetail() {
     <div className="mx-auto max-w-2xl">
       <div className="mb-4 flex items-center justify-between">
         <BackButton />
-        <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${status.cls}`}>{status.text}</span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => company && printReceipt(sale, company)}
+            className="text-sm font-semibold text-primary hover:brightness-110"
+          >
+            🖨 Print receipt
+          </button>
+          <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${status.cls}`}>{status.text}</span>
+        </div>
       </div>
 
       <div className="rounded-card border border-border bg-surface p-6">
