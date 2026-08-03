@@ -21,6 +21,7 @@ import { Products } from "@/screens/Products";
 import { SaleDetail } from "@/screens/SaleDetail";
 import { StockAdjust } from "@/screens/StockAdjust";
 import { StockReceive } from "@/screens/StockReceive";
+import { Suppliers } from "@/screens/Suppliers";
 import { SalesHistory } from "@/screens/SalesHistory";
 import { Shell } from "@/screens/Shell";
 import { CreateCompany } from "@/screens/auth/CreateCompany";
@@ -68,9 +69,10 @@ export const router = createHashRouter([
       { path: "/sales", element: <SalesHistory /> },
       { path: "/sales/:saleId", element: <SaleDetail /> },
       { path: "/categories", element: <Categories /> },
+      { path: "/suppliers", element: <Suppliers /> },
       // Every other nav destination is a placeholder until its screen is built.
       ...ALL_NAV_ITEMS.filter(
-        (i) => !["/dashboard", "/products", "/pos", "/sales", "/categories"].includes(i.path),
+        (i) => !["/dashboard", "/products", "/pos", "/sales", "/categories", "/suppliers"].includes(i.path),
       ).map((i) => ({
         path: i.path,
         element: <Placeholder title={i.label} />,
