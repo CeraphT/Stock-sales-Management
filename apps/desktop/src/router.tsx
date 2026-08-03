@@ -1,9 +1,20 @@
 import { createHashRouter, Navigate } from "react-router-dom";
 
+import { useDbReady } from "@/lib/db/ready";
 import { ALL_NAV_ITEMS } from "@/lib/nav";
 import { useAuthStore } from "@/lib/stores";
+
+function FullScreenMessage({ title, body }: { title: string; body?: string }) {
+  return (
+    <div className="flex h-screen flex-col items-center justify-center bg-background text-center">
+      <div className="text-lg font-bold text-text-primary">{title}</div>
+      {body ? <div className="mt-1 max-w-sm text-sm text-text-secondary">{body}</div> : null}
+    </div>
+  );
+}
 import { Dashboard } from "@/screens/Dashboard";
 import { Placeholder } from "@/screens/Placeholder";
+import { Products } from "@/screens/Products";
 import { Shell } from "@/screens/Shell";
 import { CreateCompany } from "@/screens/auth/CreateCompany";
 import { JoinCompany } from "@/screens/auth/JoinCompany";
@@ -22,8 +33,12 @@ function RootRedirect() {
 function AuthGuard() {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const token = useAuthStore((s) => s.token);
+  const dbReady = useDbReady((s) => s.ready);
+  const dbError = useDbReady((s) => s.error);
   if (!hasHydrated) return null;
   if (!token) return <Navigate to="/onboarding" replace />;
+  if (dbError) return <FullScreenMessage title="Local database error" body={dbError} />;
+  if (!dbReady) return <FullScreenMessage title="Preparing local database…" />;
   return <Shell />;
 }
 
@@ -37,8 +52,9 @@ export const router = createHashRouter([
     element: <AuthGuard />,
     children: [
       { path: "/dashboard", element: <Dashboard /> },
+      { path: "/products", element: <Products /> },
       // Every other nav destination is a placeholder until its screen is built.
-      ...ALL_NAV_ITEMS.filter((i) => i.path !== "/dashboard").map((i) => ({
+      ...ALL_NAV_ITEMS.filter((i) => !["/dashboard", "/products"].includes(i.path)).map((i) => ({
         path: i.path,
         element: <Placeholder title={i.label} />,
       })),

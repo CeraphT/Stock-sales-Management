@@ -1,9 +1,11 @@
+import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { ALL_NAV_ITEMS, NAV } from "@/lib/nav";
 import { roleLabel } from "@/lib/labels";
 import { logout } from "@/lib/session";
 import { useAuthStore, useLanguageStore } from "@/lib/stores";
+import { runSync } from "@/lib/sync/runSync";
 import { useThemeStore } from "@/lib/theme";
 
 export function Shell() {
@@ -16,6 +18,34 @@ export function Shell() {
   const toggleTheme = useThemeStore((s) => s.toggle);
 
   const title = ALL_NAV_ITEMS.find((i) => i.path === location.pathname)?.label ?? "PharmaStock";
+
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+
+  async function doSync() {
+    if (syncing) return;
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const r = await runSync();
+      setSyncMsg(`Synced · ${r.rowsPulled} rows${r.salesFailed ? ` · ${r.salesFailed} failed` : ""}`);
+    } catch (e) {
+      setSyncMsg(e instanceof Error ? `Sync failed: ${e.message}` : "Sync failed");
+    } finally {
+      setSyncing(false);
+      window.setTimeout(() => setSyncMsg(null), 5000);
+    }
+  }
+
+  // Initial sync when entering the authed app (login / create / reload with a
+  // live session) so screens have data. Runs once per Shell mount.
+  const didInitialSync = useRef(false);
+  useEffect(() => {
+    if (didInitialSync.current) return;
+    didInitialSync.current = true;
+    void doSync();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function onLogout() {
     logout();
@@ -79,12 +109,14 @@ export function Shell() {
             >
               {mode === "dark" ? "☀️" : "🌙"}
             </button>
+            {syncMsg ? <span className="mr-1 text-xs text-text-secondary">{syncMsg}</span> : null}
             <button
-              disabled
-              title="Sync — available once the local DB is wired"
-              className="cursor-not-allowed rounded-lg px-2.5 py-1.5 text-sm opacity-40"
+              onClick={doSync}
+              disabled={syncing}
+              title="Sync with the server"
+              className="rounded-lg px-2.5 py-1.5 text-sm hover:bg-background disabled:opacity-40"
             >
-              🔄
+              {syncing ? "⏳" : "🔄"}
             </button>
             <button
               onClick={onLogout}
