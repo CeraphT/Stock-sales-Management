@@ -12,6 +12,7 @@ function FullScreenMessage({ title, body }: { title: string; body?: string }) {
     </div>
   );
 }
+import { Categories } from "@/screens/Categories";
 import { Dashboard } from "@/screens/Dashboard";
 import { Placeholder } from "@/screens/Placeholder";
 import { Pos } from "@/screens/Pos";
@@ -59,8 +60,11 @@ export const router = createHashRouter([
       { path: "/pos", element: <Pos /> },
       { path: "/sales", element: <SalesHistory /> },
       { path: "/sales/:saleId", element: <SaleDetail /> },
+      { path: "/categories", element: <Categories /> },
       // Every other nav destination is a placeholder until its screen is built.
-      ...ALL_NAV_ITEMS.filter((i) => !["/dashboard", "/products", "/pos", "/sales"].includes(i.path)).map((i) => ({
+      ...ALL_NAV_ITEMS.filter(
+        (i) => !["/dashboard", "/products", "/pos", "/sales", "/categories"].includes(i.path),
+      ).map((i) => ({
         path: i.path,
         element: <Placeholder title={i.label} />,
       })),
