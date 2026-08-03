@@ -13,9 +13,13 @@ function FullScreenMessage({ title, body }: { title: string; body?: string }) {
   );
 }
 import { Categories } from "@/screens/Categories";
+import { CompanySettings } from "@/screens/CompanySettings";
 import { Customers } from "@/screens/Customers";
 import { Dashboard } from "@/screens/Dashboard";
 import { GiftCards } from "@/screens/GiftCards";
+import { Reports } from "@/screens/Reports";
+import { Services } from "@/screens/Services";
+import { Staff } from "@/screens/Staff";
 import { Placeholder } from "@/screens/Placeholder";
 import { Pos } from "@/screens/Pos";
 import { ProductForm } from "@/screens/ProductForm";
@@ -80,7 +84,11 @@ export const router = createHashRouter([
       { path: "/purchase-orders", element: <PurchaseOrders /> },
       { path: "/purchase-orders/new", element: <PurchaseOrderForm /> },
       { path: "/purchase-orders/:poId", element: <PurchaseOrderDetail /> },
-      // Every other nav destination is a placeholder until its screen is built.
+      { path: "/reports", element: <Reports /> },
+      { path: "/services", element: <Services /> },
+      { path: "/staff", element: <Staff /> },
+      { path: "/settings", element: <CompanySettings /> },
+      // Any nav destination without a screen yet (Printer) falls back to a placeholder.
       ...ALL_NAV_ITEMS.filter(
         (i) =>
           ![
@@ -93,6 +101,10 @@ export const router = createHashRouter([
             "/customers",
             "/gift-cards",
             "/purchase-orders",
+            "/reports",
+            "/services",
+            "/staff",
+            "/settings",
           ].includes(i.path),
       ).map((i) => ({
         path: i.path,
