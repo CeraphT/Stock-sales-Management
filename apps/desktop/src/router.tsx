@@ -14,6 +14,7 @@ function FullScreenMessage({ title, body }: { title: string; body?: string }) {
 }
 import { Dashboard } from "@/screens/Dashboard";
 import { Placeholder } from "@/screens/Placeholder";
+import { Pos } from "@/screens/Pos";
 import { Products } from "@/screens/Products";
 import { Shell } from "@/screens/Shell";
 import { CreateCompany } from "@/screens/auth/CreateCompany";
@@ -53,8 +54,9 @@ export const router = createHashRouter([
     children: [
       { path: "/dashboard", element: <Dashboard /> },
       { path: "/products", element: <Products /> },
+      { path: "/pos", element: <Pos /> },
       // Every other nav destination is a placeholder until its screen is built.
-      ...ALL_NAV_ITEMS.filter((i) => !["/dashboard", "/products"].includes(i.path)).map((i) => ({
+      ...ALL_NAV_ITEMS.filter((i) => !["/dashboard", "/products", "/pos"].includes(i.path)).map((i) => ({
         path: i.path,
         element: <Placeholder title={i.label} />,
       })),
