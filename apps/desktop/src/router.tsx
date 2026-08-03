@@ -19,6 +19,9 @@ import { GiftCards } from "@/screens/GiftCards";
 import { Placeholder } from "@/screens/Placeholder";
 import { Pos } from "@/screens/Pos";
 import { ProductForm } from "@/screens/ProductForm";
+import { PurchaseOrderDetail } from "@/screens/PurchaseOrderDetail";
+import { PurchaseOrderForm } from "@/screens/PurchaseOrderForm";
+import { PurchaseOrders } from "@/screens/PurchaseOrders";
 import { Products } from "@/screens/Products";
 import { SaleDetail } from "@/screens/SaleDetail";
 import { StockAdjust } from "@/screens/StockAdjust";
@@ -74,12 +77,23 @@ export const router = createHashRouter([
       { path: "/suppliers", element: <Suppliers /> },
       { path: "/customers", element: <Customers /> },
       { path: "/gift-cards", element: <GiftCards /> },
+      { path: "/purchase-orders", element: <PurchaseOrders /> },
+      { path: "/purchase-orders/new", element: <PurchaseOrderForm /> },
+      { path: "/purchase-orders/:poId", element: <PurchaseOrderDetail /> },
       // Every other nav destination is a placeholder until its screen is built.
       ...ALL_NAV_ITEMS.filter(
         (i) =>
-          !["/dashboard", "/products", "/pos", "/sales", "/categories", "/suppliers", "/customers", "/gift-cards"].includes(
-            i.path,
-          ),
+          ![
+            "/dashboard",
+            "/products",
+            "/pos",
+            "/sales",
+            "/categories",
+            "/suppliers",
+            "/customers",
+            "/gift-cards",
+            "/purchase-orders",
+          ].includes(i.path),
       ).map((i) => ({
         path: i.path,
         element: <Placeholder title={i.label} />,
