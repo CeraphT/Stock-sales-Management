@@ -49,7 +49,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // otherwise called by native HTTP stacks (MAUI/Expo) that aren't subject to
 // CORS. Dev-permissive on purpose — tighten WithOrigins for production, where
 // the desktop app is served from a fixed tauri:// / app origin.
-const DevClientsCors = "DevClients";
+const string DevClientsCors = "DevClients";
 builder.Services.AddCors(options =>
     options.AddPolicy(DevClientsCors, policy => policy
         .SetIsOriginAllowed(_ => true)
