@@ -8,6 +8,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
+import { useSetBreadcrumb } from "@/lib/breadcrumb";
 import { printReceipt } from "@/lib/receipt";
 import { queryClient } from "@/lib/queryClient";
 import { useAuthStore } from "@/lib/stores";
@@ -35,6 +36,11 @@ export function SaleDetail() {
     queryFn: () => salesApi.detail(companyId!, saleId!),
     enabled: !!companyId && !!saleId,
   });
+
+  useSetBreadcrumb([
+    { label: "Sales history", to: "/sales" },
+    { label: sale ? `Sale · ${new Date(sale.timestamp).toLocaleDateString()}` : "Sale" },
+  ]);
 
   async function refund() {
     if (!companyId || !saleId || refunding) return;

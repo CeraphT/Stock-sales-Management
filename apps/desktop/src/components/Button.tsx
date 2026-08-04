@@ -18,7 +18,7 @@ const VARIANTS: Record<Variant, string> = {
 export function Button({ variant = "primary", loading, className = "", children, disabled, ...rest }: Props) {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:pointer-events-none disabled:opacity-50 ${VARIANTS[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 ${VARIANTS[variant]} ${className}`}
       disabled={disabled || loading}
       {...rest}
     >

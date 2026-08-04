@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
-import { ALL_NAV_ITEMS, NAV } from "@/lib/nav";
+import { useBreadcrumb, type Crumb } from "@/lib/breadcrumb";
+import { NAV } from "@/lib/nav";
 import { logout } from "@/lib/session";
 import { useAuthStore, useLanguageStore } from "@/lib/stores";
 import { runSync } from "@/lib/sync/runSync";
@@ -20,7 +21,17 @@ export function Shell() {
   const companyName = useCompany().data?.name ?? "…";
   const initial = (companyName.trim()[0] ?? "•").toUpperCase();
 
-  const title = ALL_NAV_ITEMS.find((i) => i.path === location.pathname)?.label ?? companyName;
+  // Breadcrumb trail — a detail screen's published trail (keyed to its path)
+  // wins; otherwise derive "Group › Page" from the nav structure.
+  const bc = useBreadcrumb();
+  const crumbs: Crumb[] = useMemo(() => {
+    if (bc.forPath === location.pathname && bc.trail.length) return bc.trail;
+    for (const g of NAV) {
+      const item = g.items.find((i) => i.path === location.pathname);
+      if (item) return g.title ? [{ label: g.title }, { label: item.label }] : [{ label: item.label }];
+    }
+    return [{ label: companyName }];
+  }, [bc.forPath, bc.trail, location.pathname, companyName]);
 
   // Collapsible sidebar groups — start with only the group containing the
   // current route open, so the menu stays short (no scrolling).
@@ -139,7 +150,26 @@ export function Shell() {
             >
               ☰
             </button>
-            <h1 className="truncate text-lg font-bold text-text-primary">{title}</h1>
+            <nav className="flex items-center gap-1.5 truncate text-[15px]">
+              {crumbs.map((c, i) => {
+                const last = i === crumbs.length - 1;
+                return (
+                  <span key={i} className="flex items-center gap-1.5">
+                    {i > 0 ? <span className="text-text-secondary/50">›</span> : null}
+                    {c.to && !last ? (
+                      <button
+                        onClick={() => navigate(c.to!)}
+                        className="font-medium text-text-secondary transition hover:text-text-primary"
+                      >
+                        {c.label}
+                      </button>
+                    ) : (
+                      <span className={last ? "font-bold text-text-primary" : "font-medium text-text-secondary"}>{c.label}</span>
+                    )}
+                  </span>
+                );
+              })}
+            </nav>
             {locationName ? (
               <span className="rounded-full border border-border/70 bg-surface/60 px-2.5 py-0.5 text-xs font-medium text-text-secondary">📍 {locationName}</span>
             ) : null}
@@ -177,7 +207,9 @@ export function Shell() {
           </div>
         </header>
         <main className="flex-1 overflow-auto p-6">
-          <Outlet />
+          <div key={location.pathname} className="page-enter">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

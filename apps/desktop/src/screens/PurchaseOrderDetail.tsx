@@ -9,6 +9,7 @@ import { useParams } from "react-router-dom";
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import { PoStatusBadge } from "@/components/PoStatusBadge";
+import { useSetBreadcrumb } from "@/lib/breadcrumb";
 import { queryClient } from "@/lib/queryClient";
 import { useAuthStore } from "@/lib/stores";
 import { useCurrency } from "@/lib/useCompany";
@@ -32,6 +33,11 @@ export function PurchaseOrderDetail() {
     queryFn: () => purchaseOrdersApi.get(companyId, poId!),
     enabled: !!poId,
   });
+
+  useSetBreadcrumb([
+    { label: "Purchase orders", to: "/purchase-orders" },
+    { label: po?.supplierName ?? "Order" },
+  ]);
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["purchase-order", companyId, poId] });
 

@@ -10,6 +10,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
+import { useSetBreadcrumb } from "@/lib/breadcrumb";
 import { useAuthStore } from "@/lib/stores";
 import { runSync } from "@/lib/sync/runSync";
 
@@ -50,6 +51,11 @@ export function ProductForm() {
     queryFn: () => productsApi.get(companyId, productId!),
     enabled: isEdit,
   });
+
+  useSetBreadcrumb([
+    { label: "Products", to: "/products" },
+    { label: isEdit ? detail?.name ?? "Edit product" : "New product" },
+  ]);
 
   useEffect(() => {
     if (!detail) return;
