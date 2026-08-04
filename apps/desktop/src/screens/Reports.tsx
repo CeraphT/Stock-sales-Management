@@ -3,6 +3,7 @@ import { formatCurrency } from "@stockflow/core/format";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { StatCard } from "@/components/StatCard";
 import { useAuthStore } from "@/lib/stores";
 import { useCurrency } from "@/lib/useCompany";
 
@@ -19,15 +20,6 @@ function fromForRange(range: Range): string | undefined {
   d.setHours(0, 0, 0, 0);
   d.setDate(d.getDate() - (range === "7d" ? 6 : 29));
   return d.toISOString();
-}
-
-function Kpi({ label, value, tone = "text-text-primary" }: { label: string; value: string; tone?: string }) {
-  return (
-    <div className="rounded-card border border-border bg-surface p-4">
-      <div className="text-xs font-semibold uppercase tracking-wide text-text-secondary">{label}</div>
-      <div className={`mt-2 text-xl font-extrabold ${tone}`}>{value}</div>
-    </div>
-  );
 }
 
 export function Reports() {
@@ -62,11 +54,11 @@ export function Reports() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-        <Kpi label="Revenue" value={formatCurrency(summary?.totalRevenue ?? 0, currency)} tone="text-primary" />
-        <Kpi label="Cost" value={formatCurrency(summary?.totalCost ?? 0, currency)} />
-        <Kpi label="Profit" value={formatCurrency(summary?.totalProfit ?? 0, currency)} tone="text-success" />
-        <Kpi label="Sales" value={String(summary?.totalSalesCount ?? 0)} />
-        <Kpi label="Avg sale" value={formatCurrency(summary?.averageSaleValue ?? 0, currency)} />
+        <StatCard index={0} color="primary" icon="💵" label="Revenue" value={formatCurrency(summary?.totalRevenue ?? 0, currency)} />
+        <StatCard index={1} color="neutral" icon="🏷️" label="Cost" value={formatCurrency(summary?.totalCost ?? 0, currency)} />
+        <StatCard index={2} color="green" icon="📈" label="Profit" value={formatCurrency(summary?.totalProfit ?? 0, currency)} />
+        <StatCard index={3} color="blue" icon="🧾" label="Sales" value={String(summary?.totalSalesCount ?? 0)} />
+        <StatCard index={4} color="orange" icon="🧮" label="Avg sale" value={formatCurrency(summary?.averageSaleValue ?? 0, currency)} />
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
