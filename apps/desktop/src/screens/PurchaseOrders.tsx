@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/Button";
+import { DateRange } from "@/components/DateRange";
 import { PoStatusBadge } from "@/components/PoStatusBadge";
 import { useAuthStore } from "@/lib/stores";
 import { useCurrency } from "@/lib/useCompany";
@@ -23,27 +24,39 @@ export function PurchaseOrders() {
   const companyId = useAuthStore((s) => s.companyId)!;
   const currency = useCurrency();
   const [status, setStatus] = useState<PurchaseOrderStatus | undefined>(undefined);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
 
   const { data = [], isLoading } = useQuery({
-    queryKey: ["purchase-orders", companyId, status],
-    queryFn: () => purchaseOrdersApi.list(companyId, { status }),
+    queryKey: ["purchase-orders", companyId, status, from, to],
+    queryFn: () => purchaseOrdersApi.list(companyId, { status, from: from || undefined, to: to || undefined }),
   });
 
   return (
     <div className="mx-auto max-w-4xl">
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <div className="flex gap-2">
-          {FILTERS.map((f) => (
-            <button
-              key={f.label}
-              onClick={() => setStatus(f.value)}
-              className={`rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${
-                status === f.value ? "border-primary bg-primary/10 text-primary" : "border-border text-text-secondary hover:bg-surface"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex gap-2">
+            {FILTERS.map((f) => (
+              <button
+                key={f.label}
+                onClick={() => setStatus(f.value)}
+                className={`rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${
+                  status === f.value ? "border-primary bg-primary/10 text-primary" : "border-border text-text-secondary hover:bg-surface"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <DateRange
+            from={from}
+            to={to}
+            onChange={(f, t) => {
+              setFrom(f);
+              setTo(t);
+            }}
+          />
         </div>
         <Button onClick={() => navigate("/purchase-orders/new")}>+ New order</Button>
       </div>

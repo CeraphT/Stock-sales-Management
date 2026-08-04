@@ -37,10 +37,10 @@ export function Reports() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-        <StatCard index={0} color="primary" icon="💵" label="Revenue" value={formatCurrency(summary?.totalRevenue ?? 0, currency)} />
+        <StatCard index={0} color="primary" icon="💵" label="Revenue" value={formatCurrency(summary?.totalRevenue ?? 0, currency)} to={`/sales?from=${from}&to=${to}`} />
         <StatCard index={1} color="neutral" icon="🏷️" label="Cost" value={formatCurrency(summary?.totalCost ?? 0, currency)} />
         <StatCard index={2} color="green" icon="📈" label="Profit" value={formatCurrency(summary?.totalProfit ?? 0, currency)} />
-        <StatCard index={3} color="blue" icon="🧾" label="Sales" value={String(summary?.totalSalesCount ?? 0)} />
+        <StatCard index={3} color="blue" icon="🧾" label="Sales" value={String(summary?.totalSalesCount ?? 0)} to={`/sales?from=${from}&to=${to}`} />
         <StatCard index={4} color="orange" icon="🧮" label="Avg sale" value={formatCurrency(summary?.averageSaleValue ?? 0, currency)} />
       </div>
 
