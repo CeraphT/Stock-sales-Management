@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 
 export type StatColor = "primary" | "green" | "amber" | "red" | "blue" | "orange" | "neutral";
 
@@ -22,6 +23,7 @@ export function StatCard({
   color = "neutral",
   hint,
   index = 0,
+  to,
 }: {
   icon: ReactNode;
   label: string;
@@ -29,11 +31,14 @@ export function StatCard({
   color?: StatColor;
   hint?: string;
   index?: number;
+  to?: string;
 }) {
   const t = TONES[color];
+  const navigate = useNavigate();
   return (
     <div
-      className="card-in hover-lift rounded-card border border-border bg-surface p-4"
+      onClick={to ? () => navigate(to) : undefined}
+      className={`card-in hover-lift rounded-card border border-border bg-surface p-4 ${to ? "cursor-pointer" : ""}`}
       style={{ animationDelay: `${index * 45}ms` }}
     >
       {/* Icon on top, then label, then the value on its own full-width line so

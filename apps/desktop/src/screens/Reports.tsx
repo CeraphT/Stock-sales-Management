@@ -3,54 +3,37 @@ import { formatCurrency } from "@stockflow/core/format";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { DateRange } from "@/components/DateRange";
 import { StatCard } from "@/components/StatCard";
 import { useAuthStore } from "@/lib/stores";
 import { useCurrency } from "@/lib/useCompany";
 
-type Range = "7d" | "30d" | "all";
-const RANGES: { key: Range; label: string }[] = [
-  { key: "7d", label: "7 days" },
-  { key: "30d", label: "30 days" },
-  { key: "all", label: "All time" },
-];
-
-function fromForRange(range: Range): string | undefined {
-  if (range === "all") return undefined;
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - (range === "7d" ? 6 : 29));
-  return d.toISOString();
-}
-
 export function Reports() {
   const companyId = useAuthStore((s) => s.companyId)!;
   const currency = useCurrency();
-  const [range, setRange] = useState<Range>("7d");
-  const from = fromForRange(range);
+  const [from, setFrom] = useState(new Date(Date.now() - 29 * 86_400_000).toISOString().slice(0, 10));
+  const [to, setTo] = useState("");
 
   const { data: summary } = useQuery({
-    queryKey: ["report-summary", companyId, range],
-    queryFn: () => reportsApi.salesSummary(companyId, { from }),
+    queryKey: ["report-summary", companyId, from, to],
+    queryFn: () => reportsApi.salesSummary(companyId, { from: from || undefined, to: to || undefined }),
   });
   const { data: top = [] } = useQuery({
-    queryKey: ["report-top", companyId, range],
-    queryFn: () => reportsApi.topProducts(companyId, { from, limit: 10 }),
+    queryKey: ["report-top", companyId, from, to],
+    queryFn: () => reportsApi.topProducts(companyId, { from: from || undefined, to: to || undefined, limit: 10 }),
   });
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="mb-4 flex gap-2">
-        {RANGES.map((r) => (
-          <button
-            key={r.key}
-            onClick={() => setRange(r.key)}
-            className={`rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${
-              range === r.key ? "border-primary bg-primary/10 text-primary" : "border-border text-text-secondary hover:bg-surface"
-            }`}
-          >
-            {r.label}
-          </button>
-        ))}
+      <div className="mb-4">
+        <DateRange
+          from={from}
+          to={to}
+          onChange={(f, t) => {
+            setFrom(f);
+            setTo(t);
+          }}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">

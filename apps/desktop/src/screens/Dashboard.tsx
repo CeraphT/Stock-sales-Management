@@ -32,6 +32,7 @@ export function Dashboard() {
 
   const trend = (data?.revenueTrend ?? []).map((p) => ({ label: p.date.slice(5, 10), value: p.revenue }));
   const inStock = Math.max(0, (data?.totalProducts ?? 0) - (data?.lowStockCount ?? 0) - (data?.outOfStockCount ?? 0));
+  const today = new Date().toISOString().slice(0, 10);
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -41,12 +42,12 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        <StatCard index={0} color="primary" icon="💰" label="Revenue today" value={formatCurrency(data?.todayRevenue ?? 0, currency)} />
-        <StatCard index={1} color="blue" icon="🧾" label="Sales today" value={String(data?.todaySalesCount ?? 0)} />
-        <StatCard index={2} color="neutral" icon="📦" label="Products" value={String(data?.totalProducts ?? 0)} />
-        <StatCard index={3} color="amber" icon="⚠️" label="Low stock" value={String(data?.lowStockCount ?? 0)} />
-        <StatCard index={4} color="red" icon="⛔" label="Out of stock" value={String(data?.outOfStockCount ?? 0)} />
-        <StatCard index={5} color="orange" icon="⏳" label="Expiring soon" value={String(data?.expiringSoonCount ?? 0)} />
+        <StatCard index={0} color="primary" icon="💰" label="Revenue today" value={formatCurrency(data?.todayRevenue ?? 0, currency)} to={`/sales?from=${today}&to=${today}`} />
+        <StatCard index={1} color="blue" icon="🧾" label="Sales today" value={String(data?.todaySalesCount ?? 0)} to={`/sales?from=${today}&to=${today}`} />
+        <StatCard index={2} color="neutral" icon="📦" label="Products" value={String(data?.totalProducts ?? 0)} to="/products" />
+        <StatCard index={3} color="amber" icon="⚠️" label="Low stock" value={String(data?.lowStockCount ?? 0)} to="/products?stock=low_stock" />
+        <StatCard index={4} color="red" icon="⛔" label="Out of stock" value={String(data?.outOfStockCount ?? 0)} to="/products?stock=out_of_stock" />
+        <StatCard index={5} color="orange" icon="⏳" label="Expiring soon" value={String(data?.expiringSoonCount ?? 0)} to="/products?expiring=1" />
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">

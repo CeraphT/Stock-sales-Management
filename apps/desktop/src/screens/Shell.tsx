@@ -6,6 +6,7 @@ import { NAV } from "@/lib/nav";
 import { logout } from "@/lib/session";
 import { useAuthStore, useLanguageStore } from "@/lib/stores";
 import { runSync } from "@/lib/sync/runSync";
+import { toast } from "@/lib/toast";
 import { useThemeStore } from "@/lib/theme";
 import { useCompany } from "@/lib/useCompany";
 
@@ -48,20 +49,20 @@ export function Shell() {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
   async function doSync() {
     if (syncing) return;
     setSyncing(true);
-    setSyncMsg(null);
     try {
       const r = await runSync();
-      setSyncMsg(`Synced · ${r.rowsPulled} rows${r.salesFailed ? ` · ${r.salesFailed} failed` : ""}`);
+      toast(
+        `Synced · ${r.rowsPulled} items updated${r.salesPushed ? ` · ${r.salesPushed} sent` : ""}${r.salesFailed ? ` · ${r.salesFailed} failed` : ""}`,
+        r.salesFailed ? "error" : "success",
+      );
     } catch (e) {
-      setSyncMsg(e instanceof Error ? `Sync failed` : "Sync failed");
+      toast(e instanceof Error ? `Sync failed: ${e.message}` : "Sync failed", "error");
     } finally {
       setSyncing(false);
-      window.setTimeout(() => setSyncMsg(null), 5000);
     }
   }
 
@@ -181,7 +182,6 @@ export function Shell() {
             ) : null}
           </div>
           <div className="flex items-center gap-2">
-            {syncMsg ? <span className="text-xs text-text-secondary">{syncMsg}</span> : null}
             <button
               onClick={() => setLanguage(language === "en" ? "fr" : "en")}
               className="rounded-full border border-border px-3 py-1.5 text-xs font-bold text-text-secondary transition hover:bg-surface"

@@ -2,28 +2,12 @@ import { salesApi } from "@stockflow/core/api/endpoints/sales";
 import { formatCurrency, paymentMethodLabel } from "@stockflow/core/format";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { Button } from "@/components/Button";
+import { DateRange } from "@/components/DateRange";
 import { useAuthStore } from "@/lib/stores";
 import { useCurrency } from "@/lib/useCompany";
-
-type Range = "today" | "7d" | "30d" | "all";
-const RANGES: { key: Range; label: string }[] = [
-  { key: "today", label: "Today" },
-  { key: "7d", label: "7 days" },
-  { key: "30d", label: "30 days" },
-  { key: "all", label: "All" },
-];
-
-function fromForRange(range: Range): string | undefined {
-  if (range === "all") return undefined;
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  if (range === "7d") d.setDate(d.getDate() - 6);
-  if (range === "30d") d.setDate(d.getDate() - 29);
-  return d.toISOString();
-}
 
 function formatWhen(iso: string): string {
   const d = new Date(iso);
@@ -32,14 +16,17 @@ function formatWhen(iso: string): string {
 
 export function SalesHistory() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const companyId = useAuthStore((s) => s.companyId);
   const currency = useCurrency();
-  const [range, setRange] = useState<Range>("7d");
-  const from = fromForRange(range);
+
+  // Seed the range from the URL (e.g. a Dashboard "today" deep-link).
+  const [from, setFrom] = useState(params.get("from") ?? "");
+  const [to, setTo] = useState(params.get("to") ?? "");
 
   const { data, fetchNextPage, hasNextPage, isFetching, isLoading } = useInfiniteQuery({
-    queryKey: ["sales-history", companyId, range],
-    queryFn: ({ pageParam }) => salesApi.history(companyId!, pageParam, from, undefined),
+    queryKey: ["sales-history", companyId, from, to],
+    queryFn: ({ pageParam }) => salesApi.history(companyId!, pageParam, from || undefined, to || undefined),
     initialPageParam: 1,
     getNextPageParam: (last, pages) => (last.hasMore ? pages.length + 1 : undefined),
     enabled: !!companyId,
@@ -49,18 +36,15 @@ export function SalesHistory() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="mb-4 flex gap-2">
-        {RANGES.map((r) => (
-          <button
-            key={r.key}
-            onClick={() => setRange(r.key)}
-            className={`rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${
-              range === r.key ? "border-primary bg-primary/10 text-primary" : "border-border text-text-secondary hover:bg-surface"
-            }`}
-          >
-            {r.label}
-          </button>
-        ))}
+      <div className="mb-4">
+        <DateRange
+          from={from}
+          to={to}
+          onChange={(f, t) => {
+            setFrom(f);
+            setTo(t);
+          }}
+        />
       </div>
 
       <div className="overflow-hidden rounded-card border border-border bg-surface">
@@ -92,7 +76,7 @@ export function SalesHistory() {
                 <tr
                   key={s.id}
                   onClick={() => navigate(`/sales/${s.id}`)}
-                  className="cursor-pointer border-b border-border/60 last:border-0 hover:bg-background/60"
+                  className="cursor-pointer border-b border-border/60 transition-colors last:border-0 hover:bg-background/60"
                 >
                   <td className="px-4 py-3 text-text-primary">{formatWhen(s.timestamp)}</td>
                   <td className="px-4 py-3 text-text-secondary">{s.cashierName}</td>

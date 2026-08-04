@@ -12,6 +12,14 @@ export interface ProductRow {
   isFavorite: boolean;
   stock: number;
   status: StockStatus;
+  /** Soonest expiry among in-stock batches (ISO), or null. */
+  earliestExpiry: string | null;
+}
+
+/** Days from today until an ISO date (negative = already past). */
+export function daysUntil(iso: string): number {
+  const d = new Date(iso).getTime();
+  return Math.round((d - Date.now()) / 86_400_000);
 }
 
 function statusOf(stock: number, lowStockThreshold: number): StockStatus {
@@ -33,6 +41,7 @@ export async function listProducts(companyId: string): Promise<ProductRow[]> {
   for (const p of rows) {
     const bs = await db.query.batches.findMany({ where: eq(batches.productId, p.id) });
     const stock = bs.reduce((s, b) => s + b.quantityInBaseUnits, 0);
+    const expiries = bs.filter((b) => b.expiryDate && b.quantityInBaseUnits > 0).map((b) => b.expiryDate as string);
     result.push({
       id: p.id,
       name: p.name,
@@ -42,6 +51,7 @@ export async function listProducts(companyId: string): Promise<ProductRow[]> {
       isFavorite: p.isFavorite,
       stock,
       status: statusOf(stock, p.lowStockThreshold),
+      earliestExpiry: expiries.length ? expiries.sort()[0] : null,
     });
   }
   return result;
