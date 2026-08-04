@@ -38,7 +38,7 @@ export function StatCard({
     >
       {/* Icon on top, then label, then the value on its own full-width line so
           long amounts never get clipped or wrapped mid-column. */}
-      <div className="grid h-10 w-10 place-items-center rounded-xl text-lg" style={{ backgroundColor: `rgb(var(${t.var}) / 0.15)` }}>
+      <div className="grid h-9 w-9 place-items-center rounded-lg text-base" style={{ backgroundColor: `rgb(var(${t.var}) / 0.15)` }}>
         {icon}
       </div>
       <div className="mt-3 truncate text-[11px] font-semibold uppercase tracking-wide text-text-secondary">{label}</div>
