@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { ALL_NAV_ITEMS, NAV } from "@/lib/nav";
-import { roleLabel } from "@/lib/labels";
 import { logout } from "@/lib/session";
 import { useAuthStore, useLanguageStore } from "@/lib/stores";
 import { runSync } from "@/lib/sync/runSync";
@@ -12,7 +11,6 @@ import { useCompany } from "@/lib/useCompany";
 export function Shell() {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = useAuthStore((s) => s.user);
   const locationName = useAuthStore((s) => s.locationName);
   const language = useLanguageStore((s) => s.language);
   const setLanguage = useLanguageStore((s) => s.setLanguage);
@@ -82,18 +80,12 @@ export function Shell() {
   return (
     <div className="flex h-screen overflow-hidden">
       <aside className="sidebar flex w-64 flex-col text-white">
-        {/* Company brand */}
-        <div className="flex items-center gap-3 px-4 py-4">
+        {/* Company brand — the company name is the single identity here. */}
+        <div className="flex items-center gap-3 px-4 py-5">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-lg font-extrabold text-white ring-1 ring-white/20">
             {initial}
           </div>
-          <div className="min-w-0">
-            <div className="truncate text-sm font-bold leading-tight text-white">{companyName}</div>
-            <div className="truncate text-xs text-white/60">
-              {user?.name}
-              {user ? ` · ${roleLabel(user.role)}` : ""}
-            </div>
-          </div>
+          <div className="truncate text-base font-bold leading-tight text-white">{companyName}</div>
         </div>
         <div className="mx-4 border-t border-white/10" />
 
