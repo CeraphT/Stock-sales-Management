@@ -36,19 +36,14 @@ export function StatCard({
       className="card-in hover-lift rounded-card border border-border bg-surface p-4"
       style={{ animationDelay: `${index * 45}ms` }}
     >
-      <div className="flex items-center gap-3">
-        <div
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-lg"
-          style={{ backgroundColor: `rgb(var(${t.var}) / 0.15)` }}
-        >
-          {icon}
-        </div>
-        <div className="min-w-0">
-          <div className="truncate text-[11px] font-semibold uppercase tracking-wide text-text-secondary">{label}</div>
-          <div className={`truncate text-xl font-extrabold leading-tight ${t.value}`}>{value}</div>
-          {hint ? <div className="truncate text-[11px] text-text-secondary">{hint}</div> : null}
-        </div>
+      {/* Icon on top, then label, then the value on its own full-width line so
+          long amounts never get clipped or wrapped mid-column. */}
+      <div className="grid h-10 w-10 place-items-center rounded-xl text-lg" style={{ backgroundColor: `rgb(var(${t.var}) / 0.15)` }}>
+        {icon}
       </div>
+      <div className="mt-3 truncate text-[11px] font-semibold uppercase tracking-wide text-text-secondary">{label}</div>
+      <div className={`mt-0.5 text-xl font-extrabold leading-tight tabular-nums ${t.value}`}>{value}</div>
+      {hint ? <div className="mt-0.5 text-[11px] text-text-secondary">{hint}</div> : null}
     </div>
   );
 }
