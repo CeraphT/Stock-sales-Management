@@ -2,6 +2,10 @@
 // any store/API/router code runs.
 import "@/bootstrap";
 
+// Tailwind base/components/utilities + the theme CSS variables. Without this
+// the app renders as unstyled HTML.
+import "@/index.css";
+
 import { QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
