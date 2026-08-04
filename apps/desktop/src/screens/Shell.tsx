@@ -96,7 +96,10 @@ export function Shell() {
       <aside className={`sidebar h-full w-64 shrink-0 flex-col text-white ${sidebarOpen ? "flex" : "hidden"}`}>
         {/* Company brand — the company name is the single identity here. */}
         <div className="flex items-center gap-3 px-4 py-5">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-lg font-extrabold text-white ring-1 ring-white/20">
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-lg font-extrabold text-white ring-1 ring-white/10"
+            style={{ backgroundColor: "rgb(99 102 241 / 0.3)" }}
+          >
             {initial}
           </div>
           <div className="truncate text-base font-bold leading-tight text-white">{companyName}</div>
@@ -110,9 +113,12 @@ export function Shell() {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition ${
-                    isActive ? "bg-white/20 text-white shadow-sm ring-1 ring-white/10" : "text-white/70 hover:bg-white/10 hover:text-white"
+                  `flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition ${
+                    isActive ? "font-semibold text-white" : "font-medium text-white/50 hover:bg-white/10 hover:text-white"
                   }`
+                }
+                style={({ isActive }) =>
+                  isActive ? { backgroundColor: "rgb(99 102 241 / 0.28)", boxShadow: "0 2px 16px rgb(99 102 241 / 0.28)" } : undefined
                 }
               >
                 <span className="w-5 text-center text-base">{item.icon}</span>

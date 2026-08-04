@@ -58,9 +58,10 @@ body {
   background-attachment: fixed;
 }
 
-/* Rich indigo sidebar gradient. */
+/* Deep slate sidebar — modern, understated; indigo is used only for accents. */
 .sidebar {
-  background: linear-gradient(165deg, rgb(var(--color-primary)) 0%, #4338ca 48%, #312e81 100%);
+  background: linear-gradient(180deg, #0f172a 0%, #060a16 100%);
+  border-right: 1px solid rgb(255 255 255 / 0.06);
 }
 
 /* Glass cards — translucent surface + backdrop blur. Placed after @tailwind
