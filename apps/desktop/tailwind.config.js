@@ -4,23 +4,23 @@ export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
-      // Colors are driven by CSS variables (see src/index.css) so the whole
-      // palette swaps between light/dark by toggling the `.dark` class on
-      // <html>. Values mirror @stockflow/core/theme/colors.ts (Expo palette).
+      // RGB-channel CSS variables (see src/index.css) exposed with an
+      // <alpha-value> slot so opacity modifiers (bg-primary/10, text-success/70)
+      // work and the whole palette swaps via the `.dark` class.
       colors: {
-        primary: "var(--color-primary)",
-        "primary-dark": "var(--color-primary-dark)",
-        background: "var(--color-background)",
-        surface: "var(--color-surface)",
-        border: "var(--color-border)",
-        "text-primary": "var(--color-text-primary)",
-        "text-secondary": "var(--color-text-secondary)",
-        error: "var(--color-error)",
-        success: "var(--color-success)",
-        "accent-blue": "var(--color-accent-blue)",
-        "accent-purple": "var(--color-accent-purple)",
-        "accent-amber": "var(--color-accent-amber)",
-        "accent-orange": "var(--color-accent-orange)",
+        primary: "rgb(var(--color-primary) / <alpha-value>)",
+        "primary-dark": "rgb(var(--color-primary-dark) / <alpha-value>)",
+        background: "rgb(var(--color-background) / <alpha-value>)",
+        surface: "rgb(var(--color-surface) / <alpha-value>)",
+        border: "rgb(var(--color-border) / <alpha-value>)",
+        "text-primary": "rgb(var(--color-text-primary) / <alpha-value>)",
+        "text-secondary": "rgb(var(--color-text-secondary) / <alpha-value>)",
+        error: "rgb(var(--color-error) / <alpha-value>)",
+        success: "rgb(var(--color-success) / <alpha-value>)",
+        "accent-blue": "rgb(var(--color-accent-blue) / <alpha-value>)",
+        "accent-purple": "rgb(var(--color-accent-purple) / <alpha-value>)",
+        "accent-amber": "rgb(var(--color-accent-amber) / <alpha-value>)",
+        "accent-orange": "rgb(var(--color-accent-orange) / <alpha-value>)",
       },
       borderRadius: {
         card: "18px",
