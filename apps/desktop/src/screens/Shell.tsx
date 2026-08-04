@@ -35,6 +35,7 @@ export function Shell() {
       return n;
     });
 
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
@@ -79,7 +80,9 @@ export function Shell() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <aside className="sidebar flex w-64 flex-col text-white">
+      {/* Collapsible sidebar — hidden entirely when closed so the content
+          area takes the full width. */}
+      <aside className={`sidebar h-full w-64 shrink-0 flex-col text-white ${sidebarOpen ? "flex" : "hidden"}`}>
         {/* Company brand — the company name is the single identity here. */}
         <div className="flex items-center gap-3 px-4 py-5">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-lg font-extrabold text-white ring-1 ring-white/20">
@@ -126,19 +129,26 @@ export function Shell() {
         </nav>
       </aside>
 
-      <div className="flex flex-1 flex-col overflow-hidden bg-background">
-        <header className="flex h-16 items-center justify-between border-b border-border bg-surface/80 px-6 backdrop-blur">
-          <div className="flex items-center gap-3">
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <header className="flex h-16 items-center justify-between border-b border-border/60 bg-surface/70 px-4 backdrop-blur-xl">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSidebarOpen((v) => !v)}
+              title={sidebarOpen ? "Hide menu" : "Show menu"}
+              className="grid h-9 w-9 place-items-center rounded-lg text-lg text-text-secondary transition hover:bg-surface"
+            >
+              ☰
+            </button>
             <h1 className="truncate text-lg font-bold text-text-primary">{title}</h1>
             {locationName ? (
-              <span className="rounded-full bg-background px-2.5 py-0.5 text-xs font-medium text-text-secondary">📍 {locationName}</span>
+              <span className="rounded-full border border-border/70 bg-surface/60 px-2.5 py-0.5 text-xs font-medium text-text-secondary">📍 {locationName}</span>
             ) : null}
           </div>
           <div className="flex items-center gap-2">
             {syncMsg ? <span className="text-xs text-text-secondary">{syncMsg}</span> : null}
             <button
               onClick={() => setLanguage(language === "en" ? "fr" : "en")}
-              className="rounded-full border border-border px-3 py-1.5 text-xs font-bold text-text-secondary transition hover:bg-background"
+              className="rounded-full border border-border px-3 py-1.5 text-xs font-bold text-text-secondary transition hover:bg-surface"
             >
               {language.toUpperCase()}
             </button>
@@ -146,14 +156,14 @@ export function Shell() {
               onClick={doSync}
               disabled={syncing}
               title="Sync with the server"
-              className="grid h-9 w-9 place-items-center rounded-full text-sm transition hover:bg-background disabled:opacity-40"
+              className="grid h-9 w-9 place-items-center rounded-full text-sm transition hover:bg-surface disabled:opacity-40"
             >
               {syncing ? "⏳" : "🔄"}
             </button>
             <button
               onClick={toggleTheme}
               title="Toggle theme"
-              className="grid h-9 w-9 place-items-center rounded-full text-sm transition hover:bg-background"
+              className="grid h-9 w-9 place-items-center rounded-full text-sm transition hover:bg-surface"
             >
               {mode === "dark" ? "☀️" : "🌙"}
             </button>

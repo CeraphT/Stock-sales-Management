@@ -2,19 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Soft card elevation, in the components layer so explicit shadow-* utilities
-   (e.g. the auth card's shadow-2xl) still override it. */
-@layer components {
-  .rounded-card {
-    box-shadow:
-      0 1px 2px rgb(16 24 40 / 0.04),
-      0 6px 16px rgb(16 24 40 / 0.05);
-  }
-  .dark .rounded-card {
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
-  }
-}
-
 /* Palette as space-separated RGB channels so Tailwind's opacity modifiers
    (bg-primary/10, bg-success/15, …) resolve to valid rgb(... / a). Mirrors
    @stockflow/core/theme/colors.ts (Expo indigo palette). */
@@ -37,9 +24,9 @@
 .dark {
   --color-primary: 129 140 248;
   --color-primary-dark: 79 70 229;
-  --color-background: 17 24 39;
-  --color-surface: 31 41 55;
-  --color-border: 55 65 81;
+  --color-background: 15 20 32;
+  --color-surface: 30 41 59;
+  --color-border: 51 65 85;
   --color-text-primary: 243 244 246;
   --color-text-secondary: 156 163 175;
   --color-error: 248 113 113;
@@ -56,17 +43,42 @@ body,
   height: 100%;
 }
 
+/* Soft colored mesh behind everything — the translucent glass surfaces blur
+   over it. Fixed so it doesn't scroll. */
 body {
   margin: 0;
-  background: rgb(var(--color-background));
   color: rgb(var(--color-text-primary));
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  background:
+    radial-gradient(1200px 640px at 6% -12%, rgb(var(--color-primary) / 0.14), transparent 60%),
+    radial-gradient(1000px 520px at 102% -4%, rgb(var(--color-accent-purple) / 0.12), transparent 55%),
+    radial-gradient(1000px 760px at 100% 112%, rgb(var(--color-accent-blue) / 0.1), transparent 55%),
+    rgb(var(--color-background));
+  background-attachment: fixed;
 }
 
 /* Rich indigo sidebar gradient. */
 .sidebar {
   background: linear-gradient(165deg, rgb(var(--color-primary)) 0%, #4338ca 48%, #312e81 100%);
+}
+
+/* Glass cards — translucent surface + backdrop blur. Placed after @tailwind
+   utilities so it overrides the bg-surface / border-border utilities that
+   cards also carry. */
+.rounded-card {
+  background-color: rgb(var(--color-surface) / 0.72);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border-color: rgb(255 255 255 / 0.55);
+  box-shadow:
+    0 1px 2px rgb(16 24 40 / 0.04),
+    0 10px 30px rgb(16 24 40 / 0.08);
+}
+.dark .rounded-card {
+  background-color: rgb(var(--color-surface) / 0.58);
+  border-color: rgb(255 255 255 / 0.08);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.35);
 }
 
 /* Thin, modern scrollbars. */
