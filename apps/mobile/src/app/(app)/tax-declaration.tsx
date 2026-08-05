@@ -165,19 +165,25 @@ export default function TaxDeclarationScreen() {
 
         <View className="-m-1.5 flex-row flex-wrap">
           {[
-            { key: 'to', icon: '💵', label: 'Turnover (incl. VAT)', value: fmt(d?.salesTtc ?? 0), color: 'primary' as const },
-            { key: 'vc', icon: '📥', label: 'VAT collected', value: fmt(d?.vatCollected ?? 0), color: 'green' as const },
-            { key: 'vd', icon: '📤', label: 'VAT deductible', value: fmt(d?.vatDeductible ?? 0), color: 'amber' as const },
-            { key: 'due', icon: '🧾', label: 'VAT due', value: fmt(d?.vatDue ?? 0), color: (d && d.vatDue < 0 ? 'blue' : 'red') as 'blue' | 'red' },
+            { key: 'to', icon: '💵', label: 'Turnover (incl. VAT)', value: fmt(d?.salesTtc ?? 0), color: 'primary' as const, hint: `excl. VAT: ${fmt(d?.salesHt ?? 0)}` },
+            { key: 'vc', icon: '📥', label: 'VAT collected', value: fmt(d?.vatCollected ?? 0), color: 'green' as const, hint: '4431' },
+            { key: 'vd', icon: '📤', label: 'VAT deductible', value: fmt(d?.vatDeductible ?? 0), color: 'amber' as const, hint: '4452' },
+            { key: 'due', icon: '🧾', label: 'VAT due', value: fmt(d?.vatDue ?? 0), color: (d && d.vatDue < 0 ? 'blue' : 'red') as 'blue' | 'red', hint: '4441' },
           ].map((c) => (
             <View key={c.key} className="w-1/2 p-1.5">
-              <StatCard icon={<Text className="text-base">{c.icon}</Text>} label={c.label} value={c.value} color={c.color} />
+              <StatCard icon={<Text className="text-base">{c.icon}</Text>} label={c.label} value={c.value} color={c.color} hint={c.hint} />
             </View>
           ))}
         </View>
 
         {/* OHADA VAT accounts */}
         <View className="overflow-hidden rounded-card border border-border bg-surface">
+          <View className="flex-row items-center border-b border-border px-4 py-2">
+            <Text className="flex-1 text-[10px] font-semibold uppercase tracking-wide text-text-secondary">Line</Text>
+            <Text className="w-20 text-right text-[10px] font-semibold uppercase tracking-wide text-text-secondary">Base</Text>
+            <Text className="w-24 text-right text-[10px] font-semibold uppercase tracking-wide text-text-secondary">VAT</Text>
+            <Text className="w-12 text-right text-[10px] font-semibold uppercase tracking-wide text-text-secondary">OHADA</Text>
+          </View>
           <OhadaRow label="VAT collected on sales" base={fmt(d?.salesHt ?? 0)} vat={fmt(d?.vatCollected ?? 0)} acct="4431" vatClass="text-success" />
           <OhadaRow label="VAT deductible on purchases" base={fmt(d?.purchasesHt ?? 0)} vat={fmt(d?.vatDeductible ?? 0)} acct="4452" vatClass="text-accent-amber" />
           <View className="flex-row items-center border-t-2 border-border px-4 py-3">
@@ -204,7 +210,7 @@ export default function TaxDeclarationScreen() {
         <View className="rounded-xl border border-border bg-surface p-4">
           <Text className="text-xs font-semibold text-text-primary">Notes</Text>
           <Text className="mt-1 text-xs text-text-secondary">
-            Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate. This follows the SYSCOHADA VAT accounts and is a working document, not an official filing.
+            Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate, as purchase records don't store a per-line rate — have your accountant confirm against actual supplier invoices. This report follows the SYSCOHADA VAT accounts and is a working document, not an official filing.
           </Text>
         </View>
       </ScrollView>
