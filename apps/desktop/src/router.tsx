@@ -26,6 +26,7 @@ import { GiftCards } from "@/screens/GiftCards";
 import { HeldSales } from "@/screens/HeldSales";
 import { InventoryReport } from "@/screens/InventoryReport";
 import { PrinterSettings } from "@/screens/PrinterSettings";
+import { Reconciliation } from "@/screens/Reconciliation";
 import { Reports } from "@/screens/Reports";
 import { Staff } from "@/screens/Staff";
 import { TaxDeclaration } from "@/screens/TaxDeclaration";
@@ -109,6 +110,7 @@ export const router = createHashRouter([
       { path: "/purchase-orders", element: <PurchaseOrders /> },
       { path: "/purchase-orders/new", element: <PurchaseOrderForm /> },
       { path: "/purchase-orders/:poId", element: <PurchaseOrderDetail /> },
+      { path: "/reconciliation", element: <Reconciliation /> },
       { path: "/reports", element: <Reports /> },
       { path: "/inventory-report", element: <InventoryReport /> },
       { path: "/customer-credits", element: <CustomerCredits /> },

@@ -1,17 +1,14 @@
 import { dashboardApi } from "@stockflow/core/api/endpoints/dashboard";
-import { reconciliationApi } from "@stockflow/core/api/endpoints/reconciliation";
 import { UserRole } from "@stockflow/core/api/enums";
 import { formatCurrency, paymentMethodLabel } from "@stockflow/core/format";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { AreaChart } from "@/components/AreaChart";
 import { BarChart } from "@/components/BarChart";
 import { StatCard } from "@/components/StatCard";
 import { useT } from "@/lib/i18n";
-import { queryClient } from "@/lib/queryClient";
 import { useAuthStore } from "@/lib/stores";
-import { toast } from "@/lib/toast";
 import { useCurrency } from "@/lib/useCompany";
 
 export function Dashboard() {
@@ -30,27 +27,10 @@ export function Dashboard() {
   const inStock = Math.max(0, (data?.totalProducts ?? 0) - (data?.lowStockCount ?? 0) - (data?.outOfStockCount ?? 0));
   const today = new Date().toISOString().slice(0, 10);
 
+  const navigate = useNavigate();
   const isAdmin = user?.role === UserRole.CompanyAdmin || user?.role === UserRole.SuperAdmin;
-  const [acknowledging, setAcknowledging] = useState(false);
   const negativeBatches = data?.negativeStockBatchCount ?? 0;
   const shiftConflicts = data?.autoClosedShiftConflictCount ?? 0;
-
-  // Admin-only: clear the auto-closed shift-conflict warnings (marks the shifts
-  // reviewed server-side). Negative-stock batches are a real stock problem and
-  // are NOT cleared here — they need an actual stock adjustment.
-  async function acknowledgeConflicts() {
-    if (!companyId || acknowledging) return;
-    setAcknowledging(true);
-    try {
-      const res = await reconciliationApi.acknowledgeShiftConflicts(companyId);
-      await queryClient.invalidateQueries({ queryKey: ["dashboard-summary", companyId] });
-      toast(res.acknowledged > 0 ? `${res.acknowledged} ${t("shift(s) marked reviewed.")}` : t("Nothing to review."), "success");
-    } catch (e) {
-      toast(e instanceof Error ? e.message : t("Could not update."), "error");
-    } finally {
-      setAcknowledging(false);
-    }
-  }
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -75,13 +55,12 @@ export function Dashboard() {
               </div>
             ) : null}
           </div>
-          {shiftConflicts > 0 && isAdmin ? (
+          {isAdmin ? (
             <button
-              onClick={acknowledgeConflicts}
-              disabled={acknowledging}
-              className="shrink-0 rounded-lg bg-error/15 px-3 py-1.5 text-xs font-bold text-error transition hover:bg-error/25 disabled:opacity-50"
+              onClick={() => navigate("/reconciliation")}
+              className="shrink-0 rounded-lg bg-error/15 px-3 py-1.5 text-xs font-bold text-error transition hover:bg-error/25"
             >
-              {acknowledging ? "…" : t("Mark as reviewed")}
+              {t("Review")}
             </button>
           ) : null}
         </div>

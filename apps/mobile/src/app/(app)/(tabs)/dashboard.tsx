@@ -11,7 +11,6 @@ import { StatCard, type StatColor } from '@/components/StatCard';
 import { StockHealthDonut } from '@/components/StockHealthDonut';
 import { UserRole } from '@/lib/api/enums';
 import { dashboardApi } from '@/lib/api/endpoints/dashboard';
-import { reconciliationApi } from '@/lib/api/endpoints/reconciliation';
 import { reportsApi } from '@/lib/api/endpoints/reports';
 import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency } from '@/lib/format';
@@ -98,24 +97,6 @@ export default function DashboardScreen() {
   const negativeStockBatchCount = summary?.negativeStockBatchCount ?? 0;
   const autoClosedShiftConflictCount = summary?.autoClosedShiftConflictCount ?? 0;
   const isAdmin = user?.role === UserRole.CompanyAdmin || user?.role === UserRole.SuperAdmin;
-  const [acknowledging, setAcknowledging] = useState(false);
-
-  // Admin-only: clear the auto-closed shift-conflict warnings (marks the
-  // affected shifts reviewed server-side), then refresh so the banner updates.
-  // Negative-stock batches are a real stock problem and are NOT cleared here.
-  const onAcknowledgeConflicts = async () => {
-    if (!companyId || acknowledging) return;
-    setAcknowledging(true);
-    try {
-      const res = await reconciliationApi.acknowledgeShiftConflicts(companyId);
-      await refresh();
-      toast(res.acknowledged > 0 ? `${res.acknowledged} shift(s) marked reviewed.` : 'Nothing to review.', 'success');
-    } catch (err) {
-      toast(err instanceof Error ? err.message : 'Could not update.', 'error');
-    } finally {
-      setAcknowledging(false);
-    }
-  };
 
   const refresh = useCallback(async () => {
     if (!companyId || !locationId) return;
@@ -200,12 +181,11 @@ export default function DashboardScreen() {
                   {t('dashboard.shiftConflictMsg').replace('{count}', String(autoClosedShiftConflictCount))}
                 </Text>
               ) : null}
-              {autoClosedShiftConflictCount > 0 && isAdmin ? (
+              {isAdmin ? (
                 <Pressable
-                  onPress={onAcknowledgeConflicts}
-                  disabled={acknowledging}
+                  onPress={() => router.push('/reconciliation')}
                   className="mt-2 self-start rounded-lg bg-error/15 px-3 py-1.5 active:opacity-80">
-                  <Text className="text-xs font-bold text-error">{acknowledging ? '…' : 'Mark as reviewed'}</Text>
+                  <Text className="text-xs font-bold text-error">Review</Text>
                 </Pressable>
               ) : null}
             </View>
