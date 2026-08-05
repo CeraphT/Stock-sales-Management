@@ -1,14 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { DateField } from '@/components/DateField';
 import { salesApi } from '@/lib/api/endpoints/sales';
 import type { SaleSummaryResponse } from '@/lib/api/types/sales';
-import { PaymentMethod } from '@/lib/api/enums';
-import { FiltersDisclosure } from '@/components/FiltersDisclosure';
 import { SkeletonList } from '@/components/Skeleton';
 import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency, paymentMethodLabel } from '@/lib/format';
@@ -17,29 +16,13 @@ import { shareList } from '@/lib/reports/listActions';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
 
-type DateRange = 'today' | 'week' | 'month' | 'all';
-
-const DATE_RANGES: { value: DateRange; label: string }[] = [
-  { value: 'today', label: 'Today' },
-  { value: 'week', label: 'This week' },
-  { value: 'month', label: 'This month' },
-  { value: 'all', label: 'All time' },
-];
-
-const METHOD_FILTERS: { value: PaymentMethod | 'all'; label: string }[] = [
-  { value: 'all', label: 'All methods' },
-  { value: PaymentMethod.Cash, label: 'Cash' },
-  { value: PaymentMethod.MobileMoney, label: 'Mobile Money' },
-  { value: PaymentMethod.Credit, label: 'Credit' },
-  { value: PaymentMethod.StoreCredit, label: 'Store credit' },
-  { value: PaymentMethod.GiftCard, label: 'Gift card' },
-];
-
 function isoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function rangeToFromTo(range: DateRange): { from?: string; to?: string } {
+// Deep-link presets from the dashboard (?range=today|week|month|all) map to a
+// concrete From/To range, since the filter itself is now a free date range.
+function rangeToFromTo(range: string): { from: string; to: string } {
   const today = new Date();
   if (range === 'today') {
     const iso = isoDate(today);
@@ -55,7 +38,7 @@ function rangeToFromTo(range: DateRange): { from?: string; to?: string } {
     start.setDate(start.getDate() - 29);
     return { from: isoDate(start), to: isoDate(today) };
   }
-  return {};
+  return { from: '', to: '' };
 }
 
 export default function SalesHistoryScreen() {
@@ -63,14 +46,20 @@ export default function SalesHistoryScreen() {
   const { name: companyName, currency } = useCompanyInfo();
   const colors = useThemeColors();
 
-  const [dateRange, setDateRange] = useState<DateRange>('today');
-  const [methodFilter, setMethodFilter] = useState<PaymentMethod | 'all'>('all');
+  // Free From/To date range (YYYY-MM-DD, '' = unset) — matches desktop.
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
 
-  // Deep-link from the dashboard: ?range=today|week|month|all pre-applies it.
+  // Deep-link from the dashboard: ?range=today|week|month|all pre-applies a range.
   const { range: rangeParam } = useLocalSearchParams<{ range?: string }>();
   useEffect(() => {
-    if (rangeParam === 'today' || rangeParam === 'week' || rangeParam === 'month' || rangeParam === 'all') setDateRange(rangeParam);
+    if (rangeParam === 'today' || rangeParam === 'week' || rangeParam === 'month' || rangeParam === 'all') {
+      const r = rangeToFromTo(rangeParam);
+      setFrom(r.from);
+      setTo(r.to);
+    }
   }, [rangeParam]);
+
   const [items, setItems] = useState<SaleSummaryResponse[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -83,8 +72,7 @@ export default function SalesHistoryScreen() {
       if (replace) setLoading(true);
       else setLoadingMore(true);
       try {
-        const { from, to } = rangeToFromTo(dateRange);
-        const result = await salesApi.history(companyId, targetPage, from, to);
+        const result = await salesApi.history(companyId, targetPage, from || undefined, to || undefined);
         setItems((prev) => (replace ? result.items : [...prev, ...result.items]));
         setHasMore(result.hasMore);
         setPage(targetPage);
@@ -95,30 +83,27 @@ export default function SalesHistoryScreen() {
         setLoadingMore(false);
       }
     },
-    [companyId, dateRange],
+    [companyId, from, to],
   );
 
   useFocusEffect(
     useCallback(() => {
       load(1, true);
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [companyId, dateRange]),
+    }, [companyId, from, to]),
   );
 
-  const visibleItems = useMemo(
-    () => (methodFilter === 'all' ? items : items.filter((item) => item.paymentMethod === methodFilter)),
-    [items, methodFilter],
-  );
+  const rangeLabel = from || to ? `${from || '…'} → ${to || 'today'}` : 'All time';
 
   const onShare = () => {
     shareList({
       companyName,
       currency,
       title: 'Sales History',
-      subtitle: `${DATE_RANGES.find((r) => r.value === dateRange)?.label} · loaded ${visibleItems.length} sale${visibleItems.length === 1 ? '' : 's'}`,
+      subtitle: `${rangeLabel} · loaded ${items.length} sale${items.length === 1 ? '' : 's'}`,
       primaryColumnLabel: 'Cashier',
       secondaryColumnLabel: 'Payment',
-      rows: visibleItems.map((item) => ({
+      rows: items.map((item) => ({
         timestamp: item.timestamp,
         primaryLabel: item.cashierName,
         secondaryLabel: `${paymentMethodLabel(item.paymentMethod)} · ${item.itemCount} items`,
@@ -134,35 +119,44 @@ export default function SalesHistoryScreen() {
         <View className="flex-row items-center justify-between">
           <View className="w-12" />
           <Text className="text-lg font-bold text-text-primary">Sales history</Text>
-          <Pressable onPress={onShare} hitSlop={8} disabled={visibleItems.length === 0} accessibilityLabel="Share PDF">
-            <Ionicons name="share-outline" size={20} color={visibleItems.length > 0 ? colors.primary : colors.iconMuted} />
+          <Pressable onPress={onShare} hitSlop={8} disabled={items.length === 0} accessibilityLabel="Share PDF">
+            <Ionicons name="share-outline" size={20} color={items.length > 0 ? colors.primary : colors.iconMuted} />
           </Pressable>
         </View>
 
-        <FiltersDisclosure active={dateRange !== 'today' || methodFilter !== 'all'}>
-          <View className="flex-row flex-wrap gap-2">
-            {DATE_RANGES.map((r) => (
-              <FilterChip key={r.value} label={r.label} active={dateRange === r.value} onPress={() => setDateRange(r.value)} />
-            ))}
+        {/* From/To date range — matches desktop's DateRange filter. */}
+        <View className="mt-3 flex-row items-end gap-2">
+          <View className="flex-1">
+            <DateField label="From" value={from || null} onChange={setFrom} placeholder="Any" />
           </View>
-          <View className="flex-row flex-wrap gap-2">
-            {METHOD_FILTERS.map((m) => (
-              <FilterChip
-                key={String(m.value)}
-                label={m.label}
-                active={methodFilter === m.value}
-                onPress={() => setMethodFilter(m.value)}
-              />
-            ))}
+          <View className="flex-1">
+            <DateField
+              label="To"
+              value={to || null}
+              onChange={setTo}
+              minimumDate={from ? new Date(`${from}T00:00:00`) : undefined}
+              placeholder="Any"
+            />
           </View>
-        </FiltersDisclosure>
+          {from || to ? (
+            <Pressable
+              onPress={() => {
+                setFrom('');
+                setTo('');
+              }}
+              hitSlop={8}
+              className="pb-3">
+              <Text className="text-xs font-semibold text-text-secondary">Clear</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       {loading ? (
         <SkeletonList />
       ) : (
         <FlatList
-          data={visibleItems}
+          data={items}
           keyExtractor={(item) => item.id}
           contentContainerClassName="gap-2 p-4"
           refreshing={false}
@@ -187,21 +181,11 @@ export default function SalesHistoryScreen() {
           ListFooterComponent={loadingMore ? <ActivityIndicator className="py-4" /> : null}
           ListEmptyComponent={
             <View className="items-center py-16">
-              <Text className="text-sm text-text-secondary">No sales match these filters.</Text>
+              <Text className="text-sm text-text-secondary">No sales in this period.</Text>
             </View>
           }
         />
       )}
     </SafeAreaView>
-  );
-}
-
-function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className={`rounded-full border px-3 py-1.5 ${active ? 'border-primary bg-primary' : 'border-border bg-background'}`}>
-      <Text className={`text-xs font-semibold ${active ? 'text-white' : 'text-text-secondary'}`}>{label}</Text>
-    </Pressable>
   );
 }
