@@ -1,12 +1,17 @@
 import { dashboardApi } from "@stockflow/core/api/endpoints/dashboard";
+import { reconciliationApi } from "@stockflow/core/api/endpoints/reconciliation";
+import { UserRole } from "@stockflow/core/api/enums";
 import { formatCurrency, paymentMethodLabel } from "@stockflow/core/format";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 import { AreaChart } from "@/components/AreaChart";
 import { BarChart } from "@/components/BarChart";
 import { StatCard } from "@/components/StatCard";
 import { useT } from "@/lib/i18n";
+import { queryClient } from "@/lib/queryClient";
 import { useAuthStore } from "@/lib/stores";
+import { toast } from "@/lib/toast";
 import { useCurrency } from "@/lib/useCompany";
 
 export function Dashboard() {
@@ -25,12 +30,62 @@ export function Dashboard() {
   const inStock = Math.max(0, (data?.totalProducts ?? 0) - (data?.lowStockCount ?? 0) - (data?.outOfStockCount ?? 0));
   const today = new Date().toISOString().slice(0, 10);
 
+  const isAdmin = user?.role === UserRole.CompanyAdmin || user?.role === UserRole.SuperAdmin;
+  const [acknowledging, setAcknowledging] = useState(false);
+  const negativeBatches = data?.negativeStockBatchCount ?? 0;
+  const shiftConflicts = data?.autoClosedShiftConflictCount ?? 0;
+
+  // Admin-only: clear the auto-closed shift-conflict warnings (marks the shifts
+  // reviewed server-side). Negative-stock batches are a real stock problem and
+  // are NOT cleared here — they need an actual stock adjustment.
+  async function acknowledgeConflicts() {
+    if (!companyId || acknowledging) return;
+    setAcknowledging(true);
+    try {
+      const res = await reconciliationApi.acknowledgeShiftConflicts(companyId);
+      await queryClient.invalidateQueries({ queryKey: ["dashboard-summary", companyId] });
+      toast(res.acknowledged > 0 ? `${res.acknowledged} ${t("shift(s) marked reviewed.")}` : t("Nothing to review."), "success");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("Could not update."), "error");
+    } finally {
+      setAcknowledging(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl">
       <div className="mb-5">
         <h2 className="text-2xl font-bold text-text-primary">{t("Welcome")}{user ? `, ${user.name}` : ""} 👋</h2>
         <p className="text-sm text-text-secondary">{t("Here's how your business is doing today.")}</p>
       </div>
+
+      {negativeBatches + shiftConflicts > 0 ? (
+        <div className="mb-4 flex items-start gap-3 rounded-card border border-error/30 bg-error/10 p-4">
+          <span className="text-lg">⚠️</span>
+          <div className="flex-1">
+            <div className="text-sm font-bold text-error">{t("Needs reconciliation")}</div>
+            {negativeBatches > 0 ? (
+              <div className="mt-0.5 text-xs text-text-secondary">
+                {negativeBatches} {t("stock batch(es) went negative from an offline sale — adjust their stock.")}
+              </div>
+            ) : null}
+            {shiftConflicts > 0 ? (
+              <div className="mt-0.5 text-xs text-text-secondary">
+                {shiftConflicts} {t("cash register shift(s) auto-closed after two devices opened one at the same time.")}
+              </div>
+            ) : null}
+          </div>
+          {shiftConflicts > 0 && isAdmin ? (
+            <button
+              onClick={acknowledgeConflicts}
+              disabled={acknowledging}
+              className="shrink-0 rounded-lg bg-error/15 px-3 py-1.5 text-xs font-bold text-error transition hover:bg-error/25 disabled:opacity-50"
+            >
+              {acknowledging ? "…" : t("Mark as reviewed")}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard index={0} color="primary" icon="💰" label={t("Revenue today")} value={formatCurrency(data?.todayRevenue ?? 0, currency)} to={`/sales?from=${today}&to=${today}`} />

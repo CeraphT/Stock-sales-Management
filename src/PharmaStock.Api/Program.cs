@@ -94,5 +94,6 @@ app.MapRewardEndpoints();
 app.MapLoyaltyEndpoints();
 app.MapRefundEndpoints();
 app.MapServiceEndpoints();
+app.MapReconciliationEndpoints();
 
 app.Run();

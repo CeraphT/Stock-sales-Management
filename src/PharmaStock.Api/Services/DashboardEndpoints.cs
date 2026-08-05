@@ -36,6 +36,12 @@ public static class DashboardEndpoints
     // it here without a schema change.
     internal const string ShiftConflictMarker = "Auto-fermée : conflit avec une caisse ouverte simultanément";
 
+    // Appended to a conflict shift's ClosingNotes when an admin acknowledges it
+    // on the Reconciliation screen. Keeps the original conflict note (audit)
+    // while dropping the shift from the "needs reconciliation" count — again a
+    // marker string rather than a schema change (see ReconciliationEndpoints).
+    internal const string ShiftConflictReviewedMarker = "[examiné]";
+
     public static void MapDashboardEndpoints(this WebApplication app)
     {
         app.MapGet("/api/companies/{companyId:guid}/dashboard/summary", async (Guid companyId, PharmaStockDbContext db, HttpContext http) =>
@@ -99,7 +105,9 @@ public static class DashboardEndpoints
             var negativeStockBatchCount = await db.Batches
                 .CountAsync(b => b.Product!.CompanyId == companyId && b.QuantityInBaseUnits < 0);
             var autoClosedShiftConflictCount = await db.CashRegisterShifts
-                .CountAsync(s => s.CompanyId == companyId && s.ClosingNotes != null && s.ClosingNotes.Contains(ShiftConflictMarker));
+                .CountAsync(s => s.CompanyId == companyId && s.ClosingNotes != null
+                    && s.ClosingNotes.Contains(ShiftConflictMarker)
+                    && !s.ClosingNotes.Contains(ShiftConflictReviewedMarker));
 
             var today = DateTime.UtcNow.Date;
             var soonCutoff = today.AddDays(30);
