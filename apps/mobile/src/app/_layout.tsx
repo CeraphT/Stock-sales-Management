@@ -1,3 +1,4 @@
+import { configureApi } from '@stockflow/core/api/client';
 import { setIdGenerator } from '@stockflow/core/idGenerator';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
@@ -41,6 +42,13 @@ useLanguageStore.getState().hydrate();
 // crypto.randomUUID() global is unreliable across Hermes builds on RN (see
 // idGenerator.ts and auth/store.ts, which injects the same wrapper).
 setIdGenerator(() => Crypto.randomUUID());
+
+// API base URL. In dev (Metro), the phone reaches the PC's API via
+// `adb reverse tcp:5080` → localhost. A standalone RELEASE APK has no USB
+// forward, so it targets the PC's LAN IP directly (phone + PC on the same
+// Wi-Fi, API run with --urls http://0.0.0.0:5080). Change this IP if the PC's
+// address changes; a hosted API URL would replace it entirely.
+configureApi(__DEV__ ? 'http://localhost:5080' : 'http://192.168.68.101:5080');
 
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
