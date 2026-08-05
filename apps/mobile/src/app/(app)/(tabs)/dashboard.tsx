@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { RevenueTrendChart } from '@/components/RevenueTrendChart';
 import { Skeleton } from '@/components/Skeleton';
+import { StatCard, type StatColor } from '@/components/StatCard';
 import { StockHealthDonut } from '@/components/StockHealthDonut';
 import { dashboardApi } from '@/lib/api/endpoints/dashboard';
 import { useAuthStore } from '@/lib/auth/store';
@@ -16,17 +17,15 @@ import { type DashboardStats, type DailyRevenuePoint, getDashboardStats } from '
 import { localShiftService } from '@/lib/local/shiftService';
 import { syncNow } from '@/lib/sync/syncNow';
 import { useThemeColors } from '@/lib/theme/colors';
+import { toast } from '@/lib/ui/toastStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
-type IconName = keyof typeof Ionicons.glyphMap;
+type Summary = Awaited<ReturnType<typeof dashboardApi.summary>>;
 
-// Three tiles, two conditional banners, and two cards (revenue trend +
-// stock health) — still a daily at-a-glance check, not a browsing surface.
-// Expiring/expired/archived counts stay out of here deliberately; they
-// belong in Catalog's own filters. Held sales and stock health ARE shown
-// here since both are genuinely actionable in the next few minutes, and
-// the data backing them (stats.heldSalesCount/stockHealth) is already
-// fetched as part of the normal local refresh — no extra query needed.
+// Mirrors the desktop Dashboard (apps/desktop/src/screens/Dashboard.tsx): a
+// 6-tile stat grid, a revenue-trend card, a stock-health card and a recent-sales
+// list — all on rounded-card surfaces. Mobile keeps the two extra actionable
+// banners (reconciliation + held sales) on top.
 export default function DashboardScreen() {
   const user = useAuthStore((s) => s.user);
   const companyId = useAuthStore((s) => s.companyId);
@@ -37,54 +36,42 @@ export default function DashboardScreen() {
   const { t } = useTranslation();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [shiftOpen, setShiftOpen] = useState<boolean | null>(null);
+  const [summary, setSummary] = useState<Summary | null>(null);
   const [syncing, setSyncing] = useState(false);
-  const [syncError, setSyncError] = useState<string | null>(null);
-  // Only true until the very first refresh resolves — a pull-to-refresh
-  // afterward uses the RefreshControl spinner instead, so existing values
-  // stay on screen rather than being replaced by skeletons again.
   const [initialLoading, setInitialLoading] = useState(true);
-  // Sales are push-only and never synced back down to the device (see
-  // CLAUDE.md), so the local sales table only ever has what THIS device
-  // created — fine for shift status, wrong for "today's revenue" and the
-  // trend chart once other devices add sales server-side. Fetched live
-  // here; falls back to the local-only numbers if the device is offline.
+  // Sales are push-only and never synced back down (see CLAUDE.md), so today's
+  // revenue/trend come from the live summary, falling back to this device's own
+  // local numbers when offline.
   const [todaySalesTotal, setTodaySalesTotal] = useState<number | null>(null);
   const [todaySalesCount, setTodaySalesCount] = useState<number | null>(null);
   const [revenueTrend, setRevenueTrend] = useState<DailyRevenuePoint[] | null>(null);
-  const [negativeStockBatchCount, setNegativeStockBatchCount] = useState(0);
-  const [autoClosedShiftConflictCount, setAutoClosedShiftConflictCount] = useState(0);
+
+  const negativeStockBatchCount = summary?.negativeStockBatchCount ?? 0;
+  const autoClosedShiftConflictCount = summary?.autoClosedShiftConflictCount ?? 0;
 
   const refresh = useCallback(async () => {
     if (!companyId || !locationId) return;
     try {
-      // The two local DB reads and the live network call are independent —
-      // run them together instead of making the network round trip wait on
-      // the (much faster) local queries first.
-      const [localResult, shiftResult, summaryResult] = await Promise.allSettled([
+      const [localResult, , summaryResult] = await Promise.allSettled([
         getDashboardStats(companyId, locationId),
         localShiftService.getCurrentShift(companyId, locationId),
         dashboardApi.summary(companyId),
       ]);
 
       if (localResult.status === 'fulfilled') setStats(localResult.value);
-      if (shiftResult.status === 'fulfilled') setShiftOpen(shiftResult.value !== null);
 
       if (summaryResult.status === 'fulfilled') {
-        const summary = summaryResult.value;
-        setTodaySalesTotal(summary.todayRevenue);
-        setTodaySalesCount(summary.todaySalesCount);
-        setRevenueTrend(summary.revenueTrend.map((p) => ({ date: p.date.slice(0, 10), total: p.revenue })));
-        setNegativeStockBatchCount(summary.negativeStockBatchCount);
-        setAutoClosedShiftConflictCount(summary.autoClosedShiftConflictCount);
+        const s = summaryResult.value;
+        setSummary(s);
+        setTodaySalesTotal(s.todayRevenue);
+        setTodaySalesCount(s.todaySalesCount);
+        setRevenueTrend(s.revenueTrend.map((p) => ({ date: p.date.slice(0, 10), total: p.revenue })));
       } else {
-        // Offline or request failed — the local-only stats already computed
-        // above cover this device's own sales, which is the best we can do.
+        // Offline — keep this device's local-only numbers for today.
+        setSummary(null);
         setTodaySalesTotal(null);
         setTodaySalesCount(null);
         setRevenueTrend(null);
-        setNegativeStockBatchCount(0);
-        setAutoClosedShiftConflictCount(0);
       }
     } finally {
       setInitialLoading(false);
@@ -99,16 +86,23 @@ export default function DashboardScreen() {
 
   const onSync = async () => {
     setSyncing(true);
-    setSyncError(null);
     try {
       await syncNow();
       await refresh();
+      toast(t('sync.done'), 'success');
     } catch (err) {
-      setSyncError(err instanceof Error ? err.message : 'Sync failed.');
+      toast(err instanceof Error ? err.message : t('sync.failed'), 'error');
     } finally {
       setSyncing(false);
     }
   };
+
+  const cards: { key: string; icon: string; label: string; value: string; color: StatColor; onPress: () => void }[] = [
+    { key: 'rev', icon: '💰', label: t('dashboard.revenueToday'), value: formatCurrency(todaySalesTotal ?? stats?.todaySalesTotal ?? 0, currency), color: 'primary', onPress: () => router.push('/sales-history') },
+    { key: 'low', icon: '⚠️', label: t('dashboard.lowStock'), value: String(summary?.lowStockCount ?? stats?.lowStockCount ?? 0), color: 'amber', onPress: () => router.push('/catalog') },
+    { key: 'out', icon: '⛔', label: t('dashboard.outOfStock'), value: String(summary?.outOfStockCount ?? 0), color: 'red', onPress: () => router.push('/catalog') },
+    { key: 'exp', icon: '⏳', label: t('dashboard.expiringSoon'), value: String(summary?.expiringSoonCount ?? 0), color: 'orange', onPress: () => router.push('/catalog') },
+  ];
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -121,11 +115,10 @@ export default function DashboardScreen() {
             {t('dashboard.hello')}, {user?.name?.split(' ')[0] ?? 'there'}
           </Text>
           <Text className="text-sm text-text-secondary">{locationName ?? t('drawer.noLocation')}</Text>
-          {syncError ? <Text className="mt-1 text-xs text-error">{syncError}</Text> : null}
         </View>
 
         {negativeStockBatchCount + autoClosedShiftConflictCount > 0 ? (
-          <View className="flex-row items-start gap-3 rounded-2xl bg-error/10 p-4">
+          <View className="flex-row items-start gap-3 rounded-card bg-error/10 p-4">
             <Ionicons name="warning-outline" size={20} color={colors.error} />
             <View className="flex-1">
               <Text className="text-sm font-bold text-error">{t('dashboard.reconciliationTitle')}</Text>
@@ -146,7 +139,7 @@ export default function DashboardScreen() {
         {!initialLoading && stats && stats.heldSalesCount > 0 ? (
           <Pressable
             onPress={() => router.push('/held-sales')}
-            className="flex-row items-center gap-3 rounded-2xl bg-accent-blue-soft p-4 active:opacity-80">
+            className="flex-row items-center gap-3 rounded-card bg-accent-blue/10 p-4 active:opacity-80">
             <Ionicons name="pause-circle-outline" size={20} color={colors.accentBlue} />
             <View className="flex-1">
               <Text className="text-sm font-bold text-text-primary">
@@ -162,38 +155,15 @@ export default function DashboardScreen() {
           <DashboardSkeleton />
         ) : (
           <>
-            <View className="flex-row flex-wrap gap-3">
-              <StatTile
-                icon="cash-outline"
-                iconBg="bg-accent-blue-soft"
-                iconColor={colors.accentBlue}
-                label={t('dashboard.todaySales')}
-                value={formatCurrency(todaySalesTotal ?? stats?.todaySalesTotal ?? 0, currency)}
-                sub={`${todaySalesCount ?? stats?.todaySalesCount ?? 0} ${t('dashboard.salesSub')}`}
-              />
-              <StatTile
-                icon="alert-circle-outline"
-                iconBg="bg-accent-amber-soft"
-                iconColor={colors.accentAmber}
-                label={t('dashboard.lowStock')}
-                value={`${stats?.lowStockCount ?? 0}`}
-                sub={t('dashboard.productsSub')}
-                tone={stats && stats.lowStockCount > 0 ? 'warning' : 'default'}
-                onPress={() => router.push('/catalog')}
-              />
-              <StatTile
-                icon="wallet-outline"
-                iconBg={shiftOpen ? 'bg-success/15' : 'bg-accent-orange-soft'}
-                iconColor={shiftOpen ? colors.success : colors.accentOrange}
-                label={t('dashboard.cashRegister')}
-                value={shiftOpen === null ? '—' : shiftOpen ? t('dashboard.shiftOpenValue') : t('dashboard.shiftClosedValue')}
-                sub={t('dashboard.shiftStatusSub')}
-                tone={shiftOpen ? 'success' : 'default'}
-                onPress={() => router.push('/shift')}
-              />
+            <View className="-m-1.5 flex-row flex-wrap">
+              {cards.map((c) => (
+                <View key={c.key} className="w-1/2 p-1.5">
+                  <StatCard icon={<Text className="text-base">{c.icon}</Text>} label={c.label} value={c.value} color={c.color} onPress={c.onPress} />
+                </View>
+              ))}
             </View>
 
-            <View className="rounded-2xl bg-surface p-5 shadow-sm shadow-black/5">
+            <View className="rounded-card border border-border bg-surface p-5">
               <Text className="text-sm font-bold text-text-primary">{t('dashboard.revenueTrend')}</Text>
               <View className="mt-3 items-center">
                 <RevenueTrendChart points={revenueTrend ?? stats?.revenueTrend ?? []} />
@@ -203,12 +173,33 @@ export default function DashboardScreen() {
             {stats ? (
               <Pressable
                 onPress={() => router.push('/catalog')}
-                className="rounded-2xl bg-surface p-5 shadow-sm shadow-black/5 active:opacity-80">
+                className="rounded-card border border-border bg-surface p-5 active:opacity-80">
                 <Text className="text-sm font-bold text-text-primary">{t('dashboard.stockHealth')}</Text>
                 <View className="mt-3">
                   <StockHealthDonut health={stats.stockHealth} />
                 </View>
               </Pressable>
+            ) : null}
+
+            {summary?.recentSales?.length ? (
+              <View className="overflow-hidden rounded-card border border-border bg-surface">
+                <Text className="border-b border-border px-4 py-3 text-sm font-bold text-text-primary">{t('dashboard.recentSales')}</Text>
+                {summary.recentSales.slice(0, 6).map((s, i, arr) => (
+                  <View
+                    key={s.id}
+                    className={`flex-row items-center justify-between px-4 py-2.5 ${i === arr.length - 1 ? '' : 'border-b border-border/60'}`}>
+                    <View className="flex-1 pr-3">
+                      <Text numberOfLines={1} className="text-sm text-text-primary">
+                        {s.items.map((it) => `${it.quantity}× ${it.name}`).join(', ')}
+                      </Text>
+                      <Text className="text-xs text-text-secondary">
+                        {new Date(s.timestamp).toLocaleString(undefined, { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}
+                      </Text>
+                    </View>
+                    <Text className="text-sm font-semibold text-text-primary">{formatCurrency(s.total, currency)}</Text>
+                  </View>
+                ))}
+              </View>
             ) : null}
           </>
         )}
@@ -217,60 +208,27 @@ export default function DashboardScreen() {
   );
 }
 
-// Mirrors the real 3-tile-row + chart-card layout exactly, so the swap from
-// skeleton to real content doesn't visibly jump around once data arrives.
+// Mirrors the 6-tile grid + chart card so the skeleton→content swap doesn't jump.
 function DashboardSkeleton() {
   return (
     <>
-      <View className="flex-row flex-wrap gap-3">
-        {[0, 1, 2].map((i) => (
-          <View key={i} className="min-w-[30%] flex-1 gap-2 rounded-2xl bg-surface p-4 shadow-sm shadow-black/5">
-            <Skeleton width={36} height={36} radius={12} />
-            <Skeleton width="70%" height={10} />
-            <Skeleton width="50%" height={20} />
-            <Skeleton width="40%" height={10} />
+      <View className="-m-1.5 flex-row flex-wrap">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <View key={i} className="w-1/2 p-1.5">
+            <View className="gap-2 rounded-card border border-border bg-surface p-4">
+              <Skeleton width={36} height={36} radius={10} />
+              <Skeleton width="70%" height={10} />
+              <Skeleton width="50%" height={20} />
+            </View>
           </View>
         ))}
       </View>
-      <View className="rounded-2xl bg-surface p-5 shadow-sm shadow-black/5">
+      <View className="rounded-card border border-border bg-surface p-5">
         <Skeleton width="40%" height={13} />
         <View className="mt-4">
           <Skeleton height={140} radius={12} />
         </View>
       </View>
     </>
-  );
-}
-
-function StatTile({
-  icon,
-  iconBg,
-  iconColor,
-  label,
-  value,
-  sub,
-  tone = 'default',
-  onPress,
-}: {
-  icon: IconName;
-  iconBg: string;
-  iconColor: string;
-  label: string;
-  value: string;
-  sub: string;
-  tone?: 'default' | 'warning' | 'success';
-  onPress?: () => void;
-}) {
-  const valueColor = tone === 'warning' ? 'text-accent-amber' : tone === 'success' ? 'text-success' : 'text-text-primary';
-  const Container = onPress ? Pressable : View;
-  return (
-    <Container onPress={onPress} className="min-w-[30%] flex-1 rounded-2xl bg-surface p-4 shadow-sm shadow-black/5">
-      <View className={`h-9 w-9 items-center justify-center rounded-xl ${iconBg}`}>
-        <Ionicons name={icon} size={18} color={iconColor} />
-      </View>
-      <Text className="mt-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">{label}</Text>
-      <Text className={`mt-1 text-2xl font-bold ${valueColor}`}>{value}</Text>
-      <Text className="text-xs text-text-secondary">{sub}</Text>
-    </Container>
   );
 }

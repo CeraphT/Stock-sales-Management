@@ -67,6 +67,14 @@ export const translations = {
 
     // Dashboard
     "dashboard.todaySales": "Today's sales",
+    "dashboard.revenueToday": "Revenue today",
+    "dashboard.salesToday": "Sales today",
+    "dashboard.products": "Products",
+    "dashboard.outOfStock": "Out of stock",
+    "dashboard.expiringSoon": "Expiring soon",
+    "dashboard.recentSales": "Recent sales",
+    "sync.done": "Synced",
+    "sync.failed": "Sync failed",
     "dashboard.lowStock": "Low stock",
     "dashboard.heldSale": "held sale",
     "dashboard.heldSales": "Held sales",
@@ -236,6 +244,14 @@ export const translations = {
 
     // Dashboard
     "dashboard.todaySales": "Ventes du jour",
+    "dashboard.revenueToday": "Revenu du jour",
+    "dashboard.salesToday": "Ventes du jour",
+    "dashboard.products": "Produits",
+    "dashboard.outOfStock": "Rupture de stock",
+    "dashboard.expiringSoon": "Bientôt périmés",
+    "dashboard.recentSales": "Ventes récentes",
+    "sync.done": "Synchronisé",
+    "sync.failed": "Échec de la synchronisation",
     "dashboard.lowStock": "Stock faible",
     "dashboard.heldSale": "vente en attente",
     "dashboard.heldSales": "Ventes en attente",

@@ -5,6 +5,7 @@ import { useColorScheme } from 'nativewind';
 import { Text, View } from 'react-native';
 
 import { AppAlertHost } from '@/components/AppAlertHost';
+import { ToastHost } from '@/components/ToastHost';
 import { db } from '@/lib/db/client';
 import { installGlobalErrorHandlers } from '@/lib/globalErrors';
 import migrations from '@/lib/db/migrations/migrations';
@@ -64,6 +65,7 @@ export default function RootLayout() {
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack screenOptions={{ headerShown: false }} />
           <AppAlertHost />
+          <ToastHost />
         </ThemeProvider>
       </QueryClientProvider>
     </View>
