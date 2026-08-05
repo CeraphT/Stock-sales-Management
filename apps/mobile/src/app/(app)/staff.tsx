@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -42,6 +42,12 @@ export default function StaffScreen() {
 
   const [staff, setStaff] = useState<UserResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
+  const visibleStaff = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return q ? staff.filter((u) => u.name.toLowerCase().includes(q) || u.phone.includes(q)) : staff;
+  }, [staff, search]);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [name, setName] = useState('');
@@ -178,6 +184,15 @@ export default function StaffScreen() {
             <Ionicons name={showAddForm ? 'close' : 'add'} size={24} color={colors.primary} />
           </Pressable>
         </View>
+        <TextInput
+          className="mt-3 rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm text-text-primary"
+          placeholder="Search staff"
+          placeholderTextColor={colors.placeholder}
+          value={search}
+          onChangeText={setSearch}
+          autoCapitalize="none"
+        />
+        <Text className="mt-2 text-xs text-text-secondary">{staff.length} {staff.length === 1 ? 'staff member' : 'staff members'}</Text>
       </View>
 
       {showAddForm ? (
@@ -209,22 +224,32 @@ export default function StaffScreen() {
         <SkeletonList />
       ) : (
         <FlatList
-          data={staff}
+          data={visibleStaff}
           keyExtractor={(item) => item.id}
           contentContainerClassName="gap-2 p-4"
           refreshing={false}
           onRefresh={refresh}
-          renderItem={({ item }) => (
+          renderItem={({ item }) => {
+            const isAdmin = item.role === UserRole.CompanyAdmin || item.role === UserRole.SuperAdmin;
+            return (
             <View className="rounded-2xl bg-surface p-3.5 shadow-sm shadow-black/5">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-1 pr-2">
-                  <Text className="text-sm font-semibold text-text-primary">
-                    {item.name}
-                    {item.id === currentUserId ? ' (you)' : ''}
+              <View className="flex-row items-center gap-3">
+                <View className={`h-10 w-10 items-center justify-center rounded-full ${item.active ? 'bg-primary/15' : 'bg-text-secondary/15'}`}>
+                  <Text className={`text-sm font-bold ${item.active ? 'text-primary' : 'text-text-secondary'}`}>
+                    {(item.name.trim()[0] ?? '•').toUpperCase()}
                   </Text>
-                  <Text className="text-xs text-text-secondary">
-                    {item.phone} · {roleLabel(item.role)}
-                  </Text>
+                </View>
+                <View className="flex-1">
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-sm font-semibold text-text-primary">
+                      {item.name}
+                      {item.id === currentUserId ? ' (you)' : ''}
+                    </Text>
+                    <View className={`rounded-md px-1.5 py-0.5 ${isAdmin ? 'bg-accent-blue/15' : 'bg-text-secondary/15'}`}>
+                      <Text className={`text-[10px] font-bold ${isAdmin ? 'text-accent-blue' : 'text-text-secondary'}`}>{roleLabel(item.role)}</Text>
+                    </View>
+                  </View>
+                  <Text className="text-xs text-text-secondary">{item.phone}</Text>
                 </View>
                 <Pressable
                   onPress={() => onToggleActive(item)}
@@ -306,7 +331,8 @@ export default function StaffScreen() {
                 </View>
               ) : null}
             </View>
-          )}
+            );
+          }}
           ListEmptyComponent={
             !loading ? <Text className="p-4 text-center text-sm text-text-secondary">No staff accounts yet.</Text> : null
           }
