@@ -1,6 +1,4 @@
 import { UserRole } from '@stockflow/core/api/enums';
-import * as DocumentPicker from 'expo-document-picker';
-import { File } from 'expo-file-system';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -34,12 +32,14 @@ export default function DataMaintenanceScreen() {
   const [sel, setSel] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    try {
-      setAutoInfo(lastBackupInfo());
-      setBackupsPath(backupsDirPath());
-    } catch {
-      /* fs not ready */
-    }
+    void (async () => {
+      try {
+        setAutoInfo(await lastBackupInfo());
+        setBackupsPath(await backupsDirPath());
+      } catch {
+        /* fs not ready */
+      }
+    })();
   }, []);
 
   async function onBackup() {
@@ -60,7 +60,7 @@ export default function DataMaintenanceScreen() {
     setBusy('auto');
     try {
       const r = await runDueBackup(companyId, { force: true });
-      setAutoInfo(lastBackupInfo());
+      setAutoInfo(await lastBackupInfo());
       toast(r.ran ? `Daily backup saved · ${r.rows} records` : 'Nothing to back up.', 'success');
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Backup failed.', 'error');
@@ -75,6 +75,8 @@ export default function DataMaintenanceScreen() {
     setRecap([]);
     setBusy('analyze');
     try {
+      const DocumentPicker = await import('expo-document-picker');
+      const { File } = await import('expo-file-system');
       const res = await DocumentPicker.getDocumentAsync({ type: 'application/json', copyToCacheDirectory: true });
       if (res.canceled) return;
       const text = await new File(res.assets[0].uri).text();

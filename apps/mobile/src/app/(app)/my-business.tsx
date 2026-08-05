@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as Clipboard from 'expo-clipboard';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
@@ -202,6 +201,7 @@ export default function MyBusinessScreen() {
           </View>
           <Pressable
             onPress={async () => {
+              const Clipboard = await import('expo-clipboard');
               await Clipboard.setStringAsync(company.uniqueCode);
               toast('Join code copied.', 'success');
             }}

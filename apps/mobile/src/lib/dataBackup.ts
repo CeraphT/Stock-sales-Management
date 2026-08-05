@@ -1,9 +1,11 @@
 import { clearLocalData, isolateCompany } from '@stockflow/core/db/isolation';
-import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 import { db } from '@/lib/db/client';
 import * as schema from '@/lib/db/schema';
+
+// expo-file-system is imported lazily (inside shareBackup) so this module loads
+// even where the native module isn't present yet — see autoBackup.ts.
 
 // Every local table — the on-device mirror of the company's data plus any
 // not-yet-synced sales. The full backup surface.
@@ -55,6 +57,7 @@ export async function buildBackup(companyId: string): Promise<{ json: string; ro
  * (save to Files, send to Drive/WhatsApp, etc.). */
 export async function shareBackup(companyId: string): Promise<{ fileName: string; rowCount: number }> {
   const { json, rowCount } = await buildBackup(companyId);
+  const { File, Paths } = await import('expo-file-system');
   const fileName = `pharmastock-backup-${stamp()}.json`;
   const file = new File(Paths.cache, fileName);
   if (file.exists) file.delete();
