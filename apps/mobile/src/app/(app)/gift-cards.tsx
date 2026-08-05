@@ -89,6 +89,31 @@ export default function GiftCardsScreen() {
     }
   };
 
+  const onDelete = (card: GiftCardResponse) => {
+    // A used card (redeemed against a sale) has financial history — deleting it
+    // would erase that trail, so it can only be deactivated. Same guard as desktop.
+    if (card.remainingValue < card.initialValue) {
+      showAlert('Cannot delete', 'This card has been used — deactivate it instead of deleting.');
+      return;
+    }
+    showAlert('Delete gift card?', `${card.code} — this permanently removes it. Continue?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          if (!companyId) return;
+          try {
+            await giftCardsApi.delete(companyId, card.id);
+            await refresh(query);
+          } catch (err) {
+            showAlert('Could not delete gift card', err instanceof Error ? err.message : 'Something went wrong.');
+          }
+        },
+      },
+    ]);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background">
       <ScreenBackground />
@@ -157,6 +182,13 @@ export default function GiftCardsScreen() {
                 <Text className={`text-xs font-semibold ${item.active ? 'text-primary' : 'text-text-secondary'}`}>
                   {item.active ? 'Active' : 'Inactive'}
                 </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => onDelete(item)}
+                hitSlop={6}
+                accessibilityLabel="Delete gift card"
+                className="h-9 w-9 items-center justify-center rounded-full border border-border bg-background active:opacity-80">
+                <Ionicons name="trash-outline" size={16} color={colors.error} />
               </Pressable>
             </View>
           </View>
