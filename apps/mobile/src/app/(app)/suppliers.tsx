@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { FlatList, Linking, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -44,6 +44,18 @@ export default function SuppliersScreen() {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [companyId]),
   );
+
+  // Tap-to-call / email a supplier — the mobile form of desktop's contact
+  // popup. Uses the native dialer / mail app via Linking.
+  const onContact = (supplier: SupplierResponse) => {
+    const phone = supplier.contactPhone?.trim();
+    const email = supplier.contactEmail?.trim();
+    const buttons: { text: string; style?: 'cancel' | 'destructive'; onPress?: () => void }[] = [];
+    if (phone) buttons.push({ text: `Call ${phone}`, onPress: () => void Linking.openURL(`tel:${phone}`) });
+    if (email) buttons.push({ text: `Email ${email}`, onPress: () => void Linking.openURL(`mailto:${email}`) });
+    buttons.push({ text: 'Close', style: 'cancel' });
+    showAlert(supplier.name, phone || email ? 'Contact this supplier' : 'No contact details on file.', buttons);
+  };
 
   const onDelete = (supplier: SupplierResponse) => {
     showAlert('Delete supplier?', `"${supplier.name}" will be removed.`, [
@@ -119,7 +131,10 @@ export default function SuppliersScreen() {
               <Text className="text-sm font-semibold text-text-primary">{item.name}</Text>
               <Text className="text-xs text-text-secondary">{item.contactPhone ?? '—'} · {item.contactEmail ?? '—'}</Text>
             </View>
-            <Pressable onPress={() => onDelete(item)} hitSlop={8} className="h-8 w-8 items-center justify-center">
+            <Pressable onPress={() => onContact(item)} hitSlop={8} accessibilityLabel="Contact supplier" className="h-8 w-8 items-center justify-center">
+              <Ionicons name="call-outline" size={18} color={colors.primary} />
+            </Pressable>
+            <Pressable onPress={() => onDelete(item)} hitSlop={8} accessibilityLabel="Delete" className="h-8 w-8 items-center justify-center">
               <Ionicons name="trash-outline" size={18} color={colors.error} />
             </Pressable>
           </Pressable>

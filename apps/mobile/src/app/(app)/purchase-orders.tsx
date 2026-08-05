@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { FlatList, Linking, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -9,6 +9,8 @@ import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { PurchaseOrderStatus } from '@/lib/api/enums';
 import { purchaseOrdersApi } from '@/lib/api/endpoints/purchaseOrders';
+import { suppliersApi } from '@/lib/api/endpoints/suppliers';
+import type { SupplierResponse } from '@/lib/api/types/catalog';
 import type { PurchaseOrderSummaryResponse } from '@/lib/api/types/purchaseOrders';
 import { DateField } from '@/components/DateField';
 import { FiltersDisclosure } from '@/components/FiltersDisclosure';
@@ -47,21 +49,47 @@ export default function PurchaseOrdersScreen() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [allOrders, setAllOrders] = useState<PurchaseOrderSummaryResponse[]>([]);
+  const [suppliers, setSuppliers] = useState<SupplierResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetched unfiltered once, filtered client-side — lets every status chip
   // show a live count and switching filters feel instant, no re-fetch per tap.
+  // Suppliers come along so a PO's supplier can be contacted (the summary has
+  // only the name, no contact details).
   const refresh = useCallback(async () => {
     if (!companyId) return;
     setLoading(true);
     try {
-      setAllOrders(await purchaseOrdersApi.list(companyId));
+      const [orders, sups] = await Promise.all([purchaseOrdersApi.list(companyId), suppliersApi.list(companyId)]);
+      setAllOrders(orders);
+      setSuppliers(sups);
     } catch (err) {
       showAlert('Could not load purchase orders', err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
       setLoading(false);
     }
   }, [companyId]);
+
+  const supplierByName = useMemo(() => {
+    const m = new Map<string, SupplierResponse>();
+    for (const s of suppliers) m.set(s.name, s);
+    return m;
+  }, [suppliers]);
+
+  const onContactSupplier = (supplierName: string) => {
+    const s = supplierByName.get(supplierName);
+    const phone = s?.contactPhone?.trim();
+    const email = s?.contactEmail?.trim();
+    const buttons: { text: string; style?: 'cancel' | 'destructive'; onPress?: () => void }[] = [];
+    if (phone) buttons.push({ text: `Call ${phone}`, onPress: () => void Linking.openURL(`tel:${phone}`) });
+    if (email) buttons.push({ text: `Email ${email}`, onPress: () => void Linking.openURL(`mailto:${email}`) });
+    buttons.push({ text: 'Close', style: 'cancel' });
+    showAlert(
+      supplierName,
+      phone || email ? 'Contact this supplier' : 'No contact details recorded. Add them on the Suppliers screen.',
+      buttons,
+    );
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -166,6 +194,13 @@ export default function PurchaseOrdersScreen() {
                       <Ionicons name={tone.icon} size={12} color={tone.iconColor} />
                       <Text className={`text-[11px] font-bold ${tone.textClass}`}>{purchaseOrderStatusLabel(item.status)}</Text>
                     </View>
+                    <Pressable
+                      onPress={() => onContactSupplier(item.supplierName)}
+                      hitSlop={8}
+                      accessibilityLabel="Contact supplier"
+                      className="h-8 w-8 items-center justify-center">
+                      <Ionicons name="call-outline" size={17} color={colors.primary} />
+                    </Pressable>
                   </View>
                 </View>
                 <Text className="mt-1 text-xs text-text-secondary">
