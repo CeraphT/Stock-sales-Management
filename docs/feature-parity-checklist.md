@@ -225,7 +225,8 @@ never touch another business's data on a shared device.
 | i18n (French default; English) via string-key dictionaries | ✅ | ☑ | ☐ |
 | Currency formatting (free-text currency, not ISO — `amount.toLocaleString() + " " + currency`) | ✅ | ☑ | ☐ |
 | Light/dark theme | ✅ | ☑ | ☐ |
-| **Crash safety** — screen-level error boundary keeps the shell, top-level fallback, global async error handlers | ✅ | ☐ | ☐ |
+| **Crash safety** — error boundary + global async error handlers | ✅ | ☑ (Expo Router `ErrorBoundary` + global handler; type-checked, device-pending) | ☐ |
+| **Design foundation** — shared dark-slate palette, 18px card radius, Button ghost/danger, StatCard/StockBadge/Card | ✅ | ☑ (palette unified + component lib; device-pending) | ☐ |
 | Custom toast + confirm system | ✅ | ☑ | ☐ |
 
 ---
