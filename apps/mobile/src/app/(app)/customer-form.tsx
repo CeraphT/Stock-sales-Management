@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -18,6 +18,8 @@ export default function CustomerFormScreen() {
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [isBusiness, setIsBusiness] = useState(false);
+  const [taxId, setTaxId] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const onSubmit = async () => {
@@ -28,7 +30,12 @@ export default function CustomerFormScreen() {
     }
     setSubmitting(true);
     try {
-      await customersApi.create(companyId, { name: name.trim(), phone: phone.trim() || null });
+      await customersApi.create(companyId, {
+        name: name.trim(),
+        phone: phone.trim() || null,
+        isBusiness,
+        taxId: isBusiness ? taxId.trim() || null : null,
+      });
       router.back();
     } catch (err) {
       showAlert('Could not create customer', err instanceof Error ? err.message : 'Something went wrong.');
@@ -51,6 +58,15 @@ export default function CustomerFormScreen() {
       <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         <TextField label="Customer name" value={name} onChangeText={setName} />
         <TextField label="Phone (optional)" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
+
+        <View className="flex-row items-center justify-between rounded-xl bg-surface p-3.5">
+          <View className="flex-1 pr-2">
+            <Text className="text-sm font-semibold text-text-primary">Business customer</Text>
+            <Text className="text-xs text-text-secondary">Enables a compliant invoice with the buyer's Tax ID (VAT added on top).</Text>
+          </View>
+          <Switch value={isBusiness} onValueChange={setIsBusiness} trackColor={{ true: '#4F46E5' }} />
+        </View>
+        {isBusiness ? <TextField label="Tax ID / NIU" value={taxId} onChangeText={setTaxId} /> : null}
 
         <Button title={submitting ? 'Creating…' : 'Create customer'} loading={submitting} onPress={onSubmit} />
       </ScrollView>
