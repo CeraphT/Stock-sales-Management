@@ -6,9 +6,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
+import { StockBadge } from '@/components/StockBadge';
 import { productsApi } from '@/lib/api/endpoints/products';
 import type { ProductCatalogItem } from '@/lib/api/types/catalog';
 import { useAuthStore } from '@/lib/auth/store';
+import { formatCurrency } from '@/lib/format';
+import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { syncNow } from '@/lib/sync/syncNow';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
@@ -17,6 +20,7 @@ export default function ArchivedProductsScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   useFeatureGuard(useAuthStore((s) => s.user?.restrictCatalog));
   const colors = useThemeColors();
+  const currency = useCompanyCurrency();
 
   const [query, setQuery] = useState('');
   const [items, setItems] = useState<ProductCatalogItem[]>([]);
@@ -80,6 +84,9 @@ export default function ArchivedProductsScreen() {
           }}
           autoCapitalize="none"
         />
+        <Text className="mt-2 text-xs text-text-secondary">
+          Archived products are hidden from the catalog and the point of sale. Restore one to sell it again.
+        </Text>
       </View>
 
       <FlatList
@@ -93,9 +100,13 @@ export default function ArchivedProductsScreen() {
             <View className="flex-1 pr-3">
               <Text className="text-sm font-semibold text-text-primary">{item.name}</Text>
               {item.barcode ? <Text className="text-xs text-text-secondary">Barcode: {item.barcode}</Text> : null}
+              <View className="mt-1 flex-row items-center gap-2">
+                <Text className="text-xs font-semibold text-primary">{formatCurrency(item.salePrice, currency)}</Text>
+                <StockBadge status={item.stockStatus} />
+              </View>
             </View>
             <Pressable onPress={() => onRestore(item)} className="rounded-lg bg-primary px-3 py-2">
-              <Text className="text-xs font-semibold text-white">Restore</Text>
+              <Text className="text-xs font-semibold text-white">♻️ Restore</Text>
             </Pressable>
           </View>
         )}
