@@ -6,6 +6,7 @@ import { isolateCompany } from "@stockflow/core/db/isolation";
 import { localShiftService } from "@stockflow/core/local/shiftService";
 
 import { IconButton } from "@/components/IconButton";
+import { RegisterGate } from "@/components/RegisterGate";
 import { ScreenBackground } from "@/components/ScreenBackground";
 import { SetupWizard } from "@/components/SetupWizard";
 import { useBreadcrumb, type Crumb } from "@/lib/breadcrumb";
@@ -71,6 +72,10 @@ export function Shell() {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  // Cashier start-of-day freeze: default ON for cashiers (fail-closed) so the
+  // app never flashes before the shift check runs; the initial effect clears it
+  // if a shift is already open. Admins are never gated.
+  const [registerGate, setRegisterGate] = useState(role === UserRole.Cashier);
 
   // Auto sign-out an idle till.
   useIdleLogout();
@@ -108,20 +113,19 @@ export function Shell() {
         }
       }
       await doSync();
-      // Cashier "start of day" gate: a cashier lands on the register to open it
-      // with their starting cash before anything else. Because a shift stays
-      // open until it's closed, this naturally fires only once a day (or after
-      // a prior shift was closed) — not on every login.
+      // Cashier "start of day" freeze: the whole app stays locked behind
+      // RegisterGate until a shift is open (opening cash float recorded). A
+      // shift stays open until closed, so this fires once a day (or after a
+      // prior shift was closed) — not on every login. Admins are never gated.
       if (role === UserRole.Cashier && companyId && shiftLocationId) {
         try {
           const shift = await localShiftService.getCurrentShift(companyId, shiftLocationId);
-          if (!shift) {
-            toast("Open the cash register with your starting cash to begin the day.", "info");
-            navigate("/cash-register", { replace: true });
-          }
+          setRegisterGate(!shift);
         } catch {
-          /* non-blocking */
+          /* keep gated on error — fail closed */
         }
+      } else {
+        setRegisterGate(false);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,6 +145,17 @@ export function Shell() {
   function onLogout() {
     logout();
     navigate("/onboarding", { replace: true });
+  }
+
+  // Cashier freeze — the register gate is the ONLY thing rendered until a shift
+  // is open, so no app feature (sales, navigation, settings) is reachable first.
+  if (registerGate) {
+    return (
+      <>
+        <ScreenBackground />
+        <RegisterGate onOpened={() => setRegisterGate(false)} />
+      </>
+    );
   }
 
   return (
