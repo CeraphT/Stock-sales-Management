@@ -17,6 +17,27 @@ export interface CustomerResponse {
   taxId: string | null;
 }
 
+import type { SaleStatus } from "../enums";
+
+export interface CustomerCreditEntry {
+  saleId: string;
+  timestamp: string;
+  total: number;
+  status: SaleStatus;
+  /** Portion put on account (adds to what they owe). */
+  creditAmount: number;
+  /** Portion paid from store credit (reduces store credit). */
+  storeCreditAmount: number;
+  /** "2× Amoxicillin, 1× Aspirin" — what the order contained. */
+  items: string;
+}
+
+export interface CustomerCreditHistoryResponse {
+  creditBalance: number;
+  storeCreditBalance: number;
+  entries: CustomerCreditEntry[];
+}
+
 export interface IssueGiftCardRequest {
   initialValue: number;
 }

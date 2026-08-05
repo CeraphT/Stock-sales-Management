@@ -1,8 +1,10 @@
+import { SaleStatus } from "@stockflow/core/api/enums";
 import { customersApi } from "@stockflow/core/api/endpoints/customers";
 import type { CustomerResponse } from "@stockflow/core/api/types/customers";
 import { formatCurrency } from "@stockflow/core/format";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/Button";
 import { StatCard } from "@/components/StatCard";
@@ -55,14 +57,24 @@ export function CustomerCredits() {
   const companyId = useAuthStore((s) => s.companyId)!;
   const currency = useCurrency();
   const company = useCompany().data;
+  const navigate = useNavigate();
   const t = useT();
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
+  const [selected, setSelected] = useState<CustomerResponse | null>(null);
 
   const { data: customers = [] } = useQuery({
     queryKey: ["customers", companyId],
     queryFn: () => customersApi.list(companyId),
+  });
+
+  // The picked customer's statement — the sales behind their owed / store-credit
+  // balances. Fetched on demand when a row is opened.
+  const { data: history } = useQuery({
+    queryKey: ["customer-credit-history", companyId, selected?.id],
+    queryFn: () => customersApi.creditHistory(companyId, selected!.id),
+    enabled: !!selected,
   });
 
   const rows = useMemo(() => {
@@ -146,7 +158,11 @@ export function CustomerCredits() {
               </tr>
             ) : (
               rows.map((c) => (
-                <tr key={c.id} className="border-b border-border/60 last:border-0 hover:bg-background/50">
+                <tr
+                  key={c.id}
+                  onClick={() => setSelected(c)}
+                  className="cursor-pointer border-b border-border/60 last:border-0 hover:bg-background/50"
+                >
                   <td className="px-4 py-3 font-medium text-text-primary">{c.name}</td>
                   <td className="px-4 py-3 text-text-secondary">{c.phone ?? "—"}</td>
                   <td className={`px-4 py-3 text-right font-semibold ${c.creditBalance > 0 ? "text-error" : "text-text-secondary"}`}>
@@ -174,6 +190,55 @@ export function CustomerCredits() {
           ) : null}
         </table>
       </div>
+
+      {selected ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 backdrop-blur-sm" onClick={() => setSelected(null)}>
+          <div className="card-in w-full max-w-lg rounded-card border border-border bg-surface p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Customer statement")}</div>
+            <div className="text-lg font-bold text-text-primary">{selected.name}</div>
+            <div className="mb-4 mt-1 flex flex-wrap gap-4 text-sm">
+              <span className="text-text-secondary">
+                {t("Owes")}: <span className="font-bold text-error">{formatCurrency(selected.creditBalance, currency)}</span>
+              </span>
+              <span className="text-text-secondary">
+                {t("Store credit")}: <span className="font-bold text-success">{formatCurrency(selected.loyaltyStoreCreditBalance, currency)}</span>
+              </span>
+            </div>
+            <div className="max-h-[52vh] overflow-y-auto rounded-xl border border-border">
+              {!history ? (
+                <div className="p-6 text-center text-text-secondary">{t("Loading…")}</div>
+              ) : history.entries.length === 0 ? (
+                <div className="p-6 text-center text-text-secondary">{t("No credit or store-credit activity yet.")}</div>
+              ) : (
+                history.entries.map((e) => (
+                  <button
+                    key={e.saleId}
+                    onClick={() => navigate(`/sales/${e.saleId}`)}
+                    className="block w-full border-b border-border/60 px-4 py-3 text-left last:border-0 hover:bg-background/60"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-text-secondary">{new Date(e.timestamp).toLocaleString()}</span>
+                      {e.status === SaleStatus.Refunded ? <span className="text-[10px] font-bold text-error">{t("Refunded")}</span> : null}
+                    </div>
+                    <div className="text-sm text-text-primary">{e.items || `${formatCurrency(e.total, currency)}`}</div>
+                    <div className="mt-0.5 flex flex-wrap gap-3">
+                      {e.creditAmount > 0 ? (
+                        <span className="text-xs font-semibold text-error">{t("On account")}: {formatCurrency(e.creditAmount, currency)}</span>
+                      ) : null}
+                      {e.storeCreditAmount > 0 ? (
+                        <span className="text-xs font-semibold text-success">{t("Store credit used")}: {formatCurrency(e.storeCreditAmount, currency)}</span>
+                      ) : null}
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+            <div className="mt-4 flex justify-end">
+              <Button variant="ghost" onClick={() => setSelected(null)}>{t("Close")}</Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

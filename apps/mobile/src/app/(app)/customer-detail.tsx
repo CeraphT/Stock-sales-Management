@@ -9,8 +9,9 @@ import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { SkeletonDetail } from '@/components/Skeleton';
 import { TextField } from '@/components/TextField';
+import { SaleStatus } from '@/lib/api/enums';
 import { customersApi } from '@/lib/api/endpoints/customers';
-import type { CustomerResponse } from '@/lib/api/types/customers';
+import type { CustomerCreditEntry, CustomerResponse } from '@/lib/api/types/customers';
 import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
@@ -23,6 +24,7 @@ export default function CustomerDetailScreen() {
   const currency = useCompanyCurrency();
 
   const [customer, setCustomer] = useState<CustomerResponse | null>(null);
+  const [history, setHistory] = useState<CustomerCreditEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [points, setPoints] = useState('');
   const [redeeming, setRedeeming] = useState(false);
@@ -31,8 +33,12 @@ export default function CustomerDetailScreen() {
     if (!companyId || !id) return;
     setLoading(true);
     try {
-      const all = await customersApi.list(companyId);
+      const [all, creditHistory] = await Promise.all([
+        customersApi.list(companyId),
+        customersApi.creditHistory(companyId, id),
+      ]);
       setCustomer(all.find((c) => c.id === id) ?? null);
+      setHistory(creditHistory.entries);
     } catch (err) {
       showAlert('Could not load customer', err instanceof Error ? err.message : 'Something went wrong.');
       router.back();
@@ -117,6 +123,40 @@ export default function CustomerDetailScreen() {
             <TextField label="Redeem points" placeholder="0" keyboardType="numeric" value={points} onChangeText={setPoints} />
             <Button title={redeeming ? 'Redeeming…' : 'Redeem for store credit'} loading={redeeming} onPress={onRedeem} />
           </View>
+        </View>
+
+        {/* Credit statement — the sales that make up the owed / store-credit
+            balances. Tap one to open the full sale. */}
+        <View className="overflow-hidden rounded-2xl bg-surface">
+          <Text className="border-b border-border px-4 py-3 text-sm font-bold text-text-primary">Credit statement</Text>
+          {history.length === 0 ? (
+            <Text className="p-4 text-center text-xs text-text-secondary">No credit or store-credit activity yet.</Text>
+          ) : (
+            history.map((entry) => (
+              <Pressable
+                key={entry.saleId}
+                onPress={() => router.push({ pathname: '/sale-detail', params: { id: entry.saleId } })}
+                className="border-b border-border/60 px-4 py-3 active:opacity-70">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-xs text-text-secondary">{new Date(entry.timestamp).toLocaleString()}</Text>
+                  {entry.status === SaleStatus.Refunded ? (
+                    <Text className="text-[10px] font-bold text-error">REFUNDED</Text>
+                  ) : null}
+                </View>
+                <Text className="mt-0.5 text-sm text-text-primary" numberOfLines={2}>
+                  {entry.items || `Sale of ${formatCurrency(entry.total, currency)}`}
+                </Text>
+                <View className="mt-1 flex-row flex-wrap gap-x-3">
+                  {entry.creditAmount > 0 ? (
+                    <Text className="text-xs font-semibold text-error">On account: {formatCurrency(entry.creditAmount, currency)}</Text>
+                  ) : null}
+                  {entry.storeCreditAmount > 0 ? (
+                    <Text className="text-xs font-semibold text-success">Store credit used: {formatCurrency(entry.storeCreditAmount, currency)}</Text>
+                  ) : null}
+                </View>
+              </Pressable>
+            ))
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

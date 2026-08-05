@@ -1,5 +1,6 @@
 import { api } from "../client";
 import type {
+  CustomerCreditHistoryResponse,
   CustomerRequest,
   CustomerResponse,
   LoyaltyAccountResponse,
@@ -18,4 +19,9 @@ export const customersApi = {
       `/api/companies/${companyId}/customers/${customerId}/loyalty/redeem`,
       body,
     ),
+
+  /** The sales that make up a customer's owed balance (Credit) and store-credit
+   * spend (StoreCredit), newest first, with what was bought and refund status. */
+  creditHistory: (companyId: string, customerId: string) =>
+    api.get<CustomerCreditHistoryResponse>(`/api/companies/${companyId}/customers/${customerId}/credit-history`),
 };
