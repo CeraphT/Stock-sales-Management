@@ -103,6 +103,16 @@ export default function SaleDetailScreen() {
       amountTendered: sale.amountTendered,
       changeDue: sale.changeDue,
       total: sale.total,
+      // Makes the receipt double as a compliant B2B invoice (same as desktop):
+      // invoice number + seller/buyer NIU + VAT. B2B adds VAT on top (rate/100),
+      // B2C extracts it from the inclusive price (rate/(100+rate)).
+      taxTotal: sale.productLines.reduce((s, l) => {
+        if (l.taxRatePercent <= 0) return s;
+        return s + (sale.taxAddedOnTop ? (l.lineTotal * l.taxRatePercent) / 100 : (l.lineTotal * l.taxRatePercent) / (100 + l.taxRatePercent));
+      }, 0),
+      customerTaxId: sale.customerTaxId,
+      invoiceNumber: sale.invoiceNumber,
+      sellerTaxId: sale.sellerTaxId,
     };
   };
 
