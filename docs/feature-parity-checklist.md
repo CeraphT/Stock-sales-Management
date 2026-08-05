@@ -18,6 +18,16 @@ declaration exactly.
 
 ---
 
+## Mobile parity progress (desktop → mobile port)
+Tracked in the git history (`Mobile parity Phase N` commits). Status:
+- **Phase 1 Design foundation** ✅ — dark palette unified to slate, 18px card radius, Button ghost/danger, StatCard/StockBadge/Card/Toast.
+- **Phase 2 Crash safety** ✅ — Expo Router `ErrorBoundary` (in `(app)/_layout`) + global handler.
+- **Phase 3 Data model** ✅ — My business Tax ID/regime/receipt fields; customer Business toggle + Tax ID. (Batch-VAT was a non-issue — backend derives it.)
+- **Phase 5 Tax/OHADA** ✅ — VAT declaration screen + sales/purchases journals, cash book, income statement PDFs; receipt doubles as compliant B2B invoice.
+- **Phase 6** ✅ (most) — dashboard rebuilt to match desktop (6→4 tiles, line chart, recent sales, deep-link filters), gift-card voucher, purchase-milestone rewards at checkout, inventory report, invite-code copy.
+- **Phase 4 Data & maintenance** ✅ — backup/restore(add·replace·recap·multiselect·cross-company guard)/reset/auto-daily-backup. **Adds native modules → needs `npx expo run:android` rebuild.**
+- **Deferred (minor):** PO date-filter, PO reorder-consolidation; full French i18n of the new admin screens (English literals for now, matching the pre-existing my-business style).
+
 ## 1. Auth & onboarding
 | Feature | Desktop | Mobile | Web |
 |---|---|---|---|
