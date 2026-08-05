@@ -37,6 +37,14 @@ export default function MyBusinessScreen() {
   const [loyaltyEarnRate, setLoyaltyEarnRate] = useState('');
   const [loyaltyPointValue, setLoyaltyPointValue] = useState('');
   const [servicesModuleEnabled, setServicesModuleEnabled] = useState(false);
+  // Tax + profile (drive receipts, reports and the OHADA tax documents).
+  const [taxId, setTaxId] = useState('');
+  const [taxRegime, setTaxRegime] = useState(0); // 0 = Standard/VAT, 1 = Flat tax
+  const [flatTaxAmount, setFlatTaxAmount] = useState('');
+  const [flatTaxPeriod, setFlatTaxPeriod] = useState(1);
+  const [address, setAddress] = useState('');
+  const [phone, setPhone] = useState('');
+  const [receiptFooter, setReceiptFooter] = useState('');
 
   const [newBranchName, setNewBranchName] = useState('');
   const [newBranchAddress, setNewBranchAddress] = useState('');
@@ -60,6 +68,13 @@ export default function MyBusinessScreen() {
       setLoyaltyEarnRate(String(companyResult.loyaltyEarnRateAmount));
       setLoyaltyPointValue(String(companyResult.loyaltyPointValue));
       setServicesModuleEnabled(companyResult.servicesModuleEnabled);
+      setTaxId(companyResult.taxId ?? '');
+      setTaxRegime(companyResult.taxRegime);
+      setFlatTaxAmount(String(companyResult.flatTaxAmount));
+      setFlatTaxPeriod(companyResult.flatTaxPeriod);
+      setAddress(companyResult.address ?? '');
+      setPhone(companyResult.phone ?? '');
+      setReceiptFooter(companyResult.receiptFooter ?? '');
     } finally {
       setLoading(false);
     }
@@ -86,9 +101,9 @@ export default function MyBusinessScreen() {
     if (!company) return;
     setSaving(true);
     try {
-      // Pass through the fields this screen doesn't yet edit (reward/profile/tax
-      // regime) from the loaded company, so the update stays complete. Phase 3
-      // of the desktop→mobile parity work adds real UI for these.
+      // Spread carries the fields not edited here (logoUrl, low-stock default,
+      // setupCompleted, reward program — reward UI is parity Phase 6); the
+      // explicit fields below are the ones this screen owns.
       const updated = await companiesApi.update(companyId, {
         ...company,
         name: name.trim(),
@@ -99,6 +114,13 @@ export default function MyBusinessScreen() {
         loyaltyEarnRateAmount: earnRate,
         loyaltyPointValue: pointValue,
         servicesModuleEnabled,
+        taxId: taxId.trim() || null,
+        taxRegime,
+        flatTaxAmount: Number(flatTaxAmount || '0'),
+        flatTaxPeriod,
+        address: address.trim() || null,
+        phone: phone.trim() || null,
+        receiptFooter: receiptFooter.trim() || null,
       });
       setCompany(updated);
       showAlert('Saved', 'Business settings updated.');
@@ -178,7 +200,37 @@ export default function MyBusinessScreen() {
         <TextField label="Business name" value={name} onChangeText={setName} />
         <TextField label="Description" value={description} onChangeText={setDescription} />
         <TextField label="Currency" autoCapitalize="characters" value={currency} onChangeText={setCurrency} />
-        <TextField label="Default tax rate (%)" keyboardType="numeric" value={taxRate} onChangeText={setTaxRate} />
+
+        {/* Tax — regime gates whether VAT rate or a flat lump-sum tax applies. */}
+        <View className="gap-3 rounded-xl bg-surface p-3.5">
+          <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Tax</Text>
+          <TextField label="Tax ID / NIU" value={taxId} onChangeText={setTaxId} />
+          <View>
+            <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-text-secondary">Tax regime</Text>
+            <View className="flex-row gap-2">
+              <ChoiceButton active={taxRegime === 0} label="Standard (VAT)" onPress={() => setTaxRegime(0)} />
+              <ChoiceButton active={taxRegime === 1} label="Flat tax (impôt libératoire)" onPress={() => setTaxRegime(1)} />
+            </View>
+          </View>
+          {taxRegime === 0 ? (
+            <TextField label="Default tax rate (%)" keyboardType="numeric" value={taxRate} onChangeText={setTaxRate} />
+          ) : (
+            <>
+              <Text className="text-xs text-text-secondary">
+                Under impôt libératoire you charge no VAT; you pay a flat lump-sum tax. It appears in the tax declaration.
+              </Text>
+              <TextField label={`Flat tax amount (${currency || 'XAF'})`} keyboardType="numeric" value={flatTaxAmount} onChangeText={setFlatTaxAmount} />
+              <View>
+                <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-text-secondary">Flat tax period</Text>
+                <View className="flex-row gap-2">
+                  {[{ v: 0, l: 'Monthly' }, { v: 1, l: 'Quarterly' }, { v: 2, l: 'Yearly' }].map((p) => (
+                    <ChoiceButton key={p.v} active={flatTaxPeriod === p.v} label={p.l} onPress={() => setFlatTaxPeriod(p.v)} />
+                  ))}
+                </View>
+              </View>
+            </>
+          )}
+        </View>
 
         <View className="flex-row items-center justify-between rounded-xl bg-surface p-3.5">
           <Text className="text-sm font-semibold text-text-primary">Loyalty program enabled</Text>
@@ -203,6 +255,14 @@ export default function MyBusinessScreen() {
             <Text className="text-xs text-text-secondary">Lets sales include billed services (e.g. maternity care) alongside products.</Text>
           </View>
           <Switch value={servicesModuleEnabled} onValueChange={setServicesModuleEnabled} trackColor={{ true: '#4F46E5' }} />
+        </View>
+
+        {/* Receipt & contact — shown on printed receipts and report headers. */}
+        <View className="gap-3 rounded-xl bg-surface p-3.5">
+          <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Receipt & contact</Text>
+          <TextField label="Address" value={address} onChangeText={setAddress} />
+          <TextField label="Phone" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
+          <TextField label="Receipt footer" value={receiptFooter} onChangeText={setReceiptFooter} />
         </View>
 
         <Button title={saving ? 'Saving…' : 'Save changes'} loading={saving} onPress={onSave} />
@@ -260,5 +320,15 @@ export default function MyBusinessScreen() {
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function ChoiceButton({ active, label, onPress }: { active: boolean; label: string; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className={`flex-1 rounded-lg border px-3 py-2 ${active ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
+      <Text className={`text-center text-xs font-semibold ${active ? 'text-primary' : 'text-text-secondary'}`}>{label}</Text>
+    </Pressable>
   );
 }
