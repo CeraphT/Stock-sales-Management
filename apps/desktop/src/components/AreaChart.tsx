@@ -38,6 +38,12 @@ export function AreaChart({ points, height = 180 }: { points: AreaPoint[]; heigh
   }
   const area = `${line} L ${pts[pts.length - 1][0]} ${H - pad} L ${pts[0][0]} ${H - pad} Z`;
 
+  // Dense ranges (30/90 days) would overlap a value label + dot + x-label on
+  // every point — so drop per-point value labels, shrink dots, and thin the
+  // x-axis to ~7 evenly-spaced labels.
+  const dense = points.length > 12;
+  const labelEvery = dense ? Math.ceil(points.length / 7) : 1;
+
   // Percentage positions for the HTML overlay (label + dot per point).
   const overlay = points.map((p, i) => ({
     xPct: (pts[i][0] / W) * 100,
@@ -62,8 +68,8 @@ export function AreaChart({ points, height = 180 }: { points: AreaPoint[]; heigh
         {/* HTML overlay: crisp dots + value labels (undistorted by the SVG stretch). */}
         {overlay.map((o, i) => (
           <div key={i} className="pointer-events-none absolute" style={{ left: `${o.xPct}%`, top: `${o.yPct}%`, transform: "translate(-50%, -50%)" }}>
-            <div className="h-2 w-2 rounded-full border-2 border-primary bg-surface" />
-            {o.value > 0 ? (
+            <div className={`rounded-full border-2 border-primary bg-surface ${dense ? "h-1.5 w-1.5" : "h-2 w-2"}`} />
+            {!dense && o.value > 0 ? (
               <div className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] font-bold text-text-primary" style={{ bottom: "calc(100% + 3px)" }}>
                 {fmt(o.value)}
               </div>
@@ -74,7 +80,7 @@ export function AreaChart({ points, height = 180 }: { points: AreaPoint[]; heigh
       <div className="mt-1 flex justify-between">
         {points.map((p, i) => (
           <span key={i} className="text-[10px] text-text-secondary">
-            {p.label}
+            {i % labelEvery === 0 ? p.label : ""}
           </span>
         ))}
       </div>

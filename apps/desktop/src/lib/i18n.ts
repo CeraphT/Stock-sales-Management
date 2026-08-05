@@ -83,6 +83,7 @@ export const FR: Record<string, string> = {
   "Out of stock": "Rupture de stock",
   "Expiring soon": "Expire bientôt",
   "Revenue · last 7 days": "Recettes · 7 derniers jours",
+  "Revenue trend": "Évolution des recettes",
   "Needs reconciliation": "Réconciliation requise",
   "stock batch(es) went negative from an offline sale — adjust their stock.": "lot(s) de stock passés en négatif suite à une vente hors ligne — ajustez leur stock.",
   "cash register shift(s) auto-closed after two devices opened one at the same time.": "session(s) de caisse auto-fermée(s) après l'ouverture simultanée sur deux appareils.",

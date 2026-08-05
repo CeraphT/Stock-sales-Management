@@ -1,7 +1,9 @@
 import { dashboardApi } from "@stockflow/core/api/endpoints/dashboard";
+import { reportsApi } from "@stockflow/core/api/endpoints/reports";
 import { UserRole } from "@stockflow/core/api/enums";
 import { formatCurrency, paymentMethodLabel } from "@stockflow/core/format";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { AreaChart } from "@/components/AreaChart";
@@ -23,7 +25,33 @@ export function Dashboard() {
     enabled: !!companyId,
   });
 
-  const trend = (data?.revenueTrend ?? []).map((p) => ({ label: p.date.slice(5, 10), value: p.revenue }));
+  // Revenue-trend range. 7d comes from the dashboard summary (fast); 30d/90d
+  // pull a zero-filled daily series from the reports endpoint — the accurate
+  // multi-day/multi-device source (sales are push-only, not in the local mirror).
+  const [trendDays, setTrendDays] = useState<7 | 30 | 90>(7);
+  const rangeFrom = new Date(Date.now() - (trendDays - 1) * 86_400_000).toISOString().slice(0, 10);
+  const rangeTo = new Date().toISOString().slice(0, 10);
+  const { data: extended } = useQuery({
+    queryKey: ["dashboard-trend", companyId, trendDays],
+    queryFn: () => reportsApi.salesSummary(companyId!, { from: rangeFrom, to: rangeTo }),
+    enabled: !!companyId && trendDays !== 7,
+  });
+
+  const trend =
+    trendDays === 7
+      ? (data?.revenueTrend ?? []).map((p) => ({ label: p.date.slice(5, 10), value: p.revenue }))
+      : (() => {
+          const byDate = new Map((extended?.dailyBreakdown ?? []).map((d) => [d.date.slice(0, 10), d.revenue]));
+          const start = new Date();
+          start.setHours(0, 0, 0, 0);
+          start.setDate(start.getDate() - (trendDays - 1));
+          return Array.from({ length: trendDays }, (_, i) => {
+            const d = new Date(start);
+            d.setDate(d.getDate() + i);
+            const key = d.toISOString().slice(0, 10);
+            return { label: key.slice(5, 10), value: byDate.get(key) ?? 0 };
+          });
+        })();
   const inStock = Math.max(0, (data?.totalProducts ?? 0) - (data?.lowStockCount ?? 0) - (data?.outOfStockCount ?? 0));
   const today = new Date().toISOString().slice(0, 10);
 
@@ -77,7 +105,22 @@ export function Dashboard() {
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="card-in rounded-card border border-border bg-surface p-5 lg:col-span-2" style={{ animationDelay: "260ms" }}>
-          <div className="mb-2 text-sm font-bold text-text-primary">{t("Revenue · last 7 days")}</div>
+          <div className="mb-2 flex items-center justify-between">
+            <div className="text-sm font-bold text-text-primary">{t("Revenue trend")}</div>
+            <div className="flex rounded-full bg-background p-0.5">
+              {([7, 30, 90] as const).map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setTrendDays(d)}
+                  className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${
+                    trendDays === d ? "bg-primary text-white" : "text-text-secondary hover:text-text-primary"
+                  }`}
+                >
+                  {d}D
+                </button>
+              ))}
+            </div>
+          </div>
           <AreaChart points={trend} />
         </div>
 
