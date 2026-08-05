@@ -13,10 +13,6 @@ import { useThemeStore } from '@/lib/theme/store';
 
 import '../global.css';
 
-// Expo Router uses a component named `ErrorBoundary` exported from a route file
-// as that segment's crash fallback; exporting it here covers the whole app.
-export { ErrorBoundary } from '@/components/ErrorFallback';
-
 // Surface uncaught async errors (handlers, timers, promises) that never reach a
 // React error boundary — otherwise they vanish silently.
 installGlobalErrorHandlers();
