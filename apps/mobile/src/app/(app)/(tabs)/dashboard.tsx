@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/Skeleton';
 import { StatCard, type StatColor } from '@/components/StatCard';
 import { StockHealthDonut } from '@/components/StockHealthDonut';
 import { dashboardApi } from '@/lib/api/endpoints/dashboard';
+import { reportsApi } from '@/lib/api/endpoints/reports';
 import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
@@ -45,6 +46,52 @@ export default function DashboardScreen() {
   const [todaySalesTotal, setTodaySalesTotal] = useState<number | null>(null);
   const [todaySalesCount, setTodaySalesCount] = useState<number | null>(null);
   const [revenueTrend, setRevenueTrend] = useState<DailyRevenuePoint[] | null>(null);
+  // Revenue-trend range. 7d uses the fast dashboard summary (server) / local
+  // fallback already loaded by refresh(); 30d/90d pull a zero-filled daily
+  // series from the reports endpoint (sales are push-only, so the server is the
+  // accurate multi-day/multi-device source — the local mirror is this-device-only).
+  const [trendDays, setTrendDays] = useState<7 | 30 | 90>(7);
+  const [extendedTrend, setExtendedTrend] = useState<DailyRevenuePoint[] | null>(null);
+  const [trendLoading, setTrendLoading] = useState(false);
+  const trendScrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (!companyId || trendDays === 7) {
+      setExtendedTrend(null);
+      return;
+    }
+    let cancelled = false;
+    setTrendLoading(true);
+    const to = new Date();
+    to.setHours(0, 0, 0, 0);
+    const from = new Date(to);
+    from.setDate(from.getDate() - (trendDays - 1));
+    reportsApi
+      .salesSummary(companyId, { from: from.toISOString(), to: to.toISOString() })
+      .then((res) => {
+        if (cancelled) return;
+        const byDate = new Map(res.dailyBreakdown.map((d) => [d.date.slice(0, 10), d.revenue]));
+        const points: DailyRevenuePoint[] = [];
+        for (let i = trendDays - 1; i >= 0; i--) {
+          const day = new Date(to);
+          day.setDate(day.getDate() - i);
+          const key = day.toISOString().slice(0, 10);
+          points.push({ date: key, total: byDate.get(key) ?? 0 });
+        }
+        setExtendedTrend(points);
+      })
+      .catch(() => {
+        if (!cancelled) setExtendedTrend(null);
+      })
+      .finally(() => {
+        if (!cancelled) setTrendLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [companyId, trendDays]);
+
+  const trendPoints = trendDays === 7 ? (revenueTrend ?? stats?.revenueTrend ?? []) : (extendedTrend ?? []);
 
   const negativeStockBatchCount = summary?.negativeStockBatchCount ?? 0;
   const autoClosedShiftConflictCount = summary?.autoClosedShiftConflictCount ?? 0;
@@ -164,9 +211,33 @@ export default function DashboardScreen() {
             </View>
 
             <View className="rounded-card border border-border bg-surface p-5">
-              <Text className="text-sm font-bold text-text-primary">{t('dashboard.revenueTrend')}</Text>
-              <View className="mt-3 items-center">
-                <RevenueTrendChart points={revenueTrend ?? stats?.revenueTrend ?? []} />
+              <View className="flex-row items-center justify-between">
+                <Text className="text-sm font-bold text-text-primary">{t('dashboard.revenueTrend')}</Text>
+                <View className="flex-row rounded-full bg-background p-0.5">
+                  {([7, 30, 90] as const).map((d) => (
+                    <Pressable
+                      key={d}
+                      onPress={() => setTrendDays(d)}
+                      className={`rounded-full px-2.5 py-1 ${trendDays === d ? 'bg-primary' : ''}`}>
+                      <Text className={`text-xs font-semibold ${trendDays === d ? 'text-white' : 'text-text-secondary'}`}>{d}D</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+              <View className="mt-3">
+                {trendLoading && extendedTrend === null ? (
+                  <View className="h-[150px] items-center justify-center">
+                    <ActivityIndicator color={colors.primary} />
+                  </View>
+                ) : (
+                  <ScrollView
+                    ref={trendScrollRef}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    onContentSizeChange={() => trendScrollRef.current?.scrollToEnd({ animated: false })}>
+                    <RevenueTrendChart points={trendPoints} />
+                  </ScrollView>
+                )}
               </View>
             </View>
 

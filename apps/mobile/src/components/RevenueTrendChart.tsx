@@ -43,6 +43,18 @@ export function RevenueTrendChart({ points }: { points: DailyRevenuePoint[] }) {
   const baseline = H - PAD_BOTTOM;
   const area = `${line} L ${pts[pts.length - 1][0]} ${baseline} L ${pts[0][0]} ${baseline} Z`;
 
+  // Dense ranges (30/90 days) would overlap a value label + weekday on every
+  // point, so drop per-point value labels and thin the x-axis to periodic
+  // short dates instead of a weekday-per-day (ambiguous over multiple weeks).
+  const dense = points.length > 10;
+  const labelEvery = dense ? Math.ceil(points.length / 6) : 1;
+  const axisLabel = (p: DailyRevenuePoint) => {
+    const d = new Date(`${p.date}T00:00:00Z`);
+    return dense
+      ? d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' })
+      : WEEKDAY_LABELS[d.getUTCDay()];
+  };
+
   return (
     <View>
       <Svg width={width} height={H}>
@@ -55,20 +67,22 @@ export function RevenueTrendChart({ points }: { points: DailyRevenuePoint[] }) {
         <Path d={area} fill="url(#revFill)" />
         <Path d={line} fill="none" stroke={colors.primary} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
         {pts.map(([cx, cy], i) => (
-          <Circle key={points[i].date} cx={cx} cy={cy} r={3} fill={colors.surface} stroke={colors.primary} strokeWidth={2} />
+          <Circle key={points[i].date} cx={cx} cy={cy} r={dense ? 2 : 3} fill={colors.surface} stroke={colors.primary} strokeWidth={2} />
         ))}
-        {points.map((p, i) =>
-          p.total > 0 ? (
-            <SvgText key={`l-${p.date}`} x={pts[i][0]} y={pts[i][1] - 8} fontSize={9} fontWeight="700" fill={colors.textPrimary} textAnchor="middle">
-              {formatCompactNumber(p.total)}
-            </SvgText>
-          ) : null,
-        )}
+        {!dense
+          ? points.map((p, i) =>
+              p.total > 0 ? (
+                <SvgText key={`l-${p.date}`} x={pts[i][0]} y={pts[i][1] - 8} fontSize={9} fontWeight="700" fill={colors.textPrimary} textAnchor="middle">
+                  {formatCompactNumber(p.total)}
+                </SvgText>
+              ) : null,
+            )
+          : null}
       </Svg>
       <View className="flex-row" style={{ width }}>
-        {points.map((p) => (
-          <Text key={p.date} className="text-center text-[10px] text-text-secondary" style={{ width: STEP }}>
-            {WEEKDAY_LABELS[new Date(`${p.date}T00:00:00Z`).getUTCDay()]}
+        {points.map((p, i) => (
+          <Text key={p.date} numberOfLines={1} className="text-center text-[10px] text-text-secondary" style={{ width: STEP }}>
+            {i % labelEvery === 0 ? axisLabel(p) : ''}
           </Text>
         ))}
       </View>

@@ -172,6 +172,15 @@ export default function CheckoutScreen() {
         amountTendered: result.amountTendered,
         changeDue: result.changeDue,
         total: result.total,
+        // VAT line on the receipt (same formula as sale-detail): B2B adds tax
+        // on top (rate/100), B2C extracts it from the inclusive price
+        // (rate/(100+rate)). invoiceNumber/sellerTaxId aren't on the local
+        // SaleResponse — they're server-assigned and appear on the synced
+        // sale-detail receipt.
+        taxTotal: result.productLines.reduce((s, l) => {
+          if (l.taxRatePercent <= 0) return s;
+          return s + (result.taxAddedOnTop ? (l.lineTotal * l.taxRatePercent) / 100 : (l.lineTotal * l.taxRatePercent) / (100 + l.taxRatePercent));
+        }, 0),
       };
 
       showAlert(

@@ -168,18 +168,12 @@ export default function PosScreen() {
         </View>
       ) : null}
 
-      <View className="mx-4 mt-3 flex-row gap-2">
+      <View className="mx-4 mt-3">
         <Pressable
           onPress={() => router.push('/customer-picker')}
-          className="flex-1 flex-row items-center justify-between rounded-xl border border-border bg-surface px-4 py-3">
+          className="flex-row items-center justify-between rounded-xl border border-border bg-surface px-4 py-3">
           <Text className="text-sm text-text-secondary">{t('pos.customer')}</Text>
           <Text className="text-sm font-semibold text-text-primary">{customerName ?? t('common.walkIn')}</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => router.push('/service-picker')}
-          accessibilityLabel="Add service"
-          className="items-center justify-center rounded-xl border border-primary px-3.5">
-          <Ionicons name="medkit-outline" size={18} color={colors.primary} />
         </Pressable>
       </View>
 
