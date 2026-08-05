@@ -59,6 +59,7 @@ export default function DashboardScreen() {
   useEffect(() => {
     if (!companyId || trendDays === 7) {
       setExtendedTrend(null);
+      setTrendLoading(false); // clear any spinner left by an in-flight 30/90 fetch we're switching away from
       return;
     }
     let cancelled = false;
@@ -234,7 +235,7 @@ export default function DashboardScreen() {
                 </View>
               </View>
               <View className="mt-3">
-                {trendLoading && extendedTrend === null ? (
+                {trendDays !== 7 && trendLoading && extendedTrend === null ? (
                   <View className="h-[150px] items-center justify-center">
                     <ActivityIndicator color={colors.primary} />
                   </View>
