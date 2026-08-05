@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
@@ -130,6 +131,15 @@ export default function HeldSalesScreen() {
           <Text className="text-lg font-bold text-text-primary">{t('heldSales.title')}</Text>
           <View className="w-12" />
         </View>
+        {/* Count + Back-to-POS row — mirrors desktop's HeldSales header. */}
+        <View className="mt-3 flex-row items-center justify-between">
+          <Text className="text-sm text-text-secondary">
+            {items.length} {items.length === 1 ? t('heldSales.countSingular') : t('heldSales.countPlural')}
+          </Text>
+          <Pressable onPress={() => router.replace('/pos')} hitSlop={8}>
+            <Text className="text-sm font-semibold text-primary">{t('heldSales.backToPos')}</Text>
+          </Pressable>
+        </View>
       </View>
 
       <FlatList
@@ -139,21 +149,36 @@ export default function HeldSalesScreen() {
         refreshing={loading}
         onRefresh={refresh}
         renderItem={({ item }) => (
-          <Pressable onPress={() => onResume(item.id)} onLongPress={() => onDelete(item.id)} className="rounded-2xl bg-surface p-4 shadow-sm shadow-black/5">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-sm font-semibold text-text-primary">{item.itemCount} items</Text>
-              <Text className="text-base font-bold text-primary">{formatCurrency(item.total, currency)}</Text>
+          <View className="flex-row items-center gap-3 rounded-2xl bg-surface p-4 shadow-sm shadow-black/5">
+            <View className="flex-1">
+              <Text className="text-sm font-semibold text-text-primary">
+                {item.itemCount} items · {formatCurrency(item.total, currency)}
+              </Text>
+              <Text className="mt-1 text-xs text-text-secondary">
+                {new Date(item.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                {item.cashierName ? ` · ${item.cashierName}` : ''}
+              </Text>
             </View>
-            <Text className="mt-1 text-xs text-text-secondary">
-              {item.cashierName} · {new Date(item.timestamp).toLocaleString()}
-            </Text>
-            <Text className="mt-2 text-xs text-text-secondary">Tap to resume · hold to delete</Text>
-          </Pressable>
+            <Pressable
+              onPress={() => onResume(item.id)}
+              hitSlop={6}
+              accessibilityLabel={t('heldSales.resume')}
+              className="h-10 w-10 items-center justify-center rounded-full bg-primary/10 active:opacity-80">
+              <Ionicons name="play" size={18} color={colors.primary} />
+            </Pressable>
+            <Pressable
+              onPress={() => onDelete(item.id)}
+              hitSlop={6}
+              accessibilityLabel={t('heldSales.delete')}
+              className="h-10 w-10 items-center justify-center rounded-full bg-error/10 active:opacity-80">
+              <Ionicons name="trash-outline" size={18} color={colors.error} />
+            </Pressable>
+          </View>
         )}
         ListEmptyComponent={
           !loading ? (
-            <View className="items-center py-16">
-              <Text className="text-sm text-text-secondary">{t('heldSales.empty')}</Text>
+            <View className="items-center px-8 py-16">
+              <Text className="text-center text-sm text-text-secondary">{t('heldSales.empty')}</Text>
             </View>
           ) : null
         }

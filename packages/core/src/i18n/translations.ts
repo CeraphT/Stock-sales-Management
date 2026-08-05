@@ -145,9 +145,12 @@ export const translations = {
 
     // Held sales
     "heldSales.title": "Held sales",
-    "heldSales.empty": "No held sales.",
+    "heldSales.empty": "No held sales. Park a cart from the POS with “Hold sale”.",
     "heldSales.resume": "Resume",
     "heldSales.delete": "Delete",
+    "heldSales.countSingular": "held sale",
+    "heldSales.countPlural": "held sales",
+    "heldSales.backToPos": "← Back to POS",
 
     // Login / onboarding
     "login.title": "Log in",
@@ -329,9 +332,12 @@ export const translations = {
 
     // Held sales
     "heldSales.title": "Ventes en attente",
-    "heldSales.empty": "Aucune vente en attente.",
+    "heldSales.empty": "Aucune vente en attente. Mettez un panier en attente depuis la caisse avec « Mettre en attente ».",
     "heldSales.resume": "Reprendre",
     "heldSales.delete": "Supprimer",
+    "heldSales.countSingular": "vente en attente",
+    "heldSales.countPlural": "ventes en attente",
+    "heldSales.backToPos": "← Retour à la caisse",
 
     // Login / onboarding
     "login.title": "Se connecter",
