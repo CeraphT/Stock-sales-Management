@@ -416,6 +416,14 @@ export const FR: Record<string, string> = {
   "updated": "mis à jour",
   "skipped": "ignorés",
   "Restore failed.": "Échec de la restauration.",
+  "Restore works on this device. Your catalogue and customers stay owned by the server (they reconcile on the next sync); only sales not yet synced can be sent up to become official — you'll be asked to confirm after restoring.":
+    "La restauration s'applique à cet appareil. Votre catalogue et vos clients restent gérés par le serveur (ils se réconcilient à la prochaine synchronisation) ; seules les ventes non encore synchronisées peuvent être envoyées pour devenir officielles — il vous sera demandé de confirmer après la restauration.",
+  "Make restored sales official?": "Rendre les ventes restaurées officielles ?",
+  "Some restored sales aren't on the server yet. Send them so they become official for every device. Already-synced sales and your catalogue are handled automatically.":
+    "Certaines ventes restaurées ne sont pas encore sur le serveur. Envoyez-les pour qu'elles deviennent officielles sur tous les appareils. Les ventes déjà synchronisées et votre catalogue sont gérés automatiquement.",
+  "Send to server": "Envoyer au serveur",
+  "Sent to server": "Envoyé au serveur",
+  "Couldn't reach the server — try Sync later.": "Impossible de joindre le serveur — réessayez la synchronisation plus tard.",
   "Company profile": "Profil de l'entreprise",
   "Branches": "Succursales",
   "Product packaging": "Conditionnement des produits",

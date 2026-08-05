@@ -1,5 +1,7 @@
+import { SyncStatus } from "@stockflow/core/api/enums";
 import { db } from "@stockflow/core/db/client";
 import * as schema from "@stockflow/core/db/schema";
+import { and, eq } from "drizzle-orm";
 
 /** Parsed backup file. `companyId` gates cross-business restore. */
 export interface ParsedBackup {
@@ -149,6 +151,27 @@ export async function applyRestore(
     }
   }
   return { inserted, updated, skipped };
+}
+
+/**
+ * How many restored (or otherwise local) sales + shifts are still marked
+ * PendingPush — i.e. not yet on the server. Restore preserves each row's
+ * original syncStatus, so a sale that was unsynced when backed up stays
+ * PendingPush and can be promoted to the server via the normal (idempotent)
+ * push. Catalog/customers are server-owned and are NOT pushed — they reconcile
+ * downward on the next pull, so a stale backup can never overwrite server-side
+ * financial records.
+ */
+export async function countUnsyncedTransactions(companyId: string): Promise<number> {
+  const s = (await db
+    .select()
+    .from(schema.sales)
+    .where(and(eq(schema.sales.companyId, companyId), eq(schema.sales.syncStatus, SyncStatus.PendingPush)))) as unknown[];
+  const sh = (await db
+    .select()
+    .from(schema.cashRegisterShifts)
+    .where(and(eq(schema.cashRegisterShifts.companyId, companyId), eq(schema.cashRegisterShifts.syncStatus, SyncStatus.PendingPush)))) as unknown[];
+  return s.length + sh.length;
 }
 
 /** Human labels for the recap list (i18n keys). */

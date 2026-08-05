@@ -201,13 +201,22 @@ never touch another business's data on a shared device.
 | Restore **multiselect** — tick which data types to apply, select-all/none | ✅ | ☐ | ☐ |
 | Restore **Add new only** — insert new rows, keep existing unchanged | ✅ | ☐ | ☐ |
 | Restore **Replace selected** — upsert: overwrite matching rows, add new | ✅ | ☐ | ☐ |
+| **Confirm restored data as source of truth** — after restore, admin is asked to push restored **unsynced sales/shifts** to the server (idempotent by id); already-synced sales skipped automatically | ✅ | ☐ | ☐ |
+| Catalogue/customers stay **server-owned** — restore is local; they reconcile downward on the next pull (a stale backup can't overwrite server-side financial records) | ✅ | ☐ | ☐ |
 | **Reset (complete refresh)** — wipe local mirror + sign out; server data untouched, re-syncs on next login | ✅ | ☐ | ☐ |
 | Reset pushes unsynced sales first (best-effort) + warns if offline | ✅ | ☐ | ☐ |
 
-> Restore writes to the **local mirror**. The server stays source of truth: a
-> subsequent pull can update restored records. Restore + a push is how
-> device-only unsynced rows are recovered. `sync_state` cursors are never
-> restored (would corrupt sync).
+> **Authority model.** Restore writes to the **local mirror**. The sync *push*
+> only carries Sales + Cash-register shifts, so those are the only rows that can
+> be made authoritative on the server — restore preserves each row's original
+> `syncStatus`, and an admin is prompted after restoring to push the ones still
+> `PendingPush` (idempotent by id). Catalogue, customers, suppliers, etc. are
+> **server-owned**: they're never pushed and reconcile downward on the next
+> pull, so a stale backup can't overwrite server-side records (this is why the
+> backend intentionally has no customer update/delete endpoint). `sync_state`
+> cursors are never restored (would corrupt sync). Making *all* data
+> authoritative from a backup would need new backend bulk-upsert endpoints — a
+> deliberate, separate decision.
 
 ## 20. Cross-cutting
 | Feature | Desktop | Mobile | Web |

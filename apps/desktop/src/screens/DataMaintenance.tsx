@@ -5,7 +5,7 @@ import { UserRole } from "@stockflow/core/api/enums";
 import { Button } from "@/components/Button";
 import { confirmDialog } from "@/lib/confirm";
 import { exportAllData, resetAllData } from "@/lib/dataBackup";
-import { analyzeBackup, applyRestore, parseBackup, TABLE_LABELS, type ParsedBackup, type TableRecap } from "@/lib/dataRestore";
+import { analyzeBackup, applyRestore, countUnsyncedTransactions, parseBackup, TABLE_LABELS, type ParsedBackup, type TableRecap } from "@/lib/dataRestore";
 import { useT } from "@/lib/i18n";
 import { queryClient } from "@/lib/queryClient";
 import { logout } from "@/lib/session";
@@ -116,6 +116,29 @@ export function DataMaintenance() {
       setParsed(null);
       setRecap([]);
       setSel(new Set());
+
+      // Make restored data official: unsynced sales/shifts can be promoted to
+      // the server (idempotent push). Catalog/customers stay server-owned. Ask
+      // the admin to confirm — this is what makes a restore authoritative.
+      const pending = await countUnsyncedTransactions(companyId);
+      if (pending > 0) {
+        const send = await confirmDialog({
+          title: t("Make restored sales official?"),
+          message: t("Some restored sales aren't on the server yet. Send them so they become official for every device. Already-synced sales and your catalogue are handled automatically."),
+          confirmLabel: t("Send to server"),
+        });
+        if (send) {
+          try {
+            const sr = await runSync();
+            toast(
+              `${t("Sent to server")} · ${sr.salesPushed ?? 0} ${t("sales")}${sr.salesFailed ? ` · ${sr.salesFailed} ${t("failed")}` : ""}`,
+              sr.salesFailed ? "error" : "success",
+            );
+          } catch (e) {
+            toast(e instanceof Error ? e.message : t("Couldn't reach the server — try Sync later."), "error");
+          }
+        }
+      }
     } catch (e) {
       toast(e instanceof Error ? e.message : t("Restore failed."), "error");
     } finally {
@@ -206,6 +229,9 @@ export function DataMaintenance() {
         <div className="text-sm font-bold text-text-primary">📥 {t("Restore from a backup")}</div>
         <p className="mt-1 text-xs text-text-secondary">
           {t("Upload a backup file, review what matches your current data, then choose to add only the new records or replace existing ones.")}
+        </p>
+        <p className="mt-1 rounded-lg bg-accent-blue/10 px-3 py-2 text-[11px] text-accent-blue">
+          ℹ️ {t("Restore works on this device. Your catalogue and customers stay owned by the server (they reconcile on the next sync); only sales not yet synced can be sent up to become official — you'll be asked to confirm after restoring.")}
         </p>
         <div className="mt-3">
           <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-text-primary transition hover:bg-background">
