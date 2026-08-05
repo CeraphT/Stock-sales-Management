@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import { useColorScheme } from 'nativewind';
-import { useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,6 +16,7 @@ import { useThemeStore } from '@/lib/theme/store';
 import { showAlert } from '@/lib/ui/alertStore';
 
 type IconName = keyof typeof Ionicons.glyphMap;
+type Tint = 'primary' | 'accentBlue' | 'accentOrange' | 'accentPurple' | 'success';
 
 interface MenuLeaf {
   labelKey: Parameters<ReturnType<typeof useTranslation>['t']>[0];
@@ -26,7 +27,7 @@ interface MenuLeaf {
 interface MenuGroup {
   labelKey: Parameters<ReturnType<typeof useTranslation>['t']>[0];
   icon: IconName;
-  tint: 'primary' | 'accentBlue' | 'accentOrange' | 'accentPurple' | 'success';
+  tint: Tint;
   items: MenuLeaf[];
 }
 
@@ -92,8 +93,7 @@ const LANGUAGES: { value: Language; label: string }[] = [
 ];
 
 // Inline-style-driven theming (className colors don't reliably repaint when
-// colorScheme flips at runtime on this screen). Tints add an alpha suffix to
-// the 6-digit hex (RN supports 8-digit hex).
+// colorScheme flips at runtime on this screen).
 export default function MoreScreen() {
   const user = useAuthStore((s) => s.user);
   const locationName = useAuthStore((s) => s.locationName);
@@ -105,7 +105,6 @@ export default function MoreScreen() {
   const setThemePreference = useThemeStore((s) => s.setPreference);
   const language = useLanguageStore((s) => s.language);
   const setLanguage = useLanguageStore((s) => s.setLanguage);
-  const [openGroup, setOpenGroup] = useState<string | null>(null);
 
   const roleLabel = user?.role === UserRole.SuperAdmin ? 'Super admin' : user?.role === UserRole.CompanyAdmin ? 'Admin' : 'Cashier';
   const initial = (user?.name?.trim()[0] ?? '•').toUpperCase();
@@ -120,8 +119,6 @@ export default function MoreScreen() {
       ? { ...group, items: group.items.filter((item) => item.labelKey !== 'drawer.item.reports') }
       : group,
   );
-
-  const toggleGroup = (label: string) => setOpenGroup((prev) => (prev === label ? null : label));
 
   const go = (item: MenuLeaf) => {
     if (!item.route) {
@@ -142,85 +139,75 @@ export default function MoreScreen() {
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.background }} edges={['top']}>
       <ScreenBackground />
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
-        {/* Profile header */}
-        <View style={{ backgroundColor: colors.primary, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }} className="px-5 pb-7 pt-5">
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-3">
-              <View className="h-14 w-14 items-center justify-center rounded-2xl" style={{ backgroundColor: '#FFFFFF33' }}>
-                <Text className="text-xl font-black text-white">{initial}</Text>
-              </View>
-              <View>
-                <Text className="text-base font-bold text-white">{user?.name ?? '—'}</Text>
-                <View className="mt-1 flex-row items-center gap-2">
-                  <View className="rounded-full px-2 py-0.5" style={{ backgroundColor: '#FFFFFF2E' }}>
-                    <Text className="text-[10px] font-bold text-white">{roleLabel}</Text>
-                  </View>
-                  <View className="flex-row items-center gap-1">
-                    <Ionicons name="location-outline" size={12} color="#FFFFFFCC" />
-                    <Text className="text-xs text-white/80">{locationName ?? t('drawer.noLocation')}</Text>
-                  </View>
+        {/* Floating profile card */}
+        <View
+          className="mx-4 mt-3 flex-row items-center justify-between rounded-3xl px-5 py-4"
+          style={{ backgroundColor: colors.primary, shadowColor: colors.primary, shadowOpacity: 0.35, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 6 }}>
+          <View className="flex-row items-center gap-3">
+            <View className="h-14 w-14 items-center justify-center rounded-2xl" style={{ backgroundColor: '#FFFFFF33' }}>
+              <Text className="text-xl font-black text-white">{initial}</Text>
+            </View>
+            <View>
+              <Text className="text-base font-bold text-white">{user?.name ?? '—'}</Text>
+              <View className="mt-1 flex-row items-center gap-2">
+                <View className="rounded-full px-2 py-0.5" style={{ backgroundColor: '#FFFFFF2E' }}>
+                  <Text className="text-[10px] font-bold text-white">{roleLabel}</Text>
+                </View>
+                <View className="flex-row items-center gap-1">
+                  <Ionicons name="location-outline" size={12} color="#FFFFFFCC" />
+                  <Text className="text-xs text-white/80">{locationName ?? t('drawer.noLocation')}</Text>
                 </View>
               </View>
             </View>
-            <Pressable
-              onPress={onLogout}
-              hitSlop={8}
-              accessibilityLabel={t('drawer.logout')}
-              className="h-9 w-9 items-center justify-center rounded-full active:opacity-80"
-              style={{ backgroundColor: '#FFFFFF26' }}>
-              <Ionicons name="log-out-outline" size={18} color="#FFFFFF" />
-            </Pressable>
           </View>
+          <Pressable
+            onPress={onLogout}
+            hitSlop={8}
+            accessibilityLabel={t('drawer.logout')}
+            className="h-9 w-9 items-center justify-center rounded-full active:opacity-80"
+            style={{ backgroundColor: '#FFFFFF26' }}>
+            <Ionicons name="log-out-outline" size={18} color="#FFFFFF" />
+          </Pressable>
         </View>
 
-        {/* Grouped menu cards */}
-        <View className="mt-4">
-          {visibleGroups.map((group) => {
-            const open = openGroup === group.labelKey;
-            const tint = colors[group.tint];
-            return (
-              <View
-                key={group.labelKey}
-                className="mx-4 mb-3 overflow-hidden rounded-2xl border"
-                style={{ borderColor: colors.border, backgroundColor: colors.surface }}>
-                <Pressable onPress={() => toggleGroup(group.labelKey)} className="flex-row items-center gap-3 px-4 py-3.5 active:opacity-70">
-                  <View className="h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: tint + '22' }}>
-                    <Ionicons name={group.icon} size={18} color={tint} />
-                  </View>
-                  <Text className="flex-1 text-sm font-bold" style={{ color: colors.textPrimary }}>
-                    {t(group.labelKey)}
-                  </Text>
-                  <Ionicons name={open ? 'chevron-down' : 'chevron-forward'} size={16} color={colors.iconMuted} />
-                </Pressable>
-                {open ? (
-                  <View style={{ borderTopColor: colors.border, borderTopWidth: 1 }}>
-                    {group.items.map((item) => {
-                      const active = isActive(item.route);
-                      return (
-                        <Pressable
-                          key={item.labelKey}
-                          onPress={() => go(item)}
-                          className="flex-row items-center gap-3 px-4 py-3 active:opacity-70"
-                          style={{ backgroundColor: active ? colors.primary + '14' : 'transparent' }}>
-                          <View className="h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: colors.background }}>
-                            <Ionicons name={item.icon} size={16} color={active ? colors.primary : colors.iconMuted} />
-                          </View>
-                          <Text className="flex-1 text-sm font-medium" style={{ color: active ? colors.primary : colors.textPrimary }}>
-                            {t(item.labelKey)}
-                          </Text>
-                          <Ionicons name="chevron-forward" size={14} color={colors.iconMuted} />
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                ) : null}
+        {/* Sectioned tile grid — everything one tap away, no expanding */}
+        {visibleGroups.map((group) => {
+          const tint = colors[group.tint];
+          return (
+            <View key={group.labelKey} className="mt-5 px-4">
+              <View className="mb-2.5 flex-row items-center gap-2">
+                <View className="h-6 w-6 items-center justify-center rounded-md" style={{ backgroundColor: tint + '22' }}>
+                  <Ionicons name={group.icon} size={13} color={tint} />
+                </View>
+                <Text className="text-xs font-bold uppercase tracking-wider" style={{ color: colors.textSecondary }}>
+                  {t(group.labelKey)}
+                </Text>
               </View>
-            );
-          })}
-        </View>
+              <View className="flex-row flex-wrap justify-between">
+                {group.items.map((item) => {
+                  const active = isActive(item.route);
+                  return (
+                    <Pressable
+                      key={item.labelKey}
+                      onPress={() => go(item)}
+                      className="mb-3 rounded-2xl border p-3.5 active:opacity-70"
+                      style={{ width: '48.5%', borderColor: active ? tint : colors.border, backgroundColor: active ? tint + '14' : colors.surface }}>
+                      <View className="h-11 w-11 items-center justify-center rounded-xl" style={{ backgroundColor: tint + '22' }}>
+                        <Ionicons name={item.icon} size={22} color={tint} />
+                      </View>
+                      <Text className="mt-2.5 text-sm font-semibold" style={{ color: colors.textPrimary }} numberOfLines={2}>
+                        {t(item.labelKey)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          );
+        })}
 
         {/* Settings */}
-        <Text className="mx-6 mb-2 mt-2 text-xs font-bold uppercase tracking-wide" style={{ color: colors.textSecondary }}>
+        <Text className="mx-6 mb-2 mt-3 text-xs font-bold uppercase tracking-wider" style={{ color: colors.textSecondary }}>
           {t('drawer.settings')}
         </Text>
         <View className="mx-4 overflow-hidden rounded-2xl border" style={{ borderColor: colors.border, backgroundColor: colors.surface }}>
