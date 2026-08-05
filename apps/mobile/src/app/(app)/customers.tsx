@@ -85,13 +85,31 @@ export default function CustomersScreen() {
             onPress={() => router.push({ pathname: '/customer-detail', params: { id: item.id } })}
             className="rounded-xl bg-surface p-3.5">
             <View className="flex-row items-center justify-between">
-              <Text className="text-sm font-semibold text-text-primary">{item.name}</Text>
+              <View className="flex-1 flex-row items-center gap-2 pr-2">
+                <Text className="text-sm font-semibold text-text-primary">{item.name}</Text>
+                {item.isBusiness ? (
+                  <View className="rounded-md bg-accent-blue/15 px-1.5 py-0.5">
+                    <Text className="text-[10px] font-bold text-accent-blue">🏢 Pro</Text>
+                  </View>
+                ) : null}
+              </View>
               <Text className="text-xs text-text-secondary">{item.phone ?? '—'}</Text>
             </View>
-            <Text className="mt-1 text-xs text-text-secondary">
-              Credit: {formatCurrency(item.creditBalance, currency)} · {item.loyaltyPointsBalance} pts · Store credit{' '}
-              {formatCurrency(item.loyaltyStoreCreditBalance, currency)}
-            </Text>
+            <View className="mt-1 flex-row flex-wrap gap-x-3">
+              <Text className="text-xs text-text-secondary">
+                Credit:{' '}
+                <Text className={item.creditBalance > 0 ? 'font-semibold text-error' : 'text-text-primary'}>
+                  {formatCurrency(item.creditBalance, currency)}
+                </Text>
+              </Text>
+              <Text className="text-xs text-text-secondary">
+                Store credit:{' '}
+                <Text className={item.loyaltyStoreCreditBalance > 0 ? 'font-semibold text-success' : 'text-text-primary'}>
+                  {formatCurrency(item.loyaltyStoreCreditBalance, currency)}
+                </Text>
+              </Text>
+              {item.rewardsGranted > 0 ? <Text className="text-xs text-text-secondary">Rewards: 🎁 {item.rewardsGranted}</Text> : null}
+            </View>
           </Pressable>
         )}
         ListEmptyComponent={

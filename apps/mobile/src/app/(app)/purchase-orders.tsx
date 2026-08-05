@@ -32,6 +32,11 @@ function filterLabel(value: PurchaseOrderStatus | 'all'): string {
   return value === 'all' ? 'All' : purchaseOrderStatusLabel(value);
 }
 
+/** Whole days since an ISO timestamp — for the overdue badge (matches desktop). */
+function daysSince(iso: string): number {
+  return Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+}
+
 export default function PurchaseOrdersScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   useFeatureGuard(useAuthStore((s) => s.user?.restrictPurchasing));
@@ -150,9 +155,17 @@ export default function PurchaseOrdersScreen() {
                 className={`rounded-xl bg-surface p-3.5 ${isCancelled ? 'opacity-60' : ''}`}>
                 <View className="flex-row items-center justify-between">
                   <Text className="flex-1 pr-2 text-sm font-semibold text-text-primary">{item.supplierName}</Text>
-                  <View className={`flex-row items-center gap-1 rounded-full px-2 py-1 ${tone.badgeClass}`}>
-                    <Ionicons name={tone.icon} size={12} color={tone.iconColor} />
-                    <Text className={`text-[11px] font-bold ${tone.textClass}`}>{purchaseOrderStatusLabel(item.status)}</Text>
+                  <View className="flex-row items-center gap-1.5">
+                    {(item.status === PurchaseOrderStatus.Pending || item.status === PurchaseOrderStatus.PartiallyReceived) &&
+                    daysSince(item.createdAt) > 30 ? (
+                      <View className="rounded-lg bg-error/15 px-2 py-0.5">
+                        <Text className="text-[11px] font-bold text-error">⏰ {daysSince(item.createdAt)}d</Text>
+                      </View>
+                    ) : null}
+                    <View className={`flex-row items-center gap-1 rounded-full px-2 py-1 ${tone.badgeClass}`}>
+                      <Ionicons name={tone.icon} size={12} color={tone.iconColor} />
+                      <Text className={`text-[11px] font-bold ${tone.textClass}`}>{purchaseOrderStatusLabel(item.status)}</Text>
+                    </View>
                   </View>
                 </View>
                 <Text className="mt-1 text-xs text-text-secondary">

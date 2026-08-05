@@ -90,6 +90,9 @@ export default function SuppliersScreen() {
           }}
           autoCapitalize="none"
         />
+        <Text className="mt-2 text-xs text-text-secondary">
+          {suppliers.length} {suppliers.length === 1 ? 'supplier' : 'suppliers'}
+        </Text>
       </View>
 
       <FlatList
