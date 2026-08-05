@@ -161,9 +161,21 @@ export default function BulkStockRegisterScreen() {
 
         {parsed ? (
           <View className="gap-2">
-            <Text className="text-sm font-bold text-text-primary">
-              {validRows.length} ready · {errorRows.length} with errors
-            </Text>
+            {/* Check summary — mirrors desktop's guidance block. */}
+            <View className="gap-1 rounded-xl border border-border bg-surface p-4">
+              <Text className="text-sm font-bold text-text-primary">Check summary</Text>
+              <Text className="text-sm text-text-secondary">
+                ✅ <Text className="font-semibold text-success">{validRows.length}</Text> ready —{' '}
+                {validRows.filter((r) => r.kind === 'create').length} new, {validRows.filter((r) => r.kind === 'update').length} to restock
+              </Text>
+              {errorRows.length > 0 ? (
+                <Text className="text-sm font-medium text-error">
+                  ❌ {errorRows.length} with errors — fix the lines marked ❌ below, then Check rows again.
+                </Text>
+              ) : (
+                <Text className="text-sm font-medium text-success">✓ All rows are valid — ready to register.</Text>
+              )}
+            </View>
             {parsed.map((row) => (
               <View key={row.lineNumber} className="rounded-xl bg-surface p-3">
                 <View className="flex-row items-center gap-2">
