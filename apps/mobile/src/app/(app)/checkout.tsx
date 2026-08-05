@@ -1,3 +1,5 @@
+import { rewardsApi } from '@stockflow/core/api/endpoints/rewards';
+import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -6,6 +8,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
+import { shareGiftCardVoucher } from '@/lib/giftCardVoucher';
+import { toast } from '@/lib/ui/toastStore';
 import { salesApi } from '@/lib/api/endpoints/sales';
 import { PaymentMethod } from '@/lib/api/enums';
 import { useAuthStore } from '@/lib/auth/store';
@@ -48,6 +52,33 @@ export default function CheckoutScreen() {
   const [tendered, setTendered] = useState('');
   const [giftCardCode, setGiftCardCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Purchase-milestone reward: when a customer is selected, check (online)
+  // whether they're owed a reward gift card so the cashier can issue + hand it
+  // over. Mirrors desktop's POS reward flow.
+  const [issuingReward, setIssuingReward] = useState(false);
+  const { data: reward, refetch: refetchReward } = useQuery({
+    queryKey: ['reward-status', companyId, customerId],
+    queryFn: () => rewardsApi.status(companyId!, customerId!),
+    enabled: !!companyId && !!customerId,
+    staleTime: 30_000,
+    retry: false,
+  });
+
+  async function issueReward() {
+    if (!companyId || !customerId || issuingReward) return;
+    setIssuingReward(true);
+    try {
+      const card = await rewardsApi.issue(companyId, customerId);
+      await shareGiftCardVoucher({ companyName, code: card.code, value: card.remainingValue, currency, customerName: customerName ?? undefined });
+      toast(`🎁 Reward issued: ${card.code}`, 'success');
+      await refetchReward();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Could not issue the reward.', 'error');
+    } finally {
+      setIssuingReward(false);
+    }
+  }
 
   const total = cartTotal(lines, serviceLines);
   const hasServices = serviceLines.length > 0;
@@ -180,6 +211,24 @@ export default function CheckoutScreen() {
             {t('checkout.customerLabel')}: {customerName ?? t('common.walkIn')}
           </Text>
         </View>
+
+        {reward?.enabled && reward.rewardsDue > 0 ? (
+          <View className="flex-row items-center gap-3 rounded-card border border-accent-purple/40 bg-accent-purple/10 p-4">
+            <Text className="text-2xl">🎁</Text>
+            <View className="flex-1">
+              <Text className="text-sm font-bold text-text-primary">Reward due</Text>
+              <Text className="text-xs text-text-secondary">
+                {customerName ?? 'This customer'} earned {reward.rewardsDue} gift card{reward.rewardsDue === 1 ? '' : 's'} ·{' '}
+                {formatCurrency(reward.rewardValue, currency)} each
+              </Text>
+            </View>
+            <Button title="Issue" variant="secondary" loading={issuingReward} onPress={issueReward} />
+          </View>
+        ) : reward?.enabled && reward.purchasesUntilNext > 0 ? (
+          <Text className="-mt-2 text-xs text-text-secondary">
+            🎁 {reward.purchasesUntilNext} more purchase{reward.purchasesUntilNext === 1 ? '' : 's'} until this customer earns a reward.
+          </Text>
+        ) : null}
 
         <View className="gap-2">
           <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('checkout.paymentMethod')}</Text>
