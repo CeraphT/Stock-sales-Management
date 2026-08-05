@@ -24,6 +24,9 @@ export default function CategoriesScreen() {
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!companyId) return;
@@ -55,6 +58,21 @@ export default function CategoriesScreen() {
       showAlert('Could not create category', err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const onRename = async (id: string) => {
+    if (!companyId || !editValue.trim() || savingEdit) return;
+    setSavingEdit(true);
+    try {
+      await categoriesApi.update(companyId, id, { name: editValue.trim() });
+      setEditId(null);
+      await refresh();
+      await syncNow();
+    } catch (err) {
+      showAlert('Could not rename category', err instanceof Error ? err.message : 'Something went wrong.');
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -116,11 +134,48 @@ export default function CategoriesScreen() {
         refreshing={loading}
         onRefresh={refresh}
         renderItem={({ item }) => (
-          <View className="flex-row items-center justify-between rounded-xl bg-surface p-3.5">
-            <Text className="text-sm font-semibold text-text-primary">{item.name}</Text>
-            <Pressable onPress={() => onDelete(item)} hitSlop={8} className="h-8 w-8 items-center justify-center">
-              <Ionicons name="trash-outline" size={18} color={colors.error} />
-            </Pressable>
+          <View className="flex-row items-center gap-2 rounded-xl bg-surface p-3.5">
+            {editId === item.id ? (
+              <>
+                <TextInput
+                  className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-primary"
+                  value={editValue}
+                  onChangeText={setEditValue}
+                  autoFocus
+                  placeholderTextColor={colors.placeholder}
+                  returnKeyType="done"
+                  onSubmitEditing={() => onRename(item.id)}
+                />
+                <Pressable
+                  onPress={() => onRename(item.id)}
+                  disabled={savingEdit || !editValue.trim()}
+                  hitSlop={6}
+                  accessibilityLabel="Save"
+                  className="h-8 w-8 items-center justify-center">
+                  {savingEdit ? <ActivityIndicator color={colors.primary} /> : <Ionicons name="checkmark" size={20} color={colors.primary} />}
+                </Pressable>
+                <Pressable onPress={() => setEditId(null)} hitSlop={6} accessibilityLabel="Cancel" className="h-8 w-8 items-center justify-center">
+                  <Ionicons name="close" size={20} color={colors.iconMuted} />
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text className="flex-1 text-sm font-semibold text-text-primary">{item.name}</Text>
+                <Pressable
+                  onPress={() => {
+                    setEditId(item.id);
+                    setEditValue(item.name);
+                  }}
+                  hitSlop={6}
+                  accessibilityLabel="Rename"
+                  className="h-8 w-8 items-center justify-center">
+                  <Ionicons name="pencil" size={17} color={colors.primary} />
+                </Pressable>
+                <Pressable onPress={() => onDelete(item)} hitSlop={6} accessibilityLabel="Delete" className="h-8 w-8 items-center justify-center">
+                  <Ionicons name="trash-outline" size={18} color={colors.error} />
+                </Pressable>
+              </>
+            )}
           </View>
         )}
         ListEmptyComponent={
