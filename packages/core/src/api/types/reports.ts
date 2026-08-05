@@ -46,7 +46,55 @@ export interface SalesSummaryResponse {
   totalProfit: number;
   totalSalesCount: number;
   averageSaleValue: number;
+  totalTax: number;
   dailyBreakdown: DailySalesItem[];
+}
+
+export interface TaxDeclarationResponse {
+  from: string | null;
+  to: string | null;
+  standardRatePercent: number;
+  salesTtc: number;
+  salesHt: number;
+  vatCollected: number;
+  purchasesTtc: number;
+  purchasesHt: number;
+  vatDeductible: number;
+  vatDue: number;
+  salesCount: number;
+}
+
+export interface SalesJournalItem {
+  id: string;
+  timestamp: string;
+  customerName: string | null;
+  paymentMethod: number;
+  ht: number;
+  vat: number;
+  ttc: number;
+}
+
+export interface PurchasesJournalItem {
+  id: string;
+  timestamp: string;
+  productName: string;
+  batchNumber: string;
+  supplierName: string | null;
+  ht: number;
+  vat: number;
+  ttc: number;
+}
+
+export interface CashBookItem {
+  id: string;
+  openedAt: string;
+  closedAt: string | null;
+  cashierName: string;
+  openingCash: number;
+  cashSales: number;
+  expectedCash: number | null;
+  closingCash: number | null;
+  discrepancy: number | null;
 }
 
 export interface TopProductItem {

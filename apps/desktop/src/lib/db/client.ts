@@ -2,6 +2,7 @@ import { initDb, type AppDatabase } from "@stockflow/core/db/client";
 import * as schema from "@stockflow/core/db/schema";
 import { drizzle as drizzleProxy } from "drizzle-orm/sqlite-proxy";
 
+import migration002 from "./migrations/002_b2b.sql?raw";
 import schemaSql from "./schema.sql?raw";
 
 /** Tauri exposes this global inside the native webview; absent in a plain
@@ -30,13 +31,23 @@ async function initTauriDb(): Promise<void> {
 
   const db = drizzleProxy(
     async (sql, params, method) => {
+      // tauri-plugin-sql (sqlx) binds numbered $1,$2 placeholders — drizzle
+      // emits `?`, so rewrite them or every insert binds nothing (tables stay
+      // empty even though the statement "succeeds").
+      let n = 0;
+      const q = sql.replace(/\?/g, () => `$${++n}`);
       if (method === "run") {
-        await sqlDb.execute(sql, params);
+        await sqlDb.execute(q, params);
         return { rows: [] };
       }
-      const objs = await sqlDb.select<Record<string, unknown>[]>(sql, params);
+      const objs = await sqlDb.select<Record<string, unknown>[]>(q, params);
       const rows = objs.map((r) => Object.values(r));
-      return { rows: method === "get" ? (rows[0] ?? []) : rows };
+      // For "get", an empty result must be undefined — NOT [] — or drizzle's
+      // mapGetResult treats [] as a zero-column row and returns a phantom
+      // object (all fields undefined) instead of undefined, so every
+      // findFirst-with-no-match wrongly looks like a hit.
+      if (method === "get") return { rows: (rows.length ? rows[0] : undefined) as unknown as unknown[] };
+      return { rows };
     },
     { schema },
   );
@@ -52,6 +63,9 @@ async function initBrowserDb(): Promise<void> {
   const SQL = await initSqlJs({ locateFile: () => wasmUrl });
   const sqlDb = new SQL.Database();
   sqlDb.run(schemaSql);
+  // Post-v1 migrations (native runs these via tauri-plugin-sql). The in-memory
+  // browser DB is recreated each load, so apply them right after the base schema.
+  sqlDb.run(migration002);
 
   const db = drizzleProxy(
     async (sql, params, method) => {
@@ -64,7 +78,10 @@ async function initBrowserDb(): Promise<void> {
       const rows: unknown[][] = [];
       while (stmt.step()) rows.push(stmt.get() as unknown[]);
       stmt.free();
-      return { rows: method === "get" ? (rows[0] ?? []) : rows };
+      // "get" with no row must be undefined, not [] — see the native adapter
+      // above: [] makes drizzle mapGetResult return a phantom row.
+      if (method === "get") return { rows: (rows.length ? rows[0] : undefined) as unknown as unknown[] };
+      return { rows };
     },
     { schema },
   );

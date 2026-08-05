@@ -105,6 +105,26 @@ public static class GiftCardEndpoints
 
             return Results.Ok(new GiftCardResponse(card.Id, card.Code, card.InitialValue, card.RemainingValue, card.Active, card.CreatedAt));
         });
+
+        // Hard delete. Sales reference a gift card by its Code string (no FK),
+        // so removing the card never breaks past sale records — but any unspent
+        // balance is gone, hence the client confirms first.
+        group.MapDelete("/{id:guid}", async (Guid companyId, Guid id, PharmaStockDbContext db, HttpContext http) =>
+        {
+            if (http.User.GetCompanyId() != companyId)
+                return Results.Forbid();
+
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictCustomers);
+            if (restricted is not null) return restricted;
+
+            var card = await db.GiftCards.FirstOrDefaultAsync(g => g.Id == id && g.CompanyId == companyId);
+            if (card is null)
+                return Results.NotFound(new { message = "Carte-cadeau introuvable." });
+
+            db.GiftCards.Remove(card);
+            await db.SaveChangesAsync();
+            return Results.NoContent();
+        });
     }
 
     private static string GenerateCode()

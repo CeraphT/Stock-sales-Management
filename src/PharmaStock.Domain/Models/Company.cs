@@ -11,7 +11,27 @@ public class Company
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+
+    /// <summary>Logo as a data URI (base64) so no separate file host is needed —
+    /// shown on receipts and PDF reports.</summary>
     public string? LogoUrl { get; set; }
+
+    /// <summary>Business address + phone, printed on receipts and purchase
+    /// orders so the customer/supplier can identify and reach the business.</summary>
+    public string? Address { get; set; }
+    public string? Phone { get; set; }
+
+    /// <summary>Free-text line printed at the bottom of every receipt (thank-you
+    /// note, return policy, etc.).</summary>
+    public string? ReceiptFooter { get; set; }
+
+    /// <summary>Company-wide default low-stock threshold prefilled on new
+    /// products unless the product overrides it.</summary>
+    public int DefaultLowStockThreshold { get; set; } = 0;
+
+    /// <summary>False until the admin finishes the first-login setup wizard.
+    /// Drives whether that guided flow is shown.</summary>
+    public bool SetupCompleted { get; set; } = false;
 
     /// <summary>Unique onboarding code (Section 9) — the anti-duplicate mechanism.
     /// Other devices "join" a company by presenting this code rather than
@@ -24,6 +44,25 @@ public class Company
     /// it sets its own Product.TaxRateOverridePercent (e.g. Cameroon's ~19.25%
     /// standard TVA doesn't apply uniformly to every pharmaceutical product).</summary>
     public decimal DefaultTaxRatePercent { get; set; } = 19.25m;
+
+    /// <summary>Cameroon tax regime. Standard (régime du réel) collects TVA per
+    /// sale. FlatRate (impôt libératoire) is for very small businesses that pay a
+    /// flat periodic lump-sum instead and charge NO TVA — so DefaultTaxRatePercent
+    /// is set to 0 when this is chosen.</summary>
+    public TaxRegime TaxRegime { get; set; } = TaxRegime.Standard;
+
+    /// <summary>Flat lump-sum tax the business owes per FlatTaxPeriod under the
+    /// impôt libératoire regime (assessed by their commune; entered manually).</summary>
+    public decimal FlatTaxAmount { get; set; } = 0m;
+    public FlatTaxPeriod FlatTaxPeriod { get; set; } = FlatTaxPeriod.Quarterly;
+
+    /// <summary>The business's own taxpayer number (NIU), printed as the seller
+    /// identifier on tax invoices.</summary>
+    public string? TaxId { get; set; }
+
+    /// <summary>Monotonic counter for sequential invoice numbers (a DGI
+    /// requirement on tax invoices). Incremented as each sale is invoiced.</summary>
+    public int NextInvoiceNumber { get; set; } = 1;
 
     /// <summary>Serialized theme config (Section 10): primary/secondary color, font choice, dark mode.</summary>
     public string? ThemeConfigJson { get; set; }
@@ -47,6 +86,20 @@ public class Company
     /// points into LoyaltyAccount.StoreCreditBalance (Section 21.3) — e.g. 10
     /// means 1 point = 10 XAF of spendable store credit.</summary>
     public decimal LoyaltyPointValue { get; set; } = 10m;
+
+    /// <summary>Master toggle for the purchase-milestone reward program. When
+    /// on, a customer earns one gift card each time their completed-purchase
+    /// count crosses a multiple of RewardPurchaseCount. Distinct from loyalty
+    /// points: this issues a physical, printable bearer gift card the customer
+    /// carries back, rather than accruing redeemable points.</summary>
+    public bool RewardProgramEnabled { get; set; } = false;
+
+    /// <summary>Number of completed purchases a customer must make to earn one
+    /// reward gift card (e.g. 10 = every 10th purchase).</summary>
+    public int RewardPurchaseCount { get; set; } = 10;
+
+    /// <summary>Fixed value of each reward gift card issued by the program.</summary>
+    public decimal RewardGiftCardValue { get; set; } = 0m;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

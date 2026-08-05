@@ -9,6 +9,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import { useSetBreadcrumb } from "@/lib/breadcrumb";
+import { confirmDialog } from "@/lib/confirm";
+import { useT } from "@/lib/i18n";
 import { printReceipt } from "@/lib/receipt";
 import { queryClient } from "@/lib/queryClient";
 import { useAuthStore } from "@/lib/stores";
@@ -28,6 +30,7 @@ export function SaleDetail() {
   const role = useAuthStore((s) => s.user?.role);
   const currency = useCurrency();
   const company = useCompany().data;
+  const t = useT();
   const [refunding, setRefunding] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -39,12 +42,12 @@ export function SaleDetail() {
 
   useSetBreadcrumb([
     { label: "Sales history", to: "/sales" },
-    { label: sale ? `Sale · ${new Date(sale.timestamp).toLocaleDateString()}` : "Sale" },
+    { label: sale ? `${t("Sale")} · ${new Date(sale.timestamp).toLocaleDateString()}` : t("Sale") },
   ]);
 
   async function refund() {
     if (!companyId || !saleId || refunding) return;
-    if (!window.confirm("Refund this sale? Stock and payments will be reversed.")) return;
+    if (!(await confirmDialog({ title: t("Refund sale"), message: t("Refund this sale? Stock and payments will be reversed."), danger: true, confirmLabel: t("Refund sale") }))) return;
     setRefunding(true);
     setMsg(null);
     try {
@@ -63,7 +66,7 @@ export function SaleDetail() {
       <div className="mx-auto max-w-2xl">
         <BackButton />
         <div className="mt-4 rounded-card border border-border bg-surface p-10 text-center text-text-secondary">
-          {isLoading ? "Loading…" : "Sale not found."}
+          {isLoading ? t("Loading…") : t("Sale not found.")}
         </div>
       </div>
     );
@@ -81,9 +84,9 @@ export function SaleDetail() {
             onClick={() => company && printReceipt(sale, company)}
             className="text-sm font-semibold text-primary hover:brightness-110"
           >
-            🖨 Print receipt
+            🖨 {t("Print receipt")}
           </button>
-          <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${status.cls}`}>{status.text}</span>
+          <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${status.cls}`}>{t(status.text)}</span>
         </div>
       </div>
 
@@ -97,6 +100,17 @@ export function SaleDetail() {
           </div>
           <div className="text-2xl font-extrabold text-text-primary">{formatCurrency(sale.total, currency)}</div>
         </div>
+
+        {sale.customerName ? (
+          <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-border/60 bg-background/50 px-3 py-2 text-sm">
+            <span className="font-semibold text-text-primary">👤 {sale.customerName}</span>
+            {sale.customerPhone ? (
+              <a href={`tel:${sale.customerPhone}`} className="font-semibold text-primary">📞 {sale.customerPhone}</a>
+            ) : (
+              <span className="text-text-secondary">{t("no phone on file")}</span>
+            )}
+          </div>
+        ) : null}
 
         <div className="my-5 border-t border-dashed border-border" />
 
@@ -131,13 +145,13 @@ export function SaleDetail() {
         <div className="my-4 border-t border-border" />
 
         <div className="space-y-1.5 text-sm">
-          <Row label="Total" value={formatCurrency(sale.total, currency)} bold />
-          <Row label="Payment" value={paymentMethodLabel(sale.paymentMethod)} />
+          <Row label={t("Total")} value={formatCurrency(sale.total, currency)} bold />
+          <Row label={t("Payment")} value={t(paymentMethodLabel(sale.paymentMethod))} />
           {sale.paymentSplits.map((s, i) => (
-            <Row key={i} label={`· ${paymentMethodLabel(s.method)}`} value={formatCurrency(s.amount, currency)} muted />
+            <Row key={i} label={`· ${t(paymentMethodLabel(s.method))}`} value={formatCurrency(s.amount, currency)} muted />
           ))}
-          {sale.amountTendered != null ? <Row label="Tendered" value={formatCurrency(sale.amountTendered, currency)} muted /> : null}
-          {sale.changeDue != null ? <Row label="Change" value={formatCurrency(sale.changeDue, currency)} muted /> : null}
+          {sale.amountTendered != null ? <Row label={t("Tendered")} value={formatCurrency(sale.amountTendered, currency)} muted /> : null}
+          {sale.changeDue != null ? <Row label={t("Change")} value={formatCurrency(sale.changeDue, currency)} muted /> : null}
         </div>
       </div>
 
@@ -146,7 +160,7 @@ export function SaleDetail() {
       {canRefund ? (
         <div className="mt-4 flex justify-end">
           <Button variant="danger" onClick={refund} loading={refunding}>
-            Refund sale
+            {t("Refund sale")}
           </Button>
         </div>
       ) : null}

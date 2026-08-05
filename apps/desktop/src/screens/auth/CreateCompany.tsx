@@ -8,10 +8,12 @@ import { AuthLayout } from "@/components/AuthLayout";
 import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
 import { deviceName } from "@/platform";
+import { useT } from "@/lib/i18n";
 import { useAuthStore } from "@/lib/stores";
 
 export function CreateCompany() {
   const navigate = useNavigate();
+  const t = useT();
   const [name, setName] = useState("");
   const [currency, setCurrency] = useState("XAF");
   const [adminName, setAdminName] = useState("");
@@ -50,7 +52,7 @@ export function CreateCompany() {
       });
       navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not create the company. Check the API is running.");
+      setError(err instanceof ApiError ? err.message : t("Could not create the company. Check the API is running."));
     } finally {
       setLoading(false);
     }
@@ -59,25 +61,25 @@ export function CreateCompany() {
   const ready = name && adminName && adminPhone && adminPassword.length >= 6;
 
   return (
-    <AuthLayout title="Create a company" subtitle="You'll be the first administrator.">
+    <AuthLayout title={t("Create a company")} subtitle={t("You'll be the first administrator.")}>
       <form className="flex flex-col gap-4" onSubmit={submit}>
-        <TextField label="Company name" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
-        <TextField label="Currency" value={currency} onChange={(e) => setCurrency(e.target.value)} />
+        <TextField label={t("Company name")} value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+        <TextField label={t("Currency")} value={currency} onChange={(e) => setCurrency(e.target.value)} />
         <div className="my-1 border-t border-border" />
-        <TextField label="Your name" value={adminName} onChange={(e) => setAdminName(e.target.value)} />
-        <TextField label="Your phone" value={adminPhone} onChange={(e) => setAdminPhone(e.target.value)} />
+        <TextField label={t("Your name")} value={adminName} onChange={(e) => setAdminName(e.target.value)} />
+        <TextField label={t("Your phone")} value={adminPhone} onChange={(e) => setAdminPhone(e.target.value)} />
         <TextField
-          label="Password (min 6 chars)"
+          label={t("Password (min 6 chars)")}
           type="password"
           value={adminPassword}
           onChange={(e) => setAdminPassword(e.target.value)}
         />
         {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         <Button type="submit" loading={loading} disabled={!ready}>
-          Create company
+          {t("Create company")}
         </Button>
         <Button type="button" variant="ghost" onClick={() => navigate("/onboarding")}>
-          Back
+          {t("Back")}
         </Button>
       </form>
     </AuthLayout>

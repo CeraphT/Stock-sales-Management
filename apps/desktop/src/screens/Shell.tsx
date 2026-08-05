@@ -1,9 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
+import { UserRole } from "@stockflow/core/api/enums";
+import { isolateCompany } from "@stockflow/core/db/isolation";
+import { localShiftService } from "@stockflow/core/local/shiftService";
+
+import { IconButton } from "@/components/IconButton";
+import { ScreenBackground } from "@/components/ScreenBackground";
+import { SetupWizard } from "@/components/SetupWizard";
 import { useBreadcrumb, type Crumb } from "@/lib/breadcrumb";
+import { useT } from "@/lib/i18n";
 import { NAV } from "@/lib/nav";
 import { logout } from "@/lib/session";
+import { useIdleLogout } from "@/lib/useIdleLogout";
 import { useAuthStore, useLanguageStore } from "@/lib/stores";
 import { runSync } from "@/lib/sync/runSync";
 import { toast } from "@/lib/toast";
@@ -14,13 +23,23 @@ export function Shell() {
   const navigate = useNavigate();
   const location = useLocation();
   const locationName = useAuthStore((s) => s.locationName);
+  const role = useAuthStore((s) => s.user?.role);
+  const companyId = useAuthStore((s) => s.companyId);
+  const shiftLocationId = useAuthStore((s) => s.locationId);
   const language = useLanguageStore((s) => s.language);
   const setLanguage = useLanguageStore((s) => s.setLanguage);
   const mode = useThemeStore((s) => s.mode);
   const toggleTheme = useThemeStore((s) => s.toggle);
+  const t = useT();
 
-  const companyName = useCompany().data?.name ?? "…";
+  const company = useCompany().data;
+  const companyName = company?.name ?? "…";
   const initial = (companyName.trim()[0] ?? "•").toUpperCase();
+
+  // First-login setup wizard: shown once to an admin whose company isn't set up.
+  const [wizardDismissed, setWizardDismissed] = useState(false);
+  const isAdmin = role === UserRole.CompanyAdmin || role === UserRole.SuperAdmin;
+  const showWizard = !!company && !company.setupCompleted && isAdmin && !wizardDismissed;
 
   // Breadcrumb trail — a detail screen's published trail (keyed to its path)
   // wins; otherwise derive "Group › Page" from the nav structure.
@@ -34,21 +53,26 @@ export function Shell() {
     return [{ label: companyName }];
   }, [bc.forPath, bc.trail, location.pathname, companyName]);
 
-  // Collapsible sidebar groups — start with only the group containing the
-  // current route open, so the menu stays short (no scrolling).
-  const [openGroups, setOpenGroups] = useState<Set<string>>(
-    () => new Set(NAV.filter((g) => g.title && g.items.some((i) => i.path === location.pathname)).map((g) => g.title)),
+  // Accordion sidebar — exactly ONE group open at a time. Defaults to the group
+  // containing the current route (else the first titled group), so the menu
+  // stays short and never needs scrolling.
+  const firstTitled = NAV.find((g) => g.title)?.title ?? "";
+  const [openGroup, setOpenGroup] = useState<string>(
+    () => NAV.find((g) => g.title && g.items.some((i) => i.path === location.pathname))?.title ?? firstTitled,
   );
-  const toggleGroup = (t: string) =>
-    setOpenGroups((s) => {
-      const n = new Set(s);
-      if (n.has(t)) n.delete(t);
-      else n.add(t);
-      return n;
-    });
+  const toggleGroup = (t: string) => setOpenGroup((cur) => (cur === t ? "" : t));
+
+  // Opening a route from anywhere (breadcrumb, deep link) auto-expands its group.
+  useEffect(() => {
+    const g = NAV.find((grp) => grp.title && grp.items.some((i) => i.path === location.pathname));
+    if (g) setOpenGroup(g.title);
+  }, [location.pathname]);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [syncing, setSyncing] = useState(false);
+
+  // Auto sign-out an idle till.
+  useIdleLogout();
 
   async function doSync() {
     if (syncing) return;
@@ -70,7 +94,33 @@ export function Shell() {
   useEffect(() => {
     if (didInitialSync.current) return;
     didInitialSync.current = true;
-    void doSync();
+    void (async () => {
+      // Tenant isolation: if the local mirror still holds another company's data
+      // (a device switched businesses), wipe it before syncing this one.
+      if (companyId) {
+        try {
+          await isolateCompany(companyId);
+        } catch {
+          /* non-blocking */
+        }
+      }
+      await doSync();
+      // Cashier "start of day" gate: a cashier lands on the register to open it
+      // with their starting cash before anything else. Because a shift stays
+      // open until it's closed, this naturally fires only once a day (or after
+      // a prior shift was closed) — not on every login.
+      if (role === UserRole.Cashier && companyId && shiftLocationId) {
+        try {
+          const shift = await localShiftService.getCurrentShift(companyId, shiftLocationId);
+          if (!shift) {
+            toast("Open the cash register with your starting cash to begin the day.", "info");
+            navigate("/cash-register", { replace: true });
+          }
+        } catch {
+          /* non-blocking */
+        }
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -92,20 +142,30 @@ export function Shell() {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      <ScreenBackground />
       {/* Collapsible sidebar — hidden entirely when closed so the content
           area takes the full width. */}
-      <aside className={`sidebar h-full w-64 shrink-0 flex-col text-white ${sidebarOpen ? "flex" : "hidden"}`}>
+      <aside className={`sidebar h-full w-64 shrink-0 flex-col ${sidebarOpen ? "flex" : "hidden"}`}>
         {/* Company brand — the company name is the single identity here. */}
         <div className="flex items-center gap-3 px-4 py-5">
-          <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-lg font-extrabold text-white ring-1 ring-white/10"
-            style={{ backgroundColor: "rgb(99 102 241 / 0.3)" }}
-          >
-            {initial}
-          </div>
-          <div className="truncate text-base font-bold leading-tight text-white">{companyName}</div>
+          {company?.logoUrl ? (
+            <img
+              src={company.logoUrl}
+              alt={companyName}
+              className="h-10 w-10 shrink-0 rounded-2xl object-cover shadow-lg"
+              style={{ boxShadow: "0 4px 14px rgb(99 102 241 / 0.35)" }}
+            />
+          ) : (
+            <div
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-lg font-extrabold text-white shadow-lg"
+              style={{ backgroundColor: "rgb(99 102 241)", boxShadow: "0 4px 14px rgb(99 102 241 / 0.4)" }}
+            >
+              {initial}
+            </div>
+          )}
+          <div className="truncate text-base font-bold leading-tight text-text-primary">{companyName}</div>
         </div>
-        <div className="mx-4 border-t border-white/10" />
+        <div className="mx-4 border-t border-border" />
 
         <nav className="sidebar-scroll flex-1 space-y-0.5 overflow-y-auto px-3 py-3">
           {NAV.map((group, gi) => {
@@ -115,29 +175,29 @@ export function Shell() {
                 to={item.path}
                 className={({ isActive }) =>
                   `flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition ${
-                    isActive ? "font-semibold text-white" : "font-medium text-white/50 hover:bg-white/10 hover:text-white"
+                    isActive ? "font-semibold text-white" : "font-medium text-text-secondary hover:bg-primary/10 hover:text-primary"
                   }`
                 }
                 style={({ isActive }) =>
-                  isActive ? { backgroundColor: "rgb(99 102 241 / 0.28)", boxShadow: "0 2px 16px rgb(99 102 241 / 0.28)" } : undefined
+                  isActive ? { backgroundColor: "rgb(99 102 241)", boxShadow: "0 2px 14px rgb(99 102 241 / 0.4)" } : undefined
                 }
               >
                 <span className="w-5 text-center text-base">{item.icon}</span>
-                {item.label}
+                {t(item.label)}
               </NavLink>
             ));
 
             // Ungrouped items (Dashboard) render directly, always visible.
             if (!group.title) return <div key={gi}>{items}</div>;
 
-            const open = openGroups.has(group.title);
+            const open = openGroup === group.title;
             return (
               <div key={gi} className="pt-1">
                 <button
                   onClick={() => toggleGroup(group.title)}
-                  className="flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white/45 transition hover:text-white/80"
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-text-secondary transition hover:text-primary"
                 >
-                  <span>{group.title}</span>
+                  <span>{t(group.title)}</span>
                   <span className={`text-[10px] transition-transform duration-200 ${open ? "rotate-90" : ""}`}>▶</span>
                 </button>
                 {open ? <div className="mt-0.5 space-y-0.5">{items}</div> : null}
@@ -152,7 +212,7 @@ export function Shell() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSidebarOpen((v) => !v)}
-              title={sidebarOpen ? "Hide menu" : "Show menu"}
+              title={sidebarOpen ? t("Hide menu") : t("Show menu")}
               className="grid h-9 w-9 place-items-center rounded-lg text-lg text-text-secondary transition hover:bg-surface"
             >
               ☰
@@ -168,10 +228,10 @@ export function Shell() {
                         onClick={() => navigate(c.to!)}
                         className="font-medium text-text-secondary transition hover:text-text-primary"
                       >
-                        {c.label}
+                        {t(c.label)}
                       </button>
                     ) : (
-                      <span className={last ? "font-bold text-text-primary" : "font-medium text-text-secondary"}>{c.label}</span>
+                      <span className={last ? "font-bold text-text-primary" : "font-medium text-text-secondary"}>{t(c.label)}</span>
                     )}
                   </span>
                 );
@@ -184,32 +244,28 @@ export function Shell() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setLanguage(language === "en" ? "fr" : "en")}
+              title={language === "en" ? "Passer en français" : "Switch to English"}
               className="rounded-full border border-border px-3 py-1.5 text-xs font-bold text-text-secondary transition hover:bg-surface"
             >
-              {language.toUpperCase()}
+              {language === "en" ? "FR" : "EN"}
             </button>
             <button
               onClick={doSync}
               disabled={syncing}
-              title="Sync with the server"
+              title={t("Sync with the server")}
               className="grid h-9 w-9 place-items-center rounded-full text-sm transition hover:bg-surface disabled:opacity-40"
             >
               {syncing ? "⏳" : "🔄"}
             </button>
             <button
               onClick={toggleTheme}
-              title="Toggle theme"
+              title={t("Toggle theme")}
               className="grid h-9 w-9 place-items-center rounded-full text-sm transition hover:bg-surface"
             >
               {mode === "dark" ? "☀️" : "🌙"}
             </button>
             <div className="mx-1 h-6 w-px bg-border" />
-            <button
-              onClick={onLogout}
-              className="rounded-lg px-3 py-1.5 text-xs font-semibold text-error transition hover:bg-error/10"
-            >
-              Log out
-            </button>
+            <IconButton icon="⏻" label={t("Log out")} tone="danger" onClick={onLogout} className="rounded-full" />
           </div>
         </header>
         <main className="flex-1 overflow-auto p-6">
@@ -218,6 +274,7 @@ export function Shell() {
           </div>
         </main>
       </div>
+      {showWizard && company ? <SetupWizard company={company} onDone={() => setWizardDismissed(true)} /> : null}
     </div>
   );
 }

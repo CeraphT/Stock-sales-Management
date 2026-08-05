@@ -4,8 +4,8 @@ using PharmaStock.Infrastructure.Data;
 
 namespace PharmaStock.Api.Services;
 
-public record CustomerRequest(string Name, string? Phone);
-public record CustomerResponse(Guid Id, string Name, string? Phone, decimal CreditBalance, int LoyaltyPointsBalance, decimal LoyaltyStoreCreditBalance);
+public record CustomerRequest(string Name, string? Phone, bool IsBusiness = false, string? TaxId = null);
+public record CustomerResponse(Guid Id, string Name, string? Phone, decimal CreditBalance, int LoyaltyPointsBalance, decimal LoyaltyStoreCreditBalance, int RewardsGranted, bool IsBusiness, string? TaxId);
 
 /// <summary>Section 3.5/21.3 — customer records, the prerequisite every
 /// Credit/StoreCredit/loyalty-points sale needs (Sale.CustomerId already
@@ -34,7 +34,8 @@ public static class CustomerEndpoints
                 .Select(c => new CustomerResponse(
                     c.Id, c.Name, c.Phone, c.CreditBalance,
                     c.LoyaltyAccount != null ? c.LoyaltyAccount.PointsBalance : 0,
-                    c.LoyaltyAccount != null ? c.LoyaltyAccount.StoreCreditBalance : 0))
+                    c.LoyaltyAccount != null ? c.LoyaltyAccount.StoreCreditBalance : 0,
+                    c.RewardsGranted, c.IsBusiness, c.TaxId))
                 .ToListAsync();
 
             return Results.Ok(customers);
@@ -56,12 +57,14 @@ public static class CustomerEndpoints
                 CompanyId = companyId,
                 Name = request.Name.Trim(),
                 Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
+                IsBusiness = request.IsBusiness,
+                TaxId = string.IsNullOrWhiteSpace(request.TaxId) ? null : request.TaxId.Trim(),
             };
             db.Customers.Add(customer);
             await db.SaveChangesAsync();
 
             return Results.Created($"/api/companies/{companyId}/customers/{customer.Id}",
-                new CustomerResponse(customer.Id, customer.Name, customer.Phone, customer.CreditBalance, 0, 0));
+                new CustomerResponse(customer.Id, customer.Name, customer.Phone, customer.CreditBalance, 0, 0, 0, customer.IsBusiness, customer.TaxId));
         });
     }
 }

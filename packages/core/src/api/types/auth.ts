@@ -68,6 +68,19 @@ export interface CompanyResponse {
   loyaltyEnabled: boolean;
   loyaltyEarnRateAmount: number;
   loyaltyPointValue: number;
+  rewardProgramEnabled: boolean;
+  rewardPurchaseCount: number;
+  rewardGiftCardValue: number;
+  address: string | null;
+  phone: string | null;
+  receiptFooter: string | null;
+  logoUrl: string | null;
+  defaultLowStockThreshold: number;
+  setupCompleted: boolean;
+  taxRegime: number;
+  flatTaxAmount: number;
+  flatTaxPeriod: number;
+  taxId: string | null;
 }
 
 export interface LocationResponse {
@@ -92,6 +105,19 @@ export interface UpdateCompanyRequest {
   loyaltyEarnRateAmount: number;
   loyaltyPointValue: number;
   servicesModuleEnabled: boolean;
+  rewardProgramEnabled: boolean;
+  rewardPurchaseCount: number;
+  rewardGiftCardValue: number;
+  address: string | null;
+  phone: string | null;
+  receiptFooter: string | null;
+  logoUrl: string | null;
+  defaultLowStockThreshold: number;
+  setupCompleted: boolean;
+  taxRegime: number;
+  flatTaxAmount: number;
+  flatTaxPeriod: number;
+  taxId: string | null;
 }
 
 export interface CreateLocationRequest {

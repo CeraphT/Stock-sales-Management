@@ -14,6 +14,9 @@ export interface ProductSearchResult {
   salePrice: number;
   stockStatus: StockStatus;
   packagingLevels: PackagingLevelInfo[];
+  /** Soonest expiry among in-stock batches (ISO), or null — lets the POS warn
+   * (but still allow) when a product's stock has passed its expiry date. */
+  earliestExpiry: string | null;
 }
 
 export interface StockAvailabilityResponse {

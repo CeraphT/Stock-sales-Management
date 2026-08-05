@@ -74,13 +74,36 @@ async function openShiftInternal(companyId: string, locationId: string, openingC
   });
   if (!locationExists) throw new ApiError(404, "Location not found.");
 
+  const userId = getAuthStore().getState().user?.id;
+  if (!userId) throw new ApiError(401, "Local session not found.");
+
   const alreadyOpen = await db.query.cashRegisterShifts.findFirst({
     where: and(eq(cashRegisterShifts.locationId, locationId), eq(cashRegisterShifts.status, ShiftStatus.Open)),
   });
-  if (alreadyOpen) throw new ApiError(409, "A shift is already open for this location.");
+  if (alreadyOpen) {
+    const openedDay = alreadyOpen.openedAt.slice(0, 10);
+    const today = new Date().toISOString().slice(0, 10);
+    // A register already open TODAY can't be reopened. But one left open from a
+    // PRIOR day is auto-closed at its expected cash (every day = one clean,
+    // reconciled shift in the history) so the new day can start.
+    if (openedDay >= today) throw new ApiError(409, "A shift is already open for this location.");
 
-  const userId = getAuthStore().getState().user?.id;
-  if (!userId) throw new ApiError(401, "Local session not found.");
+    const cashTotal = await computeCashTotal(alreadyOpen.id);
+    const expected = alreadyOpen.openingCashAmount + cashTotal;
+    await db
+      .update(cashRegisterShifts)
+      .set({
+        status: ShiftStatus.Closed,
+        closedAt: new Date().toISOString(),
+        closedByUserId: userId,
+        closingCashAmount: expected,
+        expectedCashAmount: expected,
+        discrepancy: 0,
+        closingNotes: "Auto-fermée en fin de journée.",
+        syncStatus: alreadyOpen.syncStatus === SyncStatus.Synced ? SyncStatus.PendingPush : alreadyOpen.syncStatus,
+      })
+      .where(eq(cashRegisterShifts.id, alreadyOpen.id));
+  }
 
   const shiftId = generateId();
   await db.insert(cashRegisterShifts).values({
@@ -155,5 +178,17 @@ export const localShiftService = {
       where: and(eq(cashRegisterShifts.locationId, locationId), eq(cashRegisterShifts.companyId, companyId), eq(cashRegisterShifts.status, ShiftStatus.Open)),
     });
     return shift ? toDetail(shift.id) : null;
+  },
+
+  /** Recent shifts for a location (newest first), each with its full
+   * per-payment-method breakdown — the desktop Cash Register history. */
+  async getShiftHistory(companyId: string, locationId: string, limit = 30): Promise<ShiftDetailResponse[]> {
+    const rows = await db.query.cashRegisterShifts.findMany({
+      where: and(eq(cashRegisterShifts.locationId, locationId), eq(cashRegisterShifts.companyId, companyId)),
+    });
+    const sorted = rows.sort((a, b) => (a.openedAt < b.openedAt ? 1 : -1)).slice(0, limit);
+    const details: ShiftDetailResponse[] = [];
+    for (const s of sorted) details.push(await toDetail(s.id));
+    return details;
   },
 };

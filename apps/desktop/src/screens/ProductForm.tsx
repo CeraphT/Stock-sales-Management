@@ -4,15 +4,19 @@ import { productsApi } from "@stockflow/core/api/endpoints/products";
 import { suppliersApi } from "@stockflow/core/api/endpoints/suppliers";
 import type { PackagingLevelRequest } from "@stockflow/core/api/types/catalog";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
 import { useSetBreadcrumb } from "@/lib/breadcrumb";
+import { useT } from "@/lib/i18n";
+import { usePrefsStore } from "@/lib/prefs";
 import { useAuthStore } from "@/lib/stores";
+import { useCompany } from "@/lib/useCompany";
 import { runSync } from "@/lib/sync/runSync";
+import { toast } from "@/lib/toast";
 
 interface LevelRow {
   unitName: string;
@@ -28,6 +32,7 @@ export function ProductForm() {
   const isEdit = !!productId;
   const navigate = useNavigate();
   const companyId = useAuthStore((s) => s.companyId)!;
+  const t = useT();
 
   const [name, setName] = useState("");
   const [barcode, setBarcode] = useState("");
@@ -43,9 +48,54 @@ export function ProductForm() {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [addingCat, setAddingCat] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [savingCat, setSavingCat] = useState(false);
 
-  const { data: categories = [] } = useQuery({ queryKey: ["categories", companyId], queryFn: () => categoriesApi.list(companyId) });
-  const { data: suppliers = [] } = useQuery({ queryKey: ["suppliers", companyId], queryFn: () => suppliersApi.list(companyId) });
+  async function createCategory() {
+    const nm = newCatName.trim();
+    if (!nm || savingCat) return;
+    setSavingCat(true);
+    try {
+      const created = await categoriesApi.create(companyId, { name: nm });
+      await refetchCategories();
+      setCategoryId(created.id);
+      setNewCatName("");
+      setAddingCat(false);
+      toast(t("Category added."), "success");
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : t("Could not add the category."), "error");
+    } finally {
+      setSavingCat(false);
+    }
+  }
+
+  const allowNoSupplier = usePrefsStore((s) => s.allowProductsWithoutSupplier);
+
+  const { data: categories = [], refetch: refetchCategories } = useQuery({ queryKey: ["categories", companyId], queryFn: () => categoriesApi.list(companyId) });
+  const company = useCompany().data;
+
+  // New products inherit the company-wide default low-stock threshold (Settings →
+  // Data-entry rules), applied once so it never clobbers the cashier's edits.
+  const lowStockSeeded = useRef(false);
+  useEffect(() => {
+    if (isEdit || lowStockSeeded.current || !company) return;
+    lowStockSeeded.current = true;
+    if (company.defaultLowStockThreshold > 0) setLowStock(String(company.defaultLowStockThreshold));
+  }, [isEdit, company]);
+  const { data: suppliers = [], isSuccess: suppliersLoaded } = useQuery({ queryKey: ["suppliers", companyId], queryFn: () => suppliersApi.list(companyId) });
+
+  // Dependency guardrail: warn once, on a new product, if there are no
+  // suppliers yet and one is required (see save()). Only judge AFTER the query
+  // resolves — `suppliers` is [] while loading, which would toast falsely.
+  const warnedNoSuppliers = useRef(false);
+  useEffect(() => {
+    if (isEdit || allowNoSupplier || warnedNoSuppliers.current) return;
+    if (suppliersLoaded && suppliers.length === 0) {
+      warnedNoSuppliers.current = true;
+      toast(t("No suppliers yet — add one first, or allow supplier-less stock in Company settings."), "info");
+    }
+  }, [suppliersLoaded, suppliers.length, isEdit, allowNoSupplier, t]);
   const { data: detail } = useQuery({
     queryKey: ["product", companyId, productId],
     queryFn: () => productsApi.get(companyId, productId!),
@@ -80,6 +130,16 @@ export function ProductForm() {
 
   async function save() {
     if (saving) return;
+    // Dependency guardrail: a product must have a supplier unless the install
+    // has opted into supplier-less stock (Company settings).
+    if (!supplierId && !allowNoSupplier) {
+      if (suppliers.length === 0) {
+        toast("Add a supplier first, then link it here. (Existing stock with no supplier? Enable it in Company settings.)", "error");
+      } else {
+        toast("Select a supplier before saving — or allow supplier-less stock in Company settings.", "error");
+      }
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -128,66 +188,103 @@ export function ProductForm() {
     <div className="mx-auto max-w-2xl">
       <div className="mb-4 flex items-center justify-between">
         <BackButton />
-        <h2 className="text-lg font-bold text-text-primary">{isEdit ? "Edit product" : "New product"}</h2>
+        <h2 className="text-lg font-bold text-text-primary">{isEdit ? t("Edit product") : t("New product")}</h2>
         <span className="w-12" />
       </div>
 
       <div className="space-y-4 rounded-card border border-border bg-surface p-6">
-        <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} />
-        <TextField label="Barcode" value={barcode} onChange={(e) => setBarcode(e.target.value)} />
+        <TextField label={t("Name")} value={name} onChange={(e) => setName(e.target.value)} />
+        <TextField label={t("Barcode")} value={barcode} onChange={(e) => setBarcode(e.target.value)} placeholder={t("Scan or type…")} />
 
         <div className="grid grid-cols-2 gap-4">
           <label className="block">
-            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">Category</span>
-            <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={selectCls}>
-              <option value="">— none —</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Category")}</span>
+            <div className="flex items-center gap-2">
+              <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={`${selectCls} flex-1`}>
+                <option value="">{t("— none —")}</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setAddingCat((v) => !v)}
+                title={t("Add category")}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-surface text-lg font-bold text-primary transition hover:border-primary"
+              >
+                {addingCat ? "×" : "+"}
+              </button>
+            </div>
+            {addingCat ? (
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  value={newCatName}
+                  autoFocus
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      void createCategory();
+                    }
+                  }}
+                  placeholder={t("New category name")}
+                  className="h-10 flex-1 rounded-xl border border-border bg-surface px-3 text-sm text-text-primary outline-none focus:border-primary"
+                />
+                <Button onClick={createCategory} loading={savingCat} disabled={!newCatName.trim()}>
+                  {t("Add")}
+                </Button>
+              </div>
+            ) : null}
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">Supplier</span>
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">
+              {t("Supplier")}{!allowNoSupplier ? <span className="text-error"> *</span> : null}
+            </span>
             <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} className={selectCls}>
-              <option value="">— none —</option>
+              <option value="">{allowNoSupplier ? t("— none —") : t("— select a supplier —")}</option>
               {suppliers.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
                 </option>
               ))}
             </select>
+            {!allowNoSupplier && suppliers.length === 0 ? (
+              <button type="button" onClick={() => navigate("/suppliers")} className="mt-1 text-xs font-semibold text-primary">
+                {t("+ Add a supplier first")}
+              </button>
+            ) : null}
           </label>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <TextField label="Purchase price" type="number" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} />
-          <TextField label="Sale price" type="number" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} />
-          <TextField label="Low-stock at" type="number" value={lowStock} onChange={(e) => setLowStock(e.target.value)} />
+          <TextField label={t("Purchase price")} type="number" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} />
+          <TextField label={t("Sale price")} type="number" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} />
+          <TextField label={t("Low-stock at")} type="number" value={lowStock} onChange={(e) => setLowStock(e.target.value)} />
         </div>
 
         <div className="grid grid-cols-2 items-end gap-4">
-          <TextField label="Tax override %" type="number" value={tax} onChange={(e) => setTax(e.target.value)} placeholder="company default" />
+          <TextField label={t("Tax override %")} type="number" value={tax} onChange={(e) => setTax(e.target.value)} placeholder={t("company default")} />
           <label className="flex h-11 items-center gap-2">
             <input type="checkbox" checked={favorite} onChange={(e) => setFavorite(e.target.checked)} className="h-4 w-4" />
-            <span className="text-sm text-text-primary">Favorite (pin in POS)</span>
+            <span className="text-sm text-text-primary">{t("Favorite (pin in POS)")}</span>
           </label>
         </div>
 
         {/* Packaging levels */}
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Packaging levels</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Packaging levels")}</span>
             <button
               onClick={() => setLevels((l) => [...l, { unitName: "", quantityInBaseUnits: "", salePriceOverride: "" }])}
               className="text-sm font-semibold text-primary"
             >
-              + Add level
+              {t("+ Add level")}
             </button>
           </div>
           {levels.length === 0 ? (
-            <p className="text-xs text-text-secondary">Base unit only. Add a level for boxes/blisters (e.g. “Box” = 10 units).</p>
+            <p className="text-xs text-text-secondary">{t("Base unit only. Add a level for boxes/blisters (e.g. “Box” = 10 units).")}</p>
           ) : (
             <div className="space-y-2">
               {levels.map((l, i) => (
@@ -195,20 +292,20 @@ export function ProductForm() {
                   <input
                     value={l.unitName}
                     onChange={(e) => setLevels((rows) => rows.map((r, j) => (j === i ? { ...r, unitName: e.target.value } : r)))}
-                    placeholder="Unit name (Box)"
+                    placeholder={t("Unit name (Box)")}
                     className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary"
                   />
                   <input
                     value={l.quantityInBaseUnits}
                     onChange={(e) => setLevels((rows) => rows.map((r, j) => (j === i ? { ...r, quantityInBaseUnits: e.target.value } : r)))}
-                    placeholder="Units"
+                    placeholder={t("Units")}
                     type="number"
                     className="h-10 w-24 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary"
                   />
                   <input
                     value={l.salePriceOverride}
                     onChange={(e) => setLevels((rows) => rows.map((r, j) => (j === i ? { ...r, salePriceOverride: e.target.value } : r)))}
-                    placeholder="Price override"
+                    placeholder={t("Price override")}
                     type="number"
                     className="h-10 w-32 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary"
                   />
@@ -223,27 +320,31 @@ export function ProductForm() {
 
         {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
 
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
           {isEdit ? (
-            <>
-              <button onClick={() => navigate(`/products/${productId}/receive`)} className="text-sm font-semibold text-primary">
-                Receive stock
-              </button>
-              <button onClick={() => navigate(`/products/${productId}/adjust`)} className="text-sm font-semibold text-primary">
-                Adjust stock
-              </button>
-              <button onClick={toggleArchive} className="text-sm font-semibold text-text-secondary hover:text-error">
-                {isActive ? "Archive" : "Restore"}
-              </button>
-            </>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" onClick={() => navigate(`/products/${productId}/inventory`)}>
+                📊 {t("Inventory")}
+              </Button>
+              <Button variant="secondary" onClick={() => navigate(`/products/${productId}/receive`)}>
+                📥 {t("Receive stock")}
+              </Button>
+              <Button variant="secondary" onClick={() => navigate(`/products/${productId}/adjust`)}>
+                ✏️ {t("Adjust stock")}
+              </Button>
+              <Button variant={isActive ? "danger" : "secondary"} onClick={toggleArchive}>
+                {isActive ? `🗄️ ${t("Archive")}` : `♻️ ${t("Restore")}`}
+              </Button>
+            </div>
           ) : (
             <span />
           )}
           <Button onClick={save} loading={saving} disabled={!name.trim()}>
-            Save
+            {t("Save")}
           </Button>
         </div>
       </div>
+
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { createHashRouter, Navigate } from "react-router-dom";
 
+import { RootErrorFallback, ScreenErrorFallback } from "@/components/Errors";
 import { useDbReady } from "@/lib/db/ready";
 import { ALL_NAV_ITEMS } from "@/lib/nav";
 import { useAuthStore } from "@/lib/stores";
@@ -12,20 +13,28 @@ function FullScreenMessage({ title, body }: { title: string; body?: string }) {
     </div>
   );
 }
+import { Archived } from "@/screens/Archived";
+import { BulkStockRegister } from "@/screens/BulkStockRegister";
+import { CashRegister } from "@/screens/CashRegister";
 import { Categories } from "@/screens/Categories";
 import { CompanySettings } from "@/screens/CompanySettings";
+import { CustomerCredits } from "@/screens/CustomerCredits";
 import { Customers } from "@/screens/Customers";
 import { Dashboard } from "@/screens/Dashboard";
 import { GiftCards } from "@/screens/GiftCards";
+import { HeldSales } from "@/screens/HeldSales";
+import { InventoryReport } from "@/screens/InventoryReport";
+import { PrinterSettings } from "@/screens/PrinterSettings";
 import { Reports } from "@/screens/Reports";
-import { Services } from "@/screens/Services";
 import { Staff } from "@/screens/Staff";
+import { TaxDeclaration } from "@/screens/TaxDeclaration";
 import { Placeholder } from "@/screens/Placeholder";
 import { Pos } from "@/screens/Pos";
 import { ProductForm } from "@/screens/ProductForm";
 import { PurchaseOrderDetail } from "@/screens/PurchaseOrderDetail";
 import { PurchaseOrderForm } from "@/screens/PurchaseOrderForm";
 import { PurchaseOrders } from "@/screens/PurchaseOrders";
+import { ProductInventory } from "@/screens/ProductInventory";
 import { Products } from "@/screens/Products";
 import { SaleDetail } from "@/screens/SaleDetail";
 import { StockAdjust } from "@/screens/StockAdjust";
@@ -60,6 +69,11 @@ function AuthGuard() {
 }
 
 export const router = createHashRouter([
+  {
+    // Top-level catch: a crash on a public route or outside the shell shows a
+    // full-screen recover screen instead of a blank window.
+    errorElement: <RootErrorFallback />,
+    children: [
   { path: "/", element: <RootRedirect /> },
   { path: "/onboarding", element: <Onboarding /> },
   { path: "/login", element: <Login /> },
@@ -68,13 +82,23 @@ export const router = createHashRouter([
   {
     element: <AuthGuard />,
     children: [
+      {
+        // Screen-level catch: renders inside the Shell (sidebar/header stay),
+        // so one screen crashing never takes down the whole till.
+        errorElement: <ScreenErrorFallback />,
+        children: [
       { path: "/dashboard", element: <Dashboard /> },
       { path: "/products", element: <Products /> },
       { path: "/products/new", element: <ProductForm /> },
       { path: "/products/:productId/edit", element: <ProductForm /> },
       { path: "/products/:productId/receive", element: <StockReceive /> },
       { path: "/products/:productId/adjust", element: <StockAdjust /> },
+      { path: "/products/:productId/inventory", element: <ProductInventory /> },
+      { path: "/bulk-stock", element: <BulkStockRegister /> },
+      { path: "/archived", element: <Archived /> },
       { path: "/pos", element: <Pos /> },
+      { path: "/cash-register", element: <CashRegister /> },
+      { path: "/held-sales", element: <HeldSales /> },
       { path: "/sales", element: <SalesHistory /> },
       { path: "/sales/:saleId", element: <SaleDetail /> },
       { path: "/categories", element: <Categories /> },
@@ -85,7 +109,10 @@ export const router = createHashRouter([
       { path: "/purchase-orders/new", element: <PurchaseOrderForm /> },
       { path: "/purchase-orders/:poId", element: <PurchaseOrderDetail /> },
       { path: "/reports", element: <Reports /> },
-      { path: "/services", element: <Services /> },
+      { path: "/inventory-report", element: <InventoryReport /> },
+      { path: "/customer-credits", element: <CustomerCredits /> },
+      { path: "/tax-declaration", element: <TaxDeclaration /> },
+      { path: "/printer", element: <PrinterSettings /> },
       { path: "/staff", element: <Staff /> },
       { path: "/settings", element: <CompanySettings /> },
       // Any nav destination without a screen yet (Printer) falls back to a placeholder.
@@ -94,7 +121,11 @@ export const router = createHashRouter([
           ![
             "/dashboard",
             "/products",
+            "/bulk-stock",
+            "/archived",
             "/pos",
+            "/cash-register",
+            "/held-sales",
             "/sales",
             "/categories",
             "/suppliers",
@@ -102,7 +133,10 @@ export const router = createHashRouter([
             "/gift-cards",
             "/purchase-orders",
             "/reports",
-            "/services",
+            "/inventory-report",
+            "/customer-credits",
+            "/tax-declaration",
+            "/printer",
             "/staff",
             "/settings",
           ].includes(i.path),
@@ -110,7 +144,11 @@ export const router = createHashRouter([
         path: i.path,
         element: <Placeholder title={i.label} />,
       })),
+        ],
+      },
     ],
   },
   { path: "*", element: <Navigate to="/" replace /> },
+    ],
+  },
 ]);

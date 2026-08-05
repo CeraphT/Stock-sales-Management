@@ -58,10 +58,24 @@ body {
   background-attachment: fixed;
 }
 
-/* Deep slate sidebar — modern, understated; indigo is used only for accents. */
+/* Sidebar — white in light mode with a clear separation from the content, and
+   a deep-slate gradient in dark mode. Nav item colors are theme tokens (set in
+   the Shell) so they adapt; only hover/active accents stay indigo. */
 .sidebar {
+  background: #ffffff;
+  border-right: 1px solid rgb(var(--color-border));
+  box-shadow: 1px 0 0 rgb(var(--color-border) / 0.6), 4px 0 24px rgb(16 24 40 / 0.04);
+}
+.dark .sidebar {
   background: linear-gradient(180deg, #0f172a 0%, #060a16 100%);
   border-right: 1px solid rgb(255 255 255 / 0.06);
+  box-shadow: none;
+}
+.dark .sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.18);
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgb(15 23 42 / 0.18);
 }
 
 /* Glass cards — translucent surface + backdrop blur. Placed after @tailwind

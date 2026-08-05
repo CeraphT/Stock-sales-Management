@@ -2,6 +2,7 @@ import { api } from "../client";
 import type {
   CreatePurchaseOrderRequest,
   PurchaseOrderDetailResponse,
+  PurchaseOrderLineRequest,
   PurchaseOrderSummaryResponse,
   ReceivePurchaseOrderLineRequest,
 } from "../types/purchaseOrders";
@@ -30,6 +31,10 @@ export const purchaseOrdersApi = {
   get: (companyId: string, id: string) =>
     api.get<PurchaseOrderDetailResponse>(`/api/companies/${companyId}/purchase-orders/${id}`),
 
+  /** Append a line to an open order (consolidates reorders into one PO per supplier). */
+  addLine: (companyId: string, id: string, body: PurchaseOrderLineRequest) =>
+    api.post<PurchaseOrderDetailResponse>(`/api/companies/${companyId}/purchase-orders/${id}/lines`, body),
+
   receiveLine: (companyId: string, id: string, lineId: string, body: ReceivePurchaseOrderLineRequest) =>
     api.post<PurchaseOrderDetailResponse>(
       `/api/companies/${companyId}/purchase-orders/${id}/lines/${lineId}/receive`,
@@ -38,4 +43,11 @@ export const purchaseOrdersApi = {
 
   cancel: (companyId: string, id: string) =>
     api.post<PurchaseOrderDetailResponse>(`/api/companies/${companyId}/purchase-orders/${id}/cancel`),
+
+  /** Stop expecting the outstanding quantity on a single line (accepts what was
+   * already received; recomputes the order's status). */
+  cancelLineRemaining: (companyId: string, id: string, lineId: string) =>
+    api.post<PurchaseOrderDetailResponse>(
+      `/api/companies/${companyId}/purchase-orders/${id}/lines/${lineId}/cancel-remaining`,
+    ),
 };

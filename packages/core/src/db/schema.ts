@@ -51,6 +51,7 @@ export const customers = sqliteTable("customers", {
   name: text("name").notNull(),
   phone: text("phone"),
   creditBalance: real("credit_balance").notNull(),
+  taxId: text("tax_id"),
   updatedAt: text("updated_at").notNull(),
 });
 
@@ -176,6 +177,9 @@ export const sales = sqliteTable(
     changeDue: real("change_due"),
     giftCardCode: text("gift_card_code"),
     timestamp: text("timestamp").notNull(),
+    // B2B sale — VAT added on top (see salesService). Nullable for rows created
+    // before this column existed; read with `?? false`.
+    taxAddedOnTop: integer("tax_added_on_top", { mode: "boolean" }),
     // Local-only, same meaning as cashRegisterShifts.syncStatus above.
     syncStatus: integer("sync_status").notNull(),
   },

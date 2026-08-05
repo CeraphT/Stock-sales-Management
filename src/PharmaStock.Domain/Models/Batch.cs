@@ -32,6 +32,12 @@ public class Batch : ITimestamped
     /// historical cost of what was actually sold, not just the latest price.</summary>
     public decimal PurchasePricePerBaseUnit { get; set; }
 
+    /// <summary>VAT rate (%) embedded in the purchase price paid to the supplier,
+    /// captured at receiving. Makes the input-VAT (TVA déductible) on the tax
+    /// declaration exact rather than estimated at the standard rate. The cost is
+    /// VAT-inclusive (TTC), so input VAT = cost × rate/(100+rate).</summary>
+    public decimal PurchaseVatRatePercent { get; set; } = 0m;
+
     public DateTime ReceivedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>Section 6 — stamped automatically on every save, including

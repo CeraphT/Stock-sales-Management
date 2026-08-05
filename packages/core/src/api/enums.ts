@@ -2,6 +2,19 @@
 // their raw numeric value (no JsonStringEnumConverter configured server-
 // side), so these values must match the C# declaration order precisely.
 
+export enum TaxRegime {
+  /** Régime du réel/simplifié — collects TVA on sales. */
+  Standard = 0,
+  /** Impôt libératoire — flat periodic lump-sum, no TVA on sales. */
+  FlatRate = 1,
+}
+
+export enum FlatTaxPeriod {
+  Monthly = 0,
+  Quarterly = 1,
+  Yearly = 2,
+}
+
 export enum UserRole {
   Cashier = 0,
   CompanyAdmin = 1,

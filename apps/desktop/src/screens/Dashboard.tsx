@@ -3,26 +3,17 @@ import { formatCurrency, paymentMethodLabel } from "@stockflow/core/format";
 import { useQuery } from "@tanstack/react-query";
 
 import { AreaChart } from "@/components/AreaChart";
+import { BarChart } from "@/components/BarChart";
 import { StatCard } from "@/components/StatCard";
+import { useT } from "@/lib/i18n";
 import { useAuthStore } from "@/lib/stores";
 import { useCurrency } from "@/lib/useCompany";
-
-function HealthRow({ label, value, cls }: { label: string; value: number; cls: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <span className={`inline-block h-2.5 w-2.5 rounded-full ${cls}`} />
-        <span className="text-sm text-text-secondary">{label}</span>
-      </div>
-      <span className="text-sm font-bold text-text-primary">{value}</span>
-    </div>
-  );
-}
 
 export function Dashboard() {
   const user = useAuthStore((s) => s.user);
   const companyId = useAuthStore((s) => s.companyId);
   const currency = useCurrency();
+  const t = useT();
 
   const { data } = useQuery({
     queryKey: ["dashboard-summary", companyId],
@@ -37,38 +28,40 @@ export function Dashboard() {
   return (
     <div className="mx-auto max-w-6xl">
       <div className="mb-5">
-        <h2 className="text-2xl font-bold text-text-primary">Welcome{user ? `, ${user.name}` : ""} 👋</h2>
-        <p className="text-sm text-text-secondary">Here's how your business is doing today.</p>
+        <h2 className="text-2xl font-bold text-text-primary">{t("Welcome")}{user ? `, ${user.name}` : ""} 👋</h2>
+        <p className="text-sm text-text-secondary">{t("Here's how your business is doing today.")}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        <StatCard index={0} color="primary" icon="💰" label="Revenue today" value={formatCurrency(data?.todayRevenue ?? 0, currency)} to={`/sales?from=${today}&to=${today}`} />
-        <StatCard index={1} color="blue" icon="🧾" label="Sales today" value={String(data?.todaySalesCount ?? 0)} to={`/sales?from=${today}&to=${today}`} />
-        <StatCard index={2} color="neutral" icon="📦" label="Products" value={String(data?.totalProducts ?? 0)} to="/products" />
-        <StatCard index={3} color="amber" icon="⚠️" label="Low stock" value={String(data?.lowStockCount ?? 0)} to="/products?stock=low_stock" />
-        <StatCard index={4} color="red" icon="⛔" label="Out of stock" value={String(data?.outOfStockCount ?? 0)} to="/products?stock=out_of_stock" />
-        <StatCard index={5} color="orange" icon="⏳" label="Expiring soon" value={String(data?.expiringSoonCount ?? 0)} to="/products?expiring=1" />
+        <StatCard index={0} color="primary" icon="💰" label={t("Revenue today")} value={formatCurrency(data?.todayRevenue ?? 0, currency)} to={`/sales?from=${today}&to=${today}`} />
+        <StatCard index={1} color="blue" icon="🧾" label={t("Sales today")} value={String(data?.todaySalesCount ?? 0)} to={`/sales?from=${today}&to=${today}`} />
+        <StatCard index={2} color="neutral" icon="📦" label={t("Products")} value={String(data?.totalProducts ?? 0)} to="/products" />
+        <StatCard index={3} color="amber" icon="⚠️" label={t("Low stock")} value={String(data?.lowStockCount ?? 0)} to="/products?stock=low_stock" />
+        <StatCard index={4} color="red" icon="⛔" label={t("Out of stock")} value={String(data?.outOfStockCount ?? 0)} to="/products?stock=out_of_stock" />
+        <StatCard index={5} color="orange" icon="⏳" label={t("Expiring soon")} value={String(data?.expiringSoonCount ?? 0)} to="/products?expiring=1" />
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="card-in rounded-card border border-border bg-surface p-5 lg:col-span-2" style={{ animationDelay: "260ms" }}>
-          <div className="mb-2 text-sm font-bold text-text-primary">Revenue · last 7 days</div>
+          <div className="mb-2 text-sm font-bold text-text-primary">{t("Revenue · last 7 days")}</div>
           <AreaChart points={trend} />
         </div>
 
         <div className="card-in rounded-card border border-border bg-surface p-5" style={{ animationDelay: "300ms" }}>
-          <div className="mb-4 text-sm font-bold text-text-primary">Stock health</div>
-          <div className="space-y-3">
-            <HealthRow label="In stock" value={inStock} cls="bg-success" />
-            <HealthRow label="Low stock" value={data?.lowStockCount ?? 0} cls="bg-accent-amber" />
-            <HealthRow label="Out of stock" value={data?.outOfStockCount ?? 0} cls="bg-error" />
-          </div>
+          <div className="mb-4 text-sm font-bold text-text-primary">{t("Stock health")}</div>
+          <BarChart
+            bars={[
+              { label: t("In stock"), value: inStock, color: "rgb(var(--color-success))" },
+              { label: t("Low stock"), value: data?.lowStockCount ?? 0, color: "rgb(var(--color-accent-amber))" },
+              { label: t("Out of stock"), value: data?.outOfStockCount ?? 0, color: "rgb(var(--color-error))" },
+            ]}
+          />
         </div>
       </div>
 
       {data?.recentSales?.length ? (
         <div className="card-in mt-4 overflow-hidden rounded-card border border-border bg-surface" style={{ animationDelay: "340ms" }}>
-          <div className="border-b border-border px-5 py-3 text-sm font-bold text-text-primary">Recent sales</div>
+          <div className="border-b border-border px-5 py-3 text-sm font-bold text-text-primary">{t("Recent sales")}</div>
           <table className="w-full text-sm">
             <tbody>
               {data.recentSales.slice(0, 8).map((s) => (

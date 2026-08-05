@@ -31,9 +31,13 @@ public record SaleResponse(
     IEnumerable<SaleLineResponse> ProductLines,
     IEnumerable<ServiceLineResponse> ServiceLines,
     IEnumerable<PaymentSplitResponse> PaymentSplits,
-    decimal? AmountTendered, decimal? ChangeDue);
+    decimal? AmountTendered, decimal? ChangeDue, bool TaxAddedOnTop);
 
-public record SaleSummaryResponse(Guid Id, DateTime Timestamp, decimal Total, PaymentMethod PaymentMethod, string CashierName, int ItemCount);
+// A row in the sales-history timeline: a real sale, or a non-revenue audit
+// line for a gift card that was issued (money taken in but recognised only when
+// the card is later spent, so it's flagged and never counted as sales revenue).
+public enum SaleTimelineKind { Sale, GiftCardIssued }
+public record SaleSummaryResponse(Guid Id, DateTime Timestamp, decimal Total, PaymentMethod PaymentMethod, string CashierName, int ItemCount, string? CustomerName, SaleTimelineKind Kind);
 public record SaleHistoryPageResponse(List<SaleSummaryResponse> Items, bool HasMore);
 
 // Held (parked) sales — Section 18.1. Deliberately no PaymentMethod/
@@ -52,7 +56,10 @@ public record SaleDetailResponse(
     IEnumerable<SaleLineResponse> ProductLines,
     IEnumerable<ServiceLineResponse> ServiceLines,
     IEnumerable<PaymentSplitResponse> PaymentSplits,
-    decimal? AmountTendered, decimal? ChangeDue);
+    decimal? AmountTendered, decimal? ChangeDue,
+    Guid? CustomerId, string? CustomerName, string? CustomerPhone,
+    bool TaxAddedOnTop, string? CustomerTaxId,
+    int? InvoiceNumber, string? SellerTaxId);
 
 public static class SaleEndpoints
 {
@@ -101,6 +108,12 @@ public static class SaleEndpoints
                 .Select(s => (Guid?)s.Id)
                 .FirstOrDefaultAsync();
 
+            // A business (B2B) customer is invoiced VAT-on-top; an individual is
+            // VAT-inclusive. Snapshotted onto the sale so it's fixed at sale time.
+            var customerIsBusiness = request.CustomerId is not null &&
+                await db.Customers.Where(c => c.Id == request.CustomerId && c.CompanyId == companyId)
+                    .Select(c => c.IsBusiness).FirstOrDefaultAsync();
+
             var sale = new Sale
             {
                 CompanyId = companyId,
@@ -109,6 +122,7 @@ public static class SaleEndpoints
                 CustomerId = request.CustomerId,
                 PaymentMethod = request.PaymentMethod,
                 ShiftId = openShift,
+                TaxAddedOnTop = customerIsBusiness,
             };
 
             var saleLineResponses = new List<SaleLineResponse>();
@@ -144,8 +158,11 @@ public static class SaleEndpoints
                         : (level.SalePriceOverride ?? product.SalePrice * level.QuantityInBaseUnits) / level.QuantityInBaseUnits;
 
                     // Section 18.3 — snapshotted per line so a later rate
-                    // change never rewrites tax on a past sale.
-                    var taxRatePercent = product.TaxRateOverridePercent ?? company.DefaultTaxRatePercent;
+                    // change never rewrites tax on a past sale. B2B (VAT on top)
+                    // uses the standard rate uniformly; B2C honours per-product overrides.
+                    var taxRatePercent = company.DefaultTaxRatePercent == 0m
+                        ? 0m
+                        : customerIsBusiness ? company.DefaultTaxRatePercent : (product.TaxRateOverridePercent ?? company.DefaultTaxRatePercent);
 
                     List<StockDeductionResult> deductions;
                     try
@@ -241,7 +258,13 @@ public static class SaleEndpoints
                         service.Id, service.Name, line.Quantity, service.FixedPrice, service.FixedPrice * line.Quantity));
                 }
 
-                sale.Total = saleLineResponses.Sum(l => l.LineTotal) + serviceLineResponses.Sum(l => l.LineTotal);
+                var subtotal = saleLineResponses.Sum(l => l.LineTotal) + serviceLineResponses.Sum(l => l.LineTotal);
+                // B2B: add VAT on top of each net product line (per-line rate), so
+                // reports reconstruct the same VAT from the line snapshots.
+                var addedVat = sale.TaxAddedOnTop
+                    ? Math.Round(saleLineResponses.Sum(l => l.LineTotal * l.TaxRatePercent / 100m), 2)
+                    : 0m;
+                sale.Total = subtotal + addedVat;
 
                 var paymentSplitResponses = new List<PaymentSplitResponse>();
                 if (request.PaymentSplits is { Count: > 0 })
@@ -401,6 +424,11 @@ public static class SaleEndpoints
                     }
                 }
 
+                // Sequential tax-invoice number (DGI requirement). company is
+                // tracked, so the increment persists in the same transaction.
+                sale.InvoiceNumber = company.NextInvoiceNumber;
+                company.NextInvoiceNumber += 1;
+
                 db.Sales.Add(sale);
                 await db.SaveChangesAsync();
                 await transaction.CommitAsync();
@@ -408,7 +436,7 @@ public static class SaleEndpoints
                 return Results.Created($"/api/companies/{companyId}/sales/{sale.Id}", new SaleResponse(
                     sale.Id, sale.Total, sale.PaymentMethod, sale.Status, sale.Timestamp,
                     saleLineResponses, serviceLineResponses, paymentSplitResponses,
-                    sale.AmountTendered, sale.ChangeDue));
+                    sale.AmountTendered, sale.ChangeDue, sale.TaxAddedOnTop));
             }
             catch
             {
@@ -482,7 +510,7 @@ public static class SaleEndpoints
                 var unitPrice = level is null
                     ? product.SalePrice
                     : (level.SalePriceOverride ?? product.SalePrice * level.QuantityInBaseUnits) / level.QuantityInBaseUnits;
-                var taxRatePercent = product.TaxRateOverridePercent ?? company.DefaultTaxRatePercent;
+                var taxRatePercent = company.DefaultTaxRatePercent == 0m ? 0m : (product.TaxRateOverridePercent ?? company.DefaultTaxRatePercent);
 
                 sale.ProductLines.Add(new SaleLine
                 {
@@ -508,7 +536,7 @@ public static class SaleEndpoints
             return Results.Created($"/api/companies/{companyId}/sales/{sale.Id}", new SaleResponse(
                 sale.Id, sale.Total, sale.PaymentMethod, sale.Status, sale.Timestamp,
                 saleLineResponses, Enumerable.Empty<ServiceLineResponse>(), Enumerable.Empty<PaymentSplitResponse>(),
-                null, null));
+                null, null, sale.TaxAddedOnTop));
         }).RequireAuthorization();
 
         // locationId is optional: the POS "Reprendre" picker always passes its
@@ -598,17 +626,43 @@ public static class SaleEndpoints
             if (to is not null)
                 query = query.Where(s => s.Timestamp < to.Value.Date.AddDays(1));
 
+            // Bound each source to what this page could need, merge, then page
+            // in memory — keeps the two timelines interleaved by time correctly.
+            var take = pageNumber * SalesHistoryPageSize + 1;
+
             var sales = await query
                 .OrderByDescending(s => s.Timestamp)
-                .Skip((pageNumber - 1) * SalesHistoryPageSize)
-                .Take(SalesHistoryPageSize + 1)
+                .Take(take)
                 .Select(s => new SaleSummaryResponse(
                     s.Id, s.Timestamp, s.Total, s.PaymentMethod,
-                    s.User!.Name, s.ProductLines.Count + s.ServiceLines.Count))
+                    s.User!.Name, s.ProductLines.Count + s.ServiceLines.Count,
+                    s.Customer != null ? s.Customer.Name : null, SaleTimelineKind.Sale))
                 .ToListAsync();
 
-            var hasMore = sales.Count > SalesHistoryPageSize;
-            return Results.Ok(new SaleHistoryPageResponse(sales.Take(SalesHistoryPageSize).ToList(), hasMore));
+            // Gift-card issuances as non-revenue audit lines. Hidden from a
+            // restricted cashier (they only see their own sales).
+            var giftCards = new List<SaleSummaryResponse>();
+            if (!scopeToOwnSales)
+            {
+                var gcQuery = db.GiftCards.Where(g => g.CompanyId == companyId);
+                if (from is not null) gcQuery = gcQuery.Where(g => g.CreatedAt >= from.Value.Date);
+                if (to is not null) gcQuery = gcQuery.Where(g => g.CreatedAt < to.Value.Date.AddDays(1));
+                giftCards = await gcQuery
+                    .OrderByDescending(g => g.CreatedAt)
+                    .Take(take)
+                    .Select(g => new SaleSummaryResponse(
+                        g.Id, g.CreatedAt, g.InitialValue, PaymentMethod.Cash, "—", 0, g.Code, SaleTimelineKind.GiftCardIssued))
+                    .ToListAsync();
+            }
+
+            var merged = sales.Concat(giftCards)
+                .OrderByDescending(x => x.Timestamp)
+                .Skip((pageNumber - 1) * SalesHistoryPageSize)
+                .Take(SalesHistoryPageSize + 1)
+                .ToList();
+
+            var hasMore = merged.Count > SalesHistoryPageSize;
+            return Results.Ok(new SaleHistoryPageResponse(merged.Take(SalesHistoryPageSize).ToList(), hasMore));
         }).RequireAuthorization();
 
         app.MapGet("/api/companies/{companyId:guid}/sales/{saleId:guid}", async (
@@ -620,6 +674,7 @@ public static class SaleEndpoints
             var sale = await db.Sales
                 .Include(s => s.User)
                 .Include(s => s.Location)
+                .Include(s => s.Customer)
                 .Include(s => s.ProductLines).ThenInclude(l => l.Product)
                 .Include(s => s.ProductLines).ThenInclude(l => l.Batch)
                 .Include(s => s.ProductLines).ThenInclude(l => l.PackagingLevel)
@@ -639,12 +694,16 @@ public static class SaleEndpoints
                 l.ServiceId, l.Service!.Name, l.Quantity, l.BilledPrice, l.BilledPrice * l.Quantity));
 
             var paymentSplits = sale.PaymentSplits.Select(p => new PaymentSplitResponse(p.Method, p.Amount));
+            var sellerTaxId = await db.Companies.Where(c => c.Id == companyId).Select(c => c.TaxId).FirstOrDefaultAsync();
 
             return Results.Ok(new SaleDetailResponse(
                 sale.Id, sale.Total, sale.PaymentMethod, sale.Status, sale.Timestamp,
                 sale.User?.Name ?? "—", sale.Location?.Name ?? "—",
                 productLines, serviceLines, paymentSplits,
-                sale.AmountTendered, sale.ChangeDue));
+                sale.AmountTendered, sale.ChangeDue,
+                sale.CustomerId, sale.Customer?.Name, sale.Customer?.Phone,
+                sale.TaxAddedOnTop, sale.Customer?.TaxId,
+                sale.InvoiceNumber, sellerTaxId));
         }).RequireAuthorization();
     }
 

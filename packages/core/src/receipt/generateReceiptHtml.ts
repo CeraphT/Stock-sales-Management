@@ -91,7 +91,7 @@ export function generateReceiptHtml(data: ReceiptData): string {
     padding: 32px 24px;
   }
   .receipt {
-    max-width: 380px;
+    max-width: ${data.paperWidthPx ?? 380}px;
     margin: 0 auto;
   }
   .header {
@@ -176,15 +176,22 @@ export function generateReceiptHtml(data: ReceiptData): string {
 <body>
   <div class="receipt">
     <div class="header">
+      ${data.logoUrl ? `<img src="${data.logoUrl}" alt="" style="max-height:56px;max-width:70%;object-fit:contain;margin:0 auto 6px;display:block" />` : ""}
       <p class="company-name">${escapeHtml(data.companyName)}</p>
       <p class="location-name">${escapeHtml(data.locationName)}</p>
+      ${data.address ? `<p class="location-name">${escapeHtml(data.address)}</p>` : ""}
+      ${data.phone ? `<p class="location-name">${escapeHtml(data.phone)}</p>` : ""}
+      ${data.sellerTaxId ? `<p class="location-name">NIU: ${escapeHtml(data.sellerTaxId)}</p>` : ""}
     </div>
 
     <div class="divider"></div>
 
-    <div class="meta"><span>Receipt</span><span>#${data.saleId.slice(0, 8).toUpperCase()}</span></div>
+    <div class="meta"><span>${data.invoiceNumber ? "Invoice N°" : "Receipt"}</span><span>${
+      data.invoiceNumber ? String(data.invoiceNumber).padStart(6, "0") : "#" + data.saleId.slice(0, 8).toUpperCase()
+    }</span></div>
     <div class="meta"><span>Date</span><span>${timestamp.toLocaleString()}</span></div>
     <div class="meta"><span>Cashier</span><span>${escapeHtml(data.cashierName)}</span></div>
+    ${data.customerTaxId ? `<div class="meta"><span>Client NIU</span><span>${escapeHtml(data.customerTaxId)}</span></div>` : ""}
 
     <table>
       <thead>
@@ -200,6 +207,12 @@ export function generateReceiptHtml(data: ReceiptData): string {
       </tbody>
     </table>
 
+    ${
+      data.taxTotal && data.taxTotal > 0
+        ? `<div class="meta"><span>Subtotal (excl. VAT)</span><span>${formatCurrency(data.total - data.taxTotal, data.currency)}</span></div>
+    <div class="meta"><span>VAT / TVA</span><span>${formatCurrency(data.taxTotal, data.currency)}</span></div>`
+        : ""
+    }
     <div class="total-row">
       <span class="total-label">Total</span>
       <span class="total-value">${formatCurrency(data.total, data.currency)}</span>
@@ -211,7 +224,7 @@ export function generateReceiptHtml(data: ReceiptData): string {
     ${tenderedBlock}
 
     <div class="footer">
-      <p class="thanks">Thank you for your business!</p>
+      <p class="thanks">${escapeHtml(data.footer || "Thank you for your business!")}</p>
       <p>Powered by StockFlow</p>
     </div>
   </div>

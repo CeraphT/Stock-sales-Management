@@ -113,7 +113,9 @@ async function createSaleInternal(companyId: string, request: CreateSaleRequest)
     const unitPrice = level
       ? (level.salePriceOverride ?? product.salePrice * level.quantityInBaseUnits) / level.quantityInBaseUnits
       : product.salePrice;
-    const taxRatePercent = product.taxRateOverridePercent ?? company.defaultTaxRatePercent;
+    const taxRatePercent = company.defaultTaxRatePercent === 0
+      ? 0
+      : (request.taxAddedOnTop ?? false) ? company.defaultTaxRatePercent : (product.taxRateOverridePercent ?? company.defaultTaxRatePercent);
 
     const productBatches = await db.query.batches.findMany({
       where: and(eq(batches.productId, product.id), eq(batches.locationId, request.locationId)),
@@ -138,7 +140,15 @@ async function createSaleInternal(companyId: string, request: CreateSaleRequest)
     });
   }
 
-  const total = resolved.reduce((sum, l) => sum + l.unitPrice * l.quantityInBaseUnits, 0);
+  const subtotal = resolved.reduce((sum, l) => sum + l.unitPrice * l.quantityInBaseUnits, 0);
+  // B2B (business customer): VAT is added on top of the net line prices. The
+  // POS sets request.taxAddedOnTop from the selected customer; the server
+  // re-derives the same on push, so the pushed record stays authoritative.
+  const taxAddedOnTop = request.taxAddedOnTop ?? false;
+  const addedVat = taxAddedOnTop
+    ? Math.round(resolved.reduce((s, l) => s + l.unitPrice * l.quantityInBaseUnits * l.taxRatePercent, 0)) / 100
+    : 0;
+  const total = subtotal + addedVat;
 
   let paymentMethod = request.paymentMethod;
   const splitResponses: PaymentSplitResponse[] = [];
@@ -311,6 +321,7 @@ async function createSaleInternal(companyId: string, request: CreateSaleRequest)
     changeDue,
     giftCardCode: normalizedGiftCardCode,
     timestamp,
+    taxAddedOnTop,
     syncStatus: SyncStatus.PendingPush,
   });
 
@@ -325,6 +336,7 @@ async function createSaleInternal(companyId: string, request: CreateSaleRequest)
     paymentSplits: splitResponses,
     amountTendered,
     changeDue,
+    taxAddedOnTop,
   };
 }
 
@@ -369,7 +381,7 @@ async function holdSaleInternal(companyId: string, request: HoldSaleRequest): Pr
     const unitPrice = level
       ? (level.salePriceOverride ?? product.salePrice * level.quantityInBaseUnits) / level.quantityInBaseUnits
       : product.salePrice;
-    const taxRatePercent = product.taxRateOverridePercent ?? company.defaultTaxRatePercent;
+    const taxRatePercent = company.defaultTaxRatePercent === 0 ? 0 : (product.taxRateOverridePercent ?? company.defaultTaxRatePercent);
 
     await db.insert(saleLines).values({
       id: generateId(),
@@ -427,6 +439,7 @@ async function holdSaleInternal(companyId: string, request: HoldSaleRequest): Pr
     paymentSplits: [],
     amountTendered: null,
     changeDue: null,
+    taxAddedOnTop: false,
   };
 }
 
@@ -484,6 +497,7 @@ export const localSalesService = {
 
     const user = await db.query.users.findFirst({ where: eq(users.id, sale.userId) });
     const location = await db.query.locations.findFirst({ where: eq(locations.id, sale.locationId) });
+    const customer = sale.customerId ? await db.query.customers.findFirst({ where: eq(customers.id, sale.customerId) }) : undefined;
     const lines = await db.query.saleLines.findMany({ where: eq(saleLines.saleId, saleId) });
     const splits = await db.query.paymentSplits.findMany({ where: eq(paymentSplits.saleId, saleId) });
 
@@ -523,6 +537,13 @@ export const localSalesService = {
       paymentSplits: splits.map((s) => ({ method: s.method, amount: s.amount })),
       amountTendered: sale.amountTendered,
       changeDue: sale.changeDue,
+      customerId: sale.customerId ?? null,
+      customerName: customer?.name ?? null,
+      customerPhone: customer?.phone ?? null,
+      taxAddedOnTop: sale.taxAddedOnTop ?? false,
+      customerTaxId: customer?.taxId ?? null,
+      invoiceNumber: null,
+      sellerTaxId: null,
     };
   },
 };

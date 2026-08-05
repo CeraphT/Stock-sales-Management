@@ -25,6 +25,9 @@ export interface CreateSaleRequest {
   paymentSplits: PaymentSplitRequest[] | null;
   amountTendered?: number | null;
   giftCardCode?: string | null;
+  /** Client-set for the offline path: whether VAT is added on top (B2B). The
+   * server re-derives this from the customer on push; local uses it immediately. */
+  taxAddedOnTop?: boolean;
 }
 
 export interface SaleLineResponse {
@@ -65,6 +68,13 @@ export interface SaleResponse {
   paymentSplits: PaymentSplitResponse[];
   amountTendered: number | null;
   changeDue: number | null;
+  taxAddedOnTop: boolean;
+}
+
+/** 0 = a real sale, 1 = a gift-card issuance (non-revenue audit line). */
+export enum SaleTimelineKind {
+  Sale = 0,
+  GiftCardIssued = 1,
 }
 
 export interface SaleSummaryResponse {
@@ -74,6 +84,8 @@ export interface SaleSummaryResponse {
   paymentMethod: PaymentMethod;
   cashierName: string;
   itemCount: number;
+  customerName: string | null;
+  kind: SaleTimelineKind;
 }
 
 export interface SaleHistoryPageResponse {
@@ -115,4 +127,11 @@ export interface SaleDetailResponse {
   paymentSplits: PaymentSplitResponse[];
   amountTendered: number | null;
   changeDue: number | null;
+  customerId: string | null;
+  customerName: string | null;
+  customerPhone: string | null;
+  taxAddedOnTop: boolean;
+  customerTaxId: string | null;
+  invoiceNumber: number | null;
+  sellerTaxId: string | null;
 }

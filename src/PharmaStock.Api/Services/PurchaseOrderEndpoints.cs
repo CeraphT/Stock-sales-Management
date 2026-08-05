@@ -76,6 +76,54 @@ public static class PurchaseOrderEndpoints
             return Results.Created($"/api/companies/{companyId}/purchase-orders/{order.Id}", detail);
         });
 
+        // Append a line to an existing open order — lets the reorder flow
+        // consolidate several products into one PO per supplier. If the product
+        // is already on the order, its quantity is topped up instead of duplicated.
+        group.MapPost("/{id:guid}/lines", async (
+            Guid companyId, Guid id, PurchaseOrderLineRequest request, PharmaStockDbContext db, HttpContext http) =>
+        {
+            if (http.User.GetCompanyId() != companyId)
+                return Results.Forbid();
+
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictPurchasing);
+            if (restricted is not null) return restricted;
+
+            if (request.QuantityOrdered <= 0)
+                return Results.BadRequest(new { message = "La quantité commandée doit être positive." });
+            if (request.UnitCost < 0)
+                return Results.BadRequest(new { message = "Le coût unitaire ne peut pas être négatif." });
+
+            var order = await db.PurchaseOrders.Include(o => o.Lines)
+                .FirstOrDefaultAsync(o => o.Id == id && o.CompanyId == companyId);
+            if (order is null)
+                return Results.NotFound(new { message = "Commande introuvable." });
+            if (order.Status is PurchaseOrderStatus.Received or PurchaseOrderStatus.Cancelled)
+                return Results.BadRequest(new { message = "Impossible d'ajouter une ligne à une commande clôturée." });
+
+            var productExists = await db.Products.AnyAsync(p => p.Id == request.ProductId && p.CompanyId == companyId && p.IsActive);
+            if (!productExists)
+                return Results.BadRequest(new { message = "Produit introuvable ou archivé." });
+
+            var existing = order.Lines.FirstOrDefault(l => l.ProductId == request.ProductId);
+            if (existing is not null)
+            {
+                existing.QuantityOrderedInBaseUnits += request.QuantityOrdered;
+                existing.UnitCost = request.UnitCost;
+            }
+            else
+            {
+                order.Lines.Add(new PurchaseOrderLine
+                {
+                    ProductId = request.ProductId,
+                    QuantityOrderedInBaseUnits = request.QuantityOrdered,
+                    UnitCost = request.UnitCost,
+                });
+            }
+            await db.SaveChangesAsync();
+
+            return Results.Ok(await LoadDetailAsync(db, companyId, order.Id));
+        });
+
         group.MapGet("/", async (Guid companyId, PurchaseOrderStatus? status, Guid? locationId, Guid? supplierId, DateTime? from, DateTime? to, PharmaStockDbContext db, HttpContext http) =>
         {
             if (http.User.GetCompanyId() != companyId)
@@ -158,6 +206,7 @@ public static class PurchaseOrderEndpoints
             if (request.QuantityReceivedNow > remaining)
                 return Results.BadRequest(new { message = $"La quantité reçue dépasse la quantité restante ({remaining})." });
 
+            var stdVatRate = await db.Companies.Where(c => c.Id == companyId).Select(c => c.DefaultTaxRatePercent).FirstOrDefaultAsync();
             var batch = new Batch
             {
                 ProductId = line.ProductId,
@@ -166,6 +215,7 @@ public static class PurchaseOrderEndpoints
                 ExpiryDate = request.ExpiryDate,
                 QuantityInBaseUnits = request.QuantityReceivedNow,
                 PurchasePricePerBaseUnit = request.ActualUnitCost ?? line.UnitCost,
+                PurchaseVatRatePercent = stdVatRate,
             };
             db.Batches.Add(batch);
 
@@ -180,6 +230,43 @@ public static class PurchaseOrderEndpoints
             });
 
             line.QuantityReceivedInBaseUnits += request.QuantityReceivedNow;
+            order.Status = order.Lines.All(l => l.QuantityReceivedInBaseUnits >= l.QuantityOrderedInBaseUnits)
+                ? PurchaseOrderStatus.Received
+                : PurchaseOrderStatus.PartiallyReceived;
+
+            await db.SaveChangesAsync();
+
+            var detail = await LoadDetailAsync(db, companyId, order.Id);
+            return Results.Ok(detail);
+        });
+
+        group.MapPost("/{id:guid}/lines/{lineId:guid}/cancel-remaining", async (
+            Guid companyId, Guid id, Guid lineId, PharmaStockDbContext db, HttpContext http) =>
+        {
+            if (http.User.GetCompanyId() != companyId)
+                return Results.Forbid();
+
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictPurchasing);
+            if (restricted is not null) return restricted;
+
+            var order = await db.PurchaseOrders
+                .Include(o => o.Lines)
+                .FirstOrDefaultAsync(o => o.Id == id && o.CompanyId == companyId);
+            if (order is null)
+                return Results.NotFound(new { message = "Commande introuvable." });
+            if (order.Status is PurchaseOrderStatus.Cancelled or PurchaseOrderStatus.Received)
+                return Results.BadRequest(new { message = "Cette commande est déjà clôturée." });
+
+            var line = order.Lines.FirstOrDefault(l => l.Id == lineId);
+            if (line is null)
+                return Results.NotFound(new { message = "Ligne de commande introuvable." });
+            if (line.QuantityReceivedInBaseUnits >= line.QuantityOrderedInBaseUnits)
+                return Results.BadRequest(new { message = "Cette ligne n'a plus de quantité en attente." });
+
+            // Stop expecting the rest of this line — accept whatever was received.
+            // Any stock already received keeps its batches/movements untouched.
+            line.QuantityOrderedInBaseUnits = line.QuantityReceivedInBaseUnits;
+
             order.Status = order.Lines.All(l => l.QuantityReceivedInBaseUnits >= l.QuantityOrderedInBaseUnits)
                 ? PurchaseOrderStatus.Received
                 : PurchaseOrderStatus.PartiallyReceived;

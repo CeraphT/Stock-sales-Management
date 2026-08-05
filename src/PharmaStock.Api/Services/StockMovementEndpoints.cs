@@ -6,7 +6,7 @@ namespace PharmaStock.Api.Services;
 
 public record ReceiveStockRequest(
     Guid LocationId, string BatchNumber, DateTime? ExpiryDate,
-    int QuantityInBaseUnits, decimal? PurchasePricePerBaseUnit);
+    int QuantityInBaseUnits, decimal? PurchasePricePerBaseUnit, decimal? VatRatePercent = null);
 public record AdjustStockRequest(Guid BatchId, int DeltaInBaseUnits, string Reason);
 
 public record BatchResponse(
@@ -51,6 +51,8 @@ public static class StockMovementEndpoints
             if (!locationExists)
                 return Results.NotFound(new { message = "Emplacement introuvable." });
 
+            var stdVatRate = await db.Companies.Where(c => c.Id == companyId).Select(c => c.DefaultTaxRatePercent).FirstOrDefaultAsync();
+
             var batch = new Batch
             {
                 ProductId = productId,
@@ -61,6 +63,9 @@ public static class StockMovementEndpoints
                 // Falls back to the catalog's estimated cost if this delivery's
                 // actual price isn't given — see Batch.PurchasePricePerBaseUnit.
                 PurchasePricePerBaseUnit = request.PurchasePricePerBaseUnit ?? product.PurchasePrice,
+                // Input VAT for the tax declaration; defaults to the company's
+                // standard rate unless the delivery specifies otherwise.
+                PurchaseVatRatePercent = request.VatRatePercent ?? stdVatRate,
             };
             db.Batches.Add(batch);
 

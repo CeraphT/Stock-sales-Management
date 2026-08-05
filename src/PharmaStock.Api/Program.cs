@@ -21,6 +21,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddScoped<StockDeductionService>();
+builder.Services.AddHttpClient(); // outbound FX-rate lookups for currency conversion
 
 // Dev-only fallback secret, same pattern as the connection string above —
 // production deployments must override Jwt:Secret via environment/user-secrets.
@@ -73,6 +74,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok", timestamp = DateTime
 
 app.MapAuthEndpoints();
 app.MapCompanyEndpoints();
+app.MapCurrencyEndpoints();
 app.MapLocationEndpoints();
 app.MapProductEndpoints();
 app.MapSaleEndpoints();
@@ -81,12 +83,14 @@ app.MapDashboardEndpoints();
 app.MapCategoryEndpoints();
 app.MapShiftEndpoints();
 app.MapReportingEndpoints();
+app.MapTaxDeclarationEndpoints();
 app.MapSupplierEndpoints();
 app.MapPurchaseOrderEndpoints();
 app.MapSyncEndpoints();
 app.MapSuperAdminEndpoints();
 app.MapCustomerEndpoints();
 app.MapGiftCardEndpoints();
+app.MapRewardEndpoints();
 app.MapLoyaltyEndpoints();
 app.MapRefundEndpoints();
 app.MapServiceEndpoints();

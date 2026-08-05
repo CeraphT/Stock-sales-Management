@@ -9,6 +9,7 @@ public record DailySalesItem(DateTime Date, decimal Revenue, int SalesCount);
 public record SalesSummaryResponse(
     decimal TotalRevenue, decimal TotalCost, decimal TotalProfit,
     int TotalSalesCount, decimal AverageSaleValue,
+    decimal TotalTax,
     List<DailySalesItem> DailyBreakdown);
 
 public record TopProductItem(Guid ProductId, string ProductName, int QuantitySold, decimal Revenue, decimal Profit);
@@ -63,9 +64,16 @@ public static class ReportingEndpoints
             var totalCost = await lineQuery.SumAsync(l =>
                 (l.Batch != null ? l.Batch.PurchasePricePerBaseUnit : 0) * l.QuantityInBaseUnits);
 
+            // VAT per line depends on the sale's mode: B2B adds it on top of the
+            // net price (rate/100); B2C extracts it from the inclusive price (rate/(100+rate)).
+            var totalTax = await lineQuery.SumAsync(l => l.Sale!.TaxAddedOnTop
+                ? l.UnitPrice * l.QuantityInBaseUnits * l.TaxRatePercent / 100m
+                : l.UnitPrice * l.QuantityInBaseUnits * l.TaxRatePercent / (100m + l.TaxRatePercent));
+
             return Results.Ok(new SalesSummaryResponse(
                 totalRevenue, totalCost, totalRevenue - totalCost,
                 totalSalesCount, totalSalesCount > 0 ? totalRevenue / totalSalesCount : 0,
+                totalTax,
                 dailyBreakdown));
         }).RequireAuthorization();
 

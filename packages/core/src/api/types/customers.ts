@@ -1,6 +1,8 @@
 export interface CustomerRequest {
   name: string;
   phone: string | null;
+  isBusiness?: boolean;
+  taxId?: string | null;
 }
 
 export interface CustomerResponse {
@@ -10,6 +12,9 @@ export interface CustomerResponse {
   creditBalance: number;
   loyaltyPointsBalance: number;
   loyaltyStoreCreditBalance: number;
+  rewardsGranted: number;
+  isBusiness: boolean;
+  taxId: string | null;
 }
 
 export interface IssueGiftCardRequest {

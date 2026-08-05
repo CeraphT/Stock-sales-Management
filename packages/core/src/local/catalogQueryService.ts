@@ -38,6 +38,23 @@ export const localCatalogQueryService = {
       loyaltyEnabled: company.loyaltyEnabled,
       loyaltyEarnRateAmount: company.loyaltyEarnRateAmount,
       loyaltyPointValue: company.loyaltyPointValue,
+      // Reward program is checked online via rewardsApi, not from this offline
+      // mirror — safe defaults keep the type satisfied.
+      rewardProgramEnabled: false,
+      rewardPurchaseCount: 10,
+      rewardGiftCardValue: 0,
+      // Profile fields aren't in the sync-pull payload; safe defaults. Receipts
+      // that need them fetch the company from the API when online.
+      address: null,
+      phone: null,
+      receiptFooter: null,
+      logoUrl: null,
+      defaultLowStockThreshold: 0,
+      setupCompleted: true,
+      taxRegime: 0,
+      flatTaxAmount: 0,
+      flatTaxPeriod: 1,
+      taxId: null,
     };
   },
 
@@ -61,6 +78,9 @@ export const localCatalogQueryService = {
         creditBalance: customer.creditBalance,
         loyaltyPointsBalance: loyalty?.pointsBalance ?? 0,
         loyaltyStoreCreditBalance: loyalty?.storeCreditBalance ?? 0,
+        rewardsGranted: 0,
+        isBusiness: false,
+        taxId: customer.taxId ?? null,
       });
     }
     return results;
@@ -80,6 +100,12 @@ export const localCatalogQueryService = {
     for (const product of rows) {
       const totalBaseUnits = await sumBatchQuantity(product.id);
       const levels = await packagingLevelInfos(product.id, product.salePrice);
+      const productBatches = await db.query.batches.findMany({ where: eq(batches.productId, product.id) });
+      const earliestExpiry =
+        productBatches
+          .filter((b) => b.expiryDate !== null && b.quantityInBaseUnits > 0)
+          .map((b) => b.expiryDate as string)
+          .sort((a, b) => a.localeCompare(b))[0] ?? null;
       results.push({
         productId: product.id,
         name: product.name,
@@ -87,6 +113,7 @@ export const localCatalogQueryService = {
         salePrice: product.salePrice,
         stockStatus: computeStockStatus(totalBaseUnits, product.lowStockThreshold),
         packagingLevels: levels,
+        earliestExpiry,
       });
     }
     return results;

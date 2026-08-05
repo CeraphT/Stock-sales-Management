@@ -26,6 +26,7 @@ export const NAV: NavGroup[] = [
     title: "Catalog",
     items: [
       { label: "Products", path: "/products", icon: "📦" },
+      { label: "Bulk stock", path: "/bulk-stock", icon: "📋" },
       { label: "Categories", path: "/categories", icon: "🏷️" },
       { label: "Archived", path: "/archived", icon: "🗄️" },
     ],
@@ -48,7 +49,9 @@ export const NAV: NavGroup[] = [
     title: "Management",
     items: [
       { label: "Reports", path: "/reports", icon: "📊" },
-      { label: "Services", path: "/services", icon: "🩺" },
+      { label: "Inventory report", path: "/inventory-report", icon: "📦" },
+      { label: "Customer credits", path: "/customer-credits", icon: "💳" },
+      { label: "Tax declaration", path: "/tax-declaration", icon: "🧾" },
       { label: "Staff", path: "/staff", icon: "👥" },
       { label: "Printer", path: "/printer", icon: "🖨️" },
       { label: "Company settings", path: "/settings", icon: "🏢" },

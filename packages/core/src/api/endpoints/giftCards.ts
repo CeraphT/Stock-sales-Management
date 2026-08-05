@@ -13,4 +13,7 @@ export const giftCardsApi = {
 
   setActive: (companyId: string, giftCardId: string, body: SetGiftCardActiveRequest) =>
     api.put<GiftCardResponse>(`/api/companies/${companyId}/giftcards/${giftCardId}/active`, body),
+
+  delete: (companyId: string, giftCardId: string) =>
+    api.delete<void>(`/api/companies/${companyId}/giftcards/${giftCardId}`),
 };

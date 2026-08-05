@@ -12,12 +12,18 @@ public record CreateCompanyRequest(
 public record JoinCompanyRequest(string UniqueCode);
 public record CompanyResponse(
     Guid Id, string Name, string UniqueCode, string Currency, bool ServicesModuleEnabled, string? Description, decimal DefaultTaxRatePercent,
-    bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue);
+    bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue,
+    bool RewardProgramEnabled, int RewardPurchaseCount, decimal RewardGiftCardValue,
+    string? Address, string? Phone, string? ReceiptFooter, string? LogoUrl, int DefaultLowStockThreshold, bool SetupCompleted,
+    TaxRegime TaxRegime, decimal FlatTaxAmount, FlatTaxPeriod FlatTaxPeriod, string? TaxId);
 public record CreateCompanyResponse(CompanyResponse Company, AuthResponse Admin, LocationResponse DefaultLocation);
 public record UpdateCompanyRequest(
     string Name, string? Description, string Currency, decimal DefaultTaxRatePercent,
     bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue,
-    bool ServicesModuleEnabled);
+    bool ServicesModuleEnabled,
+    bool RewardProgramEnabled, int RewardPurchaseCount, decimal RewardGiftCardValue,
+    string? Address, string? Phone, string? ReceiptFooter, string? LogoUrl, int DefaultLowStockThreshold, bool SetupCompleted,
+    TaxRegime TaxRegime, decimal FlatTaxAmount, FlatTaxPeriod FlatTaxPeriod, string? TaxId);
 
 public static class CompanyEndpoints
 {
@@ -129,6 +135,19 @@ public static class CompanyEndpoints
             company.LoyaltyEarnRateAmount = request.LoyaltyEarnRateAmount;
             company.LoyaltyPointValue = request.LoyaltyPointValue;
             company.ServicesModuleEnabled = request.ServicesModuleEnabled;
+            company.RewardProgramEnabled = request.RewardProgramEnabled;
+            company.RewardPurchaseCount = request.RewardPurchaseCount > 0 ? request.RewardPurchaseCount : company.RewardPurchaseCount;
+            company.RewardGiftCardValue = request.RewardGiftCardValue >= 0 ? request.RewardGiftCardValue : company.RewardGiftCardValue;
+            company.Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim();
+            company.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
+            company.ReceiptFooter = string.IsNullOrWhiteSpace(request.ReceiptFooter) ? null : request.ReceiptFooter.Trim();
+            company.LogoUrl = string.IsNullOrWhiteSpace(request.LogoUrl) ? null : request.LogoUrl;
+            company.DefaultLowStockThreshold = request.DefaultLowStockThreshold >= 0 ? request.DefaultLowStockThreshold : company.DefaultLowStockThreshold;
+            company.SetupCompleted = request.SetupCompleted;
+            company.TaxRegime = request.TaxRegime;
+            company.FlatTaxAmount = request.FlatTaxAmount >= 0 ? request.FlatTaxAmount : company.FlatTaxAmount;
+            company.FlatTaxPeriod = request.FlatTaxPeriod;
+            company.TaxId = string.IsNullOrWhiteSpace(request.TaxId) ? null : request.TaxId.Trim();
 
             await db.SaveChangesAsync();
 
@@ -139,7 +158,10 @@ public static class CompanyEndpoints
     private static CompanyResponse ToResponse(Company company) => new(
         company.Id, company.Name, company.UniqueCode, company.Currency, company.ServicesModuleEnabled,
         company.Description, company.DefaultTaxRatePercent,
-        company.LoyaltyEnabled, company.LoyaltyEarnRateAmount, company.LoyaltyPointValue);
+        company.LoyaltyEnabled, company.LoyaltyEarnRateAmount, company.LoyaltyPointValue,
+        company.RewardProgramEnabled, company.RewardPurchaseCount, company.RewardGiftCardValue,
+        company.Address, company.Phone, company.ReceiptFooter, company.LogoUrl, company.DefaultLowStockThreshold, company.SetupCompleted,
+        company.TaxRegime, company.FlatTaxAmount, company.FlatTaxPeriod, company.TaxId);
 
     /// <summary>Short, human-typeable code (Section 9): e.g. PHRM-7X2K9.
     /// Collision odds are negligible at this scale, but the database-level

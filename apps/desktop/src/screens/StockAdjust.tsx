@@ -7,6 +7,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
+import { useT } from "@/lib/i18n";
 import { runSync } from "@/lib/sync/runSync";
 import { useAuthStore } from "@/lib/stores";
 
@@ -17,6 +18,7 @@ export function StockAdjust() {
   const { productId } = useParams();
   const navigate = useNavigate();
   const companyId = useAuthStore((s) => s.companyId)!;
+  const t = useT();
 
   const { data: product } = useQuery({
     queryKey: ["product", companyId, productId],
@@ -61,17 +63,17 @@ export function StockAdjust() {
       </div>
       <div className="space-y-4 rounded-card border border-border bg-surface p-6">
         <div>
-          <h2 className="text-lg font-bold text-text-primary">Adjust stock</h2>
+          <h2 className="text-lg font-bold text-text-primary">{t("Adjust stock")}</h2>
           <p className="text-sm text-text-secondary">{product?.name ?? ""}</p>
         </div>
 
         <label className="block">
-          <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">Batch</span>
+          <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Batch")}</span>
           <select value={batchId} onChange={(e) => setBatchId(e.target.value)} className={selectCls}>
-            <option value="">— select batch —</option>
+            <option value="">{t("— select batch —")}</option>
             {batches.map((b) => (
               <option key={b.id} value={b.id}>
-                {b.batchNumber} · {b.quantityInBaseUnits} in stock
+                {b.batchNumber} · {b.quantityInBaseUnits} {t("in stock")}
                 {b.expiryDate ? ` · exp ${b.expiryDate.slice(0, 10)}` : ""}
               </option>
             ))}
@@ -79,17 +81,17 @@ export function StockAdjust() {
         </label>
 
         <TextField
-          label="Change (+ / −, base units)"
+          label={t("Change (+ / −, base units)")}
           type="number"
           value={delta}
           onChange={(e) => setDelta(e.target.value)}
-          placeholder="e.g. -3 for breakage"
+          placeholder={t("e.g. -3 for breakage")}
         />
-        <TextField label="Reason" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="required" />
+        <TextField label={t("Reason")} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("required")} />
 
         {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
         <Button onClick={submit} loading={busy} disabled={!batchId || !reason.trim() || Number(delta) === 0}>
-          Apply adjustment
+          {t("Apply adjustment")}
         </Button>
       </div>
     </div>

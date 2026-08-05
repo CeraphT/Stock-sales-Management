@@ -45,6 +45,10 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<decimal>("PurchaseVatRatePercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<int>("QuantityInBaseUnits")
                         .HasColumnType("integer");
 
@@ -157,6 +161,9 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Address")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -164,12 +171,22 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("DefaultLowStockThreshold")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("DefaultTaxRatePercent")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
+
+                    b.Property<decimal>("FlatTaxAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("FlatTaxPeriod")
+                        .HasColumnType("integer");
 
                     b.Property<string>("LogoUrl")
                         .HasColumnType("text");
@@ -189,8 +206,36 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("NextInvoiceNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ReceiptFooter")
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("RewardGiftCardValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<bool>("RewardProgramEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("RewardPurchaseCount")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("ServicesModuleEnabled")
                         .HasColumnType("boolean");
+
+                    b.Property<bool>("SetupCompleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("TaxId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("TaxRegime")
+                        .HasColumnType("integer");
 
                     b.Property<string>("ThemeConfigJson")
                         .HasColumnType("text");
@@ -268,11 +313,20 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<bool>("IsBusiness")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Phone")
+                        .HasColumnType("text");
+
+                    b.Property<int>("RewardsGranted")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TaxId")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -665,6 +719,9 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.Property<string>("GiftCardCode")
                         .HasColumnType("text");
 
+                    b.Property<int?>("InvoiceNumber")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("LocationId")
                         .HasColumnType("uuid");
 
@@ -679,6 +736,9 @@ namespace PharmaStock.Infrastructure.Data.Migrations
 
                     b.Property<int>("SyncStatus")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("TaxAddedOnTop")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");

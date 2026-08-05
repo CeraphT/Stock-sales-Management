@@ -11,15 +11,25 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 
+import { ConfirmHost } from "@/components/ConfirmHost";
+import { AppErrorBoundary } from "@/components/Errors";
 import { ToastHost } from "@/components/ToastHost";
+import { installGlobalErrorHandlers } from "@/lib/globalErrors";
 import { queryClient } from "@/lib/queryClient";
 import { router } from "@/router";
 
+// Surface uncaught async errors (rejected promises, handler throws) that never
+// reach a React error boundary — otherwise they die silently in the webview.
+installGlobalErrorHandlers();
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <ToastHost />
-    </QueryClientProvider>
+    <AppErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        <ToastHost />
+        <ConfirmHost />
+      </QueryClientProvider>
+    </AppErrorBoundary>
   </StrictMode>,
 );

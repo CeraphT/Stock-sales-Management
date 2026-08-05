@@ -38,7 +38,7 @@ export function getLanguageStore(): LanguageStore {
  * desktop). */
 export function createLanguageStore(storage: KeyValueStorage): LanguageStore {
   const store = create<LanguageState>()((set) => ({
-    language: "en",
+    language: "fr",
     hasHydrated: false,
     setLanguage: (value) => {
       storage.setItem(KEY, value).catch(() => {});
@@ -46,7 +46,8 @@ export function createLanguageStore(storage: KeyValueStorage): LanguageStore {
     },
     hydrate: async () => {
       const stored = await storage.getItem(KEY);
-      const language: Language = stored === "fr" ? "fr" : "en";
+      // French is the default (Cameroon-first); only an explicit stored "en" opts out.
+      const language: Language = stored === "en" ? "en" : "fr";
       set({ language, hasHydrated: true });
     },
   }));

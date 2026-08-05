@@ -31,6 +31,17 @@ public class Sale
     public PaymentMethod PaymentMethod { get; set; }
     public SaleStatus Status { get; set; } = SaleStatus.Completed;
 
+    /// <summary>True when this was a B2B (business customer) sale — VAT was
+    /// ADDED on top of the net line prices, so Total = Σ line prices + VAT.
+    /// False = the normal VAT-inclusive (TTC) sale where Total = Σ line prices.
+    /// Captured per sale so receipts/reports reconstruct the VAT correctly even
+    /// if the customer's business flag later changes.</summary>
+    public bool TaxAddedOnTop { get; set; } = false;
+
+    /// <summary>Sequential tax-invoice number assigned at sale time (from
+    /// Company.NextInvoiceNumber). Null for held sales.</summary>
+    public int? InvoiceNumber { get; set; }
+
     /// <summary>Section 3.1 cashier aid — how much physical cash the customer
     /// handed over and how much change was given back for the sale's cash
     /// leg (whether the whole sale is Cash or just a Split leg is). Both
