@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
@@ -16,6 +17,7 @@ import { useAuthStore } from '@/lib/auth/store';
 import { syncNow } from '@/lib/sync/syncNow';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { toast } from '@/lib/ui/toastStore';
 
 export default function MyBusinessScreen() {
   const companyId = useAuthStore((s) => s.companyId);
@@ -192,9 +194,20 @@ export default function MyBusinessScreen() {
       </View>
 
       <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
-        <View className="rounded-xl bg-surface p-3.5">
-          <Text className="text-xs uppercase tracking-wide text-text-secondary">Join code</Text>
-          <Text className="mt-1 text-lg font-bold tracking-widest text-primary">{company.uniqueCode}</Text>
+        <View className="flex-row items-center justify-between rounded-xl bg-surface p-3.5">
+          <View>
+            <Text className="text-xs uppercase tracking-wide text-text-secondary">Join code</Text>
+            <Text className="mt-1 text-lg font-bold tracking-widest text-primary">{company.uniqueCode}</Text>
+            <Text className="text-[11px] text-text-secondary">Share this so a teammate can join your business.</Text>
+          </View>
+          <Pressable
+            onPress={async () => {
+              await Clipboard.setStringAsync(company.uniqueCode);
+              toast('Join code copied.', 'success');
+            }}
+            className="h-11 w-11 items-center justify-center rounded-xl border border-border bg-background active:opacity-80">
+            <Ionicons name="copy-outline" size={18} color={colors.icon} />
+          </Pressable>
         </View>
 
         <TextField label="Business name" value={name} onChangeText={setName} />

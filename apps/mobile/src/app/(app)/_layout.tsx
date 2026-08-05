@@ -1,6 +1,7 @@
 import { Redirect, Stack } from 'expo-router';
 
 import { useAuthStore } from '@/lib/auth/store';
+import { useAutoBackup } from '@/lib/useAutoBackup';
 
 // Crash fallback for the authenticated app. It must live in a NESTED layout
 // (inside the root navigator), not the root _layout: Expo Router wraps an
@@ -12,6 +13,8 @@ export { ErrorBoundary } from '@/components/ErrorFallback';
 export default function AppLayout() {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const token = useAuthStore((s) => s.token);
+  // Daily local safety backup (offline-resilient); no-op until a company is set.
+  useAutoBackup();
 
   if (!hasHydrated) {
     return null;

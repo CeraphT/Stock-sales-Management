@@ -75,6 +75,7 @@ const GROUPS: MenuGroup[] = [
       { labelKey: 'drawer.item.taxDeclaration', icon: 'receipt-outline', route: '/tax-declaration' },
       { labelKey: 'drawer.item.printer', icon: 'print-outline', route: '/printer-settings' },
       { labelKey: 'drawer.item.staff', icon: 'people-circle-outline', route: '/staff' },
+      { labelKey: 'drawer.item.dataMaintenance', icon: 'shield-checkmark-outline', route: '/data-maintenance' },
       { labelKey: 'drawer.item.myBusiness', icon: 'business-outline', route: '/my-business' },
     ],
   },
