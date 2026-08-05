@@ -356,7 +356,18 @@ export const FR: Record<string, string> = {
   "Back up this device's data, or clear it for a clean start.":
     "Sauvegardez les données de cet appareil, ou effacez-les pour repartir à neuf.",
   "Back up data": "Sauvegarder les données",
+  "Back up data (to Downloads)": "Sauvegarder les données (vers Téléchargements)",
   "Back up now": "Sauvegarder maintenant",
+  "Automatic daily backup": "Sauvegarde quotidienne automatique",
+  "A full snapshot is saved automatically once a day (around 2 AM, or at the first launch afterwards) and the last 14 days are kept — so yesterday's work is always safe, even with no internet for months. Each day is its own file, so today's work can never overwrite yesterday's snapshot.":
+    "Un instantané complet est enregistré automatiquement une fois par jour (vers 2 h, ou au premier lancement suivant) et les 14 derniers jours sont conservés — le travail d'hier est donc toujours à l'abri, même sans internet pendant des mois. Chaque jour a son propre fichier, donc le travail d'aujourd'hui ne peut jamais écraser l'instantané d'hier.",
+  "Last backup": "Dernière sauvegarde",
+  "not yet": "pas encore",
+  "Saved in": "Enregistré dans",
+  "this device's app-data folder (in the installed app)": "le dossier de données de cet appareil (dans l'application installée)",
+  "Run a daily backup now": "Lancer une sauvegarde quotidienne maintenant",
+  "Daily backup saved": "Sauvegarde quotidienne enregistrée",
+  "Automatic backup runs in the installed desktop app.": "La sauvegarde automatique s'exécute dans l'application de bureau installée.",
   "Save a full snapshot of everything stored on this device to a single file (in your Downloads folder). Keep it somewhere safe as an extra copy.":
     "Enregistrez un instantané complet de tout ce qui est stocké sur cet appareil dans un seul fichier (dans votre dossier Téléchargements). Conservez-le en lieu sûr comme copie supplémentaire.",
   "Backup saved to your Downloads folder": "Sauvegarde enregistrée dans votre dossier Téléchargements",

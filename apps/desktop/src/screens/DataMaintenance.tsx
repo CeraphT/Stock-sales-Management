@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { UserRole } from "@stockflow/core/api/enums";
 
 import { Button } from "@/components/Button";
+import { backupsDirPath, readAutoBackupState, runDueBackup } from "@/lib/autoBackup";
 import { confirmDialog } from "@/lib/confirm";
 import { exportAllData, resetAllData } from "@/lib/dataBackup";
 import { analyzeBackup, applyRestore, countUnsyncedTransactions, parseBackup, TABLE_LABELS, type ParsedBackup, type TableRecap } from "@/lib/dataRestore";
@@ -14,7 +15,7 @@ import { runSync } from "@/lib/sync/runSync";
 import { toast } from "@/lib/toast";
 import { useCompany } from "@/lib/useCompany";
 
-type Busy = null | "backup" | "reset" | "restore" | "analyze";
+type Busy = null | "backup" | "reset" | "restore" | "analyze" | "auto";
 
 export function DataMaintenance() {
   const t = useT();
@@ -27,6 +28,31 @@ export function DataMaintenance() {
   const [parsed, setParsed] = useState<ParsedBackup | null>(null);
   const [recap, setRecap] = useState<TableRecap[]>([]);
   const [sel, setSel] = useState<Set<string>>(new Set());
+
+  // Auto-backup status.
+  const [autoState, setAutoState] = useState(() => readAutoBackupState());
+  const [backupsPath, setBackupsPath] = useState<string | null>(null);
+  useEffect(() => {
+    backupsDirPath().then(setBackupsPath);
+  }, []);
+
+  async function onAutoBackupNow() {
+    if (!companyId || busy) return;
+    setBusy("auto");
+    try {
+      const r = await runDueBackup(companyId, { force: true });
+      if (r.ran) {
+        setAutoState(readAutoBackupState());
+        toast(`${t("Daily backup saved")} · ${r.fileName} · ${r.rows} ${t("records")}`, "success");
+      } else {
+        toast(t("Automatic backup runs in the installed desktop app."), "info");
+      }
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("Backup failed."), "error");
+    } finally {
+      setBusy(null);
+    }
+  }
 
   // Only an administrator may back up, restore or wipe a device's data — a
   // cashier must never be able to reset the till. (SuperAdmin included.)
@@ -211,9 +237,39 @@ export function DataMaintenance() {
         </p>
       </div>
 
+      {/* Automatic daily backup — the always-on offline safety net */}
+      <div className="rounded-card border border-success/40 bg-success/5 p-5">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-bold text-text-primary">🛡️ {t("Automatic daily backup")}</div>
+          <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-bold text-success">{t("On")}</span>
+        </div>
+        <p className="mt-1 text-xs text-text-secondary">
+          {t("A full snapshot is saved automatically once a day (around 2 AM, or at the first launch afterwards) and the last 14 days are kept — so yesterday's work is always safe, even with no internet for months. Each day is its own file, so today's work can never overwrite yesterday's snapshot.")}
+        </p>
+        <div className="mt-3 space-y-1 rounded-xl bg-surface/60 p-3 text-xs">
+          <div>
+            <span className="text-text-secondary">{t("Last backup")}: </span>
+            <span className="font-semibold text-text-primary">
+              {autoState ? `${new Date(autoState.at).toLocaleString()} · ${autoState.rows} ${t("records")}` : t("not yet")}
+            </span>
+          </div>
+          <div>
+            <span className="text-text-secondary">{t("Saved in")}: </span>
+            <span className="break-all font-mono text-text-primary">
+              {backupsPath ?? t("this device's app-data folder (in the installed app)")}
+            </span>
+          </div>
+        </div>
+        <div className="mt-3">
+          <Button variant="secondary" onClick={onAutoBackupNow} loading={busy === "auto"} disabled={!!busy}>
+            🛡️ {t("Run a daily backup now")}
+          </Button>
+        </div>
+      </div>
+
       {/* Back up */}
       <div className="rounded-card border border-border bg-surface p-5">
-        <div className="text-sm font-bold text-text-primary">💾 {t("Back up data")}</div>
+        <div className="text-sm font-bold text-text-primary">💾 {t("Back up data (to Downloads)")}</div>
         <p className="mt-1 text-xs text-text-secondary">
           {t("Save a full snapshot of everything stored on this device to a single file (in your Downloads folder). Keep it somewhere safe as an extra copy.")}
         </p>

@@ -41,15 +41,14 @@ function stamp(): string {
   return new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
 }
 
-/** Read every local table and write one JSON snapshot. Native builds save it to
- * the Downloads folder (existing fs capability, no dialog needed); the browser
- * triggers a normal download. Purely a read — never mutates data it keeps.
+/** Build one backup JSON string from the current local data — the single source
+ * both the manual export and the scheduled auto-backup use. Purely a read.
  *
  * Cross-business safety: `companyId` is REQUIRED. Before reading anything we run
  * the tenant-isolation guard, which wipes the mirror if it holds a DIFFERENT
- * company's rows — so an admin can only ever back up their own company's data,
- * never another business's leftovers on a shared device. */
-export async function exportAllData(companyId: string): Promise<BackupResult> {
+ * company's rows — so a backup can only ever contain the signed-in company's
+ * data, never another business's leftovers on a shared device. */
+export async function buildBackup(companyId: string): Promise<{ json: string; rowCount: number }> {
   if (!companyId) throw new Error("A signed-in company is required to back up data.");
   await isolateCompany(companyId);
 
@@ -66,6 +65,13 @@ export async function exportAllData(companyId: string): Promise<BackupResult> {
     null,
     2,
   );
+  return { json, rowCount };
+}
+
+/** Manual "Back up now": native saves to the Downloads folder (existing fs
+ * capability, no dialog); the browser triggers a normal download. */
+export async function exportAllData(companyId: string): Promise<BackupResult> {
+  const { json, rowCount } = await buildBackup(companyId);
   const fileName = `pharmastock-backup-${stamp()}.json`;
 
   if (isTauri()) {

@@ -194,7 +194,8 @@ never touch another business's data on a shared device.
 | Feature | Desktop | Mobile | Web |
 |---|---|---|---|
 | Admin-only gate (cashier blocked) | ✅ | ☐ | ☐ |
-| **Back up** — export the full local mirror (all 16 business tables) to one JSON file (native → Downloads; browser → download) | ✅ | ☐ | ☐ |
+| **Automatic daily backup** — catch-up scheduled (fires ~02:00 if running, else at first launch after); rolling 14-day retention, one file per day so today never overwrites yesterday; stored in the app-data `backups/` folder next to the DB; purely local (no internet needed) | ✅ | ☐ | ☐ |
+| **Back up** (manual) — export the full local mirror (all 16 business tables) to one JSON file (native → Downloads; browser → download) | ✅ | ☐ | ☐ |
 | Backup is company-scoped (isolation guard runs first; `companyId` stamped in the file) | ✅ | ☐ | ☐ |
 | **Restore** — upload a backup file; **refuses a different company's file** | ✅ | ☐ | ☐ |
 | Restore **recap** — per data-type counts: rows in file · matching existing · new | ✅ | ☐ | ☐ |
@@ -233,7 +234,7 @@ never touch another business's data on a shared device.
 - [ ] **Code signing** — desktop installer is unsigned → SmartScreen warning.
 - [ ] **Auto-updater** — no Tauri updater plugin; every fix = manual reinstall.
 - [ ] **Automatic/periodic sync + visible sync status** (pending count, offline badge).
-- [x] **Local backup** — done on desktop (§19). Unsynced-sales safety still partial: no automatic backup schedule, and offline sales remain single-copy between manual backups/syncs.
+- [x] **Local backup** — done on desktop (§19): manual export **and** automatic daily rolling backup (14-day retention) for offline resilience. Remaining: the auto-backup writes to disk only in the installed app (verify on-device); an OS-level scheduled task (runs while the app is closed) is a possible future hardening.
 - [ ] **On-device hardware verification** — real thermal printer (ESC/POS auto-detect path only run in `cargo check`), full offline→online sync from the installed app.
 - [ ] **CSV/Excel export** of sales & reports (only bulk-stock *import* exists).
 - [ ] **Self-service password reset on login** (admin-reset exists).
