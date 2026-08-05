@@ -1,16 +1,16 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
-import { Image, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ScreenBackground } from '@/components/ScreenBackground';
 import { LanguageToggle } from '@/components/LanguageToggle';
+import { ScreenBackground } from '@/components/ScreenBackground';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { useThemeColors } from '@/lib/theme/colors';
 
+// Matches the desktop onboarding (apps/desktop/src/screens/auth/Onboarding.tsx +
+// AuthLayout): brand mark, a "Welcome" card, Log in as the highlighted primary
+// action, Create a company, and a subtle invite-code lookup — same routes/flow.
 export default function OnboardingScreen() {
   const { t } = useTranslation();
-  const colors = useThemeColors();
 
   return (
     <View className="flex-1 bg-background">
@@ -20,85 +20,56 @@ export default function OnboardingScreen() {
           <LanguageToggle />
         </View>
 
-        <View className="flex-1 items-center justify-center px-8 pb-10">
-          <View
-            style={{ width: 64, height: 64 }}
-            className="items-center justify-center overflow-hidden rounded-2xl bg-white shadow-md shadow-black/10">
-            <Image
-              source={require('../../assets/images/android-icon-foreground.png')}
-              style={{ width: 44, height: 44 }}
-              resizeMode="contain"
-            />
+        <View className="flex-1 justify-center px-6 pb-10">
+          <View className="w-full self-center" style={{ maxWidth: 420 }}>
+            {/* Brand */}
+            <View className="mb-5 flex-row items-center gap-3">
+              <View
+                className="h-12 w-12 items-center justify-center rounded-2xl"
+                style={{ backgroundColor: '#6366F1', shadowColor: '#6366F1', shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 6 }}>
+                <Text className="text-2xl font-black text-white">◆</Text>
+              </View>
+              <View>
+                <Text className="text-xl font-extrabold tracking-tight text-primary">StockFlow</Text>
+                <Text className="text-xs text-text-secondary">Business management</Text>
+              </View>
+            </View>
+
+            {/* Card */}
+            <View
+              className="rounded-card border border-border bg-surface p-6"
+              style={{ shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 8 }}>
+              <Text className="text-xl font-bold text-text-primary">{t('onboarding.welcome')}</Text>
+              <Text className="mt-1 text-sm text-text-secondary">{t('onboarding.tagline')}</Text>
+
+              <View className="mt-5 gap-2.5">
+                <OnboardingAction icon="🔑" title={t('onboarding.login')} desc={t('onboarding.loginSub')} onPress={() => router.push('/login')} primary />
+                <OnboardingAction icon="🏢" title={t('onboarding.createCompany')} desc={t('onboarding.createCompanySub')} onPress={() => router.push('/create-company')} />
+              </View>
+
+              <Pressable onPress={() => router.push('/join-company')} className="mt-4 active:opacity-70">
+                <Text className="text-center text-xs font-semibold text-text-secondary">{t('onboarding.inviteLookup')}</Text>
+              </Pressable>
+            </View>
           </View>
-
-          <Text className="mt-5 text-center text-sm text-text-secondary">{t('onboarding.tagline')}</Text>
-        </View>
-
-        <View className="gap-3 rounded-t-[32px] bg-surface px-6 pb-8 pt-8 shadow-lg shadow-black/10">
-          <OnboardingAction
-            href="/create-company"
-            icon="business-outline"
-            iconBg="bg-accent-blue-soft"
-            iconColor={colors.accentBlue}
-            chevronColor={colors.iconMuted}
-            title={t('onboarding.createCompany')}
-            subtitle={t('onboarding.createCompanySub')}
-          />
-          <OnboardingAction
-            href="/join-company"
-            icon="people-outline"
-            iconBg="bg-accent-purple-soft"
-            iconColor={colors.accentPurple}
-            chevronColor={colors.iconMuted}
-            title={t('onboarding.joinCompany')}
-            subtitle={t('onboarding.joinCompanySub')}
-          />
-          <OnboardingAction
-            href="/login"
-            icon="log-in-outline"
-            iconBg="bg-success/15"
-            iconColor={colors.success}
-            chevronColor={colors.iconMuted}
-            title={t('onboarding.login')}
-            subtitle={t('onboarding.loginSub')}
-          />
         </View>
       </SafeAreaView>
     </View>
   );
 }
 
-type IconName = keyof typeof Ionicons.glyphMap;
-
-function OnboardingAction({
-  href,
-  icon,
-  iconBg,
-  iconColor,
-  chevronColor,
-  title,
-  subtitle,
-}: {
-  href: '/create-company' | '/join-company' | '/login';
-  icon: IconName;
-  iconBg: string;
-  iconColor: string;
-  chevronColor: string;
-  title: string;
-  subtitle: string;
-}) {
+function OnboardingAction({ icon, title, desc, onPress, primary }: { icon: string; title: string; desc: string; onPress: () => void; primary?: boolean }) {
   return (
-    <Link href={href} asChild>
-      <View className="flex-row items-center gap-4 rounded-2xl bg-surface p-4 shadow-sm shadow-black/5 active:opacity-80">
-        <View className={`h-12 w-12 items-center justify-center rounded-xl ${iconBg}`}>
-          <Ionicons name={icon} size={22} color={iconColor} />
-        </View>
-        <View className="flex-1">
-          <Text className="text-base font-semibold text-text-primary">{title}</Text>
-          <Text className="text-xs text-text-secondary">{subtitle}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={chevronColor} />
+    <Pressable
+      onPress={onPress}
+      className={`flex-row items-center gap-3 rounded-xl border p-3.5 active:opacity-80 ${primary ? 'border-primary bg-primary/10' : 'border-border'}`}>
+      <View className="h-10 w-10 items-center justify-center rounded-xl bg-background">
+        <Text className="text-lg">{icon}</Text>
       </View>
-    </Link>
+      <View className="flex-1">
+        <Text className="text-sm font-bold text-text-primary">{title}</Text>
+        <Text className="text-xs text-text-secondary">{desc}</Text>
+      </View>
+    </Pressable>
   );
 }
