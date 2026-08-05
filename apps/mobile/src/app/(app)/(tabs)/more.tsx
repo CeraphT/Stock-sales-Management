@@ -71,6 +71,7 @@ const GROUPS: MenuGroup[] = [
     icon: 'settings-outline',
     items: [
       { labelKey: 'drawer.item.reports', icon: 'bar-chart-outline', route: '/reports' },
+      { labelKey: 'drawer.item.inventoryReport', icon: 'cube-outline', route: '/inventory-report' },
       { labelKey: 'drawer.item.taxDeclaration', icon: 'receipt-outline', route: '/tax-declaration' },
       { labelKey: 'drawer.item.printer', icon: 'print-outline', route: '/printer-settings' },
       { labelKey: 'drawer.item.staff', icon: 'people-circle-outline', route: '/staff' },
