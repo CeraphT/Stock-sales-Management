@@ -151,7 +151,7 @@ export const translations = {
 
     // Login / onboarding
     "login.title": "Log in",
-    "login.phone": "Phone number",
+    "login.phone": "Phone",
     "login.password": "Password",
     "login.submit": "Log in",
     "login.loggingIn": "Logging in…",
@@ -164,7 +164,7 @@ export const translations = {
     "onboarding.joinCompanySub": "Use a code from your team",
     "onboarding.loginSub": "You already have an account.",
     "onboarding.inviteLookup": "Have an invite code? Look up your company",
-    "login.subtitle": "Welcome back — log in to continue.",
+    "login.subtitle": "Enter your phone number and password.",
     "login.missingFields": "Enter your phone number and password.",
     "login.failed": "Incorrect phone number or password.",
 
@@ -332,8 +332,8 @@ export const translations = {
     "heldSales.delete": "Supprimer",
 
     // Login / onboarding
-    "login.title": "Connexion",
-    "login.phone": "Numéro de téléphone",
+    "login.title": "Se connecter",
+    "login.phone": "Téléphone",
     "login.password": "Mot de passe",
     "login.submit": "Se connecter",
     "login.loggingIn": "Connexion…",
@@ -346,7 +346,7 @@ export const translations = {
     "onboarding.joinCompanySub": "Utilisez un code fourni par votre équipe",
     "onboarding.loginSub": "Vous avez déjà un compte.",
     "onboarding.inviteLookup": "Vous avez un code d'invitation ? Retrouvez votre entreprise",
-    "login.subtitle": "Content de vous revoir — connectez-vous pour continuer.",
+    "login.subtitle": "Saisissez votre numéro de téléphone et votre mot de passe.",
     "login.missingFields": "Entrez votre numéro de téléphone et votre mot de passe.",
     "login.failed": "Numéro de téléphone ou mot de passe incorrect.",
 

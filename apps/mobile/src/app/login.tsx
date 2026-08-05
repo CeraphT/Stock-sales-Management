@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 
-import { AuthScreenLayout } from '@/components/AuthScreenLayout';
+import { AuthLayout } from '@/components/AuthLayout';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { ApiError } from '@/lib/api/client';
@@ -60,10 +60,9 @@ export default function LoginScreen() {
   };
 
   return (
-    <AuthScreenLayout icon="person-outline" title={t('login.title')} subtitle={t('login.subtitle')}>
+    <AuthLayout title={t('login.title')} subtitle={t('login.subtitle')}>
       <TextField
         label={t('login.phone')}
-        placeholder="e.g. 677001122"
         keyboardType="phone-pad"
         autoCapitalize="none"
         value={phone}
@@ -72,7 +71,6 @@ export default function LoginScreen() {
       />
       <TextField
         label={t('login.password')}
-        placeholder="Your password"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -80,7 +78,8 @@ export default function LoginScreen() {
         onSubmitEditing={onSubmit}
       />
 
-      <Button title={loading ? t('login.loggingIn') : t('login.submit')} onPress={onSubmit} loading={loading} />
-    </AuthScreenLayout>
+      <Button title={loading ? t('login.loggingIn') : t('login.submit')} onPress={onSubmit} loading={loading} disabled={!phone || !password} />
+      <Button title={t('common.back')} variant="ghost" onPress={() => router.replace('/')} />
+    </AuthLayout>
   );
 }
