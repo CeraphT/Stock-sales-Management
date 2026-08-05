@@ -115,11 +115,20 @@ export default function ReportsScreen() {
                 <Text className="mt-1 text-base font-bold text-text-primary">{formatCurrency(summary.totalRevenue, currency)}</Text>
               </View>
               <View className="w-[47%] rounded-2xl bg-surface p-4">
-                <Text className="text-xs uppercase tracking-wide text-text-secondary">Profit</Text>
-                <Text className="mt-1 text-base font-bold text-text-primary">{formatCurrency(summary.totalProfit, currency)}</Text>
+                <Text className="text-xs uppercase tracking-wide text-text-secondary">Cost</Text>
+                <Text className="mt-1 text-base font-bold text-text-primary">{formatCurrency(summary.totalCost, currency)}</Text>
               </View>
               <View className="w-[47%] rounded-2xl bg-surface p-4">
-                <Text className="text-xs uppercase tracking-wide text-text-secondary">Sales count</Text>
+                <Text className="text-xs uppercase tracking-wide text-text-secondary">Profit</Text>
+                <Text className="mt-1 text-base font-bold text-success">{formatCurrency(summary.totalProfit, currency)}</Text>
+              </View>
+              <View className="w-[47%] rounded-2xl bg-surface p-4">
+                <Text className="text-xs uppercase tracking-wide text-text-secondary">VAT / TVA</Text>
+                <Text className="mt-1 text-base font-bold text-accent-amber">{formatCurrency(summary.totalTax, currency)}</Text>
+                <Text className="text-[10px] text-text-secondary">included in revenue</Text>
+              </View>
+              <View className="w-[47%] rounded-2xl bg-surface p-4">
+                <Text className="text-xs uppercase tracking-wide text-text-secondary">Sales</Text>
                 <Text className="mt-1 text-base font-bold text-text-primary">{summary.totalSalesCount}</Text>
               </View>
               <View className="w-[47%] rounded-2xl bg-surface p-4">
@@ -134,6 +143,23 @@ export default function ReportsScreen() {
               <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
               <Text className="text-sm font-semibold text-white">View / print report (PDF)</Text>
             </Pressable>
+
+            <Text className="text-sm font-bold text-text-primary">Daily breakdown</Text>
+            {summary.dailyBreakdown.length === 0 ? (
+              <Text className="text-sm text-text-secondary">No sales in this period.</Text>
+            ) : (
+              <View className="overflow-hidden rounded-xl bg-surface">
+                {summary.dailyBreakdown.map((d, i) => (
+                  <View
+                    key={d.date}
+                    className={`flex-row items-center justify-between px-3.5 py-2.5 ${i === summary.dailyBreakdown.length - 1 ? '' : 'border-b border-border/60'}`}>
+                    <Text className="text-sm text-text-primary">{d.date.slice(0, 10)}</Text>
+                    <Text className="text-xs text-text-secondary">{d.salesCount} sales</Text>
+                    <Text className="w-28 text-right text-sm font-semibold text-text-primary">{formatCurrency(d.revenue, currency)}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
 
             <Text className="text-sm font-bold text-text-primary">Top products</Text>
             {topProducts.length === 0 ? (
