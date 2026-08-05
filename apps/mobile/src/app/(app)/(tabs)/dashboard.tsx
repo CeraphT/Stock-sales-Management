@@ -98,10 +98,10 @@ export default function DashboardScreen() {
   };
 
   const cards: { key: string; icon: string; label: string; value: string; color: StatColor; onPress: () => void }[] = [
-    { key: 'rev', icon: '💰', label: t('dashboard.revenueToday'), value: formatCurrency(todaySalesTotal ?? stats?.todaySalesTotal ?? 0, currency), color: 'primary', onPress: () => router.push('/sales-history') },
-    { key: 'low', icon: '⚠️', label: t('dashboard.lowStock'), value: String(summary?.lowStockCount ?? stats?.lowStockCount ?? 0), color: 'amber', onPress: () => router.push('/catalog') },
-    { key: 'out', icon: '⛔', label: t('dashboard.outOfStock'), value: String(summary?.outOfStockCount ?? 0), color: 'red', onPress: () => router.push('/catalog') },
-    { key: 'exp', icon: '⏳', label: t('dashboard.expiringSoon'), value: String(summary?.expiringSoonCount ?? 0), color: 'orange', onPress: () => router.push('/catalog') },
+    { key: 'rev', icon: '💰', label: t('dashboard.revenueToday'), value: formatCurrency(todaySalesTotal ?? stats?.todaySalesTotal ?? 0, currency), color: 'primary', onPress: () => router.push({ pathname: '/sales-history', params: { range: 'today' } }) },
+    { key: 'low', icon: '⚠️', label: t('dashboard.lowStock'), value: String(summary?.lowStockCount ?? stats?.lowStockCount ?? 0), color: 'amber', onPress: () => router.push({ pathname: '/catalog', params: { stock: 'low' } }) },
+    { key: 'out', icon: '⛔', label: t('dashboard.outOfStock'), value: String(summary?.outOfStockCount ?? 0), color: 'red', onPress: () => router.push({ pathname: '/catalog', params: { stock: 'out' } }) },
+    { key: 'exp', icon: '⏳', label: t('dashboard.expiringSoon'), value: String(summary?.expiringSoonCount ?? 0), color: 'orange', onPress: () => router.push({ pathname: '/catalog', params: { stock: 'expiring' } }) },
   ];
 
   return (

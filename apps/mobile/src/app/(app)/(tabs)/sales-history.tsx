@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -65,6 +65,12 @@ export default function SalesHistoryScreen() {
 
   const [dateRange, setDateRange] = useState<DateRange>('today');
   const [methodFilter, setMethodFilter] = useState<PaymentMethod | 'all'>('all');
+
+  // Deep-link from the dashboard: ?range=today|week|month|all pre-applies it.
+  const { range: rangeParam } = useLocalSearchParams<{ range?: string }>();
+  useEffect(() => {
+    if (rangeParam === 'today' || rangeParam === 'week' || rangeParam === 'month' || rangeParam === 'all') setDateRange(rangeParam);
+  }, [rangeParam]);
   const [items, setItems] = useState<SaleSummaryResponse[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);

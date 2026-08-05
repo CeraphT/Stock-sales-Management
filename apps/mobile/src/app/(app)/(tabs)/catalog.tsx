@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { and, asc, eq } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, Text, TextInput, View } from 'react-native';
 
@@ -15,7 +15,11 @@ import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { syncNow } from '@/lib/sync/syncNow';
 import { useThemeColors } from '@/lib/theme/colors';
 
-type StockFilter = 'all' | 'low' | 'out';
+type StockFilter = 'all' | 'low' | 'out' | 'expiring';
+
+// A batch counts as "expiring soon" if it still has stock and expires within
+// this window — the mobile equivalent of the dashboard's expiring-soon count.
+const EXPIRING_SOON_DAYS = 30;
 
 export default function CatalogScreen() {
   const companyId = useAuthStore((s) => s.companyId);
@@ -28,6 +32,14 @@ export default function CatalogScreen() {
   const [query, setQuery] = useState('');
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [stockFilter, setStockFilter] = useState<StockFilter>('all');
+
+  // Deep-link from the dashboard stat cards: ?stock=low|out|expiring pre-applies
+  // the matching filter. Runs on the param (not just mount) since Catalog is a
+  // persistent tab.
+  const { stock: stockParam } = useLocalSearchParams<{ stock?: string }>();
+  useEffect(() => {
+    if (stockParam === 'low' || stockParam === 'out' || stockParam === 'expiring') setStockFilter(stockParam);
+  }, [stockParam]);
 
   // Archived products stay in the local mirror (needed for historical
   // sale references) but live in their own screen (Catalog → Archive) —
@@ -91,6 +103,14 @@ export default function CatalogScreen() {
   for (const b of batchRows ?? []) {
     stockByProductId.set(b.productId, (stockByProductId.get(b.productId) ?? 0) + b.quantityInBaseUnits);
   }
+  const expiringCutoff = Date.now() + EXPIRING_SOON_DAYS * 24 * 60 * 60 * 1000;
+  const expiringProductIds = new Set<string>();
+  for (const b of batchRows ?? []) {
+    if (b.quantityInBaseUnits > 0 && b.expiryDate) {
+      const exp = new Date(b.expiryDate).getTime();
+      if (!Number.isNaN(exp) && exp <= expiringCutoff) expiringProductIds.add(b.productId);
+    }
+  }
 
   const filteredProducts = useMemo(() => {
     const trimmedQuery = query.trim().toLowerCase();
@@ -105,6 +125,7 @@ export default function CatalogScreen() {
         const stock = stockByProductId.get(item.id) ?? 0;
         if (stockFilter === 'out' && stock > 0) return false;
         if (stockFilter === 'low' && !(stock > 0 && item.lowStockThreshold > 0 && stock <= item.lowStockThreshold)) return false;
+        if (stockFilter === 'expiring' && !expiringProductIds.has(item.id)) return false;
       }
       return true;
     });
@@ -144,6 +165,7 @@ export default function CatalogScreen() {
             <FilterChip label="All stock" active={stockFilter === 'all'} onPress={() => setStockFilter('all')} />
             <FilterChip label="Low stock" active={stockFilter === 'low'} onPress={() => setStockFilter('low')} />
             <FilterChip label="Out of stock" active={stockFilter === 'out'} onPress={() => setStockFilter('out')} />
+            <FilterChip label="Expiring" active={stockFilter === 'expiring'} onPress={() => setStockFilter('expiring')} />
           </View>
 
           {(categoryRows ?? []).length > 0 ? (
