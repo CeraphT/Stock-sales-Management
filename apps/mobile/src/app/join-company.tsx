@@ -1,8 +1,8 @@
-import { Link } from 'expo-router';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { AuthScreenLayout } from '@/components/AuthScreenLayout';
+import { AuthLayout } from '@/components/AuthLayout';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { ApiError } from '@/lib/api/client';
@@ -41,33 +41,32 @@ export default function JoinCompanyScreen() {
 
   if (company) {
     return (
-      <AuthScreenLayout icon="checkmark-circle-outline" title={t('joinCompany.foundTitle')} subtitle={company.name}>
-        <Text className="text-center text-sm text-text-secondary">
-          You're about to join <Text className="font-semibold text-text-primary">{company.name}</Text>. Ask your administrator for a
-          staff phone number and password, then log in below.
-        </Text>
-        <Link href="/login" asChild>
-          <View className="rounded-xl bg-primary py-4 active:opacity-90">
-            <Text className="text-center text-base font-semibold text-white">{t('joinCompany.continueToLogin')}</Text>
-          </View>
-        </Link>
-      </AuthScreenLayout>
+      <AuthLayout title={t('joinCompany.title')} subtitle={t('joinCompany.subtitle')}>
+        <View className="rounded-xl border border-border bg-background p-4">
+          <Text className="text-xs uppercase tracking-wide text-text-secondary">{t('joinCompany.foundTitle')}</Text>
+          <Text className="mt-1 text-lg font-bold text-text-primary">{company.name}</Text>
+          <Text className="text-sm text-text-secondary">Code {company.uniqueCode}</Text>
+        </View>
+        <Text className="text-sm text-text-secondary">{t('joinCompany.foundNote')}</Text>
+        <Button title={t('joinCompany.continueToLogin')} onPress={() => router.replace('/login')} />
+      </AuthLayout>
     );
   }
 
   return (
-    <AuthScreenLayout icon="people-outline" title={t('joinCompany.title')} subtitle={t('joinCompany.subtitle')}>
+    <AuthLayout title={t('joinCompany.title')} subtitle={t('joinCompany.subtitle')}>
       <TextField
         label={t('joinCompany.inviteCode')}
-        placeholder="e.g. ABC123"
+        placeholder="PHRM-XXXXX"
         autoCapitalize="characters"
         value={code}
-        onChangeText={setCode}
+        onChangeText={(v) => setCode(v.toUpperCase())}
         returnKeyType="done"
         onSubmitEditing={onSubmit}
       />
 
-      <Button title={loading ? t('joinCompany.submitting') : t('joinCompany.submit')} onPress={onSubmit} loading={loading} />
-    </AuthScreenLayout>
+      <Button title={loading ? t('joinCompany.submitting') : t('joinCompany.submit')} onPress={onSubmit} loading={loading} disabled={!code.trim()} />
+      <Button title={t('common.back')} variant="ghost" onPress={() => router.replace('/')} />
+    </AuthLayout>
   );
 }

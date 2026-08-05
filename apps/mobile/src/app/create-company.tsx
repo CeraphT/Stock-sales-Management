@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { View } from 'react-native';
 
-import { AuthScreenLayout } from '@/components/AuthScreenLayout';
+import { AuthLayout } from '@/components/AuthLayout';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { companiesApi } from '@/lib/api/endpoints/companies';
@@ -13,6 +14,7 @@ import { showAlert } from '@/lib/ui/alertStore';
 export default function CreateCompanyScreen() {
   const { t } = useTranslation();
   const [businessName, setBusinessName] = useState('');
+  const [currency, setCurrency] = useState('XAF');
   const [adminName, setAdminName] = useState('');
   const [adminPhone, setAdminPhone] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
@@ -31,7 +33,7 @@ export default function CreateCompanyScreen() {
       const result = await companiesApi.create({
         name: businessName.trim(),
         description: null,
-        currency: 'XAF',
+        currency: currency.trim() || 'XAF',
         adminName: adminName.trim(),
         adminPhone: adminPhone.trim(),
         adminPassword,
@@ -55,25 +57,18 @@ export default function CreateCompanyScreen() {
     }
   };
 
+  const ready = !!businessName.trim() && !!adminName.trim() && !!adminPhone.trim() && adminPassword.length >= 6;
+
   return (
-    <AuthScreenLayout icon="business-outline" title={t('createCompany.title')} subtitle={t('createCompany.subtitle')}>
-      <TextField
-        label={t('createCompany.businessName')}
-        placeholder="e.g. Central Pharmacy"
-        value={businessName}
-        onChangeText={setBusinessName}
-        returnKeyType="next"
-      />
-      <TextField
-        label={t('createCompany.yourName')}
-        placeholder="e.g. Jean Mballa"
-        value={adminName}
-        onChangeText={setAdminName}
-        returnKeyType="next"
-      />
+    <AuthLayout title={t('createCompany.title')} subtitle={t('createCompany.subtitle')}>
+      <TextField label={t('createCompany.businessName')} value={businessName} onChangeText={setBusinessName} returnKeyType="next" />
+      <TextField label={t('createCompany.currency')} autoCapitalize="characters" value={currency} onChangeText={setCurrency} returnKeyType="next" />
+
+      <View className="my-1 border-t border-border" />
+
+      <TextField label={t('createCompany.yourName')} value={adminName} onChangeText={setAdminName} returnKeyType="next" />
       <TextField
         label={t('createCompany.yourPhone')}
-        placeholder="e.g. 677001122"
         keyboardType="phone-pad"
         autoCapitalize="none"
         value={adminPhone}
@@ -82,7 +77,6 @@ export default function CreateCompanyScreen() {
       />
       <TextField
         label={t('createCompany.password')}
-        placeholder="Choose a password"
         secureTextEntry
         value={adminPassword}
         onChangeText={setAdminPassword}
@@ -90,7 +84,8 @@ export default function CreateCompanyScreen() {
         onSubmitEditing={onSubmit}
       />
 
-      <Button title={loading ? t('createCompany.submitting') : t('createCompany.submit')} onPress={onSubmit} loading={loading} />
-    </AuthScreenLayout>
+      <Button title={loading ? t('createCompany.submitting') : t('createCompany.submit')} onPress={onSubmit} loading={loading} disabled={!ready} />
+      <Button title={t('common.back')} variant="ghost" onPress={() => router.replace('/')} />
+    </AuthLayout>
   );
 }
