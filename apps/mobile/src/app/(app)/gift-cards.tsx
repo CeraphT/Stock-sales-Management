@@ -9,9 +9,11 @@ import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { giftCardsApi } from '@/lib/api/endpoints/giftCards';
 import type { GiftCardResponse } from '@/lib/api/types/customers';
+import { shareGiftCardVoucher } from '@/lib/giftCardVoucher';
 import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
+import { useCompanyInfo } from '@/lib/hooks/useCompanyInfo';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
 
@@ -19,7 +21,16 @@ export default function GiftCardsScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   useFeatureGuard(useAuthStore((s) => s.user?.restrictCustomers));
   const currency = useCompanyCurrency();
+  const { name: companyName } = useCompanyInfo();
   const colors = useThemeColors();
+
+  async function onVoucher(card: GiftCardResponse) {
+    try {
+      await shareGiftCardVoucher({ companyName, code: card.code, value: card.initialValue, currency });
+    } catch (err) {
+      showAlert('Could not create voucher', err instanceof Error ? err.message : 'Something went wrong.');
+    }
+  }
 
   const [query, setQuery] = useState('');
   const [cards, setCards] = useState<GiftCardResponse[]>([]);
@@ -134,13 +145,20 @@ export default function GiftCardsScreen() {
                 {formatCurrency(item.remainingValue, currency)} remaining of {formatCurrency(item.initialValue, currency)}
               </Text>
             </View>
-            <Pressable
-              onPress={() => onToggleActive(item)}
-              className={`rounded-full border px-3 py-1.5 ${item.active ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
-              <Text className={`text-xs font-semibold ${item.active ? 'text-primary' : 'text-text-secondary'}`}>
-                {item.active ? 'Active' : 'Inactive'}
-              </Text>
-            </Pressable>
+            <View className="flex-row items-center gap-2">
+              <Pressable
+                onPress={() => onVoucher(item)}
+                className="h-9 w-9 items-center justify-center rounded-full border border-border bg-background active:opacity-80">
+                <Ionicons name="print-outline" size={16} color={colors.icon} />
+              </Pressable>
+              <Pressable
+                onPress={() => onToggleActive(item)}
+                className={`rounded-full border px-3 py-1.5 ${item.active ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
+                <Text className={`text-xs font-semibold ${item.active ? 'text-primary' : 'text-text-secondary'}`}>
+                  {item.active ? 'Active' : 'Inactive'}
+                </Text>
+              </Pressable>
+            </View>
           </View>
         )}
         ListEmptyComponent={
