@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View } from 'react-native';
@@ -58,9 +59,18 @@ export default function CustomerPickerScreen() {
         />
       </View>
 
-      <Pressable onPress={() => select(null)} className="mx-4 mt-4 rounded-xl border border-border bg-surface px-4 py-3">
-        <Text className="text-sm font-semibold text-text-primary">Walk-in (no customer)</Text>
-      </Pressable>
+      <View className="mx-4 mt-4 flex-row gap-2">
+        <Pressable onPress={() => select(null)} className="flex-1 rounded-xl border border-border bg-surface px-4 py-3">
+          <Text className="text-sm font-semibold text-text-primary">Walk-in (no customer)</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => router.push('/customer-form')}
+          accessibilityLabel="New customer"
+          className="flex-row items-center gap-1.5 rounded-xl border border-primary bg-primary/10 px-4 py-3">
+          <Ionicons name="add" size={16} color={colors.primary} />
+          <Text className="text-sm font-semibold text-primary">New</Text>
+        </Pressable>
+      </View>
 
       {searching ? (
         <ActivityIndicator className="mt-6" />

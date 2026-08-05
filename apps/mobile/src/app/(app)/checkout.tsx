@@ -1,7 +1,8 @@
+import { customersApi } from '@stockflow/core/api/endpoints/customers';
 import { rewardsApi } from '@stockflow/core/api/endpoints/rewards';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -27,9 +28,9 @@ import { showAlert } from '@/lib/ui/alertStore';
 
 const METHODS: { method: PaymentMethod; label: string }[] = [
   { method: PaymentMethod.Cash, label: 'Cash' },
-  { method: PaymentMethod.MobileMoney, label: 'Mobile Money' },
-  { method: PaymentMethod.Credit, label: 'Credit' },
-  { method: PaymentMethod.StoreCredit, label: 'Store credit' },
+  { method: PaymentMethod.MobileMoney, label: 'Mobile money' },
+  { method: PaymentMethod.Credit, label: 'Credit (pay later)' },
+  { method: PaymentMethod.StoreCredit, label: 'Store credit (prepaid)' },
   { method: PaymentMethod.GiftCard, label: 'Gift card' },
 ];
 
@@ -80,17 +81,35 @@ export default function CheckoutScreen() {
     }
   }
 
+  // Selected customer's balances (for the credit / store-credit methods),
+  // mirroring desktop's POS. Best-effort — needs network; falls back to 0 offline
+  // and the server still enforces sufficiency on charge.
+  const { data: customers = [] } = useQuery({
+    queryKey: ['customers', companyId],
+    queryFn: () => customersApi.list(companyId!),
+    enabled: !!companyId && !!customerId,
+    retry: false,
+  });
+  const selectedCustomer = useMemo(() => customers.find((c) => c.id === customerId) ?? null, [customers, customerId]);
+
   const total = cartTotal(lines, serviceLines);
   const hasServices = serviceLines.length > 0;
   const tenderedNumber = Number(tendered);
   const change = method === PaymentMethod.Cash && tendered.trim() && !Number.isNaN(tenderedNumber) ? tenderedNumber - total : null;
 
   const needsCustomer = method === PaymentMethod.Credit || method === PaymentMethod.StoreCredit;
+  const storeCreditAvailable = selectedCustomer?.loyaltyStoreCreditBalance ?? 0;
+  const creditOwed = selectedCustomer?.creditBalance ?? 0;
+  const storeCreditShort = method === PaymentMethod.StoreCredit && !!customerId && !!selectedCustomer && storeCreditAvailable < total;
 
   const onCharge = async () => {
     if (!companyId || !locationId) return;
     if (needsCustomer && !customerId) {
       showAlert('Customer required', 'This payment method requires a customer to be selected.');
+      return;
+    }
+    if (storeCreditShort) {
+      showAlert('Not enough store credit', `This customer has only ${formatCurrency(storeCreditAvailable, currency)} in store credit.`);
       return;
     }
     if (method === PaymentMethod.GiftCard && !giftCardCode.trim()) {
@@ -237,11 +256,20 @@ export default function CheckoutScreen() {
               <Pressable
                 key={m.method}
                 onPress={() => setMethod(m.method)}
-                className={`rounded-xl border px-4 py-2.5 ${method === m.method ? 'border-primary bg-primary' : 'border-border bg-surface'}`}>
-                <Text className={`text-sm font-semibold ${method === m.method ? 'text-white' : 'text-text-primary'}`}>{m.label}</Text>
+                className={`rounded-xl border px-4 py-2.5 ${method === m.method ? 'border-primary bg-primary/10' : 'border-border bg-surface'}`}>
+                <Text className={`text-sm font-semibold ${method === m.method ? 'text-primary' : 'text-text-primary'}`}>{m.label}</Text>
               </Pressable>
             ))}
           </View>
+          {customerId && method === PaymentMethod.StoreCredit ? (
+            <Text className={`text-xs ${storeCreditShort ? 'text-error' : 'text-text-secondary'}`}>
+              Store credit available: {formatCurrency(storeCreditAvailable, currency)}
+              {storeCreditShort ? ' — not enough for this sale' : ''}
+            </Text>
+          ) : null}
+          {customerId && method === PaymentMethod.Credit ? (
+            <Text className="text-xs text-text-secondary">Current balance owed: {formatCurrency(creditOwed, currency)}</Text>
+          ) : null}
         </View>
 
         {method === PaymentMethod.Cash ? (
@@ -286,6 +314,7 @@ export default function CheckoutScreen() {
         <Button
           title={submitting ? t('checkout.processing') : `${t('pos.charge')} ${formatCurrency(total, currency)}`}
           loading={submitting}
+          disabled={storeCreditShort}
           onPress={onCharge}
         />
       </ScrollView>
