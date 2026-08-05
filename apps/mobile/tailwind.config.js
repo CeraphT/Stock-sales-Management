@@ -29,6 +29,11 @@ module.exports = {
         "accent-amber": { DEFAULT: withOpacity("--color-accent-amber"), soft: withOpacity("--color-accent-amber-soft") },
         "accent-orange": { DEFAULT: withOpacity("--color-accent-orange"), soft: withOpacity("--color-accent-orange-soft") },
       },
+      // Match desktop's card radius (apps/desktop/tailwind.config.js) so
+      // `rounded-card` reads the same on both clients.
+      borderRadius: {
+        card: "18px",
+      },
     },
   },
   plugins: [],

@@ -33,11 +33,12 @@
 .dark {
   --color-primary: 129 140 248;
   --color-primary-dark: 79 70 229;
-  --color-background: 17 24 39;
-  --color-surface: 31 41 55;
+  /* Deep-slate dark ramp — kept in lockstep with desktop (apps/desktop/src/index.css). */
+  --color-background: 15 20 32;
+  --color-surface: 30 41 59;
   --color-text-primary: 243 244 246;
   --color-text-secondary: 156 163 175;
-  --color-border: 55 65 81;
+  --color-border: 51 65 85;
   --color-error: 248 113 113;
   --color-success: 52 211 153;
   --color-accent-blue: 96 165 250;

@@ -83,9 +83,14 @@ export default function MyBusinessScreen() {
       showAlert('Invalid loyalty settings', 'Earn rate and point value must both be greater than zero.');
       return;
     }
+    if (!company) return;
     setSaving(true);
     try {
+      // Pass through the fields this screen doesn't yet edit (reward/profile/tax
+      // regime) from the loaded company, so the update stays complete. Phase 3
+      // of the desktop→mobile parity work adds real UI for these.
       const updated = await companiesApi.update(companyId, {
+        ...company,
         name: name.trim(),
         description: description.trim() || null,
         currency: currency.trim() || 'XAF',
