@@ -10,6 +10,7 @@ import { DateField } from '@/components/DateField';
 import { PaymentMethod, ShiftStatus } from '@/lib/api/enums';
 import type { ShiftDetailResponse } from '@/lib/api/types/shifts';
 import { useAuthStore } from '@/lib/auth/store';
+import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { buildDailyRows, printCashReport } from '@/lib/cashReport';
 import { formatCurrency } from '@/lib/format';
 import { useCompanyInfo } from '@/lib/hooks/useCompanyInfo';
@@ -25,6 +26,7 @@ function methodTotal(shift: ShiftDetailResponse, method: PaymentMethod): number 
 
 export default function ShiftScreen() {
   const companyId = useAuthStore((s) => s.companyId);
+  useFeatureGuard(useAuthStore((s) => s.user?.restrictCashRegister));
   const locationId = useAuthStore((s) => s.locationId);
   const locationName = useAuthStore((s) => s.locationName);
   const { name: companyName, currency } = useCompanyInfo();

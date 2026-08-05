@@ -34,6 +34,8 @@ public class User
     public bool RestrictPurchasing { get; set; } = false;
     public bool RestrictCustomers { get; set; } = false;
     public bool RestrictReportsAndFullSales { get; set; } = false;
+    public bool RestrictCashRegister { get; set; } = false;
+    public bool RestrictGiftCards { get; set; } = false;
 
     public ICollection<Device> Devices { get; set; } = new List<Device>();
 }

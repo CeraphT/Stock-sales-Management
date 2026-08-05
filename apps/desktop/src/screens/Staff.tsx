@@ -17,10 +17,16 @@ import { toast } from "@/lib/toast";
 // Permissions are framed as ACCESS (positive) in the UI — "Catalog: on" reads
 // far better to an admin than "Restrict catalog: on" — while the stored flags
 // stay restrictXxx. checked = has access = !restrictXxx.
-const ACCESS: { key: keyof Pick<UserResponse, "restrictCatalog" | "restrictPurchasing" | "restrictCustomers" | "restrictReportsAndFullSales">; label: string; desc: string }[] = [
+type AccessKey = keyof Pick<
+  UserResponse,
+  "restrictCatalog" | "restrictPurchasing" | "restrictCustomers" | "restrictGiftCards" | "restrictCashRegister" | "restrictReportsAndFullSales"
+>;
+const ACCESS: { key: AccessKey; label: string; desc: string }[] = [
   { key: "restrictCatalog", label: "Catalog & services", desc: "Categories, archive, bulk stock, services" },
   { key: "restrictPurchasing", label: "Purchasing", desc: "Suppliers, purchase orders" },
-  { key: "restrictCustomers", label: "Customers & gift cards", desc: "Customer records, gift cards" },
+  { key: "restrictCashRegister", label: "Cash register", desc: "Open / close shifts, takings" },
+  { key: "restrictCustomers", label: "Customers", desc: "Customer records & credit" },
+  { key: "restrictGiftCards", label: "Gift cards", desc: "Issue / manage gift cards" },
   { key: "restrictReportsAndFullSales", label: "Reports & full sales", desc: "Reports, and other cashiers' sales" },
 ];
 
@@ -70,7 +76,7 @@ export function Staff() {
       .catch(onError);
   }
 
-  function toggleAccess(u: UserResponse, key: (typeof ACCESS)[number]["key"]) {
+  function toggleAccess(u: UserResponse, key: AccessKey) {
     permM.mutate({
       id: u.id,
       body: {
@@ -78,6 +84,8 @@ export function Staff() {
         restrictPurchasing: u.restrictPurchasing,
         restrictCustomers: u.restrictCustomers,
         restrictReportsAndFullSales: u.restrictReportsAndFullSales,
+        restrictCashRegister: u.restrictCashRegister,
+        restrictGiftCards: u.restrictGiftCards,
         [key]: !u[key],
       },
     });

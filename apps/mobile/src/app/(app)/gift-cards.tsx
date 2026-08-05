@@ -19,7 +19,7 @@ import { showAlert } from '@/lib/ui/alertStore';
 
 export default function GiftCardsScreen() {
   const companyId = useAuthStore((s) => s.companyId);
-  useFeatureGuard(useAuthStore((s) => s.user?.restrictCustomers));
+  useFeatureGuard(useAuthStore((s) => s.user?.restrictGiftCards));
   const currency = useCompanyCurrency();
   const { name: companyName } = useCompanyInfo();
   const colors = useThemeColors();

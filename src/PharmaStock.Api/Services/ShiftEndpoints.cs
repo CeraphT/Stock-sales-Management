@@ -36,6 +36,9 @@ public static class ShiftEndpoints
             if (callerCompanyId != companyId || callerUserId is null)
                 return Results.Forbid();
 
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictCashRegister);
+            if (restricted is not null) return restricted;
+
             var locationExists = await db.Locations.AnyAsync(l => l.Id == locationId && l.CompanyId == companyId);
             if (!locationExists)
                 return Results.NotFound(new { message = "Emplacement introuvable." });
@@ -91,6 +94,9 @@ public static class ShiftEndpoints
             var callerUserId = http.User.GetUserId();
             if (callerCompanyId != companyId || callerUserId is null)
                 return Results.Forbid();
+
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictCashRegister);
+            if (restricted is not null) return restricted;
 
             var shift = await db.CashRegisterShifts.FirstOrDefaultAsync(s => s.Id == shiftId && s.CompanyId == companyId);
             if (shift is null)

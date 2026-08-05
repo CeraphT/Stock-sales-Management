@@ -13,10 +13,12 @@ public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 public record SetUserActiveRequest(bool Active);
 public record AdminResetPasswordRequest(string NewPassword);
 public record SetUserPermissionsRequest(
-    bool RestrictCatalog, bool RestrictPurchasing, bool RestrictCustomers, bool RestrictReportsAndFullSales);
+    bool RestrictCatalog, bool RestrictPurchasing, bool RestrictCustomers, bool RestrictReportsAndFullSales,
+    bool RestrictCashRegister, bool RestrictGiftCards);
 public record UserResponse(
     Guid Id, string Name, string Phone, UserRole Role, bool Active,
-    bool RestrictCatalog, bool RestrictPurchasing, bool RestrictCustomers, bool RestrictReportsAndFullSales);
+    bool RestrictCatalog, bool RestrictPurchasing, bool RestrictCustomers, bool RestrictReportsAndFullSales,
+    bool RestrictCashRegister, bool RestrictGiftCards);
 public record AuthResponse(string Token, DateTime ExpiresAt, string RefreshToken, Guid DeviceId, UserResponse User, Guid? CompanyId);
 
 public static class AuthEndpoints
@@ -181,6 +183,8 @@ public static class AuthEndpoints
             user.RestrictPurchasing = request.RestrictPurchasing;
             user.RestrictCustomers = request.RestrictCustomers;
             user.RestrictReportsAndFullSales = request.RestrictReportsAndFullSales;
+            user.RestrictCashRegister = request.RestrictCashRegister;
+            user.RestrictGiftCards = request.RestrictGiftCards;
             await db.SaveChangesAsync();
 
             return Results.Ok(ToUserResponse(user));
@@ -280,5 +284,6 @@ public static class AuthEndpoints
 
     internal static UserResponse ToUserResponse(User user) => new(
         user.Id, user.Name, user.Phone, user.Role, user.Active,
-        user.RestrictCatalog, user.RestrictPurchasing, user.RestrictCustomers, user.RestrictReportsAndFullSales);
+        user.RestrictCatalog, user.RestrictPurchasing, user.RestrictCustomers, user.RestrictReportsAndFullSales,
+        user.RestrictCashRegister, user.RestrictGiftCards);
 }

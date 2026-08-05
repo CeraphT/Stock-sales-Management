@@ -27,8 +27,10 @@ const ROLES: { value: UserRole; label: string }[] = [
 const PERMISSION_FIELDS: { key: keyof SetUserPermissionsRequest; label: string; description: string }[] = [
   { key: 'restrictCatalog', label: 'Catalog & services', description: 'Categories, archive, bulk stock, services' },
   { key: 'restrictPurchasing', label: 'Purchasing', description: 'Suppliers, purchase orders' },
-  { key: 'restrictCustomers', label: 'Customers & gift cards', description: 'Customer records, gift cards' },
-  { key: 'restrictReportsAndFullSales', label: 'Reports & full sales history', description: "Reports, and other cashiers' sales" },
+  { key: 'restrictCashRegister', label: 'Cash register', description: 'Open / close shifts, takings' },
+  { key: 'restrictCustomers', label: 'Customers', description: 'Customer records & credit' },
+  { key: 'restrictGiftCards', label: 'Gift cards', description: 'Issue / manage gift cards' },
+  { key: 'restrictReportsAndFullSales', label: 'Reports & full sales', description: "Reports, and other cashiers' sales" },
 ];
 
 function roleLabel(role: UserRole): string {
@@ -163,6 +165,8 @@ export default function StaffScreen() {
         restrictPurchasing: user.restrictPurchasing,
         restrictCustomers: user.restrictCustomers,
         restrictReportsAndFullSales: user.restrictReportsAndFullSales,
+        restrictCashRegister: user.restrictCashRegister,
+        restrictGiftCards: user.restrictGiftCards,
         [key]: !hasAccess,
       });
       setStaff((prev) => prev.map((u) => (u.id === user.id ? updated : u)));

@@ -30,6 +30,8 @@ export interface UserResponse {
   restrictPurchasing: boolean;
   restrictCustomers: boolean;
   restrictReportsAndFullSales: boolean;
+  restrictCashRegister: boolean;
+  restrictGiftCards: boolean;
 }
 
 export interface AuthResponse {
@@ -143,4 +145,6 @@ export interface SetUserPermissionsRequest {
   restrictPurchasing: boolean;
   restrictCustomers: boolean;
   restrictReportsAndFullSales: boolean;
+  restrictCashRegister: boolean;
+  restrictGiftCards: boolean;
 }

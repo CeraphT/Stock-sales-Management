@@ -41,7 +41,7 @@ public static class GiftCardEndpoints
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
 
-            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictCustomers);
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictGiftCards);
             if (restricted is not null) return restricted;
 
             if (request.InitialValue <= 0)
@@ -93,7 +93,7 @@ public static class GiftCardEndpoints
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
 
-            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictCustomers);
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictGiftCards);
             if (restricted is not null) return restricted;
 
             var card = await db.GiftCards.FirstOrDefaultAsync(g => g.Id == id && g.CompanyId == companyId);
@@ -114,7 +114,7 @@ public static class GiftCardEndpoints
             if (http.User.GetCompanyId() != companyId)
                 return Results.Forbid();
 
-            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictCustomers);
+            var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictGiftCards);
             if (restricted is not null) return restricted;
 
             var card = await db.GiftCards.FirstOrDefaultAsync(g => g.Id == id && g.CompanyId == companyId);
