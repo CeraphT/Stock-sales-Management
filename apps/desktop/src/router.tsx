@@ -20,6 +20,7 @@ import { Categories } from "@/screens/Categories";
 import { CompanySettings } from "@/screens/CompanySettings";
 import { CustomerCredits } from "@/screens/CustomerCredits";
 import { Customers } from "@/screens/Customers";
+import { DataMaintenance } from "@/screens/DataMaintenance";
 import { Dashboard } from "@/screens/Dashboard";
 import { GiftCards } from "@/screens/GiftCards";
 import { HeldSales } from "@/screens/HeldSales";
@@ -113,6 +114,7 @@ export const router = createHashRouter([
       { path: "/customer-credits", element: <CustomerCredits /> },
       { path: "/tax-declaration", element: <TaxDeclaration /> },
       { path: "/printer", element: <PrinterSettings /> },
+      { path: "/data", element: <DataMaintenance /> },
       { path: "/staff", element: <Staff /> },
       { path: "/settings", element: <CompanySettings /> },
       // Any nav destination without a screen yet (Printer) falls back to a placeholder.
@@ -137,6 +139,7 @@ export const router = createHashRouter([
             "/customer-credits",
             "/tax-declaration",
             "/printer",
+            "/data",
             "/staff",
             "/settings",
           ].includes(i.path),

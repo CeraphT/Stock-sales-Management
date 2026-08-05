@@ -186,7 +186,30 @@ declaration exactly.
 | Tenant isolation — wipe local mirror if device switched companies | ✅ | ☑ | ☐ |
 | ⛔ Automatic periodic sync + persistent status indicator (manual button only today) | ☐ | ☐ | ☐ |
 
-## 19. Cross-cutting
+## 19. Data & maintenance (backup / restore / reset)
+Admin-only screen (Management → Data & maintenance). Every action is **strictly
+scoped to the signed-in company** — the tenant-isolation guard runs before
+backup, and restore refuses a file whose `companyId` differs, so an admin can
+never touch another business's data on a shared device.
+| Feature | Desktop | Mobile | Web |
+|---|---|---|---|
+| Admin-only gate (cashier blocked) | ✅ | ☐ | ☐ |
+| **Back up** — export the full local mirror (all 16 business tables) to one JSON file (native → Downloads; browser → download) | ✅ | ☐ | ☐ |
+| Backup is company-scoped (isolation guard runs first; `companyId` stamped in the file) | ✅ | ☐ | ☐ |
+| **Restore** — upload a backup file; **refuses a different company's file** | ✅ | ☐ | ☐ |
+| Restore **recap** — per data-type counts: rows in file · matching existing · new | ✅ | ☐ | ☐ |
+| Restore **multiselect** — tick which data types to apply, select-all/none | ✅ | ☐ | ☐ |
+| Restore **Add new only** — insert new rows, keep existing unchanged | ✅ | ☐ | ☐ |
+| Restore **Replace selected** — upsert: overwrite matching rows, add new | ✅ | ☐ | ☐ |
+| **Reset (complete refresh)** — wipe local mirror + sign out; server data untouched, re-syncs on next login | ✅ | ☐ | ☐ |
+| Reset pushes unsynced sales first (best-effort) + warns if offline | ✅ | ☐ | ☐ |
+
+> Restore writes to the **local mirror**. The server stays source of truth: a
+> subsequent pull can update restored records. Restore + a push is how
+> device-only unsynced rows are recovered. `sync_state` cursors are never
+> restored (would corrupt sync).
+
+## 20. Cross-cutting
 | Feature | Desktop | Mobile | Web |
 |---|---|---|---|
 | i18n (French default; English) via string-key dictionaries | ✅ | ☑ | ☐ |
@@ -201,7 +224,7 @@ declaration exactly.
 - [ ] **Code signing** — desktop installer is unsigned → SmartScreen warning.
 - [ ] **Auto-updater** — no Tauri updater plugin; every fix = manual reinstall.
 - [ ] **Automatic/periodic sync + visible sync status** (pending count, offline badge).
-- [ ] **Local backup / unsynced-sales safety** — offline sales are single-copy until a sync succeeds.
+- [x] **Local backup** — done on desktop (§19). Unsynced-sales safety still partial: no automatic backup schedule, and offline sales remain single-copy between manual backups/syncs.
 - [ ] **On-device hardware verification** — real thermal printer (ESC/POS auto-detect path only run in `cargo check`), full offline→online sync from the installed app.
 - [ ] **CSV/Excel export** of sales & reports (only bulk-stock *import* exists).
 - [ ] **Self-service password reset on login** (admin-reset exists).
