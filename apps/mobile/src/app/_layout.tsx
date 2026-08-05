@@ -1,4 +1,6 @@
+import { setIdGenerator } from '@stockflow/core/idGenerator';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import * as Crypto from 'expo-crypto';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { useColorScheme } from 'nativewind';
@@ -32,6 +34,13 @@ const queryClient = new QueryClient();
 // flash back to the system theme before that stored override applies.
 useThemeStore.getState().hydrate();
 useLanguageStore.getState().hydrate();
+
+// Inject the platform UUID source into @stockflow/core before any screen,
+// store, or local-DB write runs (sales/lines/payments all call the core's
+// generateId()). Mobile must use expo-crypto's randomUUID — the bare
+// crypto.randomUUID() global is unreliable across Hermes builds on RN (see
+// idGenerator.ts and auth/store.ts, which injects the same wrapper).
+setIdGenerator(() => Crypto.randomUUID());
 
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
