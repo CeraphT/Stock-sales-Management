@@ -13,7 +13,6 @@ export function PrinterSettings() {
   const company = useCompany().data;
   const receiptWidth = usePrefsStore((s) => s.receiptWidth);
   const autoPrint = usePrefsStore((s) => s.autoPrintReceipt);
-  const copies = usePrefsStore((s) => s.receiptCopies);
   const thermalEnabled = usePrefsStore((s) => s.thermalEnabled);
   const thermalConnection = usePrefsStore((s) => s.thermalConnection);
   const thermalTarget = usePrefsStore((s) => s.thermalTarget);
@@ -117,56 +116,26 @@ export function PrinterSettings() {
         </Button>
       </div>
 
-      {/* How printing works on this device. */}
-      <div className="rounded-card border border-border bg-surface p-5">
-        <div className="text-sm font-bold text-text-primary">{t("How printing works")}</div>
-        <p className="mt-1 text-xs text-text-secondary">
-          {t("Receipts and reports open your system print dialog — pick any installed printer (thermal or office) or Save as PDF. Set the paper width below to match your receipt roll.")}
-        </p>
-      </div>
-
-      {/* Paper width */}
-      <div className="rounded-card border border-border bg-surface p-5">
-        <div className="text-sm font-bold text-text-primary">{t("Receipt paper width")}</div>
-        <div className="mt-3 grid grid-cols-3 gap-2">
+      {/* Paper width + auto-print, compact. */}
+      <div className="space-y-3 rounded-card border border-border bg-surface p-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Receipt width")}</span>
           {widths.map((w) => (
             <button
               key={w.v}
               onClick={() => setPref("receiptWidth", w.v)}
-              className={`rounded-xl border px-3 py-2.5 text-center transition ${
-                receiptWidth === w.v ? "border-primary bg-primary/10" : "border-border hover:bg-background"
+              className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
+                receiptWidth === w.v ? "border-primary bg-primary/10 text-primary" : "border-border text-text-secondary hover:bg-background"
               }`}
+              title={w.hint}
             >
-              <div className="text-sm font-bold text-text-primary">{w.label}</div>
-              <div className="text-[11px] text-text-secondary">{w.hint}</div>
+              {w.label}
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Behaviour */}
-      <div className="space-y-4 rounded-card border border-border bg-surface p-5">
-        <label className="flex items-start gap-3">
-          <input type="checkbox" checked={autoPrint} onChange={(e) => setPref("autoPrintReceipt", e.target.checked)} className="mt-0.5 h-4 w-4" />
-          <span>
-            <span className="block text-sm font-semibold text-text-primary">{t("Auto-print receipt after each sale")}</span>
-            <span className="block text-xs text-text-secondary">{t("When on, the receipt prints automatically as soon as a sale completes.")}</span>
-          </span>
-        </label>
-
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Copies per receipt")}</span>
-          <select
-            value={copies}
-            onChange={(e) => setPref("receiptCopies", Number(e.target.value))}
-            className="h-11 w-32 rounded-xl border border-border bg-surface px-3 text-sm text-text-primary outline-none focus:border-primary"
-          >
-            {[1, 2, 3].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
+        <label className="flex items-center gap-2 text-sm text-text-primary">
+          <input type="checkbox" checked={autoPrint} onChange={(e) => setPref("autoPrintReceipt", e.target.checked)} className="h-4 w-4" />
+          {t("Auto-print receipt after each sale")}
         </label>
       </div>
 

@@ -244,7 +244,7 @@ export function DataMaintenance() {
           <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-bold text-success">{t("On")}</span>
         </div>
         <p className="mt-1 text-xs text-text-secondary">
-          {t("A full snapshot is saved automatically once a day (around 2 AM, or at the first launch afterwards) and the last 14 days are kept — so yesterday's work is always safe, even with no internet for months. Each day is its own file, so today's work can never overwrite yesterday's snapshot.")}
+          {t("Saved automatically once a day; the last 14 days are kept as separate files — so yesterday's work is always safe, even offline.")}
         </p>
         <div className="mt-3 space-y-1 rounded-xl bg-surface/60 p-3 text-xs">
           <div>
@@ -271,7 +271,7 @@ export function DataMaintenance() {
       <div className="rounded-card border border-border bg-surface p-5">
         <div className="text-sm font-bold text-text-primary">💾 {t("Back up data (to Downloads)")}</div>
         <p className="mt-1 text-xs text-text-secondary">
-          {t("Save a full snapshot of everything stored on this device to a single file (in your Downloads folder). Keep it somewhere safe as an extra copy.")}
+          {t("Save everything on this device to one file in Downloads — an extra copy to keep safe.")}
         </p>
         <div className="mt-3">
           <Button onClick={onBackup} loading={busy === "backup"} disabled={!!busy}>
@@ -284,10 +284,7 @@ export function DataMaintenance() {
       <div className="rounded-card border border-border bg-surface p-5">
         <div className="text-sm font-bold text-text-primary">📥 {t("Restore from a backup")}</div>
         <p className="mt-1 text-xs text-text-secondary">
-          {t("Upload a backup file, review what matches your current data, then choose to add only the new records or replace existing ones.")}
-        </p>
-        <p className="mt-1 rounded-lg bg-accent-blue/10 px-3 py-2 text-[11px] text-accent-blue">
-          ℹ️ {t("Restore works on this device. Your catalogue and customers stay owned by the server (they reconcile on the next sync); only sales not yet synced can be sent up to become official — you'll be asked to confirm after restoring.")}
+          {t("Upload a backup, review what matches, then add only new records or replace existing ones.")}
         </p>
         <div className="mt-3">
           <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-text-primary transition hover:bg-background">
@@ -355,12 +352,8 @@ export function DataMaintenance() {
       <div className="rounded-card border border-error/40 bg-error/5 p-5">
         <div className="text-sm font-bold text-error">♻️ {t("Reset app data (complete refresh)")}</div>
         <p className="mt-1 text-xs text-text-secondary">
-          {t("Clears all data stored on this device and signs you out — for a clean start or to fix a glitchy device. Your business data on the server is not touched and downloads again when you sign back in.")}
+          {t("Clears this device and signs you out. Server data is safe and re-downloads on next sign-in — but sync first, as unsynced sales can't be recovered.")}
         </p>
-        <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-text-secondary">
-          <li>{t("Only affects this device — never another business's data.")}</li>
-          <li>{t("Sync first if possible — unsynced sales cannot be recovered.")}</li>
-        </ul>
         <div className="mt-3">
           <Button variant="danger" onClick={onReset} loading={busy === "reset"} disabled={!!busy}>
             ♻️ {t("Reset everything")}

@@ -202,7 +202,7 @@ export default function DataMaintenanceScreen() {
               </View>
             </View>
             <Text className="mt-1 text-xs text-text-secondary">
-              A full snapshot is saved automatically once a day (around 2 AM, or at first launch afterwards); the last 14 days are kept, one file per day — so yesterday's work is always safe, even offline for months.
+              Saved automatically once a day; the last 14 days are kept as separate files — so yesterday's work is always safe, even offline.
             </Text>
             <View className="mt-3 gap-1 rounded-xl bg-surface/60 p-3">
               <Text className="text-xs">
@@ -231,10 +231,7 @@ export default function DataMaintenanceScreen() {
           {/* Restore */}
           <View className="rounded-card border border-border bg-surface p-4">
             <Text className="text-sm font-bold text-text-primary">📥 Restore from a backup</Text>
-            <Text className="mt-1 text-xs text-text-secondary">Upload a backup, review what matches your current data, then add only new records or replace existing ones.</Text>
-            <Text className="mt-1 rounded-lg bg-accent-blue/10 px-3 py-2 text-[11px] text-accent-blue">
-              ℹ️ Restore works on this device. Catalogue and customers stay owned by the server; only unsynced sales can be sent up to become official.
-            </Text>
+            <Text className="mt-1 text-xs text-text-secondary">Upload a backup, review what matches, then add only new records or replace existing ones.</Text>
             <View className="mt-3">
               <Button title="📂  Choose backup file" variant="secondary" loading={busy === 'analyze'} disabled={!!busy} onPress={onChooseFile} />
             </View>
@@ -278,9 +275,7 @@ export default function DataMaintenanceScreen() {
           {/* Reset */}
           <View className="rounded-card border border-error/40 bg-error/5 p-4">
             <Text className="text-sm font-bold text-error">♻️ Reset app data (complete refresh)</Text>
-            <Text className="mt-1 text-xs text-text-secondary">Clears all data on this device and signs you out — for a clean start or to fix a glitchy device. Server data is untouched and downloads again on next sign-in.</Text>
-            <Text className="mt-2 text-xs text-text-secondary">• Only affects this device — never another business's data.</Text>
-            <Text className="text-xs text-text-secondary">• Sync first if possible — unsynced sales cannot be recovered.</Text>
+            <Text className="mt-1 text-xs text-text-secondary">Clears this device and signs you out. Server data is safe and re-downloads on next sign-in — but sync first, as unsynced sales can't be recovered.</Text>
             <View className="mt-3">
               <Button title="♻️  Reset everything" variant="danger" loading={busy === 'reset'} disabled={!!busy} onPress={onReset} />
             </View>
