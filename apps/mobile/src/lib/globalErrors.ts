@@ -52,7 +52,12 @@ function installDevLogToasts(): void {
       const last = recent.get(message) ?? 0;
       if (now - last < 4000) return; // dedupe bursts of the same message
       recent.set(message, now);
-      toast(message, kind);
+      // Defer the toast to a fresh task. console.error/warn is often emitted by
+      // React/NativeWind DURING render/commit (e.g. on a theme flip); pushing to
+      // the toast store synchronously there re-enters React and can escalate a
+      // harmless warning into a full error-boundary crash. setTimeout(0) moves
+      // the state update out of the current render entirely.
+      setTimeout(() => toast(message, kind), 0);
     } catch {
       /* never let toast surfacing break logging */
     } finally {
