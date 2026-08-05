@@ -10,6 +10,7 @@ import { BackButton } from '@/components/BackButton';
 import { PurchaseOrderStatus } from '@/lib/api/enums';
 import { purchaseOrdersApi } from '@/lib/api/endpoints/purchaseOrders';
 import type { PurchaseOrderSummaryResponse } from '@/lib/api/types/purchaseOrders';
+import { DateField } from '@/components/DateField';
 import { FiltersDisclosure } from '@/components/FiltersDisclosure';
 import { SkeletonList } from '@/components/Skeleton';
 import { useAuthStore } from '@/lib/auth/store';
@@ -38,6 +39,8 @@ export default function PurchaseOrdersScreen() {
   const colors = useThemeColors();
 
   const [statusFilter, setStatusFilter] = useState<PurchaseOrderStatus | 'all'>('all');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   const [allOrders, setAllOrders] = useState<PurchaseOrderSummaryResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -68,8 +71,15 @@ export default function PurchaseOrdersScreen() {
   }, [allOrders]);
 
   const visibleOrders = useMemo(
-    () => (statusFilter === 'all' ? allOrders : allOrders.filter((o) => o.status === statusFilter)),
-    [allOrders, statusFilter],
+    () =>
+      allOrders.filter((o) => {
+        if (statusFilter !== 'all' && o.status !== statusFilter) return false;
+        const day = o.createdAt.slice(0, 10);
+        if (from && day < from) return false;
+        if (to && day > to) return false;
+        return true;
+      }),
+    [allOrders, statusFilter, from, to],
   );
 
   const openCount = (counts[PurchaseOrderStatus.Pending] ?? 0) + (counts[PurchaseOrderStatus.PartiallyReceived] ?? 0);
@@ -95,7 +105,7 @@ export default function PurchaseOrdersScreen() {
           </Text>
         ) : null}
 
-        <FiltersDisclosure active={statusFilter !== 'all'}>
+        <FiltersDisclosure active={statusFilter !== 'all' || !!from || !!to}>
           <View className="flex-row flex-wrap gap-2">
             {STATUS_FILTERS.map((s) => (
               <FilterChip
@@ -106,6 +116,19 @@ export default function PurchaseOrdersScreen() {
               />
             ))}
           </View>
+          <View className="mt-3 flex-row gap-3">
+            <View className="flex-1">
+              <DateField label="From" value={from || null} onChange={setFrom} />
+            </View>
+            <View className="flex-1">
+              <DateField label="To" value={to || null} onChange={setTo} />
+            </View>
+          </View>
+          {from || to ? (
+            <Pressable onPress={() => { setFrom(''); setTo(''); }} className="mt-2 self-start">
+              <Text className="text-xs font-semibold text-primary">Clear dates</Text>
+            </Pressable>
+          ) : null}
         </FiltersDisclosure>
       </View>
 

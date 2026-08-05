@@ -9,18 +9,51 @@ import { Button } from '@/components/Button';
 import { PackagingLevelsEditor, parsePackagingLevels, type DraftPackagingLevel } from '@/components/PackagingLevelsEditor';
 import { SkeletonDetail } from '@/components/Skeleton';
 import { TextField } from '@/components/TextField';
+import { PurchaseOrderStatus } from '@/lib/api/enums';
 import { productsApi } from '@/lib/api/endpoints/products';
+import { purchaseOrdersApi } from '@/lib/api/endpoints/purchaseOrders';
 import type { BatchResponse, ProductDetailResponse } from '@/lib/api/types/catalog';
 import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { syncNow } from '@/lib/sync/syncNow';
 import { showAlert } from '@/lib/ui/alertStore';
+import { toast } from '@/lib/ui/toastStore';
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const companyId = useAuthStore((s) => s.companyId);
+  const locationId = useAuthStore((s) => s.locationId);
   const currency = useCompanyCurrency();
+  const [reordering, setReordering] = useState(false);
+
+  // One-click reorder → one PO per supplier: if this product's supplier already
+  // has an open (Pending) order, add a line to it; otherwise start a new draft.
+  // Mirrors desktop's Products.orderFromSupplier consolidation.
+  async function onReorder() {
+    if (!companyId || !locationId || !product || reordering) return;
+    if (!product.supplierId) {
+      showAlert('No supplier', 'Add a supplier to this product first, then reorder.');
+      return;
+    }
+    setReordering(true);
+    try {
+      const line = { productId: product.id, quantityOrdered: Math.max(product.lowStockThreshold, 1), unitCost: product.purchasePrice };
+      const openPos = await purchaseOrdersApi.list(companyId, { supplierId: product.supplierId, status: PurchaseOrderStatus.Pending });
+      if (openPos.length > 0) {
+        await purchaseOrdersApi.addLine(companyId, openPos[0].id, line);
+        toast('Added to the existing order for this supplier.', 'success');
+        router.push({ pathname: '/purchase-order-detail', params: { id: openPos[0].id } });
+      } else {
+        const po = await purchaseOrdersApi.create(companyId, { locationId, supplierId: product.supplierId, notes: 'Reorder — low stock', lines: [line] });
+        router.push({ pathname: '/purchase-order-detail', params: { id: po.id } });
+      }
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Could not start the order.', 'error');
+    } finally {
+      setReordering(false);
+    }
+  }
 
   const [product, setProduct] = useState<ProductDetailResponse | null>(null);
   const [batches, setBatches] = useState<BatchResponse[]>([]);
@@ -170,6 +203,7 @@ export default function ProductDetailScreen() {
         <PackagingLevelsEditor levels={packagingLevels} onChange={setPackagingLevels} currency={currency} />
 
         <Button title={saving ? 'Saving…' : 'Save changes'} loading={saving} onPress={onSave} />
+        <Button title="🛒  Reorder from supplier" variant="secondary" loading={reordering} onPress={onReorder} />
         <Button
           title={product.isActive ? 'Archive product' : 'Restore product'}
           variant="secondary"
