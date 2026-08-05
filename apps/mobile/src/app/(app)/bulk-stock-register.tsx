@@ -11,6 +11,7 @@ import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { useAuthStore } from '@/lib/auth/store';
+import { buildTemplateWorkbook, parseFilledSheetRows } from '@stockflow/core/bulk/bulkTemplate';
 import { parseRawText, resolveRows, type ParsedBulkStockRow } from '@/lib/bulk/parseBulkStock';
 import { db } from '@/lib/db/client';
 import { categories, products } from '@/lib/db/schema';
@@ -30,19 +31,85 @@ export default function BulkStockRegisterScreen() {
   const [parsed, setParsed] = useState<ParsedBulkStockRow[] | null>(null);
   const [parsing, setParsing] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  const onParse = async () => {
-    if (!companyId || !rawText.trim()) return;
+  const onParse = async (text?: string) => {
+    const src = (text ?? rawText).trim();
+    if (!companyId || !src) return;
     setParsing(true);
     try {
       const [existingProducts, existingCategories] = await Promise.all([
         db.query.products.findMany({ where: eq(products.companyId, companyId) }),
         db.query.categories.findMany({ where: eq(categories.companyId, companyId) }),
       ]);
-      const rows = parseRawText(rawText);
-      setParsed(resolveRows(rows, existingProducts, existingCategories));
+      setParsed(resolveRows(parseRawText(src), existingProducts, existingCategories));
     } finally {
       setParsing(false);
+    }
+  };
+
+  // Share a fillable .xls template via the Android share sheet (save to Files,
+  // send to a PC, etc.). Native file/share modules are imported lazily — this
+  // is a route file and Expo Router eagerly evaluates top-level imports.
+  const onDownloadTemplate = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const { File, Paths } = await import('expo-file-system');
+      const Sharing = await import('expo-sharing');
+      const file = new File(Paths.cache, 'bulk-stock-template.xls');
+      if (file.exists) file.delete();
+      file.create();
+      file.write(buildTemplateWorkbook());
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(file.uri, { mimeType: 'application/vnd.ms-excel', dialogTitle: 'Bulk stock template' });
+      }
+    } catch (err) {
+      showAlert('Could not create the template', err instanceof Error ? err.message : 'Something went wrong.');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  // Pick a filled .xlsx/.xls/.csv, parse it with SheetJS (lazy — large lib),
+  // drop the rows into the box and run the same check as pasting.
+  const onUpload = async () => {
+    if (uploading) return;
+    setUploading(true);
+    try {
+      const DocumentPicker = await import('expo-document-picker');
+      const res = await DocumentPicker.getDocumentAsync({
+        type: [
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'application/vnd.ms-excel',
+          'text/csv',
+          'text/comma-separated-values',
+        ],
+        copyToCacheDirectory: true,
+      });
+      if (res.canceled || !res.assets?.[0]) return;
+      const { File } = await import('expo-file-system');
+      const buf = await new File(res.assets[0].uri).arrayBuffer();
+      const XLSX = await import('xlsx');
+      const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      if (!sheet) {
+        showAlert('Empty file', 'That file has no sheets.');
+        return;
+      }
+      const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: false, defval: '' });
+      const text = parseFilledSheetRows(rows);
+      if (!text.trim()) {
+        showAlert('No rows found', 'No product rows found in that file.');
+        return;
+      }
+      setRawText(text);
+      await onParse(text);
+    } catch (err) {
+      showAlert('Could not read that file', err instanceof Error ? err.message : 'Something went wrong.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -138,6 +205,15 @@ export default function BulkStockRegisterScreen() {
             Price/Sale Price/Threshold can be left blank — its stock is just topped up. Example:
           </Text>
           <Text className="rounded-lg bg-background p-2 text-[11px] text-text-secondary">{EXAMPLE_ROW}</Text>
+          <View className="mt-1 flex-row flex-wrap items-center gap-2">
+            <Pressable onPress={onDownloadTemplate} disabled={downloading} className="rounded-lg bg-primary/10 px-3 py-2 active:opacity-80">
+              <Text className="text-xs font-bold text-primary">{downloading ? '…' : '⬇ Download template'}</Text>
+            </Pressable>
+            <Pressable onPress={onUpload} disabled={uploading} className="rounded-lg bg-primary px-3 py-2 active:opacity-90">
+              <Text className="text-xs font-bold text-white">{uploading ? '…' : '⬆ Upload filled file'}</Text>
+            </Pressable>
+          </View>
+          <Text className="text-[11px] text-text-secondary">Blank fields get sensible defaults (barcode, batch, qty 1).</Text>
         </View>
 
         <View className="gap-1.5">
@@ -157,7 +233,7 @@ export default function BulkStockRegisterScreen() {
           />
         </View>
 
-        <Button title={parsing ? 'Checking…' : 'Check rows'} loading={parsing} disabled={!rawText.trim()} onPress={onParse} />
+        <Button title={parsing ? 'Checking…' : 'Check rows'} loading={parsing} disabled={!rawText.trim()} onPress={() => onParse()} />
 
         {parsed ? (
           <View className="gap-2">
