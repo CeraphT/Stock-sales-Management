@@ -154,6 +154,12 @@ export const FR: Record<string, string> = {
   "Unit": "Unité",
   "Enter weight / quantity": "Saisir le poids / la quantité",
   "Add to cart": "Ajouter au panier",
+  "Track serial / IMEI numbers": "Suivre les numéros de série / IMEI",
+  "Capture one serial per unit when receiving; pick the exact unit when selling.": "Saisissez un numéro de série par unité à la réception ; choisissez l'unité exacte à la vente.",
+  "Serial / IMEI numbers (one per line)": "Numéros de série / IMEI (un par ligne)",
+  "unit(s) — each serial is one unit received.": "unité(s) — chaque numéro de série correspond à une unité reçue.",
+  "Pick serial / IMEI": "Choisir le numéro de série / IMEI",
+  "No serials in stock at this location.": "Aucun numéro de série en stock à cet emplacement.",
 
   // ── Cash register ──────────────────────────────────────────────────
   "Register open": "Caisse ouverte",

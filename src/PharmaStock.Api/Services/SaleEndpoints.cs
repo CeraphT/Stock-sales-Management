@@ -5,7 +5,7 @@ using PharmaStock.Infrastructure.Services;
 
 namespace PharmaStock.Api.Services;
 
-public record SaleLineRequest(Guid ProductId, int Quantity, Guid? PackagingLevelId);
+public record SaleLineRequest(Guid ProductId, int Quantity, Guid? PackagingLevelId, List<Guid>? SerialIds = null);
 public record ServiceLineRequest(Guid ServiceId, int Quantity);
 public record PaymentSplitRequest(PaymentMethod Method, decimal Amount);
 
@@ -23,7 +23,8 @@ public record SaleLineResponse(
     Guid ProductId, string ProductName, Guid? BatchId, string? BatchNumber,
     int QuantityInBaseUnits, Guid? PackagingLevelId, string? PackagingLevelName, int UnitsPerPackagingLevel, decimal UnitPrice,
     decimal TaxRatePercent, decimal LineTotal,
-    bool SellByMeasure, string? MeasureUnit, int UnitsPerMeasure);
+    bool SellByMeasure, string? MeasureUnit, int UnitsPerMeasure,
+    List<string>? SerialNumbers = null);
 public record ServiceLineResponse(Guid ServiceId, string ServiceName, int Quantity, decimal BilledPrice, decimal LineTotal);
 public record PaymentSplitResponse(PaymentMethod Method, decimal Amount);
 
@@ -150,6 +151,35 @@ public static class SaleEndpoints
                     var unitsPerRequestedQuantity = level?.QuantityInBaseUnits ?? 1;
                     var quantityInBaseUnits = line.Quantity * unitsPerRequestedQuantity;
 
+                    // Serial-tracked products: the caller must name exactly one
+                    // in-stock serial per base unit sold. Resolve + validate them
+                    // now (fail fast, before any stock is deducted); they're marked
+                    // Sold below once the sale row exists.
+                    List<ProductSerial> lineSerials = new();
+                    if (product.SerialTracked)
+                    {
+                        var serialIds = (line.SerialIds ?? new List<Guid>()).Distinct().ToList();
+                        if (serialIds.Count != quantityInBaseUnits)
+                        {
+                            await transaction.RollbackAsync();
+                            return Results.BadRequest(new { message = $"« {product.Name} » est suivi par numéro de série : sélectionnez exactement {quantityInBaseUnits} numéro(s) de série." });
+                        }
+                        lineSerials = await db.ProductSerials
+                            .Where(s => serialIds.Contains(s.Id) && s.CompanyId == companyId && s.ProductId == product.Id)
+                            .ToListAsync();
+                        if (lineSerials.Count != serialIds.Count)
+                        {
+                            await transaction.RollbackAsync();
+                            return Results.BadRequest(new { message = $"Un ou plusieurs numéros de série sélectionnés pour « {product.Name} » sont introuvables." });
+                        }
+                        var bad = lineSerials.FirstOrDefault(s => s.Status != SerialStatus.InStock || s.LocationId != request.LocationId);
+                        if (bad is not null)
+                        {
+                            await transaction.RollbackAsync();
+                            return Results.Conflict(new { message = $"Le numéro de série « {bad.SerialNumber} » n'est plus disponible en stock à cet emplacement." });
+                        }
+                    }
+
                     // Price expressed per base unit regardless of packaging level, so
                     // LineTotal is always QuantityInBaseUnits * UnitPrice: a level's
                     // override (or the product's default) is divided across the
@@ -179,6 +209,7 @@ public static class SaleEndpoints
                         });
                     }
 
+                    var lineResponseStart = saleLineResponses.Count;
                     foreach (var deduction in deductions)
                     {
                         db.StockMovements.Add(new StockMovement
@@ -207,6 +238,23 @@ public static class SaleEndpoints
                             deduction.QuantityInBaseUnits, level?.Id, level?.UnitName, unitsPerRequestedQuantity, unitPrice, taxRatePercent,
                             unitPrice * deduction.QuantityInBaseUnits,
                             product.SellByMeasure, product.SellByMeasure ? product.MeasureUnit : null, product.UnitsPerMeasure > 0 ? product.UnitsPerMeasure : 1));
+                    }
+
+                    // Consume the resolved serials: mark Sold + link to this sale
+                    // (via the navigation so EF fixes up the FK on insert), and
+                    // surface the serial numbers on the first response chunk for
+                    // this line (serialized sales are one unit / one batch chunk).
+                    if (lineSerials.Count > 0)
+                    {
+                        foreach (var serial in lineSerials)
+                        {
+                            serial.Status = SerialStatus.Sold;
+                            serial.Sale = sale;
+                            serial.SoldAt = DateTime.UtcNow;
+                        }
+                        if (lineResponseStart < saleLineResponses.Count)
+                            saleLineResponses[lineResponseStart] = saleLineResponses[lineResponseStart]
+                                with { SerialNumbers = lineSerials.Select(s => s.SerialNumber).ToList() };
                     }
                 }
 
@@ -688,11 +736,29 @@ public static class SaleEndpoints
             if (sale is null)
                 return Results.NotFound(new { message = "Vente introuvable." });
 
-            var productLines = sale.ProductLines.Select(l => new SaleLineResponse(
-                l.ProductId, l.Product!.Name, l.BatchId, l.Batch?.BatchNumber,
-                l.QuantityInBaseUnits, l.PackagingLevelId, l.PackagingLevel?.UnitName, l.PackagingLevel?.QuantityInBaseUnits ?? 1, l.UnitPrice, l.TaxRatePercent,
-                l.UnitPrice * l.QuantityInBaseUnits,
-                l.Product!.SellByMeasure, l.Product!.SellByMeasure ? l.Product!.MeasureUnit : null, l.Product!.UnitsPerMeasure > 0 ? l.Product!.UnitsPerMeasure : 1));
+            // Serial/IMEI numbers consumed by this sale, grouped per product so
+            // they can be shown under the matching product line.
+            var saleSerials = await db.ProductSerials
+                .Where(s => s.SaleId == saleId)
+                .Select(s => new { s.ProductId, s.SerialNumber })
+                .ToListAsync();
+            var serialsByProduct = saleSerials
+                .GroupBy(s => s.ProductId)
+                .ToDictionary(g => g.Key, g => g.Select(s => s.SerialNumber).ToList());
+            var serialsShownFor = new HashSet<Guid>();
+
+            var productLines = sale.ProductLines.Select(l =>
+            {
+                List<string>? serials = null;
+                if (serialsByProduct.TryGetValue(l.ProductId, out var sn) && serialsShownFor.Add(l.ProductId))
+                    serials = sn;
+                return new SaleLineResponse(
+                    l.ProductId, l.Product!.Name, l.BatchId, l.Batch?.BatchNumber,
+                    l.QuantityInBaseUnits, l.PackagingLevelId, l.PackagingLevel?.UnitName, l.PackagingLevel?.QuantityInBaseUnits ?? 1, l.UnitPrice, l.TaxRatePercent,
+                    l.UnitPrice * l.QuantityInBaseUnits,
+                    l.Product!.SellByMeasure, l.Product!.SellByMeasure ? l.Product!.MeasureUnit : null, l.Product!.UnitsPerMeasure > 0 ? l.Product!.UnitsPerMeasure : 1,
+                    serials);
+            });
 
             var serviceLines = sale.ServiceLines.Select(l => new ServiceLineResponse(
                 l.ServiceId, l.Service!.Name, l.Quantity, l.BilledPrice, l.BilledPrice * l.Quantity));

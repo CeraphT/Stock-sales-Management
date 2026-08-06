@@ -4,6 +4,9 @@ export interface SaleLineRequest {
   productId: string;
   quantity: number;
   packagingLevelId: string | null;
+  /** For serial-tracked products: the specific in-stock serial rows being sold,
+   * one per unit (quantity must equal this length). */
+  serialIds?: string[];
 }
 
 export interface ServiceLineRequest {
@@ -48,6 +51,8 @@ export interface SaleLineResponse {
   sellByMeasure?: boolean;
   measureUnit?: string | null;
   unitsPerMeasure?: number;
+  /** Serial/IMEI numbers this line consumed (serial-tracked products only). */
+  serialNumbers?: string[] | null;
 }
 
 export interface ServiceLineResponse {

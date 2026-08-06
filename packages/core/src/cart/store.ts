@@ -21,6 +21,11 @@ export interface CartLine {
    * the display unit (e.g. grams shown as kg) and the price per that unit. */
   measureUnit?: string | null;
   unitsPerMeasure?: number;
+  /** Set for serial-tracked lines: the specific in-stock serial rows chosen for
+   * this line (one per unit, so quantity === serialIds.length). serialNumbers is
+   * the matching human-readable list for display on the cart/receipt. */
+  serialIds?: string[];
+  serialNumbers?: string[];
 }
 
 export interface CartServiceLine {

@@ -23,6 +23,9 @@ export interface ProductSearchResult {
   sellByMeasure?: boolean;
   measureUnit?: string | null;
   unitsPerMeasure?: number;
+  /** When true, each unit is tracked by serial/IMEI: the POS requires picking
+   * specific in-stock serials before this product can be added to the cart. */
+  serialTracked?: boolean;
 }
 
 export interface StockAvailabilityResponse {
@@ -57,6 +60,7 @@ export interface ProductRequest {
   sellByMeasure?: boolean;
   measureUnit?: string | null;
   unitsPerMeasure?: number;
+  serialTracked?: boolean;
 }
 
 export interface PackagingLevelDetail {
@@ -84,6 +88,20 @@ export interface ProductDetailResponse {
   sellByMeasure?: boolean;
   measureUnit?: string | null;
   unitsPerMeasure?: number;
+  serialTracked?: boolean;
+}
+
+/** A single serialized/IMEI unit (electronics). Status: 0 InStock, 1 Sold,
+ * 2 Returned — matches the C# SerialStatus enum declaration order. */
+export interface SerialResponse {
+  id: string;
+  serialNumber: string;
+  status: number;
+  locationId: string;
+  batchNumber: string | null;
+  receivedAt: string;
+  soldAt: string | null;
+  saleId: string | null;
 }
 
 export interface RestockSuggestionItem {
@@ -148,6 +166,8 @@ export interface ReceiveStockRequest {
   expiryDate: string | null;
   quantityInBaseUnits: number;
   purchasePricePerBaseUnit: number | null;
+  /** For serial-tracked products: one serial/IMEI per unit received. */
+  serialNumbers?: string[];
 }
 
 export interface AdjustStockRequest {

@@ -12,6 +12,8 @@ export interface ReceiptLine {
   sellByMeasure?: boolean;
   measureUnit?: string | null;
   unitsPerMeasure?: number;
+  /** Serial/IMEI numbers for a serial-tracked line, printed under the item. */
+  serialNumbers?: string[] | null;
 }
 
 export interface ReceiptServiceLine {

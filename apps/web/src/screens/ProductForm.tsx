@@ -50,6 +50,7 @@ export function ProductForm() {
   const caps = useCapabilities();
   const [sellByMeasure, setSellByMeasure] = useState(false);
   const [measureUnit, setMeasureUnit] = useState("kg");
+  const [serialTracked, setSerialTracked] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -124,6 +125,7 @@ export function ProductForm() {
     const upm = measure ? (detail.unitsPerMeasure ?? 1) : 1;
     setSellByMeasure(measure);
     setMeasureUnit(detail.measureUnit ?? "kg");
+    setSerialTracked(detail.serialTracked ?? false);
     setPurchasePrice(String(measure ? detail.purchasePrice * upm : detail.purchasePrice));
     setSalePrice(String(measure ? detail.salePrice * upm : detail.salePrice));
     setLowStock(String(detail.lowStockThreshold));
@@ -179,6 +181,7 @@ export function ProductForm() {
         sellByMeasure,
         measureUnit: sellByMeasure ? measureUnit : null,
         unitsPerMeasure: upm,
+        serialTracked,
       };
       if (isEdit) await productsApi.update(companyId, productId!, body);
       else await productsApi.create(companyId, body);
@@ -279,7 +282,12 @@ export function ProductForm() {
         {caps.sellByMeasure ? (
           <div className="rounded-xl border border-border p-3">
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={sellByMeasure} onChange={(e) => setSellByMeasure(e.target.checked)} className="h-4 w-4" />
+              <input
+                type="checkbox"
+                checked={sellByMeasure}
+                onChange={(e) => { setSellByMeasure(e.target.checked); if (e.target.checked) setSerialTracked(false); }}
+                className="h-4 w-4"
+              />
               <span className="text-sm font-semibold text-text-primary">⚖️ {t("Sold by weight / measure")}</span>
             </label>
             {sellByMeasure ? (
@@ -290,6 +298,23 @@ export function ProductForm() {
                 </select>
                 <span>{t("Prices below are per")} {measureUnit}; {t("sell any weight in the POS.")}</span>
               </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {caps.serialTracking ? (
+          <div className="rounded-xl border border-border p-3">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={serialTracked}
+                onChange={(e) => { setSerialTracked(e.target.checked); if (e.target.checked) setSellByMeasure(false); }}
+                className="h-4 w-4"
+              />
+              <span className="text-sm font-semibold text-text-primary">🔢 {t("Track serial / IMEI numbers")}</span>
+            </label>
+            {serialTracked ? (
+              <p className="mt-2 text-xs text-text-secondary">{t("Capture one serial per unit when receiving; pick the exact unit when selling.")}</p>
             ) : null}
           </div>
         ) : null}
@@ -308,8 +333,8 @@ export function ProductForm() {
           </label>
         </div>
 
-        {/* Packaging levels — hidden for sell-by-measure products */}
-        {!sellByMeasure ? (
+        {/* Packaging levels — hidden for sell-by-measure and serialized products */}
+        {!sellByMeasure && !serialTracked ? (
         <div>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Packaging levels")}</span>

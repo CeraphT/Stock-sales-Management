@@ -129,6 +129,9 @@ export function SaleDetail() {
                       {qtyLine}
                       {l.batchNumber ? ` · batch ${l.batchNumber}` : ""}
                     </div>
+                    {l.serialNumbers && l.serialNumbers.length > 0 ? (
+                      <div className="mt-0.5 font-mono text-[11px] text-text-secondary">S/N: {l.serialNumbers.join(", ")}</div>
+                    ) : null}
                   </td>
                   <td className="py-2 text-right font-medium text-text-primary">{formatCurrency(l.lineTotal, currency)}</td>
                 </tr>

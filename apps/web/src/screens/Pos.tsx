@@ -63,6 +63,8 @@ export function Pos() {
   const [levelPick, setLevelPick] = useState<ProductSearchResult | null>(null);
   const [measurePick, setMeasurePick] = useState<ProductSearchResult | null>(null);
   const [measureQty, setMeasureQty] = useState("");
+  const [serialPick, setSerialPick] = useState<ProductSearchResult | null>(null);
+  const [serialSel, setSerialSel] = useState<Set<string>>(new Set());
   // Live gift-card lookup: null = idle, "notfound" = no such card, else its balance/status.
   const [giftCardInfo, setGiftCardInfo] = useState<{ remainingValue: number; active: boolean } | "notfound" | null>(null);
 
@@ -75,6 +77,12 @@ export function Pos() {
     queryKey: ["customers", companyId],
     queryFn: () => customersApi.list(companyId!),
     enabled: !!companyId,
+  });
+  // In-stock serials for the product whose serial picker is open (this location).
+  const { data: pickSerials = [] } = useQuery({
+    queryKey: ["pick-serials", companyId, serialPick?.productId, locationId],
+    queryFn: () => productsApi.serials(companyId!, serialPick!.productId, { status: 0, locationId: locationId! }),
+    enabled: !!companyId && !!serialPick && !!locationId,
   });
   // Dependency guardrail: is there anything to sell at all? Only judge AFTER the
   // catalog query has actually resolved — `data` defaults to [] while loading,
@@ -219,6 +227,25 @@ export function Pos() {
     setMsg(null);
   }
 
+  function addSerials(p: ProductSearchResult, picked: { id: string; serialNumber: string }[]) {
+    if (picked.length === 0) return;
+    const key = `${p.productId}:serial`;
+    addLine({
+      key,
+      productId: p.productId,
+      productName: p.name,
+      packagingLevelId: null,
+      packagingLevelName: null,
+      unitPrice: p.salePrice,
+      serialIds: picked.map((s) => s.id),
+      serialNumbers: picked.map((s) => s.serialNumber),
+    });
+    updateQuantity(key, picked.length); // one unit per serial
+    setSerialPick(null);
+    setSerialSel(new Set());
+    setMsg(null);
+  }
+
   function addLevel(p: ProductSearchResult, level: { id: string; unitName: string; unitPrice: number }) {
     addLine({
       key: `${p.productId}:${level.id}`,
@@ -247,6 +274,12 @@ export function Pos() {
     if (p.sellByMeasure) {
       setMeasurePick(p);
       setMeasureQty("");
+      return;
+    }
+    // Serial-tracked: prompt to pick the exact in-stock unit(s) by serial/IMEI.
+    if (p.serialTracked) {
+      setSerialPick(p);
+      setSerialSel(new Set());
       return;
     }
     // With packaging levels (Box/Blister/…), let the cashier pick the unit to
@@ -315,7 +348,7 @@ export function Pos() {
         locationId,
         customerId: customerId ?? null,
         paymentMethod: method,
-        productLines: lines.map((l) => ({ productId: l.productId, quantity: l.quantity, packagingLevelId: l.packagingLevelId })),
+        productLines: lines.map((l) => ({ productId: l.productId, quantity: l.quantity, packagingLevelId: l.packagingLevelId, serialIds: l.serialIds })),
         serviceLines: null,
         paymentSplits: null,
         amountTendered: method === PaymentMethod.Cash && tenderedNum > 0 ? tenderedNum : null,
@@ -475,12 +508,17 @@ export function Pos() {
                           ? `${formatCurrency(l.unitPrice * (l.unitsPerMeasure || 1), currency)}/${l.measureUnit}`
                           : `${formatCurrency(l.unitPrice, currency)} ${t("each")}`}
                       </div>
+                      {l.serialNumbers && l.serialNumbers.length > 0 ? (
+                        <div className="mt-0.5 font-mono text-[10px] text-text-secondary">S/N: {l.serialNumbers.join(", ")}</div>
+                      ) : null}
                     </td>
                     <td className="px-2 py-3">
                       {l.measureUnit ? (
                         <div className="text-center font-semibold text-text-primary">
                           {l.quantity / (l.unitsPerMeasure || 1)} {l.measureUnit}
                         </div>
+                      ) : l.serialIds && l.serialIds.length > 0 ? (
+                        <div className="text-center font-semibold text-text-primary">{l.quantity}</div>
                       ) : (
                         <div className="flex items-center justify-center gap-1.5">
                           <button
@@ -768,6 +806,48 @@ export function Pos() {
             <div className="mt-5 flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setMeasurePick(null)}>{t("Cancel")}</Button>
               <Button onClick={() => addMeasure(measurePick, Number(measureQty))} disabled={!(Number(measureQty) > 0)}>{t("Add to cart")}</Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {serialPick ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 backdrop-blur-sm" onClick={() => setSerialPick(null)}>
+          <div className="card-in w-full max-w-sm rounded-card border border-border bg-surface p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-text-secondary">🔢 {t("Pick serial / IMEI")}</div>
+            <div className="mb-3 text-lg font-bold text-text-primary">{serialPick.name}</div>
+            {pickSerials.length === 0 ? (
+              <p className="text-sm text-text-secondary">{t("No serials in stock at this location.")}</p>
+            ) : (
+              <div className="max-h-72 space-y-1.5 overflow-y-auto">
+                {pickSerials.map((s) => {
+                  const on = serialSel.has(s.id);
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => setSerialSel((prev) => { const n = new Set(prev); if (n.has(s.id)) n.delete(s.id); else n.add(s.id); return n; })}
+                      className={`flex w-full items-center justify-between rounded-xl border px-4 py-2.5 text-left transition ${on ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
+                    >
+                      <span className="font-mono text-sm text-text-primary">{s.serialNumber}</span>
+                      <span className={`text-sm font-bold ${on ? "text-primary" : "text-text-secondary"}`}>{on ? "✓" : "+"}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <div className="mt-5 flex items-center justify-between gap-2">
+              <span className="text-sm text-text-secondary">
+                {serialSel.size} × {formatCurrency(serialPick.salePrice, currency)}
+              </span>
+              <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => setSerialPick(null)}>{t("Cancel")}</Button>
+                <Button
+                  onClick={() => addSerials(serialPick, pickSerials.filter((s) => serialSel.has(s.id)).map((s) => ({ id: s.id, serialNumber: s.serialNumber })))}
+                  disabled={serialSel.size === 0}
+                >
+                  {t("Add to cart")}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

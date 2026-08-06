@@ -9,6 +9,7 @@ import type {
   ProductSearchResult,
   ReceiveStockRequest,
   RestockSuggestionItem,
+  SerialResponse,
   StockAvailabilityResponse,
   StockMovementResponse,
 } from "../types/catalog";
@@ -55,6 +56,13 @@ export const productsApi = {
 
   movements: (companyId: string, productId: string) =>
     api.get<StockMovementResponse[]>(`/api/companies/${companyId}/products/${productId}/movements`),
+
+  // Serial/IMEI registry. status: 0 InStock, 1 Sold, 2 Returned (omit for all).
+  serials: (companyId: string, productId: string, opts?: { status?: number; locationId?: string }) =>
+    api.get<SerialResponse[]>(`/api/companies/${companyId}/products/${productId}/serials`, {
+      status: opts?.status,
+      locationId: opts?.locationId,
+    }),
 
   receiveStock: (companyId: string, productId: string, body: ReceiveStockRequest) =>
     api.post<BatchResponse>(`/api/companies/${companyId}/products/${productId}/stock/receive`, body),

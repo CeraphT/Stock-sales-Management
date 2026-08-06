@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PharmaStock.Infrastructure.Data;
@@ -11,9 +12,11 @@ using PharmaStock.Infrastructure.Data;
 namespace PharmaStock.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(PharmaStockDbContext))]
-    partial class PharmaStockDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260806131613_AddSerialTracking")]
+    partial class AddSerialTracking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

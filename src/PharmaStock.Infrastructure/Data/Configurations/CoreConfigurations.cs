@@ -102,6 +102,41 @@ public class StockMovementConfiguration : IEntityTypeConfiguration<StockMovement
     }
 }
 
+/// <summary>Serial/IMEI registry (per-unit tracking for electronics). Indexed by
+/// (company, serial) for fast POS scan lookup and (product, location, status) for
+/// the in-stock serial picker. Restrict delete on Sale/Location so a sold unit's
+/// trace is never lost; SetNull on Batch so re-organising batches can't orphan the
+/// row. Uniqueness of an in-stock serial is enforced at the application layer on
+/// receive (a serial can legitimately reappear after a refurb/return).</summary>
+public class ProductSerialConfiguration : IEntityTypeConfiguration<ProductSerial>
+{
+    public void Configure(EntityTypeBuilder<ProductSerial> builder)
+    {
+        builder.HasIndex(s => new { s.CompanyId, s.SerialNumber });
+        builder.HasIndex(s => new { s.ProductId, s.LocationId, s.Status });
+
+        builder.HasOne(s => s.Product)
+            .WithMany()
+            .HasForeignKey(s => s.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(s => s.Location)
+            .WithMany()
+            .HasForeignKey(s => s.LocationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(s => s.Batch)
+            .WithMany()
+            .HasForeignKey(s => s.BatchId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(s => s.Sale)
+            .WithMany()
+            .HasForeignKey(s => s.SaleId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 /// <summary>Gift card codes (Section 21.3) must be unique per company so two
 /// customers can never redeem the same code.</summary>
 public class GiftCardConfiguration : IEntityTypeConfiguration<GiftCard>

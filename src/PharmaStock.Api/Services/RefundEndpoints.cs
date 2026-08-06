@@ -159,6 +159,19 @@ public static class RefundEndpoints
                     }
                 }
 
+                // --- Serial/IMEI reversal -------------------------------------------
+                // Any serialized units this sale consumed go back to InStock and are
+                // unlinked from the sale, so they can be sold again.
+                var soldSerials = await db.ProductSerials
+                    .Where(s => s.SaleId == saleId)
+                    .ToListAsync();
+                foreach (var serial in soldSerials)
+                {
+                    serial.Status = SerialStatus.InStock;
+                    serial.SaleId = null;
+                    serial.SoldAt = null;
+                }
+
                 sale.Status = SaleStatus.Refunded;
 
                 await db.SaveChangesAsync();

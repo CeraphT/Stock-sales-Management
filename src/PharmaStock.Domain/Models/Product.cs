@@ -42,6 +42,13 @@ public class Product : ITimestamped
     /// for display/entry; the stored quantities and prices are always per base unit.</summary>
     public int UnitsPerMeasure { get; set; } = 1;
 
+    // ── Serial / IMEI tracking ──────────────────────────────────────────────
+    // A per-unit serial registry (ProductSerial) layered ON TOP of the integer
+    // ledger — Batch/StockMovement/FEFO are unchanged, so a serialized product
+    // still counts stock normally. When true, receiving captures one serial per
+    // unit and selling requires picking specific in-stock serials.
+    public bool SerialTracked { get; set; } = false;
+
     /// <summary>Section 18.3 — null means "use Company.DefaultTaxRatePercent".
     /// Set explicitly (e.g. to 0) for a VAT-exempt product, since not every
     /// pharmaceutical item is taxed at the same rate.</summary>

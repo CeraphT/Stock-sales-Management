@@ -43,6 +43,7 @@ export function saleToReceiptData(sale: SaleDetailResponse, company: ReceiptComp
       sellByMeasure: l.sellByMeasure,
       measureUnit: l.measureUnit,
       unitsPerMeasure: l.unitsPerMeasure,
+      serialNumbers: l.serialNumbers,
     })),
     serviceLines: sale.serviceLines.map((l) => ({
       serviceName: l.serviceName,

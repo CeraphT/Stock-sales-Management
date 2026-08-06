@@ -16,7 +16,8 @@ public record ProductSearchResult(
     IEnumerable<PackagingLevelInfo> PackagingLevels,
     bool SellByMeasure = false,
     string? MeasureUnit = null,
-    int UnitsPerMeasure = 1
+    int UnitsPerMeasure = 1,
+    bool SerialTracked = false
 );
 
 public record StockAvailabilityResponse(
@@ -42,7 +43,8 @@ public record ProductRequest(
     decimal PurchasePrice, decimal SalePrice, int LowStockThreshold,
     decimal? TaxRateOverridePercent, bool IsFavorite,
     List<PackagingLevelRequest>? PackagingLevels,
-    bool SellByMeasure = false, string? MeasureUnit = null, int UnitsPerMeasure = 1
+    bool SellByMeasure = false, string? MeasureUnit = null, int UnitsPerMeasure = 1,
+    bool SerialTracked = false
 );
 
 public record PackagingLevelDetail(Guid Id, string UnitName, int QuantityInBaseUnits, decimal? SalePriceOverride);
@@ -51,7 +53,8 @@ public record ProductDetailResponse(
     Guid Id, string Name, string? Barcode, Guid? CategoryId, string? CategoryName, Guid? SupplierId, string? SupplierName,
     decimal PurchasePrice, decimal SalePrice, bool IsFavorite, bool IsActive, int LowStockThreshold,
     decimal? TaxRateOverridePercent, List<PackagingLevelDetail> PackagingLevels,
-    bool SellByMeasure = false, string? MeasureUnit = null, int UnitsPerMeasure = 1
+    bool SellByMeasure = false, string? MeasureUnit = null, int UnitsPerMeasure = 1,
+    bool SerialTracked = false
 );
 
 // Section 3.4 — restock suggestions for the "Nouvelle commande" supplier-first
@@ -111,7 +114,7 @@ public static class ProductEndpoints
                 return new ProductSearchResult(
                     product.Id, product.Name, product.Barcode, product.SalePrice,
                     ComputeStockStatus(totalBaseUnits, product.LowStockThreshold), levels,
-                    product.SellByMeasure, product.MeasureUnit, product.UnitsPerMeasure);
+                    product.SellByMeasure, product.MeasureUnit, product.UnitsPerMeasure, product.SerialTracked);
             });
 
             return Results.Ok(results);
@@ -330,6 +333,7 @@ public static class ProductEndpoints
                 SellByMeasure = request.SellByMeasure,
                 MeasureUnit = request.SellByMeasure ? request.MeasureUnit : null,
                 UnitsPerMeasure = request.SellByMeasure && request.UnitsPerMeasure > 0 ? request.UnitsPerMeasure : 1,
+                SerialTracked = request.SerialTracked,
             };
             foreach (var level in ApplyPackagingLevels(product, request.PackagingLevels))
                 product.PackagingLevels.Add(level);
@@ -376,6 +380,7 @@ public static class ProductEndpoints
             product.SellByMeasure = request.SellByMeasure;
             product.MeasureUnit = request.SellByMeasure ? request.MeasureUnit : null;
             product.UnitsPerMeasure = request.SellByMeasure && request.UnitsPerMeasure > 0 ? request.UnitsPerMeasure : 1;
+            product.SerialTracked = request.SerialTracked;
 
             // Matched by UnitName rather than full delete-then-recreate: a level
             // that's still present in the request keeps its existing Id, so any
@@ -499,7 +504,7 @@ public static class ProductEndpoints
         product.PurchasePrice, product.SalePrice, product.IsFavorite, product.IsActive, product.LowStockThreshold,
         product.TaxRateOverridePercent,
         product.PackagingLevels.Select(l => new PackagingLevelDetail(l.Id, l.UnitName, l.QuantityInBaseUnits, l.SalePriceOverride)).ToList(),
-        product.SellByMeasure, product.MeasureUnit, product.UnitsPerMeasure
+        product.SellByMeasure, product.MeasureUnit, product.UnitsPerMeasure, product.SerialTracked
     );
 
     private static bool IsForeignKeyViolation(DbUpdateException ex) =>

@@ -6,7 +6,10 @@ namespace PharmaStock.Api.Services;
 
 public record ReceiveStockRequest(
     Guid LocationId, string BatchNumber, DateTime? ExpiryDate,
-    int QuantityInBaseUnits, decimal? PurchasePricePerBaseUnit, decimal? VatRatePercent = null);
+    int QuantityInBaseUnits, decimal? PurchasePricePerBaseUnit, decimal? VatRatePercent = null,
+    // For serial-tracked products: one serial/IMEI per unit received. Ignored for
+    // non-serialized products.
+    List<string>? SerialNumbers = null);
 public record AdjustStockRequest(Guid BatchId, int DeltaInBaseUnits, string Reason);
 
 public record BatchResponse(
@@ -15,6 +18,9 @@ public record BatchResponse(
 public record StockMovementResponse(
     Guid Id, StockMovementType Type, int QuantityInBaseUnits, string? Reason,
     Guid? BatchId, string? BatchNumber, Guid UserId, string UserName, DateTime Timestamp);
+public record SerialResponse(
+    Guid Id, string SerialNumber, SerialStatus Status, Guid LocationId,
+    string? BatchNumber, DateTime ReceivedAt, DateTime? SoldAt, Guid? SaleId);
 
 public static class StockMovementEndpoints
 {
@@ -38,7 +44,15 @@ public static class StockMovementEndpoints
                 return Results.BadRequest(new { message = "La quantité doit être positive." });
             if (string.IsNullOrWhiteSpace(request.BatchNumber))
                 return Results.BadRequest(new { message = "Le numéro de lot est requis." });
-            if (request.ExpiryDate is null)
+
+            var company = await db.Companies.FirstOrDefaultAsync(c => c.Id == companyId);
+            if (company is null)
+                return Results.NotFound(new { message = "Entreprise introuvable." });
+
+            // Expiry is only mandatory for businesses that actually track it
+            // (pharmacy/food) — a butcher or electronics shop receives stock with
+            // no expiry at all.
+            if (company.ExpiryTrackingEnabled && request.ExpiryDate is null)
                 return Results.BadRequest(new { message = "La date d'expiration est requise." });
 
             var product = await db.Products.FirstOrDefaultAsync(p => p.Id == productId && p.CompanyId == companyId);
@@ -51,7 +65,31 @@ public static class StockMovementEndpoints
             if (!locationExists)
                 return Results.NotFound(new { message = "Emplacement introuvable." });
 
-            var stdVatRate = await db.Companies.Where(c => c.Id == companyId).Select(c => c.DefaultTaxRatePercent).FirstOrDefaultAsync();
+            // Serial-tracked products: capture one serial/IMEI per unit. Enforce
+            // exactly one serial per base unit, no blanks, no duplicates, and none
+            // already sitting in stock for this product.
+            List<string> serials = new();
+            if (product.SerialTracked)
+            {
+                serials = (request.SerialNumbers ?? new List<string>())
+                    .Select(s => s?.Trim() ?? "")
+                    .Where(s => s.Length > 0)
+                    .ToList();
+                if (serials.Count != request.QuantityInBaseUnits)
+                    return Results.BadRequest(new { message = $"Ce produit est suivi par numéro de série : indiquez exactement {request.QuantityInBaseUnits} numéro(s) de série." });
+                if (serials.Distinct(StringComparer.OrdinalIgnoreCase).Count() != serials.Count)
+                    return Results.BadRequest(new { message = "Des numéros de série en double ont été saisis." });
+                var clash = await db.ProductSerials
+                    .Where(s => s.CompanyId == companyId && s.ProductId == productId && s.Status == SerialStatus.InStock)
+                    .Select(s => s.SerialNumber)
+                    .ToListAsync();
+                var clashSet = clash.Select(c => c.ToLowerInvariant()).ToHashSet();
+                var dup = serials.FirstOrDefault(s => clashSet.Contains(s.ToLowerInvariant()));
+                if (dup is not null)
+                    return Results.Conflict(new { message = $"Le numéro de série « {dup} » est déjà en stock." });
+            }
+
+            var stdVatRate = company.DefaultTaxRatePercent;
 
             var batch = new Batch
             {
@@ -78,6 +116,19 @@ public static class StockMovementEndpoints
                 QuantityInBaseUnits = request.QuantityInBaseUnits,
                 UserId = http.User.GetUserId()!.Value,
             });
+
+            foreach (var sn in serials)
+            {
+                db.ProductSerials.Add(new ProductSerial
+                {
+                    CompanyId = companyId,
+                    ProductId = productId,
+                    LocationId = request.LocationId,
+                    BatchId = batch.Id,
+                    SerialNumber = sn,
+                    Status = SerialStatus.InStock,
+                });
+            }
 
             await db.SaveChangesAsync();
 
@@ -187,6 +238,36 @@ public static class StockMovementEndpoints
                 .ToListAsync();
 
             return Results.Ok(movements);
+        });
+
+        // Serial/IMEI registry for a product. Optional filters: status (int enum
+        // value — 0 InStock, 1 Sold, 2 Returned) and locationId. The POS serial
+        // picker calls this with status=0 & the current location; a management
+        // "Serials" view calls it unfiltered.
+        group.MapGet("/serials", async (
+            Guid companyId, Guid productId, int? status, Guid? locationId,
+            PharmaStockDbContext db, HttpContext http) =>
+        {
+            var forbidden = RequireSameCompany(http, companyId);
+            if (forbidden is not null) return forbidden;
+
+            var productExists = await db.Products.AnyAsync(p => p.Id == productId && p.CompanyId == companyId);
+            if (!productExists)
+                return Results.NotFound(new { message = "Produit introuvable." });
+
+            var query = db.ProductSerials.Where(s => s.CompanyId == companyId && s.ProductId == productId);
+            if (status is not null) query = query.Where(s => (int)s.Status == status);
+            if (locationId is not null) query = query.Where(s => s.LocationId == locationId);
+
+            var serials = await query
+                .OrderByDescending(s => s.ReceivedAt)
+                .Select(s => new SerialResponse(
+                    s.Id, s.SerialNumber, s.Status, s.LocationId,
+                    s.Batch != null ? s.Batch.BatchNumber : null,
+                    s.ReceivedAt, s.SoldAt, s.SaleId))
+                .ToListAsync();
+
+            return Results.Ok(serials);
         });
     }
 

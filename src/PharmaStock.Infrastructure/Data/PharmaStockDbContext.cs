@@ -31,6 +31,7 @@ public class PharmaStockDbContext : DbContext
     public DbSet<ProductPackagingLevel> ProductPackagingLevels => Set<ProductPackagingLevel>();
     public DbSet<Batch> Batches => Set<Batch>();
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
+    public DbSet<ProductSerial> ProductSerials => Set<ProductSerial>();
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
     public DbSet<PurchaseOrderLine> PurchaseOrderLines => Set<PurchaseOrderLine>();

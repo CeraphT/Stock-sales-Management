@@ -45,7 +45,12 @@ export function generateReceiptHtml(data: ReceiptData): string {
           <td class="item-qty">${formatLineQuantity(line)}</td>
           <td class="item-price">${formatLineUnitPrice(line, data.currency)}</td>
           <td class="item-total">${formatCurrency(line.lineTotal, data.currency)}</td>
-        </tr>`,
+        </tr>${
+          line.serialNumbers && line.serialNumbers.length > 0
+            ? `
+        <tr><td class="item-serial" colspan="4">S/N: ${line.serialNumbers.map(escapeHtml).join(", ")}</td></tr>`
+            : ""
+        }`,
       )
       .join("") +
     data.serviceLines
@@ -160,6 +165,7 @@ export function generateReceiptHtml(data: ReceiptData): string {
   .item-name { font-weight: 600; }
   .item-qty, .item-price, .item-total { text-align: right; color: #4B5563; white-space: nowrap; }
   .item-total { color: #1F2937; font-weight: 600; }
+  .item-serial { font-size: 11px; color: #6B7280; padding: 0 0 8px; border-bottom: 1px solid #F3F4F6; }
   .total-row {
     display: flex;
     justify-content: space-between;

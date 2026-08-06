@@ -31,6 +31,7 @@ export function StockReceive() {
   const [qty, setQty] = useState("");
   const [cost, setCost] = useState("");
   const [levelId, setLevelId] = useState(""); // "" = base unit
+  const [serialText, setSerialText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,10 +43,16 @@ export function StockReceive() {
   const measureUpm = product?.unitsPerMeasure && product.unitsPerMeasure > 0 ? product.unitsPerMeasure : 1;
   const expiryRequired = caps.expiryTracking;
 
-  const levels = measure ? [] : product?.packagingLevels ?? [];
+  // Serial-tracked products: one serial/IMEI per unit, so the received quantity
+  // IS the number of serials entered — the quantity field is replaced by a
+  // serial list.
+  const serialTracked = !!product?.serialTracked;
+  const serials = serialText.split("\n").map((s) => s.trim()).filter((s) => s.length > 0);
+
+  const levels = measure || serialTracked ? [] : product?.packagingLevels ?? [];
   const level = levels.find((l) => l.id === levelId);
   const unitsPer = measure ? measureUpm : level?.quantityInBaseUnits ?? 1; // base units per received unit
-  const baseUnits = Math.round((Number(qty) || 0) * unitsPer);
+  const baseUnits = serialTracked ? serials.length : Math.round((Number(qty) || 0) * unitsPer);
 
   async function submit() {
     if (busy) return;
@@ -60,6 +67,7 @@ export function StockReceive() {
         quantityInBaseUnits: baseUnits,
         // Cost is entered per received unit; store it per base unit.
         purchasePricePerBaseUnit: cost.trim() ? Number(cost) / unitsPer : null,
+        serialNumbers: serialTracked ? serials : undefined,
       });
       await runSync();
       navigate(`/products/${productId}/edit`);
@@ -105,24 +113,45 @@ export function StockReceive() {
           </label>
         ) : null}
 
-        <div>
-          <TextField
-            label={measure ? `${t("Quantity")} (${measureUnit})` : level ? `${t("Quantity")} (${level.unitName})` : t("Quantity (base units)")}
-            type="number"
-            value={qty}
-            onChange={(e) => setQty(e.target.value)}
-          />
-          {(measure || level) && Number(qty) > 0 ? <p className="mt-1 text-xs text-text-secondary">= {baseUnits} {t("base units")}</p> : null}
-        </div>
+        {serialTracked ? (
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">
+              {t("Serial / IMEI numbers (one per line)")}
+            </span>
+            <textarea
+              value={serialText}
+              onChange={(e) => setSerialText(e.target.value)}
+              rows={6}
+              placeholder={"SN-0001\nSN-0002"}
+              className="w-full rounded-xl border border-border bg-surface px-3 py-2 font-mono text-sm text-text-primary outline-none focus:border-primary"
+            />
+            <p className="mt-1 text-xs text-text-secondary">{serials.length} {t("unit(s) — each serial is one unit received.")}</p>
+          </label>
+        ) : (
+          <div>
+            <TextField
+              label={measure ? `${t("Quantity")} (${measureUnit})` : level ? `${t("Quantity")} (${level.unitName})` : t("Quantity (base units)")}
+              type="number"
+              value={qty}
+              onChange={(e) => setQty(e.target.value)}
+            />
+            {(measure || level) && Number(qty) > 0 ? <p className="mt-1 text-xs text-text-secondary">= {baseUnits} {t("base units")}</p> : null}
+          </div>
+        )}
 
         <TextField
-          label={measure ? `${t("Cost")} (${measureUnit}${t(", optional")})` : level ? `${t("Cost")} (${level.unitName}${t(", optional")})` : t("Unit cost (optional)")}
+          label={
+            serialTracked ? t("Unit cost (optional)")
+            : measure ? `${t("Cost")} (${measureUnit}${t(", optional")})`
+            : level ? `${t("Cost")} (${level.unitName}${t(", optional")})`
+            : t("Unit cost (optional)")
+          }
           type="number"
           value={cost}
           onChange={(e) => setCost(e.target.value)}
         />
         {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
-        <Button onClick={submit} loading={busy} disabled={!batchNumber.trim() || (expiryRequired && !expiry) || Number(qty) <= 0}>
+        <Button onClick={submit} loading={busy} disabled={!batchNumber.trim() || (expiryRequired && !expiry) || baseUnits <= 0}>
           {t("Receive")}
         </Button>
       </div>
