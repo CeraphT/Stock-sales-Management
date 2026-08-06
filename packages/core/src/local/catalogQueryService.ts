@@ -55,6 +55,15 @@ export const localCatalogQueryService = {
       flatTaxAmount: 0,
       flatTaxPeriod: 1,
       taxId: null,
+      // Capabilities aren't in the sync-pull payload yet — default to historical
+      // behaviour (expiry on). Online reads (companiesApi.get) get the real values.
+      capabilities: {
+        expiryTracking: true,
+        sellByMeasure: false,
+        serialTracking: false,
+        variants: false,
+        assembly: false,
+      },
     };
   },
 

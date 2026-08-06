@@ -53,10 +53,22 @@ export interface CreateCompanyRequest {
   deviceId: string;
   deviceName: string;
   platform: DevicePlatform;
+  /** Inventory features to enable, from the business-type preset at setup. */
+  capabilities?: InventoryCapabilities;
 }
 
 export interface JoinCompanyRequest {
   uniqueCode: string;
+}
+
+/** Inventory features a company uses (chosen at setup). Clients gate their
+ * advanced UI on these so simple shops aren't burdened with unused features. */
+export interface InventoryCapabilities {
+  expiryTracking: boolean;
+  sellByMeasure: boolean;
+  serialTracking: boolean;
+  variants: boolean;
+  assembly: boolean;
 }
 
 export interface CompanyResponse {
@@ -84,6 +96,7 @@ export interface CompanyResponse {
   flatTaxPeriod: number;
   taxId: string | null;
   accountingSystem?: number;
+  capabilities: InventoryCapabilities;
 }
 
 export interface LocationResponse {
@@ -122,6 +135,7 @@ export interface UpdateCompanyRequest {
   flatTaxPeriod: number;
   taxId: string | null;
   accountingSystem?: number;
+  capabilities?: InventoryCapabilities;
 }
 
 export interface CreateLocationRequest {

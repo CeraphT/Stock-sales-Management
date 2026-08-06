@@ -56,6 +56,31 @@ public class Company
     /// businesses set up an applicable system without a code change.</summary>
     public AccountingSystem AccountingSystem { get; set; } = AccountingSystem.Ohada;
 
+    // ── Inventory capabilities (chosen at setup) ────────────────────────────
+    // Drive which UI each client shows, so a simple shop isn't burdened with
+    // features it never uses. A business-type preset at onboarding sets these;
+    // each is also individually toggleable in Company settings.
+
+    /// <summary>Batches carry expiry dates; FEFO deducts by soonest expiry and the
+    /// UI shows expiry fields + "expiring soon" warnings. Off = non-perishable
+    /// goods (expiry UI hidden; deduction falls back to received-order). Default on.</summary>
+    public bool ExpiryTrackingEnabled { get; set; } = true;
+
+    /// <summary>Products can be sold by weight/length/volume (kg, m, L) — the POS
+    /// shows a decimal quantity entry. For butchers, delis, fabric, produce.</summary>
+    public bool SellByMeasureEnabled { get; set; } = false;
+
+    /// <summary>Per-unit serial/IMEI + warranty tracking. For electronics and
+    /// other high-value goods sold and serviced by individual unit.</summary>
+    public bool SerialTrackingEnabled { get; set; } = false;
+
+    /// <summary>Products have variants (e.g. size × colour). For fashion/footwear.</summary>
+    public bool VariantsEnabled { get; set; } = false;
+
+    /// <summary>Products can be assembled from components (bill of materials).
+    /// For workshops/manufacturers/kits.</summary>
+    public bool AssemblyEnabled { get; set; } = false;
+
     /// <summary>Flat lump-sum tax the business owes per FlatTaxPeriod under the
     /// impôt libératoire regime (assessed by their commune; entered manually).</summary>
     public decimal FlatTaxAmount { get; set; } = 0m;

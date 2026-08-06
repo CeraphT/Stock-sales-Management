@@ -5,17 +5,24 @@ using PharmaStock.Infrastructure.Data;
 
 namespace PharmaStock.Api.Services;
 
+/// <summary>Which inventory features a company uses (chosen at setup, editable in
+/// settings) — the clients gate their advanced UI on these.</summary>
+public record InventoryCapabilities(
+    bool ExpiryTracking, bool SellByMeasure, bool SerialTracking, bool Variants, bool Assembly);
+
 public record CreateCompanyRequest(
     string Name, string? Description, string Currency,
     string AdminName, string AdminPhone, string AdminPassword,
-    Guid DeviceId, string DeviceName, DevicePlatform Platform);
+    Guid DeviceId, string DeviceName, DevicePlatform Platform,
+    InventoryCapabilities? Capabilities = null);
 public record JoinCompanyRequest(string UniqueCode);
 public record CompanyResponse(
     Guid Id, string Name, string UniqueCode, string Currency, bool ServicesModuleEnabled, string? Description, decimal DefaultTaxRatePercent,
     bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue,
     bool RewardProgramEnabled, int RewardPurchaseCount, decimal RewardGiftCardValue,
     string? Address, string? Phone, string? ReceiptFooter, string? LogoUrl, int DefaultLowStockThreshold, bool SetupCompleted,
-    TaxRegime TaxRegime, decimal FlatTaxAmount, FlatTaxPeriod FlatTaxPeriod, string? TaxId, AccountingSystem? AccountingSystem);
+    TaxRegime TaxRegime, decimal FlatTaxAmount, FlatTaxPeriod FlatTaxPeriod, string? TaxId, AccountingSystem? AccountingSystem,
+    InventoryCapabilities Capabilities);
 public record CreateCompanyResponse(CompanyResponse Company, AuthResponse Admin, LocationResponse DefaultLocation);
 public record UpdateCompanyRequest(
     string Name, string? Description, string Currency, decimal DefaultTaxRatePercent,
@@ -23,7 +30,8 @@ public record UpdateCompanyRequest(
     bool ServicesModuleEnabled,
     bool RewardProgramEnabled, int RewardPurchaseCount, decimal RewardGiftCardValue,
     string? Address, string? Phone, string? ReceiptFooter, string? LogoUrl, int DefaultLowStockThreshold, bool SetupCompleted,
-    TaxRegime TaxRegime, decimal FlatTaxAmount, FlatTaxPeriod FlatTaxPeriod, string? TaxId, AccountingSystem? AccountingSystem);
+    TaxRegime TaxRegime, decimal FlatTaxAmount, FlatTaxPeriod FlatTaxPeriod, string? TaxId, AccountingSystem? AccountingSystem,
+    InventoryCapabilities? Capabilities = null);
 
 public static class CompanyEndpoints
 {
@@ -51,6 +59,16 @@ public static class CompanyEndpoints
                 Currency = string.IsNullOrWhiteSpace(request.Currency) ? "XAF" : request.Currency,
                 UniqueCode = GenerateUniqueCode()
             };
+            // Inventory capabilities chosen at setup (the business-type preset).
+            // Omitted → keep the model defaults (expiry on, everything else off).
+            if (request.Capabilities is { } caps)
+            {
+                company.ExpiryTrackingEnabled = caps.ExpiryTracking;
+                company.SellByMeasureEnabled = caps.SellByMeasure;
+                company.SerialTrackingEnabled = caps.SerialTracking;
+                company.VariantsEnabled = caps.Variants;
+                company.AssemblyEnabled = caps.Assembly;
+            }
             db.Companies.Add(company);
 
             var admin = new User
@@ -149,6 +167,14 @@ public static class CompanyEndpoints
             company.FlatTaxPeriod = request.FlatTaxPeriod;
             company.TaxId = string.IsNullOrWhiteSpace(request.TaxId) ? null : request.TaxId.Trim();
             if (request.AccountingSystem.HasValue) company.AccountingSystem = request.AccountingSystem.Value;
+            if (request.Capabilities is { } caps)
+            {
+                company.ExpiryTrackingEnabled = caps.ExpiryTracking;
+                company.SellByMeasureEnabled = caps.SellByMeasure;
+                company.SerialTrackingEnabled = caps.SerialTracking;
+                company.VariantsEnabled = caps.Variants;
+                company.AssemblyEnabled = caps.Assembly;
+            }
 
             await db.SaveChangesAsync();
 
@@ -162,7 +188,10 @@ public static class CompanyEndpoints
         company.LoyaltyEnabled, company.LoyaltyEarnRateAmount, company.LoyaltyPointValue,
         company.RewardProgramEnabled, company.RewardPurchaseCount, company.RewardGiftCardValue,
         company.Address, company.Phone, company.ReceiptFooter, company.LogoUrl, company.DefaultLowStockThreshold, company.SetupCompleted,
-        company.TaxRegime, company.FlatTaxAmount, company.FlatTaxPeriod, company.TaxId, company.AccountingSystem);
+        company.TaxRegime, company.FlatTaxAmount, company.FlatTaxPeriod, company.TaxId, company.AccountingSystem,
+        new InventoryCapabilities(
+            company.ExpiryTrackingEnabled, company.SellByMeasureEnabled, company.SerialTrackingEnabled,
+            company.VariantsEnabled, company.AssemblyEnabled));
 
     /// <summary>Short, human-typeable code (Section 9): e.g. PHRM-7X2K9.
     /// Collision odds are negligible at this scale, but the database-level

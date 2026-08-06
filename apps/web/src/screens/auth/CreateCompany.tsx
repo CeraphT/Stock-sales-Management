@@ -8,6 +8,7 @@ import { AuthLayout } from "@/components/AuthLayout";
 import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
 import { deviceName } from "@/platform";
+import { BUSINESS_PRESETS } from "@/lib/businessTypes";
 import { useT } from "@/lib/i18n";
 import { useAuthStore } from "@/lib/stores";
 
@@ -19,6 +20,7 @@ export function CreateCompany() {
   const [adminName, setAdminName] = useState("");
   const [adminPhone, setAdminPhone] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
+  const [presetId, setPresetId] = useState("general");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,6 +40,7 @@ export function CreateCompany() {
         deviceId,
         deviceName,
         platform: DevicePlatform.Web,
+        capabilities: (BUSINESS_PRESETS.find((p) => p.id === presetId) ?? BUSINESS_PRESETS[0]).caps,
       });
       useAuthStore.getState().setSession({
         token: res.admin.token,
@@ -65,6 +68,27 @@ export function CreateCompany() {
       <form className="flex flex-col gap-4" onSubmit={submit}>
         <TextField label={t("Company name")} value={name} onChange={(e) => setName(e.target.value)} autoFocus />
         <TextField label={t("Currency")} value={currency} onChange={(e) => setCurrency(e.target.value)} />
+
+        <div>
+          <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("What do you manage?")}</span>
+          <div className="grid grid-cols-2 gap-2">
+            {BUSINESS_PRESETS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setPresetId(p.id)}
+                className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm transition ${
+                  presetId === p.id ? "border-primary bg-primary/10 text-primary" : "border-border text-text-primary hover:bg-background"
+                }`}
+              >
+                <span className="text-base">{p.icon}</span>
+                <span className="leading-tight">{t(p.label)}</span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-text-secondary">{t("Turns on the right features — you can change this later in Settings.")}</p>
+        </div>
+
         <div className="my-1 border-t border-border" />
         <TextField label={t("Your name")} value={adminName} onChange={(e) => setAdminName(e.target.value)} />
         <TextField label={t("Your phone")} value={adminPhone} onChange={(e) => setAdminPhone(e.target.value)} />
