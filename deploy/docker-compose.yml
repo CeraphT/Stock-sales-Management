@@ -31,7 +31,10 @@ services:
       ConnectionStrings__Default: "Host=db;Database=pharmastock;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
       Jwt__Secret: ${JWT_SECRET}
       SuperAdmin__BootstrapSecret: ${BOOTSTRAP_SECRET}
-      CORS_ORIGINS: "https://stock.mfspace.lu"
+      # Browser-origin allow-list. Web client + the Tauri desktop webview
+      # (Windows uses http://tauri.localhost). Native mobile (RN) isn't subject
+      # to CORS. Adjust if the desktop reports a different origin.
+      CORS_ORIGINS: "https://stock.mfspace.lu,http://tauri.localhost,https://tauri.localhost"
       AUTO_MIGRATE: "true"
     depends_on:
       db:
