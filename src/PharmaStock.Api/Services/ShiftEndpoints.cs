@@ -143,6 +143,29 @@ public static class ShiftEndpoints
             return Results.Ok(new ShiftHistoryPageResponse(shifts.Take(ShiftHistoryPageSize).ToList(), hasMore));
         }).RequireAuthorization();
 
+        // Detailed history for one location (with per-shift payment breakdown) —
+        // the online equivalent of localShiftService.getShiftHistory, which the
+        // Cash Register's daily-takings report + shift table need (the lean
+        // summary list above omits the cash/mobile split). Few shifts per
+        // location (≈1/day), so the per-shift detail computation is fine.
+        app.MapGet("/api/companies/{companyId:guid}/locations/{locationId:guid}/shifts/detailed", async (
+            Guid companyId, Guid locationId, PharmaStockDbContext db, HttpContext http) =>
+        {
+            if (http.User.GetCompanyId() != companyId)
+                return Results.Forbid();
+
+            var ids = await db.CashRegisterShifts
+                .Where(s => s.CompanyId == companyId && s.LocationId == locationId)
+                .OrderByDescending(s => s.OpenedAt)
+                .Take(60)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            var details = new List<ShiftDetailResponse>(ids.Count);
+            foreach (var id in ids) details.Add(await ToDetailAsync(db, id));
+            return Results.Ok(details);
+        }).RequireAuthorization();
+
         app.MapGet("/api/companies/{companyId:guid}/shifts/{shiftId:guid}", async (
             Guid companyId, Guid shiftId, PharmaStockDbContext db, HttpContext http) =>
         {

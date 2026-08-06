@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { UserRole } from "@stockflow/core/api/enums";
+import { shiftsApi } from "@stockflow/core/api/endpoints/shifts";
 import { isolateCompany } from "@stockflow/core/db/isolation";
-import { localShiftService } from "@stockflow/core/local/shiftService";
 
 import { IconButton } from "@/components/IconButton";
 import { ImpersonationBanner } from "@/components/ImpersonationBanner";
@@ -123,7 +123,7 @@ export function Shell() {
       // prior shift was closed) — not on every login. Admins are never gated.
       if (role === UserRole.Cashier && companyId && shiftLocationId) {
         try {
-          const shift = await localShiftService.getCurrentShift(companyId, shiftLocationId);
+          const shift = await shiftsApi.current(companyId, shiftLocationId);
           setRegisterGate(!shift);
         } catch {
           /* keep gated on error — fail closed */

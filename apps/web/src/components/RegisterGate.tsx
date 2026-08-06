@@ -1,4 +1,4 @@
-import { localShiftService } from "@stockflow/core/local/shiftService";
+import { shiftsApi } from "@stockflow/core/api/endpoints/shifts";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -28,7 +28,7 @@ export function RegisterGate({ onOpened }: { onOpened: () => void }) {
     if (busy || !companyId || !locationId) return;
     setBusy(true);
     try {
-      await localShiftService.openShift(companyId, locationId, Number(openingCash) || 0);
+      await shiftsApi.open(companyId, locationId, { openingCashAmount: Number(openingCash) || 0 });
       toast("Cash register opened.", "success");
       onOpened();
     } catch (e) {

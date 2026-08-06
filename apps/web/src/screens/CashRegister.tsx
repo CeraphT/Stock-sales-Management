@@ -1,7 +1,7 @@
 import { PaymentMethod, ShiftStatus } from "@stockflow/core/api/enums";
 import type { ShiftDetailResponse } from "@stockflow/core/api/types/shifts";
+import { shiftsApi } from "@stockflow/core/api/endpoints/shifts";
 import { formatCurrency, paymentMethodLabel } from "@stockflow/core/format";
-import { localShiftService } from "@stockflow/core/local/shiftService";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -35,12 +35,12 @@ export function CashRegister() {
 
   const { data: current, isLoading } = useQuery({
     queryKey: ["current-shift", companyId, locationId],
-    queryFn: () => localShiftService.getCurrentShift(companyId, locationId!),
+    queryFn: () => shiftsApi.current(companyId, locationId!),
     enabled: !!locationId,
   });
   const { data: history = [] } = useQuery({
     queryKey: ["shift-history", companyId, locationId],
-    queryFn: () => localShiftService.getShiftHistory(companyId, locationId!),
+    queryFn: () => shiftsApi.historyDetailed(companyId, locationId!),
     enabled: !!locationId,
   });
 
@@ -51,7 +51,7 @@ export function CashRegister() {
     if (busy || !locationId) return;
     setBusy(true);
     try {
-      await localShiftService.openShift(companyId, locationId, Number(openingCash) || 0);
+      await shiftsApi.open(companyId, locationId, { openingCashAmount: Number(openingCash) || 0 });
       setOpeningCash("");
       toast("Cash register opened.", "success");
       invalidate();
@@ -66,7 +66,7 @@ export function CashRegister() {
     if (busy || !current) return;
     setBusy(true);
     try {
-      const closed = await localShiftService.closeShift(companyId, current.id, Number(closingCash) || 0, notes.trim() || null);
+      const closed = await shiftsApi.close(companyId, current.id, { closingCashAmount: Number(closingCash) || 0, closingNotes: notes.trim() || null });
       setClosingCash("");
       setNotes("");
       const d = closed.discrepancy ?? 0;
