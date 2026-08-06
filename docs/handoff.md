@@ -1,81 +1,112 @@
 # PharmaStock — session handoff (mobile ↔ desktop parity)
 
-> Paste-ready context to resume the desktop→mobile parity work in a new session.
-> Read `CLAUDE.md` and `docs/feature-parity-checklist.md` alongside this.
+> Paste-ready context to resume the desktop ⇄ mobile parity work in a **new chat**.
+> Read `CLAUDE.md` and (if present) `docs/feature-parity-checklist.md` alongside this.
+> Last updated end of the 2026-08-05/06 session. **Working tree is clean; everything below is
+> committed and pushed to `main`.**
 
 ## Project
-- Monorepo at **`C:\Dev\PharmaStock`** (npm workspaces).
-- **Backend**: ASP.NET Core .NET 8 + EF + Postgres, `src/PharmaStock.Api` (runs on `http://localhost:5080`).
-- **Desktop client** (reference, complete): `apps/desktop` — Tauri + React + Tailwind.
-- **Mobile client** (being brought to parity): `apps/mobile` — Expo SDK **57** + React Native + NativeWind + expo-router + expo-sqlite/Drizzle.
-- **Shared logic**: `packages/core` (`@stockflow/core`) — the API client, endpoints, types, business
-  logic, offline sync, receipt templates, and i18n dictionary all live here and are used by BOTH
-  clients. There is only ONE backend API; mobile's `src/lib/api/endpoints/*` just
-  `export * from "@stockflow/core/..."`. The only layer that can't be shared is the UI (web
-  `<div>`/Tailwind vs RN `<View>`/NativeWind), so each screen's UI is re-expressed in RN wired to the
-  same API.
-- Remote: `github.com/CeraphT/Stock-sales-Management`, branch `main`.
+- Monorepo at **`C:\Dev\PharmaStock`** (npm workspaces). Keep it OUT of any OneDrive/cloud-sync folder.
+- **Backend**: ASP.NET Core .NET 8 + EF Core + PostgreSQL 17, `src/PharmaStock.Api` (runs on
+  `http://localhost:5080`). `Api → Infrastructure → Domain`.
+- **Desktop client** (Tauri v2 + React + TS + Tailwind): `apps/desktop`. Has a **browser dev mode**
+  ("web view") that needs no native build — see "Run the web view" below.
+- **Mobile client** (Expo SDK **57** + RN + NativeWind + expo-router + expo-sqlite/Drizzle): `apps/mobile`.
+- **Shared logic**: `packages/core` (`@stockflow/core`) — API client, endpoints, types, business logic,
+  offline sync, receipt/cash-report templates, i18n dict. Used by BOTH clients. Only the UI layer
+  differs (web `<div>`/Tailwind vs RN `<View>`/NativeWind).
+- Remote: `github.com/CeraphT/Stock-sales-Management`, branch `main`. Git user: Steve Foning.
+- Demo login only: **`699111222` / `test1234`** (companyId `8672c9c4-5cec-4c4b-b4ef-0c166b584f34`,
+  55 products, 14 customers).
 
-## Current task
-Working **screen-by-screen** to make the mobile app match the desktop design + functionality (user
-shares a desktop screenshot; match mobile to it). Before this, a full **mobile parity effort
-(Phases 1–6)** was completed — all committed & pushed to `main`.
+## Run the web view (desktop, no device needed)
+```bash
+cd src/PharmaStock.Api && dotnet run --urls http://localhost:5080   # terminal 1 (API + CORS)
+cd apps/desktop && npm run dev                                       # terminal 2 → http://localhost:5173
+```
+`npm run dev` runs the desktop client in a plain browser using the **sql.js** local-DB driver (vs
+tauri-plugin-sql natively). `npm run tauri dev` opens the real native window (needs cargo on PATH:
+`PATH="$HOME/.cargo/bin:$PATH"`). Both consume `@stockflow/core` and the same API.
 
-## What's DONE and committed (mobile)
-- **Phase 1 design foundation**: dark palette unified to desktop slate, 18px `rounded-card`, Button
-  `ghost`/`danger`, new `StatCard`/`StockBadge`/`Card`/`ToastHost`.
-- **Phase 2 crash safety**: Expo Router `ErrorBoundary` in `(app)/_layout` + global handler.
-- **Phase 3 data model**: My business (Tax ID/NIU, regime, receipt/contact); customer Business toggle + Tax ID.
-- **Phase 5 tax/OHADA**: `tax-declaration.tsx` (VAT declaration + journals/cash-book/income-statement PDFs);
-  receipt doubles as B2B invoice.
-- **Phase 6**: dashboard rebuilt to match desktop (line chart, deep-link filters), gift-card voucher,
-  rewards at checkout, inventory report, PO date-filter + reorder-consolidation, invite-code copy.
-- **Phase 4 (native)**: Data & maintenance (backup/restore/reset/auto-daily-backup) — uses
-  `expo-file-system`/`expo-document-picker`/`expo-clipboard`, imported LAZILY so the bundle loads
-  without a rebuild.
-- **Auth screens redesigned to match desktop** via shared `components/AuthLayout.tsx` (brand mark +
-  card): onboarding (`index.tsx`), login, create-company, join-company.
-- **POS/checkout** aligned: payment labels ("Credit (pay later)", "Store credit (prepaid)"),
-  light-indigo selected style, store-credit balance display + validation, "New customer" in the picker.
-- **Fixes**: reconciled drifted expo versions (`expo install --fix`); lazy-imported native modules;
-  latest commit `3043d84` = drizzle migration `0001` adding `customers.tax_id` + `sales.tax_added_on_top`
-  (mobile local SQLite schema was frozen at migration 0000).
+## What this long session accomplished (all committed + pushed)
+A screen-by-screen **desktop→mobile parity pass**, plus new cross-client features. Highlights:
+- **Cash register / shifts**: full parity; **register-freeze gate** — if a user hasn't set the opening
+  cash float for the day, the app is frozen until they do (`RegisterGate` on both clients; API
+  `ShiftEndpoints` enforces + honours `RestrictCashRegister`).
+- **Receipts**: VAT/tax line added (checkout `ReceiptData.taxTotal` now computed like sale-detail).
+- **Dashboard**: 7D / 30D / 90D revenue-chart toggle on **both** clients; reconciliation banner.
+- **Reconciliation** (new): API `ReconciliationEndpoints` (conflict shifts + negative batches, ack),
+  `Reconciliation.tsx` (desktop) + `app/(app)/reconciliation.tsx` (mobile).
+- **Sales history**: From/To date filters (`FilterChip` on mobile).
+- **Customer credits**: selecting a customer shows the **orders/transactions** behind their owed /
+  store-credit balance — API `GET /customers/{id}/credit-history` (falls back to `Sale.PaymentMethod`
+  because there are ZERO PaymentSplit rows in the DB); `CustomerCredits.tsx` (desktop) + mobile
+  `customer-detail.tsx`.
+- **Granular permissions** (per explicit request — admin restricts *interfaces* themselves, not
+  role-preset): `User.Restrict*` flags incl. new `RestrictCashRegister` + `RestrictGiftCards`; API
+  round-trips them; desktop `Staff.tsx` + mobile `staff.tsx` give per-user toggles.
+- **Staff**: cleaner admin UI; mobile Staff now also has a **"Change my password"** self-service
+  shortcut (added last — see note below).
+- **Printer + Data & maintenance**: simplified/reduced UI on both clients (user wanted less text).
+- **Company settings**: 4-tab layout.
+- **Products / Bulk stock**: parity incl. bulk stock **download + upload** template
+  (`packages/core/src/bulk/bulkTemplate.ts`, desktop `lib/bulkUpload.ts`).
+- **Suppliers / Purchase orders / Customers / Gift cards / Categories / Archived / Reports /
+  Inventory report / Tax declaration**: parity pass incl. tap-to-call on contacts.
+- **Mobile "More" menu**: redesigned into a **hub layout** (accent header, live search, quick-access
+  tiles, grouped cards, settings card). File: `apps/mobile/src/app/(app)/(tabs)/more.tsx`.
+- **Fixes**: dark-mode crash (console→toast mirror now defers via `setTimeout(0)` in
+  `lib/globalErrors.ts`); "ID generator not initialized" (`setIdGenerator` at mobile startup).
 
-## WHERE WE ARE RIGHT NOW (verify first)
-Just fixed the sync error (`table customers has no column named tax_id`). User was reloading to confirm
-the **55 products now sync and a sale can be rung up** — **UNVERIFIED**; confirm this first.
-Verified server-side: demo company (login `699111222`/`test1234`, companyId
-`8672c9c4-5cec-4c4b-b4ef-0c166b584f34`) has 55 products + 55 batches + 14 customers, and `sync/pull`
-returns them.
+## Password features (settled this session — do NOT "dedupe" them)
+Two DIFFERENT features, both kept intentionally:
+- **Self-service "Change password"** — `POST /api/auth/change-password`
+  (`ChangePasswordRequest(CurrentPassword, NewPassword)`, verifies current pw, ANY authenticated user).
+  Reachable from mobile **More → Settings** AND now from the **Staff** screen header
+  ("Change my password" → routes to `change-password.tsx`). Kept in More because cashiers can't open
+  Staff (admin-only, 403).
+- **Admin reset** — `PUT /api/companies/{id}/users/{userId}/password`
+  (`AdminResetPasswordRequest(NewPassword)`, no current pw, admin-only). This is the Staff-screen 🔑
+  per-row action for resetting *someone else's* password.
 
-## Environment state
-- Metro was running (background); device connected (`5d23f540`); `adb reverse` set for 8081 (Metro) +
-  5080 (API); API up on :5080. adb at `C:\android-sdk\platform-tools\adb.exe`.
-- The app runs on the current dev client after login (lazy native imports) — full POS/catalog testable
-  now; only backup/restore/copy actions need the native rebuild.
-- **Native rebuild is pending and must be run by the USER**: `cd apps/mobile && npx expo run:android`.
-  It fails when run through the assistant's tools (Gradle "Unable to establish loopback connection" — the
-  tool sandbox blocks the daemon's loopback socket; the user's own terminal builds fine — `android/`
-  already exists). Expect MIUI `INSTALL_FAILED_USER_RESTRICTED` → sideload
-  `android/app/build/outputs/apk/debug/app-debug.apk`.
+## Environment / build reality
+- I (assistant) **cannot run native Gradle builds** — the tool sandbox blocks the daemon's loopback
+  socket ("Unable to establish loopback connection"). **The USER runs native builds**:
+  `cd apps/mobile && npx expo run:android`. Expect MIUI `INSTALL_FAILED_USER_RESTRICTED` on the test
+  phone → sideload `android/app/build/outputs/apk/debug/app-debug.apk` (see CLAUDE.md MIUI gotcha).
+  → **This is a big reason to keep working in the desktop web view for now.**
+- `adb reverse tcp:5080 tcp:5080` and `tcp:8081 tcp:8081` **drop on every USB reconnect** — first
+  thing to re-check if the device suddenly can't reach the API/Metro. adb at
+  `C:\android-sdk\platform-tools\adb.exe`.
+- Standalone (off-PC) APK was explored then **reverted** per user (`configureApi` LAN IP + manifest
+  cleartext were rolled back); mobile currently uses the core default `http://localhost:5080` via
+  `adb reverse`.
 
-## Next steps
-1. **Verify** products load + a POS sale completes on device (the migration fix).
-2. Continue the **step-by-step screen parity pass** (user drives, screen by screen; POS was the latest).
-3. **French i18n pass** on the new admin screens (Tax declaration, Data & maintenance, Inventory report
-   use English literals; do this AFTER the native rebuild so it can be verified live).
-4. **Native rebuild** by the user to enable backup/restore/copy.
+## Key gotchas (don't re-debug)
+- Mobile i18n is **keyed** (`t('key')`, dict `packages/core/src/i18n/translations.ts`, en+fr); missing
+  key renders raw key. Newer admin screens still have some English literals — a **French i18n pass is
+  the main deferred cleanup**.
+- Desktop i18n uses **English-string-as-key** + FR map (`apps/desktop/src/lib/i18n.ts`).
+- API registers **no `JsonStringEnumConverter`** → every C# enum serializes as an **integer**; client
+  enums must match C# declaration order (`packages/core` enums / `apps/mobile/src/lib/api/enums.ts`).
+  PaymentMethod: Cash=0 MobileMoney=1 Credit=2 StoreCredit=3 GiftCard=4.
+- EF migrations: `dotnet-ef` pinned **8.0.10**; add with
+  `dotnet ef migrations add X -p src/PharmaStock.Infrastructure -s src/PharmaStock.Api` then build
+  (NOT `--no-build`) BEFORE `database update`, or the new migration isn't in the assembly.
+- Mobile local DB schema change → `npx drizzle-kit generate` in `apps/mobile`; `useMigrations` in
+  `app/_layout.tsx` applies on launch. `drizzle db.transaction` silently drops writes on expo-sqlite —
+  use individual statements. Offline-first: catalog/POS read the local SQLite mirror from `sync/pull`,
+  not the REST `/products` route.
+- Mobile theme colors on the More screen must be inline `style` (className colors don't repaint on
+  theme flip). `useThemeColors()` returns 6-digit hex; RN accepts 8-digit (`hex + '22'` for alpha).
+- Windows: run Gradle/JDK-path commands in **PowerShell**.
+- **Per-change workflow**: type-check (`cd apps/mobile && npx tsc --noEmit`, or desktop
+  `cd apps/desktop && npx tsc --noEmit`), then commit + push per screen.
 
-## Key gotchas
-- Mobile i18n is **keyed** (`t('key')`, dict in `packages/core/src/i18n/translations.ts`, en + fr
-  blocks) — a missing key renders the raw key. `my-business`/new admin screens use English literals.
-- Expo Router **eagerly evaluates every route file's top-level imports** at startup → keep
-  native-module imports **lazy** (`await import(...)`).
-- Mobile local DB schema changes need **`npx drizzle-kit generate`** (in `apps/mobile`) to produce a
-  migration; `useMigrations` in `app/_layout.tsx` applies them on launch.
-- Offline-first: catalog/POS read the **local SQLite mirror** populated by `syncApi.pull` — not the
-  `/products` REST route.
-- `drizzle db.transaction` silently drops writes on expo-sqlite — use individual statements.
-- Windows: run Gradle/JDK-path commands in **PowerShell**; `JAVA_HOME`/`ANDROID_HOME` set user-level.
-- Only authenticate with the demo account `699111222`/`test1234`.
-- Each mobile change: type-check (`cd apps/mobile && npx tsc --noEmit`), then commit + push per screen.
+## Suggested next steps
+1. Continue the parity pass in the **desktop web view** (`npm run dev`) — fastest loop, no device.
+2. **French i18n pass** on newer admin screens (Tax declaration, Data & maintenance, Inventory report,
+   Staff, My business, Reconciliation) — currently English literals.
+3. On-device verification of the mobile work (needs the user's native rebuild + sideload).
+4. Deferred/offered, unconfirmed: company-settings logo upload (expo-image-picker), country selector,
+   in-app "Server address" field or hosted API for a standalone off-PC APK.
