@@ -15,6 +15,12 @@ export enum FlatTaxPeriod {
   Yearly = 2,
 }
 
+export enum AccountingSystem {
+  Ohada = 0,
+  GenericVat = 1,
+  None = 2,
+}
+
 export enum UserRole {
   Cashier = 0,
   CompanyAdmin = 1,

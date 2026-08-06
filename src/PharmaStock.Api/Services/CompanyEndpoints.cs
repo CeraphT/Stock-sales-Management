@@ -15,7 +15,7 @@ public record CompanyResponse(
     bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue,
     bool RewardProgramEnabled, int RewardPurchaseCount, decimal RewardGiftCardValue,
     string? Address, string? Phone, string? ReceiptFooter, string? LogoUrl, int DefaultLowStockThreshold, bool SetupCompleted,
-    TaxRegime TaxRegime, decimal FlatTaxAmount, FlatTaxPeriod FlatTaxPeriod, string? TaxId);
+    TaxRegime TaxRegime, decimal FlatTaxAmount, FlatTaxPeriod FlatTaxPeriod, string? TaxId, AccountingSystem? AccountingSystem);
 public record CreateCompanyResponse(CompanyResponse Company, AuthResponse Admin, LocationResponse DefaultLocation);
 public record UpdateCompanyRequest(
     string Name, string? Description, string Currency, decimal DefaultTaxRatePercent,
@@ -23,7 +23,7 @@ public record UpdateCompanyRequest(
     bool ServicesModuleEnabled,
     bool RewardProgramEnabled, int RewardPurchaseCount, decimal RewardGiftCardValue,
     string? Address, string? Phone, string? ReceiptFooter, string? LogoUrl, int DefaultLowStockThreshold, bool SetupCompleted,
-    TaxRegime TaxRegime, decimal FlatTaxAmount, FlatTaxPeriod FlatTaxPeriod, string? TaxId);
+    TaxRegime TaxRegime, decimal FlatTaxAmount, FlatTaxPeriod FlatTaxPeriod, string? TaxId, AccountingSystem? AccountingSystem);
 
 public static class CompanyEndpoints
 {
@@ -148,6 +148,7 @@ public static class CompanyEndpoints
             company.FlatTaxAmount = request.FlatTaxAmount >= 0 ? request.FlatTaxAmount : company.FlatTaxAmount;
             company.FlatTaxPeriod = request.FlatTaxPeriod;
             company.TaxId = string.IsNullOrWhiteSpace(request.TaxId) ? null : request.TaxId.Trim();
+            if (request.AccountingSystem.HasValue) company.AccountingSystem = request.AccountingSystem.Value;
 
             await db.SaveChangesAsync();
 
@@ -161,7 +162,7 @@ public static class CompanyEndpoints
         company.LoyaltyEnabled, company.LoyaltyEarnRateAmount, company.LoyaltyPointValue,
         company.RewardProgramEnabled, company.RewardPurchaseCount, company.RewardGiftCardValue,
         company.Address, company.Phone, company.ReceiptFooter, company.LogoUrl, company.DefaultLowStockThreshold, company.SetupCompleted,
-        company.TaxRegime, company.FlatTaxAmount, company.FlatTaxPeriod, company.TaxId);
+        company.TaxRegime, company.FlatTaxAmount, company.FlatTaxPeriod, company.TaxId, company.AccountingSystem);
 
     /// <summary>Short, human-typeable code (Section 9): e.g. PHRM-7X2K9.
     /// Collision odds are negligible at this scale, but the database-level

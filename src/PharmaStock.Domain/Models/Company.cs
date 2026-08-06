@@ -51,6 +51,11 @@ public class Company
     /// is set to 0 when this is chosen.</summary>
     public TaxRegime TaxRegime { get; set; } = TaxRegime.Standard;
 
+    /// <summary>Which accounting framework this company's tax declaration follows
+    /// (OHADA/SYSCOHADA by default; a generic VAT regime; or none). Lets non-OHADA
+    /// businesses set up an applicable system without a code change.</summary>
+    public AccountingSystem AccountingSystem { get; set; } = AccountingSystem.Ohada;
+
     /// <summary>Flat lump-sum tax the business owes per FlatTaxPeriod under the
     /// impôt libératoire regime (assessed by their commune; entered manually).</summary>
     public decimal FlatTaxAmount { get; set; } = 0m;

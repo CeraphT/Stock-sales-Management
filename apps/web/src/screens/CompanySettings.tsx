@@ -44,6 +44,7 @@ export function CompanySettings() {
   const [taxRegime, setTaxRegime] = useState(0);
   const [flatTaxAmount, setFlatTaxAmount] = useState("");
   const [flatTaxPeriod, setFlatTaxPeriod] = useState(1);
+  const [accountingSystem, setAccountingSystem] = useState(0);
   const [country, setCountry] = useState("");
   const [saving, setSaving] = useState(false);
   const [converting, setConverting] = useState(false);
@@ -66,6 +67,7 @@ export function CompanySettings() {
     setTaxRegime(company.taxRegime);
     setFlatTaxAmount(String(company.flatTaxAmount));
     setFlatTaxPeriod(company.flatTaxPeriod);
+    setAccountingSystem(company.accountingSystem ?? 0);
     setCountry(countryForCurrency(company.currency) ?? "");
   }, [company]);
 
@@ -146,6 +148,7 @@ export function CompanySettings() {
         flatTaxAmount: Number(flatTaxAmount) || 0,
         flatTaxPeriod,
         taxId: companyTaxId.trim() || null,
+        accountingSystem,
       });
       await runSync();
       await queryClient.invalidateQueries({ queryKey: ["company", companyId] });
@@ -262,6 +265,22 @@ export function CompanySettings() {
               <div className="flex h-10 w-full items-center rounded-xl border border-border bg-background/60 px-3 text-sm text-text-secondary">
                 {currencyLabel || "—"}
               </div>
+            </label>
+
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Accounting system")}</span>
+              <select
+                value={accountingSystem}
+                onChange={(e) => setAccountingSystem(Number(e.target.value))}
+                className="h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text-primary outline-none focus:border-primary"
+              >
+                <option value={0}>{t("OHADA / SYSCOHADA (Central & West Africa)")}</option>
+                <option value={1}>{t("Generic VAT")}</option>
+                <option value={2}>{t("No sales tax")}</option>
+              </select>
+              <p className="mt-1 text-xs text-text-secondary">
+                {t("Sets which tax declaration the business produces. OHADA uses SYSCOHADA account codes; Generic VAT drops them; No sales tax hides the declaration.")}
+              </p>
             </label>
 
             <div className="rounded-xl border border-border p-4">

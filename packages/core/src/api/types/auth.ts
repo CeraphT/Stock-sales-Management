@@ -83,6 +83,7 @@ export interface CompanyResponse {
   flatTaxAmount: number;
   flatTaxPeriod: number;
   taxId: string | null;
+  accountingSystem?: number;
 }
 
 export interface LocationResponse {
@@ -120,6 +121,7 @@ export interface UpdateCompanyRequest {
   flatTaxAmount: number;
   flatTaxPeriod: number;
   taxId: string | null;
+  accountingSystem?: number;
 }
 
 export interface CreateLocationRequest {

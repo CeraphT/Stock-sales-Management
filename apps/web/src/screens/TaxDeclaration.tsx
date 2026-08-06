@@ -30,6 +30,10 @@ export function TaxDeclaration() {
   const period = `${from || "…"} → ${to || t("today")}`;
   const isFlatRegime = company?.taxRegime === 1;
   const flatPeriodLabel = [t("month"), t("quarter"), t("year")][company?.flatTaxPeriod ?? 1] ?? t("quarter");
+  // Accounting system: 0 = OHADA/SYSCOHADA, 1 = generic VAT, 2 = no sales tax.
+  const acct = company?.accountingSystem ?? 0;
+  const noTax = acct === 2;
+  const showCodes = acct === 0; // only OHADA shows SYSCOHADA account codes
   const [journalBusy, setJournalBusy] = useState(false);
 
   async function salesJournalPdf() {
@@ -212,11 +216,23 @@ export function TaxDeclaration() {
         </div>
       ) : null}
 
+      {noTax ? (
+        <div className="rounded-card border border-border bg-surface p-6 text-center">
+          <div className="text-3xl">🚫</div>
+          <div className="mt-2 text-sm font-semibold text-text-primary">{t("No sales tax configured")}</div>
+          <p className="mx-auto mt-1 max-w-md text-xs text-text-secondary">
+            {t("This business is set to \"No sales tax\" in Company settings, so there is no VAT declaration. Switch the accounting system to OHADA or Generic VAT to enable it.")}
+          </p>
+        </div>
+      ) : null}
+
+      {!noTax ? (
+      <>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard index={0} color="primary" icon="💵" label={t("Turnover (incl. VAT)")} value={fmt(d?.salesTtc ?? 0)} hint={`${t("excl. VAT")}: ${fmt(d?.salesHt ?? 0)}`} />
-        <StatCard index={1} color="green" icon="📥" label={t("VAT collected")} value={fmt(d?.vatCollected ?? 0)} hint="4431" />
-        <StatCard index={2} color="amber" icon="📤" label={t("VAT deductible")} value={fmt(d?.vatDeductible ?? 0)} hint="4452" />
-        <StatCard index={3} color={d && d.vatDue < 0 ? "blue" : "red"} icon="🧾" label={t("VAT due")} value={fmt(d?.vatDue ?? 0)} hint="4441" />
+        <StatCard index={1} color="green" icon="📥" label={t("VAT collected")} value={fmt(d?.vatCollected ?? 0)} hint={showCodes ? "4431" : undefined} />
+        <StatCard index={2} color="amber" icon="📤" label={t("VAT deductible")} value={fmt(d?.vatDeductible ?? 0)} hint={showCodes ? "4452" : undefined} />
+        <StatCard index={3} color={d && d.vatDue < 0 ? "blue" : "red"} icon="🧾" label={t("VAT due")} value={fmt(d?.vatDue ?? 0)} hint={showCodes ? "4441" : undefined} />
       </div>
 
       <div className="overflow-hidden rounded-card border border-border bg-surface">
@@ -226,7 +242,7 @@ export function TaxDeclaration() {
               <th className="px-4 py-3 font-semibold">{t("Line")}</th>
               <th className="px-4 py-3 text-right font-semibold">{t("Base (excl. VAT)")}</th>
               <th className="px-4 py-3 text-right font-semibold">{t("VAT / TVA")}</th>
-              <th className="px-4 py-3 font-semibold">{t("OHADA acct")}</th>
+              {showCodes ? <th className="px-4 py-3 font-semibold">{t("OHADA acct")}</th> : null}
             </tr>
           </thead>
           <tbody>
@@ -234,13 +250,13 @@ export function TaxDeclaration() {
               <td className="px-4 py-3 font-medium text-text-primary">{t("VAT collected on sales")}</td>
               <td className="px-4 py-3 text-right text-text-primary">{fmt(d?.salesHt ?? 0)}</td>
               <td className="px-4 py-3 text-right font-semibold text-success">{fmt(d?.vatCollected ?? 0)}</td>
-              <td className="px-4 py-3 font-mono text-text-secondary">4431</td>
+              {showCodes ? <td className="px-4 py-3 font-mono text-text-secondary">4431</td> : null}
             </tr>
             <tr className="border-b border-border/60">
               <td className="px-4 py-3 font-medium text-text-primary">{t("VAT deductible on purchases")}</td>
               <td className="px-4 py-3 text-right text-text-primary">{fmt(d?.purchasesHt ?? 0)}</td>
               <td className="px-4 py-3 text-right font-semibold text-accent-amber">{fmt(d?.vatDeductible ?? 0)}</td>
-              <td className="px-4 py-3 font-mono text-text-secondary">4452</td>
+              {showCodes ? <td className="px-4 py-3 font-mono text-text-secondary">4452</td> : null}
             </tr>
           </tbody>
           <tfoot>
@@ -248,7 +264,7 @@ export function TaxDeclaration() {
               <td className="px-4 py-3">{t("VAT due (collected − deductible)")}</td>
               <td className="px-4 py-3" />
               <td className={`px-4 py-3 text-right ${d && d.vatDue < 0 ? "text-accent-blue" : "text-error"}`}>{fmt(d?.vatDue ?? 0)}</td>
-              <td className="px-4 py-3 font-mono text-text-secondary">4441</td>
+              {showCodes ? <td className="px-4 py-3 font-mono text-text-secondary">4441</td> : null}
             </tr>
           </tfoot>
         </table>
@@ -261,9 +277,13 @@ export function TaxDeclaration() {
       <div className="rounded-xl border border-border bg-background/40 p-4 text-xs text-text-secondary">
         <p className="font-semibold text-text-primary">{t("Notes")}</p>
         <p className="mt-1">
-          {t("Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate, as purchase records don't store a per-line rate — have your accountant confirm against actual supplier invoices. This report follows the SYSCOHADA VAT accounts and is a working document, not an official filing.")}
+          {showCodes
+            ? t("Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate, as purchase records don't store a per-line rate — have your accountant confirm against actual supplier invoices. This report follows the SYSCOHADA VAT accounts and is a working document, not an official filing.")
+            : t("Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate, as purchase records don't store a per-line rate — have your accountant confirm against actual supplier invoices. This is a working document, not an official filing.")}
         </p>
       </div>
+      </>
+      ) : null}
     </div>
   );
 }
