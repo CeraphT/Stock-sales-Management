@@ -7,12 +7,28 @@ function escapeHtml(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function measureUpm(line: ReceiptData["productLines"][number]): number {
+  return line.sellByMeasure && line.unitsPerMeasure && line.unitsPerMeasure > 0 ? line.unitsPerMeasure : 0;
+}
+
 function formatLineQuantity(line: ReceiptData["productLines"][number]): string {
+  const upm = measureUpm(line);
+  if (upm) {
+    return `${line.quantityInBaseUnits / upm} ${escapeHtml(line.measureUnit ?? "")}`;
+  }
   if (line.packagingLevelName) {
     const count = line.quantityInBaseUnits / line.unitsPerPackagingLevel;
     return `${count} × ${escapeHtml(line.packagingLevelName)}`;
   }
   return `${line.quantityInBaseUnits} unit${line.quantityInBaseUnits === 1 ? "" : "s"}`;
+}
+
+/** Unit price shown on the receipt — per display measure unit for weight/length
+ * lines (e.g. price/kg), otherwise the per-base-unit price. */
+function formatLineUnitPrice(line: ReceiptData["productLines"][number], currency: string): string {
+  const upm = measureUpm(line);
+  const price = upm ? line.unitPrice * upm : line.unitPrice;
+  return `${formatCurrency(price, currency)}${upm ? `/${escapeHtml(line.measureUnit ?? "")}` : ""}`;
 }
 
 /** Renders a printable/PDF-able receipt as self-contained HTML — passed to
@@ -27,7 +43,7 @@ export function generateReceiptHtml(data: ReceiptData): string {
         <tr>
           <td class="item-name">${escapeHtml(line.productName)}</td>
           <td class="item-qty">${formatLineQuantity(line)}</td>
-          <td class="item-price">${formatCurrency(line.unitPrice, data.currency)}</td>
+          <td class="item-price">${formatLineUnitPrice(line, data.currency)}</td>
           <td class="item-total">${formatCurrency(line.lineTotal, data.currency)}</td>
         </tr>`,
       )

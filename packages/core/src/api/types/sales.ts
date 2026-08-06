@@ -42,6 +42,12 @@ export interface SaleLineResponse {
   unitPrice: number;
   taxRatePercent: number;
   lineTotal: number;
+  /** Sell-by-measure metadata (weight/length) so the receipt/detail can show the
+   * quantity as its display unit (e.g. 1250 base units shown as "1.25 kg") and
+   * the price per that unit. `sellByMeasure` false → treat as a plain unit line. */
+  sellByMeasure?: boolean;
+  measureUnit?: string | null;
+  unitsPerMeasure?: number;
 }
 
 export interface ServiceLineResponse {

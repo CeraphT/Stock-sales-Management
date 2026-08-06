@@ -22,7 +22,8 @@ public record CreateSaleRequest(
 public record SaleLineResponse(
     Guid ProductId, string ProductName, Guid? BatchId, string? BatchNumber,
     int QuantityInBaseUnits, Guid? PackagingLevelId, string? PackagingLevelName, int UnitsPerPackagingLevel, decimal UnitPrice,
-    decimal TaxRatePercent, decimal LineTotal);
+    decimal TaxRatePercent, decimal LineTotal,
+    bool SellByMeasure, string? MeasureUnit, int UnitsPerMeasure);
 public record ServiceLineResponse(Guid ServiceId, string ServiceName, int Quantity, decimal BilledPrice, decimal LineTotal);
 public record PaymentSplitResponse(PaymentMethod Method, decimal Amount);
 
@@ -204,7 +205,8 @@ public static class SaleEndpoints
                         saleLineResponses.Add(new SaleLineResponse(
                             product.Id, product.Name, deduction.BatchId, batch?.BatchNumber,
                             deduction.QuantityInBaseUnits, level?.Id, level?.UnitName, unitsPerRequestedQuantity, unitPrice, taxRatePercent,
-                            unitPrice * deduction.QuantityInBaseUnits));
+                            unitPrice * deduction.QuantityInBaseUnits,
+                            product.SellByMeasure, product.SellByMeasure ? product.MeasureUnit : null, product.UnitsPerMeasure > 0 ? product.UnitsPerMeasure : 1));
                     }
                 }
 
@@ -525,7 +527,8 @@ public static class SaleEndpoints
                 saleLineResponses.Add(new SaleLineResponse(
                     product.Id, product.Name, null, null,
                     quantityInBaseUnits, level?.Id, level?.UnitName, unitsPerRequestedQuantity, unitPrice, taxRatePercent,
-                    unitPrice * quantityInBaseUnits));
+                    unitPrice * quantityInBaseUnits,
+                    product.SellByMeasure, product.SellByMeasure ? product.MeasureUnit : null, product.UnitsPerMeasure > 0 ? product.UnitsPerMeasure : 1));
             }
 
             sale.Total = saleLineResponses.Sum(l => l.LineTotal);
@@ -688,7 +691,8 @@ public static class SaleEndpoints
             var productLines = sale.ProductLines.Select(l => new SaleLineResponse(
                 l.ProductId, l.Product!.Name, l.BatchId, l.Batch?.BatchNumber,
                 l.QuantityInBaseUnits, l.PackagingLevelId, l.PackagingLevel?.UnitName, l.PackagingLevel?.QuantityInBaseUnits ?? 1, l.UnitPrice, l.TaxRatePercent,
-                l.UnitPrice * l.QuantityInBaseUnits));
+                l.UnitPrice * l.QuantityInBaseUnits,
+                l.Product!.SellByMeasure, l.Product!.SellByMeasure ? l.Product!.MeasureUnit : null, l.Product!.UnitsPerMeasure > 0 ? l.Product!.UnitsPerMeasure : 1));
 
             var serviceLines = sale.ServiceLines.Select(l => new ServiceLineResponse(
                 l.ServiceId, l.Service!.Name, l.Quantity, l.BilledPrice, l.BilledPrice * l.Quantity));

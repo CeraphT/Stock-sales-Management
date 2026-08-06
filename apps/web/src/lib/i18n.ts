@@ -152,6 +152,8 @@ export const FR: Record<string, string> = {
   "Charge": "Encaisser",
   "Sell as": "Vendre en",
   "Unit": "Unité",
+  "Enter weight / quantity": "Saisir le poids / la quantité",
+  "Add to cart": "Ajouter au panier",
 
   // ── Cash register ──────────────────────────────────────────────────
   "Register open": "Caisse ouverte",
@@ -832,6 +834,7 @@ export const FR: Record<string, string> = {
     "Désactivé par défaut : chaque produit doit être lié à un fournisseur. Activez pour enregistrer un stock existant dont le fournisseur est inconnu.",
   "Settings saved.": "Paramètres enregistrés.",
   "Expiry date (required)": "Date d'expiration (obligatoire)",
+  "Expiry date (optional)": "Date d'expiration (facultatif)",
   "Quantity (base units)": "Quantité (unités de base)",
   "Unit cost (optional)": "Coût unitaire (facultatif)",
   "— select batch —": "— choisir un lot —",

@@ -7,6 +7,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
+import { useCapabilities } from "@/lib/useCapabilities";
 import { useT } from "@/lib/i18n";
 import { runSync } from "@/lib/sync/runSync";
 import { useAuthStore } from "@/lib/stores";
@@ -17,6 +18,7 @@ export function StockReceive() {
   const companyId = useAuthStore((s) => s.companyId)!;
   const locationId = useAuthStore((s) => s.locationId)!;
   const t = useT();
+  const caps = useCapabilities();
 
   const { data: product } = useQuery({
     queryKey: ["product", companyId, productId],
@@ -32,10 +34,18 @@ export function StockReceive() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const levels = product?.packagingLevels ?? [];
+  // Sell-by-measure products (e.g. a butcher's beef) are received in the display
+  // measure unit (kg), converted to whole base units (grams). They never carry
+  // packaging levels, so the level picker is hidden for them.
+  const measure = !!product?.sellByMeasure;
+  const measureUnit = product?.measureUnit ?? "";
+  const measureUpm = product?.unitsPerMeasure && product.unitsPerMeasure > 0 ? product.unitsPerMeasure : 1;
+  const expiryRequired = caps.expiryTracking;
+
+  const levels = measure ? [] : product?.packagingLevels ?? [];
   const level = levels.find((l) => l.id === levelId);
-  const unitsPer = level?.quantityInBaseUnits ?? 1; // base units per received unit
-  const baseUnits = (Number(qty) || 0) * unitsPer;
+  const unitsPer = measure ? measureUpm : level?.quantityInBaseUnits ?? 1; // base units per received unit
+  const baseUnits = Math.round((Number(qty) || 0) * unitsPer);
 
   async function submit() {
     if (busy) return;
@@ -71,7 +81,11 @@ export function StockReceive() {
           <p className="text-sm text-text-secondary">{product?.name ?? ""}</p>
         </div>
         <TextField label={t("Batch number")} value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} />
-        <TextField label={t("Expiry date (required)")} type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
+        {expiryRequired ? (
+          <TextField label={t("Expiry date (required)")} type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
+        ) : (
+          <TextField label={t("Expiry date (optional)")} type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
+        )}
 
         {levels.length > 0 ? (
           <label className="block">
@@ -92,13 +106,23 @@ export function StockReceive() {
         ) : null}
 
         <div>
-          <TextField label={level ? `${t("Quantity")} (${level.unitName})` : t("Quantity (base units)")} type="number" value={qty} onChange={(e) => setQty(e.target.value)} />
-          {level && Number(qty) > 0 ? <p className="mt-1 text-xs text-text-secondary">= {baseUnits} {t("base units")}</p> : null}
+          <TextField
+            label={measure ? `${t("Quantity")} (${measureUnit})` : level ? `${t("Quantity")} (${level.unitName})` : t("Quantity (base units)")}
+            type="number"
+            value={qty}
+            onChange={(e) => setQty(e.target.value)}
+          />
+          {(measure || level) && Number(qty) > 0 ? <p className="mt-1 text-xs text-text-secondary">= {baseUnits} {t("base units")}</p> : null}
         </div>
 
-        <TextField label={level ? `${t("Cost")} (${level.unitName}${t(", optional")})` : t("Unit cost (optional)")} type="number" value={cost} onChange={(e) => setCost(e.target.value)} />
+        <TextField
+          label={measure ? `${t("Cost")} (${measureUnit}${t(", optional")})` : level ? `${t("Cost")} (${level.unitName}${t(", optional")})` : t("Unit cost (optional)")}
+          type="number"
+          value={cost}
+          onChange={(e) => setCost(e.target.value)}
+        />
         {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
-        <Button onClick={submit} loading={busy} disabled={!batchNumber.trim() || !expiry || Number(qty) <= 0}>
+        <Button onClick={submit} loading={busy} disabled={!batchNumber.trim() || (expiryRequired && !expiry) || Number(qty) <= 0}>
           {t("Receive")}
         </Button>
       </div>

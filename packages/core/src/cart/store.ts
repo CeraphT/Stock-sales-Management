@@ -14,8 +14,13 @@ export interface CartLine {
    * ProductSearchResult.salePrice). */
   unitPrice: number;
   /** In the packaging-level's own unit (e.g. "2 boxes"), not base units —
-   * localSalesService.createSale expects quantity in this same shape. */
+   * localSalesService.createSale expects quantity in this same shape. For a
+   * sell-by-measure line, this is the whole number of base units (e.g. grams). */
   quantity: number;
+  /** Set for sell-by-measure lines so the cart/receipt can show the quantity as
+   * the display unit (e.g. grams shown as kg) and the price per that unit. */
+  measureUnit?: string | null;
+  unitsPerMeasure?: number;
 }
 
 export interface CartServiceLine {

@@ -61,6 +61,8 @@ export function Pos() {
   const [savingCustomer, setSavingCustomer] = useState(false);
   const [lastSaleId, setLastSaleId] = useState<string | null>(null);
   const [levelPick, setLevelPick] = useState<ProductSearchResult | null>(null);
+  const [measurePick, setMeasurePick] = useState<ProductSearchResult | null>(null);
+  const [measureQty, setMeasureQty] = useState("");
   // Live gift-card lookup: null = idle, "notfound" = no such card, else its balance/status.
   const [giftCardInfo, setGiftCardInfo] = useState<{ remainingValue: number; active: boolean } | "notfound" | null>(null);
 
@@ -193,6 +195,30 @@ export function Pos() {
     setMsg(null);
   }
 
+  // Add a sell-by-measure product: the cashier enters a weight/length in the
+  // display unit (e.g. 1.25 kg); the cart line holds it as whole base units
+  // (1250 g) at the per-base-unit price, so the engine prices it exactly.
+  function addMeasure(p: ProductSearchResult, displayQty: number) {
+    const upm = p.unitsPerMeasure && p.unitsPerMeasure > 0 ? p.unitsPerMeasure : 1;
+    const baseUnits = Math.round(displayQty * upm);
+    if (baseUnits <= 0) return;
+    const key = `${p.productId}:measure`;
+    addLine({
+      key,
+      productId: p.productId,
+      productName: p.name,
+      packagingLevelId: null,
+      packagingLevelName: null,
+      unitPrice: p.salePrice,
+      measureUnit: p.measureUnit,
+      unitsPerMeasure: upm,
+    });
+    updateQuantity(key, baseUnits); // set the exact weighed amount
+    setMeasurePick(null);
+    setMeasureQty("");
+    setMsg(null);
+  }
+
   function addLevel(p: ProductSearchResult, level: { id: string; unitName: string; unitPrice: number }) {
     addLine({
       key: `${p.productId}:${level.id}`,
@@ -217,6 +243,12 @@ export function Pos() {
       toast(`⚠ ${p.name} — ${t("expired on")} ${p.earliestExpiry!.slice(0, 10)}. ${t("Sell with caution.")}`, "error");
     }
     setSearch("");
+    // Sell-by-measure (weight/length): prompt for the amount in the display unit.
+    if (p.sellByMeasure) {
+      setMeasurePick(p);
+      setMeasureQty("");
+      return;
+    }
     // With packaging levels (Box/Blister/…), let the cashier pick the unit to
     // sell; otherwise add the base unit directly.
     if (p.packagingLevels.length > 0) {
@@ -438,24 +470,34 @@ export function Pos() {
                           <span className="ml-1.5 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">📦 {l.packagingLevelName}</span>
                         ) : null}
                       </div>
-                      <div className="text-xs text-text-secondary">{formatCurrency(l.unitPrice, currency)} {t("each")}</div>
+                      <div className="text-xs text-text-secondary">
+                        {l.measureUnit
+                          ? `${formatCurrency(l.unitPrice * (l.unitsPerMeasure || 1), currency)}/${l.measureUnit}`
+                          : `${formatCurrency(l.unitPrice, currency)} ${t("each")}`}
+                      </div>
                     </td>
                     <td className="px-2 py-3">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <button
-                          onClick={() => updateQuantity(l.key, l.quantity - 1)}
-                          className="h-7 w-7 rounded-lg border border-border text-text-primary hover:bg-background"
-                        >
-                          −
-                        </button>
-                        <span className="w-8 text-center font-semibold text-text-primary">{l.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(l.key, l.quantity + 1)}
-                          className="h-7 w-7 rounded-lg border border-border text-text-primary hover:bg-background"
-                        >
-                          +
-                        </button>
-                      </div>
+                      {l.measureUnit ? (
+                        <div className="text-center font-semibold text-text-primary">
+                          {l.quantity / (l.unitsPerMeasure || 1)} {l.measureUnit}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => updateQuantity(l.key, l.quantity - 1)}
+                            className="h-7 w-7 rounded-lg border border-border text-text-primary hover:bg-background"
+                          >
+                            −
+                          </button>
+                          <span className="w-8 text-center font-semibold text-text-primary">{l.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(l.key, l.quantity + 1)}
+                            className="h-7 w-7 rounded-lg border border-border text-text-primary hover:bg-background"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-text-primary">
                       {formatCurrency(l.unitPrice * l.quantity, currency)}
@@ -693,6 +735,39 @@ export function Pos() {
             </div>
             <div className="mt-5 flex justify-end">
               <Button variant="ghost" onClick={() => setLevelPick(null)}>{t("Cancel")}</Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {measurePick ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 backdrop-blur-sm" onClick={() => setMeasurePick(null)}>
+          <div className="card-in w-full max-w-sm rounded-card border border-border bg-surface p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-text-secondary">⚖️ {t("Enter weight / quantity")}</div>
+            <div className="text-lg font-bold text-text-primary">{measurePick.name}</div>
+            <div className="mb-4 text-sm text-text-secondary">
+              {formatCurrency(measurePick.salePrice * (measurePick.unitsPerMeasure || 1), currency)}/{measurePick.measureUnit}
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                value={measureQty}
+                onChange={(e) => setMeasureQty(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && Number(measureQty) > 0) addMeasure(measurePick, Number(measureQty)); }}
+                inputMode="decimal"
+                autoFocus
+                placeholder="0"
+                className="h-12 flex-1 rounded-xl border border-border bg-background px-3.5 text-lg text-text-primary outline-none focus:border-primary"
+              />
+              <span className="text-lg font-semibold text-text-secondary">{measurePick.measureUnit}</span>
+            </div>
+            {Number(measureQty) > 0 ? (
+              <div className="mt-2 text-sm text-text-secondary">
+                {t("Total")}: <span className="font-bold text-text-primary">{formatCurrency(measurePick.salePrice * (measurePick.unitsPerMeasure || 1) * Number(measureQty), currency)}</span>
+              </div>
+            ) : null}
+            <div className="mt-5 flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setMeasurePick(null)}>{t("Cancel")}</Button>
+              <Button onClick={() => addMeasure(measurePick, Number(measureQty))} disabled={!(Number(measureQty) > 0)}>{t("Add to cart")}</Button>
             </div>
           </div>
         </div>

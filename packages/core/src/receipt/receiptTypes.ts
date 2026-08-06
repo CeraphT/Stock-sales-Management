@@ -7,6 +7,11 @@ export interface ReceiptLine {
   unitsPerPackagingLevel: number;
   unitPrice: number;
   lineTotal: number;
+  /** Sell-by-measure metadata (weight/length): when set, the receipt shows the
+   * quantity as its display unit (e.g. "1.25 kg") and the price per that unit. */
+  sellByMeasure?: boolean;
+  measureUnit?: string | null;
+  unitsPerMeasure?: number;
 }
 
 export interface ReceiptServiceLine {
