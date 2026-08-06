@@ -33,7 +33,7 @@
           "image": "./assets/images/icon.png",
           "imageWidth": 160,
           "dark": {
-            "backgroundColor": "#111827",
+            "backgroundColor": "#FFFFFF",
             "image": "./assets/images/icon.png",
             "imageWidth": 160
           }
