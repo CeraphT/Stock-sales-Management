@@ -37,7 +37,7 @@ export function CreateCompany() {
         adminPassword,
         deviceId,
         deviceName,
-        platform: DevicePlatform.Desktop,
+        platform: DevicePlatform.Web,
       });
       useAuthStore.getState().setSession({
         token: res.admin.token,

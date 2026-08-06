@@ -31,7 +31,7 @@ export function Login() {
         password,
         deviceId,
         deviceName,
-        platform: DevicePlatform.Desktop,
+        platform: DevicePlatform.Web,
       });
       useAuthStore.getState().setSession({
         token: auth.token,

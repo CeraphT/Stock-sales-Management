@@ -54,7 +54,7 @@ export function SuperAdminCompanyDetail() {
 
   return (
     <div>
-      <button onClick={() => navigate("/superadmin")} className="mb-3 text-sm font-medium text-text-secondary transition hover:text-primary">
+      <button onClick={() => navigate("/superadmin/companies")} className="mb-3 text-sm font-medium text-text-secondary transition hover:text-primary">
         ← {t("Companies")}
       </button>
 

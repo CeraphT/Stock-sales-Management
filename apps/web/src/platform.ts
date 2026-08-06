@@ -26,4 +26,4 @@ export const keyValueStorageAdapter: KeyValueStorage = {
 // use crypto.randomUUID() directly.
 export const generateId = () => crypto.randomUUID();
 
-export const deviceName = "PharmaStock Desktop";
+export const deviceName = "PharmaStock Web";

@@ -1,4 +1,4 @@
-import type { UserRole } from "../enums";
+import type { DevicePlatform, UserRole } from "../enums";
 
 /** Cross-tenant company row with cheap aggregate stats (see the API's
  * SuperAdminCompanySummary record). SuperAdmin-only. */
@@ -57,4 +57,60 @@ export interface ImpersonateResponse {
   companyName: string;
   locationId: string | null;
   locationName: string | null;
+}
+
+// ── Fleet monitoring ────────────────────────────────────────────────────────
+export interface SuperAdminOverview {
+  totalCompanies: number;
+  newCompanies7d: number;
+  totalUsers: number;
+  totalDevices: number;
+  liveDevices: number;
+  activeUsers24h: number;
+  activeUsers7d: number;
+  mobileActive7d: number;
+  desktopActive7d: number;
+  webActive7d: number;
+}
+
+export interface SuperAdminDeviceRow {
+  id: string;
+  companyId: string | null;
+  companyName: string | null;
+  userId: string;
+  userName: string;
+  platform: DevicePlatform;
+  deviceName: string;
+  appVersion: string | null;
+  lastActiveAt: string;
+  createdAt: string;
+  lastIp: string | null;
+  city: string | null;
+  country: string | null;
+  isRevoked: boolean;
+  remoteWipeRequested: boolean;
+}
+
+export interface SuperAdminUserRow {
+  id: string;
+  companyId: string | null;
+  companyName: string | null;
+  name: string;
+  phone: string;
+  role: UserRole;
+  active: boolean;
+  lastActiveAt: string | null;
+}
+
+export interface AuditLogRow {
+  id: string;
+  actorUserId: string | null;
+  actorName: string;
+  action: string;
+  targetType: string | null;
+  targetId: string | null;
+  companyId: string | null;
+  ip: string | null;
+  detail: string | null;
+  createdAt: string;
 }

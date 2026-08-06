@@ -15,6 +15,7 @@ import { useT } from "@/lib/i18n";
 import { NAV } from "@/lib/nav";
 import { logout } from "@/lib/session";
 import { useAutoBackup } from "@/lib/useAutoBackup";
+import { useHeartbeat } from "@/lib/useHeartbeat";
 import { useIdleLogout } from "@/lib/useIdleLogout";
 import { useAuthStore, useLanguageStore } from "@/lib/stores";
 import { runSync } from "@/lib/sync/runSync";
@@ -80,6 +81,8 @@ export function Shell() {
 
   // Auto sign-out an idle till.
   useIdleLogout();
+  // Keep this session visible as "live" in the fleet monitoring view.
+  useHeartbeat();
   // Daily local safety backup (offline-resilient, catch-up scheduled).
   useAutoBackup();
 

@@ -1,10 +1,14 @@
 import { api } from "../client";
 import type {
+  AuditLogRow,
   CreateSuperAdminRequest,
   ImpersonateResponse,
   SuperAdminAccount,
   SuperAdminCompanyDetail,
   SuperAdminCompanySummary,
+  SuperAdminDeviceRow,
+  SuperAdminOverview,
+  SuperAdminUserRow,
 } from "../types/superAdmin";
 
 /** Cross-tenant super-admin API (the `/api/superadmin/*` group — every call
@@ -25,4 +29,22 @@ export const superAdminApi = {
 
   setAdminActive: (id: string, active: boolean) =>
     api.put<SuperAdminAccount>(`/api/superadmin/admins/${id}/active`, { active }),
+
+  // ── Fleet monitoring ──────────────────────────────────────────────────
+  overview: () => api.get<SuperAdminOverview>("/api/superadmin/overview"),
+
+  listDevices: (companyId?: string) =>
+    api.get<SuperAdminDeviceRow[]>("/api/superadmin/devices", companyId ? { companyId } : undefined),
+
+  blockDevice: (id: string) => api.post<unknown>(`/api/superadmin/devices/${id}/block`, {}),
+  unblockDevice: (id: string) => api.post<unknown>(`/api/superadmin/devices/${id}/unblock`, {}),
+  wipeDevice: (id: string) => api.post<unknown>(`/api/superadmin/devices/${id}/wipe`, {}),
+
+  listUsers: (companyId?: string) =>
+    api.get<SuperAdminUserRow[]>("/api/superadmin/users", companyId ? { companyId } : undefined),
+
+  setUserActive: (id: string, active: boolean) =>
+    api.post<unknown>(`/api/superadmin/users/${id}/active`, { active }),
+
+  listAudit: (take = 200) => api.get<AuditLogRow[]>("/api/superadmin/audit", { take: String(take) }),
 };

@@ -51,9 +51,13 @@ import { JoinCompany } from "@/screens/auth/JoinCompany";
 import { Login } from "@/screens/auth/Login";
 import { Onboarding } from "@/screens/auth/Onboarding";
 import { SuperAdminAdmins } from "@/screens/superadmin/Admins";
+import { SuperAdminAudit } from "@/screens/superadmin/Audit";
 import { SuperAdminCompanies } from "@/screens/superadmin/Companies";
 import { SuperAdminCompanyDetail } from "@/screens/superadmin/CompanyDetail";
+import { SuperAdminDevices } from "@/screens/superadmin/Devices";
+import { SuperAdminOverview } from "@/screens/superadmin/Overview";
 import { SuperAdminShell } from "@/screens/superadmin/SuperAdminShell";
+import { SuperAdminUsers } from "@/screens/superadmin/Users";
 
 function RootRedirect() {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
@@ -118,8 +122,12 @@ export const router = createBrowserRouter([
       {
         errorElement: <ScreenErrorFallback />,
         children: [
-          { path: "/superadmin", element: <SuperAdminCompanies /> },
+          { path: "/superadmin", element: <SuperAdminOverview /> },
+          { path: "/superadmin/companies", element: <SuperAdminCompanies /> },
           { path: "/superadmin/companies/:id", element: <SuperAdminCompanyDetail /> },
+          { path: "/superadmin/devices", element: <SuperAdminDevices /> },
+          { path: "/superadmin/users", element: <SuperAdminUsers /> },
+          { path: "/superadmin/audit", element: <SuperAdminAudit /> },
           { path: "/superadmin/admins", element: <SuperAdminAdmins /> },
         ],
       },
