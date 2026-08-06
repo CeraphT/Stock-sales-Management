@@ -1,0 +1,12 @@
+# Keep the Docker build context small — these are rebuilt inside the images.
+**/node_modules
+**/bin
+**/obj
+**/dist
+**/.gradle
+**/build
+apps/mobile/android
+apps/mobile/ios
+apps/desktop/src-tauri/target
+.git
+**/*.log

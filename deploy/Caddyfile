@@ -1,0 +1,12 @@
+# Automatic HTTPS (Let's Encrypt) for each subdomain. The domains must already
+# point (A/AAAA records) at this server, and ports 80/443 must be open.
+
+api.mfspace.lu {
+	reverse_proxy api:8080
+}
+
+stock.mfspace.lu {
+	reverse_proxy web:80
+}
+
+# budget.mfspace.lu → HouseBudget — added in Phase B.

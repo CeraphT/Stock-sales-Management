@@ -1,0 +1,66 @@
+# StockFlow / PharmaStock production stack — one Hetzner box.
+#   api.mfspace.lu   → api (.NET) ── Postgres
+#   stock.mfspace.lu → web (Vite static)
+#   budget.mfspace.lu → HouseBudget (added in Phase B)
+# Caddy fronts everything with automatic Let's Encrypt TLS.
+#
+# Run from this folder:  docker compose up -d --build
+# Build context is the repo root (..) so the Dockerfiles can see all projects.
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: pharmastock
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d pharmastock"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ..
+      dockerfile: src/PharmaStock.Api/Dockerfile
+    environment:
+      ConnectionStrings__Default: "Host=db;Database=pharmastock;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      Jwt__Secret: ${JWT_SECRET}
+      SuperAdmin__BootstrapSecret: ${BOOTSTRAP_SECRET}
+      CORS_ORIGINS: "https://stock.mfspace.lu"
+      AUTO_MIGRATE: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_BASE_URL: "https://api.mfspace.lu"
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - web
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

@@ -53,11 +53,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // CORS. Dev-permissive on purpose — tighten WithOrigins for production, where
 // the desktop app is served from a fixed tauri:// / app origin.
 const string DevClientsCors = "DevClients";
+// In production set CORS_ORIGINS to a comma-separated allow-list (e.g.
+// "https://stock.mfspace.lu"); unset (local dev) falls back to allow-any.
+var corsOrigins = (builder.Configuration["CORS_ORIGINS"]
+        ?? Environment.GetEnvironmentVariable("CORS_ORIGINS"))
+    ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 builder.Services.AddCors(options =>
-    options.AddPolicy(DevClientsCors, policy => policy
-        .SetIsOriginAllowed(_ => true)
-        .AllowAnyHeader()
-        .AllowAnyMethod()));
+    options.AddPolicy(DevClientsCors, policy =>
+    {
+        if (corsOrigins is { Length: > 0 })
+            policy.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod();
+        else
+            policy.SetIsOriginAllowed(_ => true).AllowAnyHeader().AllowAnyMethod();
+    }));
 
 builder.Services.AddAuthorization(options =>
     // The only role check today that must exclude CompanyAdmin — every other
@@ -67,6 +75,14 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("SuperAdminOnly", policy => policy.RequireRole(nameof(UserRole.SuperAdmin))));
 
 var app = builder.Build();
+
+// Apply EF migrations on startup when AUTO_MIGRATE=true (set in the production
+// compose). Local dev leaves it unset and keeps using `dotnet ef database update`.
+if (Environment.GetEnvironmentVariable("AUTO_MIGRATE") == "true")
+{
+    using var scope = app.Services.CreateScope();
+    scope.ServiceProvider.GetRequiredService<PharmaStockDbContext>().Database.Migrate();
+}
 
 app.UseCors(DevClientsCors);
 app.UseAuthentication();
