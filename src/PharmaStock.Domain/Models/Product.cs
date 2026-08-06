@@ -62,6 +62,16 @@ public class Product : ITimestamped
     // unit and selling requires picking specific in-stock serials.
     public bool SerialTracked { get; set; } = false;
 
+    // ── Assembly / kits (bill of materials) ──────────────────────────────────
+    // An assembly is built from component products (see BillOfMaterialLine). A
+    // "build N units" action FEFO-deducts the components and adds finished-goods
+    // stock of THIS product (a normal Batch), which then sells like anything
+    // else — so the sales engine is untouched. IsAssembly is true whenever a BOM
+    // exists; the free-text Manufacturer is an optional maker/brand label.
+    public bool IsAssembly { get; set; } = false;
+    public string? Manufacturer { get; set; }
+    public ICollection<BillOfMaterialLine> BillOfMaterials { get; set; } = new List<BillOfMaterialLine>();
+
     /// <summary>Section 18.3 — null means "use Company.DefaultTaxRatePercent".
     /// Set explicitly (e.g. to 0) for a VAT-exempt product, since not every
     /// pharmaceutical item is taxed at the same rate.</summary>

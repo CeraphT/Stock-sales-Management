@@ -145,6 +145,27 @@ public class ProductSerialConfiguration : IEntityTypeConfiguration<ProductSerial
     }
 }
 
+/// <summary>Bill-of-materials lines. Cascade with the assembly product (the BOM
+/// has no meaning without it); Restrict on the component so a product used as a
+/// component isn't deleted out from under an assembly that depends on it.</summary>
+public class BillOfMaterialLineConfiguration : IEntityTypeConfiguration<BillOfMaterialLine>
+{
+    public void Configure(EntityTypeBuilder<BillOfMaterialLine> builder)
+    {
+        builder.HasIndex(b => b.AssemblyProductId);
+
+        builder.HasOne(b => b.AssemblyProduct)
+            .WithMany(p => p.BillOfMaterials)
+            .HasForeignKey(b => b.AssemblyProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(b => b.ComponentProduct)
+            .WithMany()
+            .HasForeignKey(b => b.ComponentProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 /// <summary>Gift card codes (Section 21.3) must be unique per company so two
 /// customers can never redeem the same code.</summary>
 public class GiftCardConfiguration : IEntityTypeConfiguration<GiftCard>

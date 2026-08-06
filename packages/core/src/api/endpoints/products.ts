@@ -2,6 +2,9 @@ import { api } from "../client";
 import type {
   AdjustStockRequest,
   BatchResponse,
+  BomLine,
+  BomLineRequest,
+  BuildAssemblyRequest,
   ProductCatalogFilter,
   ProductCatalogPageResponse,
   ProductDetailResponse,
@@ -71,6 +74,17 @@ export const productsApi = {
   // Bulk-create variants from labels (e.g. ["S","M","L"]); returns all variants.
   createVariants: (companyId: string, productId: string, labels: string[]) =>
     api.post<ProductDetailResponse[]>(`/api/companies/${companyId}/products/${productId}/variants`, { labels }),
+
+  // Bill of materials (assembly components).
+  bom: (companyId: string, productId: string) =>
+    api.get<BomLine[]>(`/api/companies/${companyId}/products/${productId}/bom`),
+
+  setBom: (companyId: string, productId: string, lines: BomLineRequest[]) =>
+    api.put<void>(`/api/companies/${companyId}/products/${productId}/bom`, { lines }),
+
+  // Build N units: FEFO-deduct components, add finished-goods stock. Returns the batch.
+  build: (companyId: string, productId: string, body: BuildAssemblyRequest) =>
+    api.post<BatchResponse>(`/api/companies/${companyId}/products/${productId}/build`, body),
 
   receiveStock: (companyId: string, productId: string, body: ReceiveStockRequest) =>
     api.post<BatchResponse>(`/api/companies/${companyId}/products/${productId}/stock/receive`, body),

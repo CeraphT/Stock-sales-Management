@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using PharmaStock.Domain.Models;
 using PharmaStock.Infrastructure.Data;
+using PharmaStock.Infrastructure.Services;
 
 namespace PharmaStock.Api.Services;
 
@@ -47,7 +48,7 @@ public record ProductRequest(
     decimal? TaxRateOverridePercent, bool IsFavorite,
     List<PackagingLevelRequest>? PackagingLevels,
     bool SellByMeasure = false, string? MeasureUnit = null, int UnitsPerMeasure = 1,
-    bool SerialTracked = false
+    bool SerialTracked = false, string? Manufacturer = null
 );
 
 public record PackagingLevelDetail(Guid Id, string UnitName, int QuantityInBaseUnits, decimal? SalePriceOverride);
@@ -58,7 +59,8 @@ public record ProductDetailResponse(
     decimal? TaxRateOverridePercent, List<PackagingLevelDetail> PackagingLevels,
     bool SellByMeasure = false, string? MeasureUnit = null, int UnitsPerMeasure = 1,
     bool SerialTracked = false,
-    string? VariantName = null, Guid? ParentProductId = null, bool HasVariants = false
+    string? VariantName = null, Guid? ParentProductId = null, bool HasVariants = false,
+    bool IsAssembly = false, string? Manufacturer = null
 );
 
 // Section 3.4 — restock suggestions for the "Nouvelle commande" supplier-first
@@ -72,6 +74,12 @@ public record ProductCatalogItem(Guid Id, string Name, string? Barcode, string? 
 public record ProductCatalogPageResponse(List<ProductCatalogItem> Items, bool HasMore);
 
 public record CreateVariantsRequest(List<string> Labels);
+
+// ── Assembly / bill-of-materials ─────────────────────────────────────────────
+public record BomLineRequest(Guid ComponentProductId, int QuantityInBaseUnits);
+public record BomLineResponse(Guid ComponentProductId, string ComponentName, int QuantityInBaseUnits, int ComponentStockAvailable);
+public record SetBomRequest(List<BomLineRequest> Lines);
+public record BuildAssemblyRequest(Guid LocationId, int Quantity, string BatchNumber, DateTime? ExpiryDate);
 
 public static class ProductEndpoints
 {
@@ -394,6 +402,154 @@ public static class ProductEndpoints
             return Results.Ok(all.Select(ToDetailResponse).ToList());
         }).RequireAuthorization();
 
+        // Bill of materials for an assembly product.
+        group.MapGet("/{productId:guid}/bom", async (Guid companyId, Guid productId, PharmaStockDbContext db, HttpContext http) =>
+        {
+            if (http.User.GetCompanyId() != companyId)
+                return Results.Forbid();
+
+            var lines = await db.BillOfMaterialLines
+                .Where(b => b.AssemblyProductId == productId && b.AssemblyProduct!.CompanyId == companyId)
+                .Select(b => new BomLineResponse(
+                    b.ComponentProductId,
+                    b.ComponentProduct!.Name,
+                    b.QuantityInBaseUnits,
+                    b.ComponentProduct!.Batches.Sum(bt => bt.QuantityInBaseUnits)))
+                .ToListAsync();
+            return Results.Ok(lines);
+        }).RequireAuthorization();
+
+        // Replace an assembly's BOM. Empty list clears it (and unmarks IsAssembly).
+        group.MapPut("/{productId:guid}/bom", async (Guid companyId, Guid productId, SetBomRequest request, PharmaStockDbContext db, HttpContext http) =>
+        {
+            if (http.User.GetCompanyId() != companyId)
+                return Results.Forbid();
+
+            var product = await db.Products
+                .Include(p => p.BillOfMaterials)
+                .FirstOrDefaultAsync(p => p.Id == productId && p.CompanyId == companyId);
+            if (product is null)
+                return Results.NotFound(new { message = "Produit introuvable." });
+
+            var lines = (request.Lines ?? new List<BomLineRequest>())
+                .Where(l => l.QuantityInBaseUnits > 0)
+                .GroupBy(l => l.ComponentProductId).Select(g => g.First()) // de-dupe by component
+                .ToList();
+            if (lines.Any(l => l.ComponentProductId == productId))
+                return Results.BadRequest(new { message = "Un produit ne peut pas être son propre composant." });
+
+            var componentIds = lines.Select(l => l.ComponentProductId).ToList();
+            var validCount = await db.Products.CountAsync(p => componentIds.Contains(p.Id) && p.CompanyId == companyId);
+            if (validCount != componentIds.Count)
+                return Results.BadRequest(new { message = "Un ou plusieurs composants sont introuvables." });
+
+            db.BillOfMaterialLines.RemoveRange(product.BillOfMaterials);
+            foreach (var l in lines)
+                db.BillOfMaterialLines.Add(new BillOfMaterialLine
+                {
+                    AssemblyProductId = productId,
+                    ComponentProductId = l.ComponentProductId,
+                    QuantityInBaseUnits = l.QuantityInBaseUnits,
+                });
+            product.IsAssembly = lines.Count > 0;
+            await db.SaveChangesAsync();
+            return Results.NoContent();
+        }).RequireAuthorization();
+
+        // Build N units of an assembly: FEFO-deduct each component and add
+        // finished-goods stock of the assembly as a new batch. Atomic.
+        group.MapPost("/{productId:guid}/build", async (
+            Guid companyId, Guid productId, BuildAssemblyRequest request,
+            PharmaStockDbContext db, StockDeductionService deductor, HttpContext http) =>
+        {
+            if (http.User.GetCompanyId() != companyId)
+                return Results.Forbid();
+            var userId = http.User.GetUserId();
+            if (userId is null) return Results.Unauthorized();
+
+            if (request.Quantity <= 0)
+                return Results.BadRequest(new { message = "La quantité à produire doit être positive." });
+            if (string.IsNullOrWhiteSpace(request.BatchNumber))
+                return Results.BadRequest(new { message = "Le numéro de lot est requis." });
+
+            var company = await db.Companies.FirstOrDefaultAsync(c => c.Id == companyId);
+            if (company is null) return Results.NotFound(new { message = "Entreprise introuvable." });
+            if (company.ExpiryTrackingEnabled && request.ExpiryDate is null)
+                return Results.BadRequest(new { message = "La date d'expiration est requise." });
+
+            var product = await db.Products
+                .Include(p => p.BillOfMaterials)
+                .FirstOrDefaultAsync(p => p.Id == productId && p.CompanyId == companyId);
+            if (product is null) return Results.NotFound(new { message = "Produit introuvable." });
+            if (!product.IsAssembly || product.BillOfMaterials.Count == 0)
+                return Results.BadRequest(new { message = "Ce produit n'a pas de nomenclature (composants) à assembler." });
+
+            var locationExists = await db.Locations.AnyAsync(l => l.Id == request.LocationId && l.CompanyId == companyId);
+            if (!locationExists) return Results.NotFound(new { message = "Emplacement introuvable." });
+
+            await using var transaction = await db.Database.BeginTransactionAsync();
+            try
+            {
+                foreach (var bom in product.BillOfMaterials)
+                {
+                    var need = bom.QuantityInBaseUnits * request.Quantity;
+                    List<StockDeductionResult> deductions;
+                    try
+                    {
+                        deductions = await deductor.DeductFefoAsync(bom.ComponentProductId, request.LocationId, need);
+                    }
+                    catch (InsufficientStockException ex)
+                    {
+                        await transaction.RollbackAsync();
+                        var compName = await db.Products.Where(p => p.Id == bom.ComponentProductId).Select(p => p.Name).FirstOrDefaultAsync();
+                        return Results.Conflict(new { message = $"Stock insuffisant du composant « {compName} » : {ex.Requested} demandé(s), {ex.Available} disponible(s)." });
+                    }
+                    foreach (var d in deductions)
+                        db.StockMovements.Add(new StockMovement
+                        {
+                            ProductId = bom.ComponentProductId,
+                            BatchId = d.BatchId,
+                            LocationId = request.LocationId,
+                            Type = StockMovementType.AssemblyConsumption,
+                            QuantityInBaseUnits = -d.QuantityInBaseUnits,
+                            UserId = userId.Value,
+                        });
+                }
+
+                // Finished-goods stock: a new batch of the assembly product.
+                var batch = new Batch
+                {
+                    ProductId = productId,
+                    LocationId = request.LocationId,
+                    BatchNumber = request.BatchNumber.Trim(),
+                    ExpiryDate = request.ExpiryDate,
+                    QuantityInBaseUnits = request.Quantity,
+                    PurchasePricePerBaseUnit = product.PurchasePrice,
+                    PurchaseVatRatePercent = company.DefaultTaxRatePercent,
+                };
+                db.Batches.Add(batch);
+                db.StockMovements.Add(new StockMovement
+                {
+                    ProductId = productId,
+                    BatchId = batch.Id,
+                    LocationId = request.LocationId,
+                    Type = StockMovementType.AssemblyOutput,
+                    QuantityInBaseUnits = request.Quantity,
+                    UserId = userId.Value,
+                });
+
+                await db.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return Results.Ok(new BatchResponse(batch.Id, batch.LocationId, batch.BatchNumber, batch.ExpiryDate,
+                    batch.QuantityInBaseUnits, batch.PurchasePricePerBaseUnit, batch.ReceivedAt));
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }).RequireAuthorization();
+
         group.MapPost("/", async (Guid companyId, ProductRequest request, PharmaStockDbContext db, HttpContext http) =>
         {
             if (http.User.GetCompanyId() != companyId)
@@ -421,6 +577,7 @@ public static class ProductEndpoints
                 MeasureUnit = request.SellByMeasure ? request.MeasureUnit : null,
                 UnitsPerMeasure = request.SellByMeasure && request.UnitsPerMeasure > 0 ? request.UnitsPerMeasure : 1,
                 SerialTracked = request.SerialTracked,
+                Manufacturer = string.IsNullOrWhiteSpace(request.Manufacturer) ? null : request.Manufacturer.Trim(),
             };
             foreach (var level in ApplyPackagingLevels(product, request.PackagingLevels))
                 product.PackagingLevels.Add(level);
@@ -468,6 +625,7 @@ public static class ProductEndpoints
             product.MeasureUnit = request.SellByMeasure ? request.MeasureUnit : null;
             product.UnitsPerMeasure = request.SellByMeasure && request.UnitsPerMeasure > 0 ? request.UnitsPerMeasure : 1;
             product.SerialTracked = request.SerialTracked;
+            product.Manufacturer = string.IsNullOrWhiteSpace(request.Manufacturer) ? null : request.Manufacturer.Trim();
 
             // Matched by UnitName rather than full delete-then-recreate: a level
             // that's still present in the request keeps its existing Id, so any
@@ -592,7 +750,8 @@ public static class ProductEndpoints
         product.TaxRateOverridePercent,
         product.PackagingLevels.Select(l => new PackagingLevelDetail(l.Id, l.UnitName, l.QuantityInBaseUnits, l.SalePriceOverride)).ToList(),
         product.SellByMeasure, product.MeasureUnit, product.UnitsPerMeasure, product.SerialTracked,
-        product.VariantName, product.ParentProductId, product.HasVariants
+        product.VariantName, product.ParentProductId, product.HasVariants,
+        product.IsAssembly, product.Manufacturer
     );
 
     private static bool IsForeignKeyViolation(DbUpdateException ex) =>

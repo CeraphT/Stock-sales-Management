@@ -51,6 +51,7 @@ export function ProductForm() {
   const [sellByMeasure, setSellByMeasure] = useState(false);
   const [measureUnit, setMeasureUnit] = useState("kg");
   const [serialTracked, setSerialTracked] = useState(false);
+  const [manufacturer, setManufacturer] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,6 +137,67 @@ export function ProductForm() {
     }
   }
 
+  // Assembly / bill-of-materials (build-to-stock). Editable on a saved,
+  // non-variant product in an assembly-enabled company.
+  const showAssembly = isEdit && caps.assembly && !isVariant;
+  const [bom, setBom] = useState<{ componentProductId: string; componentName: string; quantityInBaseUnits: number }[]>([]);
+  const [bomLoaded, setBomLoaded] = useState(false);
+  const { data: bomData } = useQuery({
+    queryKey: ["bom", companyId, productId],
+    queryFn: () => productsApi.bom(companyId, productId!),
+    enabled: showAssembly,
+  });
+  useEffect(() => {
+    if (!bomData || bomLoaded) return;
+    setBom(bomData.map((b) => ({ componentProductId: b.componentProductId, componentName: b.componentName, quantityInBaseUnits: b.quantityInBaseUnits })));
+    setBomLoaded(true);
+  }, [bomData, bomLoaded]);
+  const [compSearch, setCompSearch] = useState("");
+  const { data: compResults = [] } = useQuery({
+    queryKey: ["bom-search", companyId, compSearch],
+    queryFn: () => productsApi.search(companyId, compSearch),
+    enabled: showAssembly && compSearch.trim().length > 0,
+  });
+  const [savingBom, setSavingBom] = useState(false);
+  async function saveBom() {
+    if (savingBom) return;
+    setSavingBom(true);
+    try {
+      await productsApi.setBom(companyId, productId!, bom.map((b) => ({ componentProductId: b.componentProductId, quantityInBaseUnits: b.quantityInBaseUnits })));
+      await runSync();
+      toast(t("Bill of materials saved."), "success");
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : t("Could not save the bill of materials."), "error");
+    } finally {
+      setSavingBom(false);
+    }
+  }
+  const locationId = useAuthStore((s) => s.locationId);
+  const [buildQty, setBuildQty] = useState("");
+  const [buildBatch, setBuildBatch] = useState("");
+  const [buildExpiry, setBuildExpiry] = useState("");
+  const [building, setBuilding] = useState(false);
+  async function build() {
+    if (building || !locationId) return;
+    setBuilding(true);
+    try {
+      await productsApi.build(companyId, productId!, {
+        locationId,
+        quantity: Number(buildQty) || 0,
+        batchNumber: buildBatch.trim(),
+        expiryDate: buildExpiry ? new Date(buildExpiry).toISOString() : null,
+      });
+      await runSync();
+      setBuildQty("");
+      setBuildBatch("");
+      toast(t("Built — finished stock added."), "success");
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : t("Build failed."), "error");
+    } finally {
+      setBuilding(false);
+    }
+  }
+
   useSetBreadcrumb([
     { label: "Products", to: "/products" },
     { label: isEdit ? detail?.name ?? "Edit product" : "New product" },
@@ -154,6 +216,7 @@ export function ProductForm() {
     setSellByMeasure(measure);
     setMeasureUnit(detail.measureUnit ?? "kg");
     setSerialTracked(detail.serialTracked ?? false);
+    setManufacturer(detail.manufacturer ?? "");
     setPurchasePrice(String(measure ? detail.purchasePrice * upm : detail.purchasePrice));
     setSalePrice(String(measure ? detail.salePrice * upm : detail.salePrice));
     setLowStock(String(detail.lowStockThreshold));
@@ -210,6 +273,7 @@ export function ProductForm() {
         measureUnit: sellByMeasure ? measureUnit : null,
         unitsPerMeasure: upm,
         serialTracked,
+        manufacturer: manufacturer.trim() || null,
       };
       if (isEdit) await productsApi.update(companyId, productId!, body);
       else await productsApi.create(companyId, body);
@@ -347,6 +411,10 @@ export function ProductForm() {
           </div>
         ) : null}
 
+        {caps.assembly ? (
+          <TextField label={t("Manufacturer / brand (optional)")} value={manufacturer} onChange={(e) => setManufacturer(e.target.value)} />
+        ) : null}
+
         <div className="grid grid-cols-3 gap-4">
           <TextField label={`${t("Purchase price")}${sellByMeasure ? ` (/${measureUnit})` : ""}`} type="number" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} />
           <TextField label={`${t("Sale price")}${sellByMeasure ? ` (/${measureUnit})` : ""}`} type="number" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} />
@@ -445,6 +513,72 @@ export function ProductForm() {
           <p className="rounded-lg bg-primary/5 px-3 py-2 text-xs text-text-secondary">
             🎨 {t("This is a variant — its stock, barcode and price are managed here independently.")}
           </p>
+        ) : null}
+
+        {showAssembly ? (
+          <div className="rounded-xl border border-border p-4">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">🛠️ {t("Bill of materials (build from components)")}</div>
+
+            {bom.length > 0 ? (
+              <div className="mb-3 space-y-1.5">
+                {bom.map((line, i) => (
+                  <div key={line.componentProductId} className="flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-sm">
+                    <span className="flex-1 font-medium text-text-primary">{line.componentName}</span>
+                    <input
+                      type="number"
+                      value={line.quantityInBaseUnits}
+                      onChange={(e) => setBom((b) => b.map((x, j) => (j === i ? { ...x, quantityInBaseUnits: Number(e.target.value) || 0 } : x)))}
+                      className="h-8 w-20 rounded-lg border border-border bg-surface px-2 text-right text-sm text-text-primary"
+                    />
+                    <span className="text-xs text-text-secondary">{t("units / build")}</span>
+                    <button onClick={() => setBom((b) => b.filter((_, j) => j !== i))} className="text-text-secondary hover:text-error" title={t("Remove")}>✕</button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mb-3 text-xs text-text-secondary">{t("Add the components consumed to build one unit of this product.")}</p>
+            )}
+
+            <div className="mb-2">
+              <TextField label={t("Add component (search)")} value={compSearch} onChange={(e) => setCompSearch(e.target.value)} placeholder={t("Search a product…")} />
+              {compSearch.trim() && compResults.length > 0 ? (
+                <div className="mt-1 max-h-40 overflow-y-auto rounded-lg border border-border">
+                  {compResults
+                    .filter((r) => r.productId !== productId && !bom.some((b) => b.componentProductId === r.productId))
+                    .map((r) => (
+                      <button
+                        key={r.productId}
+                        onClick={() => { setBom((b) => [...b, { componentProductId: r.productId, componentName: r.name, quantityInBaseUnits: 1 }]); setCompSearch(""); }}
+                        className="block w-full px-3 py-2 text-left text-sm text-text-primary hover:bg-primary/5"
+                      >
+                        {r.name}
+                      </button>
+                    ))}
+                </div>
+              ) : null}
+            </div>
+
+            <Button variant="secondary" onClick={saveBom} loading={savingBom}>{t("Save bill of materials")}</Button>
+
+            {bom.length > 0 ? (
+              <div className="mt-4 rounded-xl bg-primary/5 p-3">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">📦 {t("Build finished stock")}</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <TextField label={t("Quantity to build")} type="number" value={buildQty} onChange={(e) => setBuildQty(e.target.value)} />
+                  <TextField label={t("Batch number")} value={buildBatch} onChange={(e) => setBuildBatch(e.target.value)} />
+                  {caps.expiryTracking ? (
+                    <TextField label={t("Expiry date (required)")} type="date" value={buildExpiry} onChange={(e) => setBuildExpiry(e.target.value)} />
+                  ) : null}
+                </div>
+                <div className="mt-2">
+                  <Button onClick={build} loading={building} disabled={!(Number(buildQty) > 0) || !buildBatch.trim() || (caps.expiryTracking && !buildExpiry)}>
+                    🛠️ {t("Build")}
+                  </Button>
+                </div>
+                <p className="mt-2 text-xs text-text-secondary">{t("Deducts the components above and adds this many finished units to stock.")}</p>
+              </div>
+            ) : null}
+          </div>
         ) : null}
 
         {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

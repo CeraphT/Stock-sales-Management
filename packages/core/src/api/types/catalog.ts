@@ -67,6 +67,7 @@ export interface ProductRequest {
   measureUnit?: string | null;
   unitsPerMeasure?: number;
   serialTracked?: boolean;
+  manufacturer?: string | null;
 }
 
 export interface PackagingLevelDetail {
@@ -98,6 +99,29 @@ export interface ProductDetailResponse {
   variantName?: string | null;
   parentProductId?: string | null;
   hasVariants?: boolean;
+  isAssembly?: boolean;
+  manufacturer?: string | null;
+}
+
+/** One component of an assembly's bill of materials. */
+export interface BomLine {
+  componentProductId: string;
+  componentName: string;
+  quantityInBaseUnits: number;
+  /** Total base units of this component currently in stock (all locations). */
+  componentStockAvailable: number;
+}
+
+export interface BomLineRequest {
+  componentProductId: string;
+  quantityInBaseUnits: number;
+}
+
+export interface BuildAssemblyRequest {
+  locationId: string;
+  quantity: number;
+  batchNumber: string;
+  expiryDate: string | null;
 }
 
 /** A single serialized/IMEI unit (electronics). Status: 0 InStock, 1 Sold,
