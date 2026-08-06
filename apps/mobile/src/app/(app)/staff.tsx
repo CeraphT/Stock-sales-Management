@@ -196,7 +196,16 @@ export default function StaffScreen() {
           onChangeText={setSearch}
           autoCapitalize="none"
         />
-        <Text className="mt-2 text-xs text-text-secondary">{staff.length} {staff.length === 1 ? 'staff member' : 'staff members'}</Text>
+        <View className="mt-2 flex-row items-center justify-between">
+          <Text className="text-xs text-text-secondary">{staff.length} {staff.length === 1 ? 'staff member' : 'staff members'}</Text>
+          <Pressable
+            onPress={() => router.push('/change-password' as never)}
+            hitSlop={6}
+            className="flex-row items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 active:opacity-80">
+            <Ionicons name="key-outline" size={14} color={colors.primary} />
+            <Text className="text-xs font-semibold text-primary">Change my password</Text>
+          </Pressable>
+        </View>
       </View>
 
       {showAddForm ? (
