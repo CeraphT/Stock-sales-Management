@@ -6,6 +6,7 @@ import { UserRole } from '@/lib/api/enums';
 import { useAuthStore } from '@/lib/auth/store';
 import { localShiftService } from '@/lib/local/shiftService';
 import { useAutoBackup } from '@/lib/useAutoBackup';
+import { useHeartbeat } from '@/lib/useHeartbeat';
 
 // Crash fallback for the authenticated app. It must live in a NESTED layout
 // (inside the root navigator), not the root _layout: Expo Router wraps an
@@ -22,6 +23,8 @@ export default function AppLayout() {
   const isCashier = useAuthStore((s) => s.user?.role) === UserRole.Cashier;
   // Daily local safety backup (offline-resilient); no-op until a company is set.
   useAutoBackup();
+  // Keep this device visible as "live" in the fleet monitoring view.
+  useHeartbeat();
 
   // Cashier start-of-day freeze: 'checking' shows nothing (never flashes the app
   // to a cashier), then resolves to 'gated' (RegisterGate is the only thing
