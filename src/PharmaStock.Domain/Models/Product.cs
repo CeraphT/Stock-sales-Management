@@ -29,6 +29,19 @@ public class Product : ITimestamped
     public bool IsActive { get; set; } = true;
     public int LowStockThreshold { get; set; } = 0;
 
+    // ── Sell-by-measure (weight/length/volume) ──────────────────────────────
+    // A measure product's BASE UNIT is a fraction of the display unit (e.g. base
+    // = gram, display = kg, UnitsPerMeasure = 1000), so the existing integer
+    // base-unit ledger + pricing engine work unchanged: stock and sale quantities
+    // are whole base units (grams), SalePrice/PurchasePrice are per base unit,
+    // and the UI presents them as the measure unit (kg). No engine change.
+    public bool SellByMeasure { get; set; } = false;
+    /// <summary>Display unit shown to the user (e.g. "kg", "m", "L"). Null unless SellByMeasure.</summary>
+    public string? MeasureUnit { get; set; }
+    /// <summary>Base units per one display unit (e.g. 1000 grams per kg). Used only to convert
+    /// for display/entry; the stored quantities and prices are always per base unit.</summary>
+    public int UnitsPerMeasure { get; set; } = 1;
+
     /// <summary>Section 18.3 — null means "use Company.DefaultTaxRatePercent".
     /// Set explicitly (e.g. to 0) for a VAT-exempt product, since not every
     /// pharmaceutical item is taxed at the same rate.</summary>

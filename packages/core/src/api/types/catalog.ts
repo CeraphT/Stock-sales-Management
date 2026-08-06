@@ -17,6 +17,12 @@ export interface ProductSearchResult {
   /** Soonest expiry among in-stock batches (ISO), or null — lets the POS warn
    * (but still allow) when a product's stock has passed its expiry date. */
   earliestExpiry: string | null;
+  /** Sell-by-measure metadata (weight/length): base units are a fraction of the
+   * display unit, so quantities/prices stay per base unit and the UI presents
+   * them as `measureUnit` (e.g. grams shown as kg). */
+  sellByMeasure?: boolean;
+  measureUnit?: string | null;
+  unitsPerMeasure?: number;
 }
 
 export interface StockAvailabilityResponse {
@@ -48,6 +54,9 @@ export interface ProductRequest {
   taxRateOverridePercent: number | null;
   isFavorite: boolean;
   packagingLevels: PackagingLevelRequest[] | null;
+  sellByMeasure?: boolean;
+  measureUnit?: string | null;
+  unitsPerMeasure?: number;
 }
 
 export interface PackagingLevelDetail {
@@ -72,6 +81,9 @@ export interface ProductDetailResponse {
   lowStockThreshold: number;
   taxRateOverridePercent: number | null;
   packagingLevels: PackagingLevelDetail[];
+  sellByMeasure?: boolean;
+  measureUnit?: string | null;
+  unitsPerMeasure?: number;
 }
 
 export interface RestockSuggestionItem {

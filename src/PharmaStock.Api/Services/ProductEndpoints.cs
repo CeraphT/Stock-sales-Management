@@ -13,7 +13,10 @@ public record ProductSearchResult(
     string? Barcode,
     decimal SalePrice,
     string StockStatus,
-    IEnumerable<PackagingLevelInfo> PackagingLevels
+    IEnumerable<PackagingLevelInfo> PackagingLevels,
+    bool SellByMeasure = false,
+    string? MeasureUnit = null,
+    int UnitsPerMeasure = 1
 );
 
 public record StockAvailabilityResponse(
@@ -38,7 +41,8 @@ public record ProductRequest(
     string Name, string? Barcode, Guid? CategoryId, Guid? SupplierId,
     decimal PurchasePrice, decimal SalePrice, int LowStockThreshold,
     decimal? TaxRateOverridePercent, bool IsFavorite,
-    List<PackagingLevelRequest>? PackagingLevels
+    List<PackagingLevelRequest>? PackagingLevels,
+    bool SellByMeasure = false, string? MeasureUnit = null, int UnitsPerMeasure = 1
 );
 
 public record PackagingLevelDetail(Guid Id, string UnitName, int QuantityInBaseUnits, decimal? SalePriceOverride);
@@ -46,7 +50,8 @@ public record PackagingLevelDetail(Guid Id, string UnitName, int QuantityInBaseU
 public record ProductDetailResponse(
     Guid Id, string Name, string? Barcode, Guid? CategoryId, string? CategoryName, Guid? SupplierId, string? SupplierName,
     decimal PurchasePrice, decimal SalePrice, bool IsFavorite, bool IsActive, int LowStockThreshold,
-    decimal? TaxRateOverridePercent, List<PackagingLevelDetail> PackagingLevels
+    decimal? TaxRateOverridePercent, List<PackagingLevelDetail> PackagingLevels,
+    bool SellByMeasure = false, string? MeasureUnit = null, int UnitsPerMeasure = 1
 );
 
 // Section 3.4 — restock suggestions for the "Nouvelle commande" supplier-first
@@ -105,7 +110,8 @@ public static class ProductEndpoints
 
                 return new ProductSearchResult(
                     product.Id, product.Name, product.Barcode, product.SalePrice,
-                    ComputeStockStatus(totalBaseUnits, product.LowStockThreshold), levels);
+                    ComputeStockStatus(totalBaseUnits, product.LowStockThreshold), levels,
+                    product.SellByMeasure, product.MeasureUnit, product.UnitsPerMeasure);
             });
 
             return Results.Ok(results);
@@ -321,6 +327,9 @@ public static class ProductEndpoints
                 LowStockThreshold = request.LowStockThreshold,
                 TaxRateOverridePercent = request.TaxRateOverridePercent,
                 IsFavorite = request.IsFavorite,
+                SellByMeasure = request.SellByMeasure,
+                MeasureUnit = request.SellByMeasure ? request.MeasureUnit : null,
+                UnitsPerMeasure = request.SellByMeasure && request.UnitsPerMeasure > 0 ? request.UnitsPerMeasure : 1,
             };
             foreach (var level in ApplyPackagingLevels(product, request.PackagingLevels))
                 product.PackagingLevels.Add(level);
@@ -364,6 +373,9 @@ public static class ProductEndpoints
             product.LowStockThreshold = request.LowStockThreshold;
             product.TaxRateOverridePercent = request.TaxRateOverridePercent;
             product.IsFavorite = request.IsFavorite;
+            product.SellByMeasure = request.SellByMeasure;
+            product.MeasureUnit = request.SellByMeasure ? request.MeasureUnit : null;
+            product.UnitsPerMeasure = request.SellByMeasure && request.UnitsPerMeasure > 0 ? request.UnitsPerMeasure : 1;
 
             // Matched by UnitName rather than full delete-then-recreate: a level
             // that's still present in the request keeps its existing Id, so any
@@ -486,7 +498,8 @@ public static class ProductEndpoints
         product.Id, product.Name, product.Barcode, product.CategoryId, product.Category?.Name, product.SupplierId, product.Supplier?.Name,
         product.PurchasePrice, product.SalePrice, product.IsFavorite, product.IsActive, product.LowStockThreshold,
         product.TaxRateOverridePercent,
-        product.PackagingLevels.Select(l => new PackagingLevelDetail(l.Id, l.UnitName, l.QuantityInBaseUnits, l.SalePriceOverride)).ToList()
+        product.PackagingLevels.Select(l => new PackagingLevelDetail(l.Id, l.UnitName, l.QuantityInBaseUnits, l.SalePriceOverride)).ToList(),
+        product.SellByMeasure, product.MeasureUnit, product.UnitsPerMeasure
     );
 
     private static bool IsForeignKeyViolation(DbUpdateException ex) =>
