@@ -15,13 +15,14 @@ public class JwtTokenService
     private readonly IConfiguration _configuration;
 
     public const string CompanyIdClaimType = "company_id";
+    public const string DeviceIdClaimType = "device_id";
 
     public JwtTokenService(IConfiguration configuration)
     {
         _configuration = configuration;
     }
 
-    public (string Token, DateTime ExpiresAt) IssueToken(User user)
+    public (string Token, DateTime ExpiresAt) IssueToken(User user, Guid? deviceId = null)
     {
         var secret = _configuration["Jwt:Secret"]
             ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
@@ -38,6 +39,12 @@ public class JwtTokenService
 
         if (user.CompanyId.HasValue)
             claims.Add(new Claim(CompanyIdClaimType, user.CompanyId.Value.ToString()));
+
+        // device_id lets every authenticated request be attributed to a device
+        // (presence/usage tracing) and lets a mid-session device block take
+        // effect without waiting for token expiry.
+        if (deviceId.HasValue)
+            claims.Add(new Claim(DeviceIdClaimType, deviceId.Value.ToString()));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -120,6 +127,12 @@ public static class ClaimsPrincipalExtensions
     public static Guid? GetUserId(this ClaimsPrincipal principal)
     {
         var value = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(value, out var id) ? id : null;
+    }
+
+    public static Guid? GetDeviceId(this ClaimsPrincipal principal)
+    {
+        var value = principal.FindFirstValue(JwtTokenService.DeviceIdClaimType);
         return Guid.TryParse(value, out var id) ? id : null;
     }
 }

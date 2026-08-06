@@ -31,7 +31,7 @@ public static class AuthEndpoints
         // to resolve to a single row.
         app.MapPost("/api/auth/login", async (
             LoginRequest request, PharmaStockDbContext db,
-            IPasswordHasher<User> hasher, JwtTokenService tokens) =>
+            IPasswordHasher<User> hasher, JwtTokenService tokens, HttpContext http) =>
         {
             var candidates = await db.Users
                 .Where(u => u.Phone == request.Phone && u.Active)
@@ -43,7 +43,7 @@ public static class AuthEndpoints
                     == PasswordVerificationResult.Success)
                 {
                     var auth = await IssueAuthResponseAsync(
-                        user, request.DeviceId, request.DeviceName, request.Platform, db, tokens);
+                        user, request.DeviceId, request.DeviceName, request.Platform, db, tokens, http.GetClientIp());
                     return Results.Ok(auth);
                 }
             }
@@ -57,7 +57,7 @@ public static class AuthEndpoints
         // every use: the old hash stops working the moment a new one is
         // issued, so a leaked-then-replayed old token is only ever usable once.
         app.MapPost("/api/auth/refresh", async (
-            RefreshRequest request, PharmaStockDbContext db, JwtTokenService tokens) =>
+            RefreshRequest request, PharmaStockDbContext db, JwtTokenService tokens, HttpContext http) =>
         {
             var device = await db.Devices
                 .Include(d => d.User)
@@ -73,7 +73,7 @@ public static class AuthEndpoints
             }
 
             var auth = await IssueAuthResponseAsync(
-                device.User, device.Id, device.DeviceName, device.Platform, db, tokens);
+                device.User, device.Id, device.DeviceName, device.Platform, db, tokens, http.GetClientIp());
             return Results.Ok(auth);
         });
 
@@ -254,15 +254,15 @@ public static class AuthEndpoints
     /// (Section 21.1) never drifts between them.</summary>
     internal static async Task<AuthResponse> IssueAuthResponseAsync(
         User user, Guid deviceId, string deviceName, DevicePlatform platform,
-        PharmaStockDbContext db, JwtTokenService tokens)
+        PharmaStockDbContext db, JwtTokenService tokens, string? ip = null)
     {
-        var (token, expiresAt) = tokens.IssueToken(user);
+        var (token, expiresAt) = tokens.IssueToken(user, deviceId);
         var (rawRefreshToken, refreshHash, refreshExpiresAt) = tokens.IssueRefreshToken();
 
         var device = await db.Devices.FirstOrDefaultAsync(d => d.Id == deviceId);
         if (device is null)
         {
-            device = new Device { Id = deviceId, UserId = user.Id };
+            device = new Device { Id = deviceId, UserId = user.Id, CreatedAt = DateTime.UtcNow };
             db.Devices.Add(device);
         }
 
@@ -271,6 +271,7 @@ public static class AuthEndpoints
         device.Platform = platform;
         device.DeviceName = deviceName;
         device.LastActiveAt = DateTime.UtcNow;
+        if (!string.IsNullOrWhiteSpace(ip)) device.LastIp = ip;
         device.RefreshTokenHash = refreshHash;
         device.RefreshTokenExpiresAt = refreshExpiresAt;
 

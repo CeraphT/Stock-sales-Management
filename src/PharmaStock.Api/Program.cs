@@ -22,6 +22,8 @@ builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddScoped<StockDeductionService>();
 builder.Services.AddHttpClient(); // outbound FX-rate lookups for currency conversion
+builder.Services.AddMemoryCache(); // device presence throttle + enforcement cache + geo cache
+builder.Services.AddSingleton<GeoIpService>(); // best-effort IP -> city/country for the fleet view
 
 // Dev-only fallback secret, same pattern as the connection string above —
 // production deployments must override Jwt:Secret via environment/user-secrets.
@@ -70,9 +72,15 @@ app.UseCors(DevClientsCors);
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Usage tracing + near-real-time device/user block enforcement on every
+// authenticated request (see DevicePresenceMiddleware). Must run after
+// UseAuthorization so the JWT claims (device_id) are populated.
+app.UseMiddleware<DevicePresenceMiddleware>();
+
 app.MapGet("/health", () => Results.Ok(new { status = "ok", timestamp = DateTime.UtcNow }));
 
 app.MapAuthEndpoints();
+app.MapDeviceEndpoints();
 app.MapCompanyEndpoints();
 app.MapCurrencyEndpoints();
 app.MapLocationEndpoints();

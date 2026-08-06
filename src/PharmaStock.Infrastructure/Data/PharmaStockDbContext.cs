@@ -54,6 +54,8 @@ public class PharmaStockDbContext : DbContext
     public DbSet<CustomFieldDefinition> CustomFieldDefinitions => Set<CustomFieldDefinition>();
     public DbSet<CustomFieldValue> CustomFieldValues => Set<CustomFieldValue>();
 
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PharmaStockDbContext).Assembly);
