@@ -11,16 +11,19 @@ import { PackagingLevelsEditor, parsePackagingLevels, type DraftPackagingLevel }
 import { TextField } from '@/components/TextField';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { useAuthStore } from '@/lib/auth/store';
+import { MEASURE_UNITS, unitsPerMeasureFor } from '@/lib/businessTypes';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { useScanCaptureStore } from '@/lib/scan/captureStore';
 import { syncNow } from '@/lib/sync/syncNow';
 import { useThemeColors } from '@/lib/theme/colors';
+import { useCapabilities } from '@/lib/useCapabilities';
 import { showAlert } from '@/lib/ui/alertStore';
 
 export default function AddProductScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
+  const caps = useCapabilities();
   const capturedCode = useScanCaptureStore((s) => s.code);
   const clearCapturedCode = useScanCaptureStore((s) => s.clear);
 
@@ -30,11 +33,12 @@ export default function AddProductScreen() {
   const [salePrice, setSalePrice] = useState('');
   const [lowStockThreshold, setLowStockThreshold] = useState('');
   const [packagingLevels, setPackagingLevels] = useState<DraftPackagingLevel[]>([]);
+  const [sellByMeasure, setSellByMeasure] = useState(false);
+  const [measureUnit, setMeasureUnit] = useState('kg');
+  const [serialTracked, setSerialTracked] = useState(false);
+  const [manufacturer, setManufacturer] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Picks up a code handed back by the scanner (mode=capture) whenever this
-  // screen regains focus — covers both "came back from scanning" and "this
-  // screen was already open when the code arrived" cases.
   useFocusEffect(
     useCallback(() => {
       if (capturedCode) {
@@ -43,6 +47,8 @@ export default function AddProductScreen() {
       }
     }, [capturedCode, clearCapturedCode]),
   );
+
+  const priceUnit = sellByMeasure ? `/${measureUnit}` : '';
 
   const onSubmit = async () => {
     if (!companyId) return;
@@ -63,6 +69,10 @@ export default function AddProductScreen() {
       return;
     }
 
+    // Sell-by-measure products store prices per BASE unit (e.g. per gram); the
+    // form enters them per display unit (per kg), so divide by unitsPerMeasure.
+    const upm = sellByMeasure ? unitsPerMeasureFor(measureUnit) : 1;
+
     setSubmitting(true);
     try {
       await productsApi.create(companyId, {
@@ -70,16 +80,19 @@ export default function AddProductScreen() {
         barcode: barcode.trim() || null,
         categoryId: null,
         supplierId: null,
-        purchasePrice: purchase,
-        salePrice: sale,
+        purchasePrice: purchase / upm,
+        salePrice: sale / upm,
         lowStockThreshold: threshold,
         taxRateOverridePercent: null,
         isFavorite: false,
-        packagingLevels: parsedLevels.value.length > 0 ? parsedLevels.value : null,
+        // Packaging levels are mutually exclusive with measure / serial products.
+        packagingLevels: sellByMeasure || serialTracked ? null : parsedLevels.value.length > 0 ? parsedLevels.value : null,
+        sellByMeasure,
+        measureUnit: sellByMeasure ? measureUnit : null,
+        unitsPerMeasure: upm,
+        serialTracked,
+        manufacturer: manufacturer.trim() || null,
       });
-      // Brings the new product into the local catalog cache immediately —
-      // otherwise it wouldn't be scannable/searchable until the next
-      // periodic sync.
       await syncNow();
       router.back();
     } catch (err) {
@@ -123,15 +136,51 @@ export default function AddProductScreen() {
           </View>
         </View>
 
+        {/* Sell-by-measure (weight/length/volume) — behind the capability flag. */}
+        {caps.sellByMeasure ? (
+          <View className="gap-2 rounded-xl border border-border p-3">
+            <Pressable className="flex-row items-center gap-2" onPress={() => { setSellByMeasure((v) => !v); if (!sellByMeasure) setSerialTracked(false); }}>
+              <Ionicons name={sellByMeasure ? 'checkbox' : 'square-outline'} size={20} color={sellByMeasure ? colors.primary : colors.textSecondary} />
+              <Text className="text-sm font-semibold text-text-primary">⚖️ Sold by weight / measure</Text>
+            </Pressable>
+            {sellByMeasure ? (
+              <View className="flex-row flex-wrap gap-1.5">
+                {MEASURE_UNITS.map((m) => (
+                  <Pressable
+                    key={m.unit}
+                    onPress={() => setMeasureUnit(m.unit)}
+                    className={`rounded-lg border px-3 py-1.5 ${measureUnit === m.unit ? 'border-primary bg-primary/10' : 'border-border'}`}>
+                    <Text className={`text-sm ${measureUnit === m.unit ? 'font-bold text-primary' : 'text-text-primary'}`}>{m.unit}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
+        {/* Serial / IMEI tracking — behind the capability flag. */}
+        {caps.serialTracking ? (
+          <Pressable
+            className="flex-row items-center gap-2 rounded-xl border border-border p-3"
+            onPress={() => { setSerialTracked((v) => !v); if (!serialTracked) setSellByMeasure(false); }}>
+            <Ionicons name={serialTracked ? 'checkbox' : 'square-outline'} size={20} color={serialTracked ? colors.primary : colors.textSecondary} />
+            <Text className="text-sm font-semibold text-text-primary">🔢 Track serial / IMEI numbers</Text>
+          </Pressable>
+        ) : null}
+
+        {caps.assembly ? (
+          <TextField label="Manufacturer / brand (optional)" value={manufacturer} onChangeText={setManufacturer} />
+        ) : null}
+
         <TextField
-          label={`Purchase price (${currency})`}
+          label={`Purchase price (${currency})${priceUnit}`}
           placeholder="0"
           keyboardType="numeric"
           value={purchasePrice}
           onChangeText={setPurchasePrice}
         />
         <TextField
-          label={`Sale price (${currency})`}
+          label={`Sale price (${currency})${priceUnit}`}
           placeholder="0"
           keyboardType="numeric"
           value={salePrice}
@@ -145,7 +194,9 @@ export default function AddProductScreen() {
           onChangeText={setLowStockThreshold}
         />
 
-        <PackagingLevelsEditor levels={packagingLevels} onChange={setPackagingLevels} currency={currency} />
+        {!sellByMeasure && !serialTracked ? (
+          <PackagingLevelsEditor levels={packagingLevels} onChange={setPackagingLevels} currency={currency} />
+        ) : null}
 
         <Button title={submitting ? 'Creating…' : 'Create product'} loading={submitting} onPress={onSubmit} />
       </ScrollView>

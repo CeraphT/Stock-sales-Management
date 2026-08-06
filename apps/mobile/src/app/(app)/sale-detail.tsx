@@ -92,6 +92,10 @@ export default function SaleDetailScreen() {
         unitsPerPackagingLevel: l.unitsPerPackagingLevel,
         unitPrice: l.unitPrice,
         lineTotal: l.lineTotal,
+        sellByMeasure: l.sellByMeasure,
+        measureUnit: l.measureUnit,
+        unitsPerMeasure: l.unitsPerMeasure,
+        serialNumbers: l.serialNumbers,
       })),
       serviceLines: sale.serviceLines.map((l) => ({
         serviceName: l.serviceName,
@@ -219,9 +223,15 @@ export default function SaleDetailScreen() {
                 <Text className="text-sm font-bold text-text-primary">{formatCurrency(line.lineTotal, currency)}</Text>
               </View>
               <Text className="text-xs text-text-secondary">
-                {line.packagingLevelName ? `${line.quantityInBaseUnits / line.unitsPerPackagingLevel} ${line.packagingLevelName}` : `${line.quantityInBaseUnits} units`}{' '}
-                × {formatCurrency(line.unitPrice, currency)}
+                {line.sellByMeasure && line.unitsPerMeasure && line.unitsPerMeasure > 0
+                  ? `${line.quantityInBaseUnits / line.unitsPerMeasure} ${line.measureUnit} × ${formatCurrency(line.unitPrice * line.unitsPerMeasure, currency)}/${line.measureUnit}`
+                  : line.packagingLevelName
+                    ? `${line.quantityInBaseUnits / line.unitsPerPackagingLevel} ${line.packagingLevelName} × ${formatCurrency(line.unitPrice, currency)}`
+                    : `${line.quantityInBaseUnits} units × ${formatCurrency(line.unitPrice, currency)}`}
               </Text>
+              {line.serialNumbers && line.serialNumbers.length > 0 ? (
+                <Text className="mt-0.5 text-[11px] text-text-secondary">S/N: {line.serialNumbers.join(', ')}</Text>
+              ) : null}
             </View>
           ))}
           {sale.serviceLines.map((line, index) => (
