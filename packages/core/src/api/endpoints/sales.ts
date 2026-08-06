@@ -2,6 +2,7 @@ import { api } from "../client";
 import type {
   CreateSaleRequest,
   HeldSaleSummaryResponse,
+  HoldSaleRequest,
   RefundResponse,
   SaleDetailResponse,
   SaleHistoryPageResponse,
@@ -22,6 +23,11 @@ export const salesApi = {
   // connectivity right now rather than a half-working offline queue.
   create: (companyId: string, body: CreateSaleRequest) =>
     api.post<SaleResponse>(`/api/companies/${companyId}/sales`, body),
+
+  // Park a cart as a Held sale (no payment yet) — online equivalent of the
+  // offline localSalesService.holdSale.
+  hold: (companyId: string, body: HoldSaleRequest) =>
+    api.post<SaleResponse>(`/api/companies/${companyId}/sales/hold`, body),
 
   history: (companyId: string, page: number, from?: string, to?: string) =>
     api.get<SaleHistoryPageResponse>(`/api/companies/${companyId}/sales`, { page, from, to }),

@@ -1,7 +1,7 @@
 import { ApiError } from "@stockflow/core/api/client";
 import { suppliersApi } from "@stockflow/core/api/endpoints/suppliers";
+import { productsApi } from "@stockflow/core/api/endpoints/products";
 import { purchaseOrdersApi } from "@stockflow/core/api/endpoints/purchaseOrders";
-import { localCatalogQueryService } from "@stockflow/core/local/catalogQueryService";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -49,7 +49,7 @@ export function PurchaseOrderForm() {
   }, [suppliersLoaded, suppliers.length, t]);
   const { data: results = [] } = useQuery({
     queryKey: ["po-search", companyId, search],
-    queryFn: () => localCatalogQueryService.searchProducts(companyId, search),
+    queryFn: () => productsApi.search(companyId, search),
     enabled: search.trim().length > 0,
   });
 

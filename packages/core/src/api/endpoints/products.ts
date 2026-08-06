@@ -6,14 +6,26 @@ import type {
   ProductCatalogPageResponse,
   ProductDetailResponse,
   ProductRequest,
+  ProductSearchResult,
   ReceiveStockRequest,
   RestockSuggestionItem,
+  StockAvailabilityResponse,
   StockMovementResponse,
 } from "../types/catalog";
 
 export const productsApi = {
   create: (companyId: string, body: ProductRequest) =>
     api.post<ProductDetailResponse>(`/api/companies/${companyId}/products`, body),
+
+  // POS/PO typeahead search — returns ProductSearchResult[] with packaging +
+  // stock status (online equivalent of localCatalogQueryService.searchProducts).
+  search: (companyId: string, search: string) =>
+    api.get<ProductSearchResult[]>(`/api/companies/${companyId}/products`, { search }),
+
+  // Single exact stock-availability lookup (online equivalent of the local
+  // getProductAvailability / findByBarcode).
+  availability: (companyId: string, query: string) =>
+    api.get<StockAvailabilityResponse>(`/api/companies/${companyId}/products/availability`, { query }),
 
   get: (companyId: string, productId: string) =>
     api.get<ProductDetailResponse>(`/api/companies/${companyId}/products/${productId}`),

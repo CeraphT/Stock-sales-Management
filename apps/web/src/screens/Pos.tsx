@@ -1,16 +1,14 @@
 import { ApiError } from "@stockflow/core/api/client";
 import { customersApi } from "@stockflow/core/api/endpoints/customers";
+import { giftCardsApi } from "@stockflow/core/api/endpoints/giftCards";
+import { productsApi } from "@stockflow/core/api/endpoints/products";
 import { rewardsApi } from "@stockflow/core/api/endpoints/rewards";
+import { salesApi } from "@stockflow/core/api/endpoints/sales";
 import { PaymentMethod } from "@stockflow/core/api/enums";
 import type { ProductSearchResult } from "@stockflow/core/api/types/catalog";
 import { cartTotal, useCartStore } from "@stockflow/core/cart/store";
-import { db } from "@stockflow/core/db/client";
-import { giftCards } from "@stockflow/core/db/schema";
 import { formatCurrency } from "@stockflow/core/format";
-import { localCatalogQueryService } from "@stockflow/core/local/catalogQueryService";
-import { localSalesService } from "@stockflow/core/local/salesService";
 import { useQuery } from "@tanstack/react-query";
-import { and, eq } from "drizzle-orm";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -19,13 +17,11 @@ import { IconButton } from "@/components/IconButton";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { StockBadge } from "@/components/StockBadge";
 import { TextField } from "@/components/TextField";
-import { listProducts } from "@/data/products";
 import { useT } from "@/lib/i18n";
 import { queryClient } from "@/lib/queryClient";
 import { usePrefsStore } from "@/lib/prefs";
 import { printReceipt } from "@/lib/receipt";
 import { printGiftCardVoucher } from "@/lib/giftCardVoucher";
-import { runSync } from "@/lib/sync/runSync";
 import { useScanGun } from "@/lib/useScanGun";
 import { useAuthStore } from "@/lib/stores";
 import { toast } from "@/lib/toast";
@@ -70,7 +66,7 @@ export function Pos() {
 
   const { data: results = [] } = useQuery({
     queryKey: ["pos-search", companyId, search],
-    queryFn: () => localCatalogQueryService.searchProducts(companyId!, search),
+    queryFn: () => productsApi.search(companyId!, search),
     enabled: !!companyId && search.trim().length > 0,
   });
   const { data: customers = [] } = useQuery({
@@ -81,12 +77,12 @@ export function Pos() {
   // Dependency guardrail: is there anything to sell at all? Only judge AFTER the
   // catalog query has actually resolved — `data` defaults to [] while loading,
   // which used to fire a bogus "no products" toast on every POS open.
-  const { data: catalog = [], isSuccess: catalogLoaded } = useQuery({
-    queryKey: ["products", companyId],
-    queryFn: () => listProducts(companyId!),
+  const { data: catalogPage, isSuccess: catalogLoaded } = useQuery({
+    queryKey: ["pos-catalog-check", companyId],
+    queryFn: () => productsApi.catalog(companyId!, undefined, 1, {}),
     enabled: !!companyId,
   });
-  const hasNoProducts = catalogLoaded && catalog.length === 0;
+  const hasNoProducts = catalogLoaded && (catalogPage?.items.length ?? 0) === 0;
   const warnedNoProducts = useRef(false);
   useEffect(() => {
     if (hasNoProducts && !warnedNoProducts.current) {
@@ -143,7 +139,7 @@ export function Pos() {
       });
       toast(`🎁 ${t("Reward issued")}: ${card.code} · ${formatCurrency(card.remainingValue, currency)}`, "success");
       await rewardQuery.refetch();
-      await runSync().catch(() => {});
+      await queryClient.invalidateQueries({ queryKey: ["customers", companyId] });
     } catch (e) {
       toast(e instanceof ApiError ? e.message : t("Could not issue the reward."), "error");
     } finally {
@@ -166,12 +162,11 @@ export function Pos() {
     let cancelled = false;
     const timer = setTimeout(async () => {
       try {
-        const row = await db.query.giftCards.findFirst({
-          where: and(eq(giftCards.companyId, companyId), eq(giftCards.code, code)),
-        });
-        if (!cancelled) setGiftCardInfo(row ? { remainingValue: row.remainingValue, active: row.active } : "notfound");
-      } catch {
-        if (!cancelled) setGiftCardInfo(null);
+        const gc = await giftCardsApi.lookup(companyId, code);
+        if (!cancelled) setGiftCardInfo({ remainingValue: gc.remainingValue, active: gc.active });
+      } catch (e) {
+        // A 404 means no such code; anything else, stay idle rather than mislead.
+        if (!cancelled) setGiftCardInfo(e instanceof ApiError && e.status === 404 ? "notfound" : null);
       }
     }, 300);
     return () => {
@@ -237,7 +232,7 @@ export function Pos() {
     const q = code.trim();
     if (!q || !companyId) return;
     try {
-      const matches = await localCatalogQueryService.searchProducts(companyId, q);
+      const matches = await productsApi.search(companyId, q);
       const exact = matches.find((m) => m.barcode === q) ?? (matches.length === 1 ? matches[0] : null);
       if (!exact) {
         toast(`${t("No product matches code")} ${q}`, "error");
@@ -284,7 +279,7 @@ export function Pos() {
     setBusy(true);
     setMsg(null);
     try {
-      const sale = await localSalesService.createSale(companyId, {
+      const sale = await salesApi.create(companyId, {
         locationId,
         customerId: customerId ?? null,
         paymentMethod: method,
@@ -301,7 +296,7 @@ export function Pos() {
       // Auto-print the receipt if the printer preference is on (Management → Printer).
       if (usePrefsStore.getState().autoPrintReceipt && company) {
         try {
-          const detail = await localSalesService.getSaleDetail(companyId, sale.id);
+          const detail = await salesApi.detail(companyId, sale.id);
           printReceipt(detail, company);
         } catch {
           /* non-fatal — the manual print button stays available */
@@ -310,9 +305,9 @@ export function Pos() {
       clear();
       setTendered("");
       setGiftCardCode("");
-      // Push the sale to the server (then pull) so Sales History — which reads
-      // the API, not the local mirror — shows it right away.
-      await runSync().catch(() => queryClient.invalidateQueries());
+      // Online sale — Sales History/Dashboard read the API directly, so just
+      // refresh cached queries.
+      await queryClient.invalidateQueries();
     } catch (e) {
       setMsg({ ok: false, text: e instanceof ApiError ? e.message : "Checkout failed." });
     } finally {
@@ -323,7 +318,7 @@ export function Pos() {
   async function printLastReceipt() {
     if (!lastSaleId || !companyId || !company) return;
     try {
-      const detail = await localSalesService.getSaleDetail(companyId, lastSaleId);
+      const detail = await salesApi.detail(companyId, lastSaleId);
       printReceipt(detail, company);
     } catch {
       toast("Could not open the receipt.", "error");
@@ -355,7 +350,7 @@ export function Pos() {
     setBusy(true);
     setMsg(null);
     try {
-      await localSalesService.holdSale(companyId, {
+      await salesApi.hold(companyId, {
         locationId,
         customerId: customerId ?? null,
         productLines: lines.map((l) => ({ productId: l.productId, quantity: l.quantity, packagingLevelId: l.packagingLevelId })),
