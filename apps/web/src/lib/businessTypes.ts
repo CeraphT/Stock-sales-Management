@@ -9,6 +9,21 @@ export const CAPABILITY_META: { key: keyof InventoryCapabilities; label: string;
   { key: "assembly", label: "Assembly / kits", desc: "Build products from components — workshops, manufacturers." },
 ];
 
+/** Measure units for sell-by-weight products, each with how many integer base
+ * units make one display unit (base=gram → kg=1000; base=ml → L=1000; base=cm →
+ * m=100). Quantities/prices are stored per base unit; the UI shows the unit. */
+export const MEASURE_UNITS: { unit: string; unitsPerMeasure: number }[] = [
+  { unit: "kg", unitsPerMeasure: 1000 },
+  { unit: "g", unitsPerMeasure: 1 },
+  { unit: "L", unitsPerMeasure: 1000 },
+  { unit: "ml", unitsPerMeasure: 1 },
+  { unit: "m", unitsPerMeasure: 100 },
+  { unit: "cm", unitsPerMeasure: 1 },
+];
+
+export const unitsPerMeasureFor = (unit: string): number =>
+  MEASURE_UNITS.find((m) => m.unit === unit)?.unitsPerMeasure ?? 1;
+
 export interface BusinessPreset {
   id: string;
   label: string;

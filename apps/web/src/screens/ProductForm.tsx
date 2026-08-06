@@ -10,6 +10,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
+import { MEASURE_UNITS, unitsPerMeasureFor } from "@/lib/businessTypes";
+import { useCapabilities } from "@/lib/useCapabilities";
 import { useSetBreadcrumb } from "@/lib/breadcrumb";
 import { useT } from "@/lib/i18n";
 import { usePrefsStore } from "@/lib/prefs";
@@ -45,6 +47,9 @@ export function ProductForm() {
   const [favorite, setFavorite] = useState(false);
   const [levels, setLevels] = useState<LevelRow[]>([]);
   const [isActive, setIsActive] = useState(true);
+  const caps = useCapabilities();
+  const [sellByMeasure, setSellByMeasure] = useState(false);
+  const [measureUnit, setMeasureUnit] = useState("kg");
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,8 +118,14 @@ export function ProductForm() {
     setBarcode(detail.barcode ?? "");
     setCategoryId(detail.categoryId ?? "");
     setSupplierId(detail.supplierId ?? "");
-    setPurchasePrice(String(detail.purchasePrice));
-    setSalePrice(String(detail.salePrice));
+    // For a measure product, prices are stored per base unit (per gram) but shown
+    // per display unit (per kg) — multiply back up for the form.
+    const measure = detail.sellByMeasure ?? false;
+    const upm = measure ? (detail.unitsPerMeasure ?? 1) : 1;
+    setSellByMeasure(measure);
+    setMeasureUnit(detail.measureUnit ?? "kg");
+    setPurchasePrice(String(measure ? detail.purchasePrice * upm : detail.purchasePrice));
+    setSalePrice(String(measure ? detail.salePrice * upm : detail.salePrice));
     setLowStock(String(detail.lowStockThreshold));
     setTax(detail.taxRateOverridePercent != null ? String(detail.taxRateOverridePercent) : "");
     setFavorite(detail.isFavorite);
@@ -150,17 +161,24 @@ export function ProductForm() {
           quantityInBaseUnits: Number(l.quantityInBaseUnits),
           salePriceOverride: l.salePriceOverride.trim() ? Number(l.salePriceOverride) : null,
         }));
+      // Measure products store prices per BASE unit (per gram): the form enters
+      // per display unit (per kg), so divide by unitsPerMeasure on save.
+      const upm = sellByMeasure ? unitsPerMeasureFor(measureUnit) : 1;
       const body = {
         name: name.trim(),
         barcode: barcode.trim() || null,
         categoryId: categoryId || null,
         supplierId: supplierId || null,
-        purchasePrice: Number(purchasePrice) || 0,
-        salePrice: Number(salePrice) || 0,
+        purchasePrice: (Number(purchasePrice) || 0) / upm,
+        salePrice: (Number(salePrice) || 0) / upm,
         lowStockThreshold: Number(lowStock) || 0,
         taxRateOverridePercent: tax.trim() ? Number(tax) : null,
         isFavorite: favorite,
-        packagingLevels,
+        // Packaging levels are mutually exclusive with sell-by-measure.
+        packagingLevels: sellByMeasure ? [] : packagingLevels,
+        sellByMeasure,
+        measureUnit: sellByMeasure ? measureUnit : null,
+        unitsPerMeasure: upm,
       };
       if (isEdit) await productsApi.update(companyId, productId!, body);
       else await productsApi.create(companyId, body);
@@ -258,9 +276,27 @@ export function ProductForm() {
           </label>
         </div>
 
+        {caps.sellByMeasure ? (
+          <div className="rounded-xl border border-border p-3">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={sellByMeasure} onChange={(e) => setSellByMeasure(e.target.checked)} className="h-4 w-4" />
+              <span className="text-sm font-semibold text-text-primary">⚖️ {t("Sold by weight / measure")}</span>
+            </label>
+            {sellByMeasure ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+                <span>{t("Unit")}</span>
+                <select value={measureUnit} onChange={(e) => setMeasureUnit(e.target.value)} className="h-9 rounded-lg border border-border bg-surface px-2 text-sm text-text-primary">
+                  {MEASURE_UNITS.map((m) => <option key={m.unit} value={m.unit}>{m.unit}</option>)}
+                </select>
+                <span>{t("Prices below are per")} {measureUnit}; {t("sell any weight in the POS.")}</span>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-3 gap-4">
-          <TextField label={t("Purchase price")} type="number" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} />
-          <TextField label={t("Sale price")} type="number" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} />
+          <TextField label={`${t("Purchase price")}${sellByMeasure ? ` (/${measureUnit})` : ""}`} type="number" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} />
+          <TextField label={`${t("Sale price")}${sellByMeasure ? ` (/${measureUnit})` : ""}`} type="number" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} />
           <TextField label={t("Low-stock at")} type="number" value={lowStock} onChange={(e) => setLowStock(e.target.value)} />
         </div>
 
@@ -272,7 +308,8 @@ export function ProductForm() {
           </label>
         </div>
 
-        {/* Packaging levels */}
+        {/* Packaging levels — hidden for sell-by-measure products */}
+        {!sellByMeasure ? (
         <div>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Packaging levels")}</span>
@@ -317,6 +354,7 @@ export function ProductForm() {
             </div>
           )}
         </div>
+        ) : null}
 
         {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
 
