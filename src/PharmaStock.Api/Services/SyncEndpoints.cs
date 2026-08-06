@@ -30,7 +30,8 @@ public record SyncPushResponse(List<SyncPushResult> SaleResults, List<SyncPushRe
 // ---- Pull (server -> device) ----
 
 public record SyncPullPackagingLevel(Guid Id, Guid ProductId, string UnitName, int QuantityInBaseUnits, decimal? SalePriceOverride);
-public record SyncPullProduct(Guid Id, string Name, string? Barcode, Guid? CategoryId, decimal PurchasePrice, decimal SalePrice, Guid? SupplierId, bool IsFavorite, bool IsActive, int LowStockThreshold, decimal? TaxRateOverridePercent, DateTime UpdatedAt, List<SyncPullPackagingLevel> PackagingLevels);
+public record SyncPullProduct(Guid Id, string Name, string? Barcode, Guid? CategoryId, decimal PurchasePrice, decimal SalePrice, Guid? SupplierId, bool IsFavorite, bool IsActive, int LowStockThreshold, decimal? TaxRateOverridePercent, DateTime UpdatedAt, List<SyncPullPackagingLevel> PackagingLevels,
+    bool SellByMeasure, string? MeasureUnit, int UnitsPerMeasure, bool SerialTracked, bool HasVariants);
 public record SyncPullCategory(Guid Id, string Name, DateTime UpdatedAt);
 public record SyncPullCustomer(Guid Id, string Name, string? Phone, decimal CreditBalance, int LoyaltyPointsBalance, decimal LoyaltyStoreCreditBalance, DateTime UpdatedAt);
 public record SyncPullSupplier(Guid Id, string Name, string? ContactPhone, string? ContactEmail, DateTime UpdatedAt);
@@ -146,7 +147,8 @@ public static class SyncEndpoints
                 .Select(p => new SyncPullProduct(
                     p.Id, p.Name, p.Barcode, p.CategoryId, p.PurchasePrice, p.SalePrice, p.SupplierId,
                     p.IsFavorite, p.IsActive, p.LowStockThreshold, p.TaxRateOverridePercent, p.UpdatedAt,
-                    p.PackagingLevels.Select(l => new SyncPullPackagingLevel(l.Id, l.ProductId, l.UnitName, l.QuantityInBaseUnits, l.SalePriceOverride)).ToList()))
+                    p.PackagingLevels.Select(l => new SyncPullPackagingLevel(l.Id, l.ProductId, l.UnitName, l.QuantityInBaseUnits, l.SalePriceOverride)).ToList(),
+                    p.SellByMeasure, p.MeasureUnit, p.UnitsPerMeasure, p.SerialTracked, p.HasVariants))
                 .ToListAsync();
 
             var categoriesQuery = db.Categories.Where(c => c.CompanyId == companyId);

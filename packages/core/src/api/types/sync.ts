@@ -119,6 +119,14 @@ export interface SyncPullProduct {
   taxRateOverridePercent: number | null;
   updatedAt: string;
   packagingLevels: SyncPullPackagingLevel[];
+  // Inventory-capability fields (mirrored to the local cache so the offline POS
+  // can adapt): weight/measure display, serial tracking, and whether this is a
+  // variant-parent header (excluded from POS search).
+  sellByMeasure: boolean;
+  measureUnit: string | null;
+  unitsPerMeasure: number;
+  serialTracked: boolean;
+  hasVariants: boolean;
 }
 
 export interface SyncPullCategory {

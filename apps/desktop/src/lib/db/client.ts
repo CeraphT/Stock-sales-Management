@@ -3,6 +3,7 @@ import * as schema from "@stockflow/core/db/schema";
 import { drizzle as drizzleProxy } from "drizzle-orm/sqlite-proxy";
 
 import migration002 from "./migrations/002_b2b.sql?raw";
+import migration003 from "./migrations/003_inventory_capabilities.sql?raw";
 import schemaSql from "./schema.sql?raw";
 
 /** Tauri exposes this global inside the native webview; absent in a plain
@@ -66,6 +67,7 @@ async function initBrowserDb(): Promise<void> {
   // Post-v1 migrations (native runs these via tauri-plugin-sql). The in-memory
   // browser DB is recreated each load, so apply them right after the base schema.
   sqlDb.run(migration002);
+  sqlDb.run(migration003);
 
   const db = drizzleProxy(
     async (sql, params, method) => {

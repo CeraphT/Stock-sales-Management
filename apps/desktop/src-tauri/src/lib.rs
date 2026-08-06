@@ -112,6 +112,12 @@ pub fn run() {
             sql: include_str!("../../src/lib/db/migrations/002_b2b.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "inventory capabilities (measure/serial/variant flags)",
+            sql: include_str!("../../src/lib/db/migrations/003_inventory_capabilities.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

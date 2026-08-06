@@ -10,6 +10,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
+import { MEASURE_UNITS, unitsPerMeasureFor } from "@/lib/businessTypes";
+import { useCapabilities } from "@/lib/useCapabilities";
 import { useSetBreadcrumb } from "@/lib/breadcrumb";
 import { useT } from "@/lib/i18n";
 import { usePrefsStore } from "@/lib/prefs";
@@ -45,6 +47,11 @@ export function ProductForm() {
   const [favorite, setFavorite] = useState(false);
   const [levels, setLevels] = useState<LevelRow[]>([]);
   const [isActive, setIsActive] = useState(true);
+  const caps = useCapabilities();
+  const [sellByMeasure, setSellByMeasure] = useState(false);
+  const [measureUnit, setMeasureUnit] = useState("kg");
+  const [serialTracked, setSerialTracked] = useState(false);
+  const [manufacturer, setManufacturer] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +109,95 @@ export function ProductForm() {
     enabled: isEdit,
   });
 
+  // Variants: a saved, non-variant product in a variants-enabled company can own
+  // child variant rows (size/colour), each a full product with its own stock.
+  const isVariant = !!detail?.parentProductId;
+  const showVariants = isEdit && caps.variants && !isVariant;
+  const { data: variants = [], refetch: refetchVariants } = useQuery({
+    queryKey: ["variants", companyId, productId],
+    queryFn: () => productsApi.variants(companyId, productId!),
+    enabled: showVariants,
+  });
+  const [variantInput, setVariantInput] = useState("");
+  const [addingVariants, setAddingVariants] = useState(false);
+  async function addVariants() {
+    const labels = variantInput.split(/[,\n]/).map((s) => s.trim()).filter(Boolean);
+    if (labels.length === 0 || addingVariants) return;
+    setAddingVariants(true);
+    try {
+      await productsApi.createVariants(companyId, productId!, labels);
+      setVariantInput("");
+      await refetchVariants();
+      await runSync();
+      toast(t("Variants added."), "success");
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : t("Could not add variants."), "error");
+    } finally {
+      setAddingVariants(false);
+    }
+  }
+
+  // Assembly / bill-of-materials (build-to-stock). Editable on a saved,
+  // non-variant product in an assembly-enabled company.
+  const showAssembly = isEdit && caps.assembly && !isVariant;
+  const [bom, setBom] = useState<{ componentProductId: string; componentName: string; quantityInBaseUnits: number }[]>([]);
+  const [bomLoaded, setBomLoaded] = useState(false);
+  const { data: bomData } = useQuery({
+    queryKey: ["bom", companyId, productId],
+    queryFn: () => productsApi.bom(companyId, productId!),
+    enabled: showAssembly,
+  });
+  useEffect(() => {
+    if (!bomData || bomLoaded) return;
+    setBom(bomData.map((b) => ({ componentProductId: b.componentProductId, componentName: b.componentName, quantityInBaseUnits: b.quantityInBaseUnits })));
+    setBomLoaded(true);
+  }, [bomData, bomLoaded]);
+  const [compSearch, setCompSearch] = useState("");
+  const { data: compResults = [] } = useQuery({
+    queryKey: ["bom-search", companyId, compSearch],
+    queryFn: () => productsApi.search(companyId, compSearch),
+    enabled: showAssembly && compSearch.trim().length > 0,
+  });
+  const [savingBom, setSavingBom] = useState(false);
+  async function saveBom() {
+    if (savingBom) return;
+    setSavingBom(true);
+    try {
+      await productsApi.setBom(companyId, productId!, bom.map((b) => ({ componentProductId: b.componentProductId, quantityInBaseUnits: b.quantityInBaseUnits })));
+      await runSync();
+      toast(t("Bill of materials saved."), "success");
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : t("Could not save the bill of materials."), "error");
+    } finally {
+      setSavingBom(false);
+    }
+  }
+  const locationId = useAuthStore((s) => s.locationId);
+  const [buildQty, setBuildQty] = useState("");
+  const [buildBatch, setBuildBatch] = useState("");
+  const [buildExpiry, setBuildExpiry] = useState("");
+  const [building, setBuilding] = useState(false);
+  async function build() {
+    if (building || !locationId) return;
+    setBuilding(true);
+    try {
+      await productsApi.build(companyId, productId!, {
+        locationId,
+        quantity: Number(buildQty) || 0,
+        batchNumber: buildBatch.trim(),
+        expiryDate: buildExpiry ? new Date(buildExpiry).toISOString() : null,
+      });
+      await runSync();
+      setBuildQty("");
+      setBuildBatch("");
+      toast(t("Built — finished stock added."), "success");
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : t("Build failed."), "error");
+    } finally {
+      setBuilding(false);
+    }
+  }
+
   useSetBreadcrumb([
     { label: "Products", to: "/products" },
     { label: isEdit ? detail?.name ?? "Edit product" : "New product" },
@@ -113,8 +209,16 @@ export function ProductForm() {
     setBarcode(detail.barcode ?? "");
     setCategoryId(detail.categoryId ?? "");
     setSupplierId(detail.supplierId ?? "");
-    setPurchasePrice(String(detail.purchasePrice));
-    setSalePrice(String(detail.salePrice));
+    // For a measure product, prices are stored per base unit (per gram) but shown
+    // per display unit (per kg) — multiply back up for the form.
+    const measure = detail.sellByMeasure ?? false;
+    const upm = measure ? (detail.unitsPerMeasure ?? 1) : 1;
+    setSellByMeasure(measure);
+    setMeasureUnit(detail.measureUnit ?? "kg");
+    setSerialTracked(detail.serialTracked ?? false);
+    setManufacturer(detail.manufacturer ?? "");
+    setPurchasePrice(String(measure ? detail.purchasePrice * upm : detail.purchasePrice));
+    setSalePrice(String(measure ? detail.salePrice * upm : detail.salePrice));
     setLowStock(String(detail.lowStockThreshold));
     setTax(detail.taxRateOverridePercent != null ? String(detail.taxRateOverridePercent) : "");
     setFavorite(detail.isFavorite);
@@ -150,17 +254,26 @@ export function ProductForm() {
           quantityInBaseUnits: Number(l.quantityInBaseUnits),
           salePriceOverride: l.salePriceOverride.trim() ? Number(l.salePriceOverride) : null,
         }));
+      // Measure products store prices per BASE unit (per gram): the form enters
+      // per display unit (per kg), so divide by unitsPerMeasure on save.
+      const upm = sellByMeasure ? unitsPerMeasureFor(measureUnit) : 1;
       const body = {
         name: name.trim(),
         barcode: barcode.trim() || null,
         categoryId: categoryId || null,
         supplierId: supplierId || null,
-        purchasePrice: Number(purchasePrice) || 0,
-        salePrice: Number(salePrice) || 0,
+        purchasePrice: (Number(purchasePrice) || 0) / upm,
+        salePrice: (Number(salePrice) || 0) / upm,
         lowStockThreshold: Number(lowStock) || 0,
         taxRateOverridePercent: tax.trim() ? Number(tax) : null,
         isFavorite: favorite,
-        packagingLevels,
+        // Packaging levels are mutually exclusive with sell-by-measure.
+        packagingLevels: sellByMeasure ? [] : packagingLevels,
+        sellByMeasure,
+        measureUnit: sellByMeasure ? measureUnit : null,
+        unitsPerMeasure: upm,
+        serialTracked,
+        manufacturer: manufacturer.trim() || null,
       };
       if (isEdit) await productsApi.update(companyId, productId!, body);
       else await productsApi.create(companyId, body);
@@ -258,9 +371,53 @@ export function ProductForm() {
           </label>
         </div>
 
+        {caps.sellByMeasure ? (
+          <div className="rounded-xl border border-border p-3">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={sellByMeasure}
+                onChange={(e) => { setSellByMeasure(e.target.checked); if (e.target.checked) setSerialTracked(false); }}
+                className="h-4 w-4"
+              />
+              <span className="text-sm font-semibold text-text-primary">⚖️ {t("Sold by weight / measure")}</span>
+            </label>
+            {sellByMeasure ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+                <span>{t("Unit")}</span>
+                <select value={measureUnit} onChange={(e) => setMeasureUnit(e.target.value)} className="h-9 rounded-lg border border-border bg-surface px-2 text-sm text-text-primary">
+                  {MEASURE_UNITS.map((m) => <option key={m.unit} value={m.unit}>{m.unit}</option>)}
+                </select>
+                <span>{t("Prices below are per")} {measureUnit}; {t("sell any weight in the POS.")}</span>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {caps.serialTracking ? (
+          <div className="rounded-xl border border-border p-3">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={serialTracked}
+                onChange={(e) => { setSerialTracked(e.target.checked); if (e.target.checked) setSellByMeasure(false); }}
+                className="h-4 w-4"
+              />
+              <span className="text-sm font-semibold text-text-primary">🔢 {t("Track serial / IMEI numbers")}</span>
+            </label>
+            {serialTracked ? (
+              <p className="mt-2 text-xs text-text-secondary">{t("Capture one serial per unit when receiving; pick the exact unit when selling.")}</p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {caps.assembly ? (
+          <TextField label={t("Manufacturer / brand (optional)")} value={manufacturer} onChange={(e) => setManufacturer(e.target.value)} />
+        ) : null}
+
         <div className="grid grid-cols-3 gap-4">
-          <TextField label={t("Purchase price")} type="number" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} />
-          <TextField label={t("Sale price")} type="number" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} />
+          <TextField label={`${t("Purchase price")}${sellByMeasure ? ` (/${measureUnit})` : ""}`} type="number" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} />
+          <TextField label={`${t("Sale price")}${sellByMeasure ? ` (/${measureUnit})` : ""}`} type="number" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} />
           <TextField label={t("Low-stock at")} type="number" value={lowStock} onChange={(e) => setLowStock(e.target.value)} />
         </div>
 
@@ -272,7 +429,8 @@ export function ProductForm() {
           </label>
         </div>
 
-        {/* Packaging levels */}
+        {/* Packaging levels — hidden for sell-by-measure and serialized products */}
+        {!sellByMeasure && !serialTracked ? (
         <div>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Packaging levels")}</span>
@@ -317,6 +475,111 @@ export function ProductForm() {
             </div>
           )}
         </div>
+        ) : null}
+
+        {showVariants ? (
+          <div className="rounded-xl border border-border p-4">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-text-secondary">🎨 {t("Variants")}</span>
+              {variants.length > 0 ? (
+                <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">{variants.length}</span>
+              ) : null}
+            </div>
+            {variants.length > 0 ? (
+              <div className="mb-3 space-y-1.5">
+                {variants.map((v) => (
+                  <div key={v.id} className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 text-sm">
+                    <span className="font-medium text-text-primary">{v.variantName}</span>
+                    <div className="flex gap-3 text-xs font-semibold">
+                      <button onClick={() => navigate(`/products/${v.id}/edit`)} className="text-primary hover:brightness-110">{t("Edit")}</button>
+                      <button onClick={() => navigate(`/products/${v.id}/receive`)} className="text-primary hover:brightness-110">{t("Receive")}</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mb-3 text-xs text-text-secondary">{t("Add sizes/colours as variants — each gets its own stock, barcode and price.")}</p>
+            )}
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <TextField label={t("New variants (comma-separated)")} value={variantInput} onChange={(e) => setVariantInput(e.target.value)} placeholder="S, M, L" />
+              </div>
+              <Button variant="secondary" onClick={addVariants} loading={addingVariants} disabled={!variantInput.trim()}>{t("Add")}</Button>
+            </div>
+          </div>
+        ) : null}
+
+        {isVariant ? (
+          <p className="rounded-lg bg-primary/5 px-3 py-2 text-xs text-text-secondary">
+            🎨 {t("This is a variant — its stock, barcode and price are managed here independently.")}
+          </p>
+        ) : null}
+
+        {showAssembly ? (
+          <div className="rounded-xl border border-border p-4">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">🛠️ {t("Bill of materials (build from components)")}</div>
+
+            {bom.length > 0 ? (
+              <div className="mb-3 space-y-1.5">
+                {bom.map((line, i) => (
+                  <div key={line.componentProductId} className="flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-sm">
+                    <span className="flex-1 font-medium text-text-primary">{line.componentName}</span>
+                    <input
+                      type="number"
+                      value={line.quantityInBaseUnits}
+                      onChange={(e) => setBom((b) => b.map((x, j) => (j === i ? { ...x, quantityInBaseUnits: Number(e.target.value) || 0 } : x)))}
+                      className="h-8 w-20 rounded-lg border border-border bg-surface px-2 text-right text-sm text-text-primary"
+                    />
+                    <span className="text-xs text-text-secondary">{t("units / build")}</span>
+                    <button onClick={() => setBom((b) => b.filter((_, j) => j !== i))} className="text-text-secondary hover:text-error" title={t("Remove")}>✕</button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mb-3 text-xs text-text-secondary">{t("Add the components consumed to build one unit of this product.")}</p>
+            )}
+
+            <div className="mb-2">
+              <TextField label={t("Add component (search)")} value={compSearch} onChange={(e) => setCompSearch(e.target.value)} placeholder={t("Search a product…")} />
+              {compSearch.trim() && compResults.length > 0 ? (
+                <div className="mt-1 max-h-40 overflow-y-auto rounded-lg border border-border">
+                  {compResults
+                    .filter((r) => r.productId !== productId && !bom.some((b) => b.componentProductId === r.productId))
+                    .map((r) => (
+                      <button
+                        key={r.productId}
+                        onClick={() => { setBom((b) => [...b, { componentProductId: r.productId, componentName: r.name, quantityInBaseUnits: 1 }]); setCompSearch(""); }}
+                        className="block w-full px-3 py-2 text-left text-sm text-text-primary hover:bg-primary/5"
+                      >
+                        {r.name}
+                      </button>
+                    ))}
+                </div>
+              ) : null}
+            </div>
+
+            <Button variant="secondary" onClick={saveBom} loading={savingBom}>{t("Save bill of materials")}</Button>
+
+            {bom.length > 0 ? (
+              <div className="mt-4 rounded-xl bg-primary/5 p-3">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">📦 {t("Build finished stock")}</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <TextField label={t("Quantity to build")} type="number" value={buildQty} onChange={(e) => setBuildQty(e.target.value)} />
+                  <TextField label={t("Batch number")} value={buildBatch} onChange={(e) => setBuildBatch(e.target.value)} />
+                  {caps.expiryTracking ? (
+                    <TextField label={t("Expiry date (required)")} type="date" value={buildExpiry} onChange={(e) => setBuildExpiry(e.target.value)} />
+                  ) : null}
+                </div>
+                <div className="mt-2">
+                  <Button onClick={build} loading={building} disabled={!(Number(buildQty) > 0) || !buildBatch.trim() || (caps.expiryTracking && !buildExpiry)}>
+                    🛠️ {t("Build")}
+                  </Button>
+                </div>
+                <p className="mt-2 text-xs text-text-secondary">{t("Deducts the components above and adds this many finished units to stock.")}</p>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
 

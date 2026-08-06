@@ -127,6 +127,11 @@ export async function pullAll(companyId: string, locationId: string): Promise<nu
       lowStockThreshold: product.lowStockThreshold,
       taxRateOverridePercent: product.taxRateOverridePercent,
       updatedAt: product.updatedAt,
+      sellByMeasure: product.sellByMeasure ?? false,
+      measureUnit: product.measureUnit ?? null,
+      unitsPerMeasure: product.unitsPerMeasure ?? 1,
+      serialTracked: product.serialTracked ?? false,
+      hasVariants: product.hasVariants ?? false,
     };
     await db.insert(products).values(values).onConflictDoUpdate({ target: products.id, set: values });
 

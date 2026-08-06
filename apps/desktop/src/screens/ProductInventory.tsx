@@ -39,6 +39,12 @@ export function ProductInventory() {
   const stockValue = batches.reduce((s, b) => s + b.quantityInBaseUnits * b.purchasePricePerBaseUnit, 0);
   const levels = product?.packagingLevels ?? [];
 
+  // Sell-by-measure products show quantities in their display unit (e.g. grams
+  // shown as kg) and cost per that unit, everywhere base units would otherwise show.
+  const measure = !!product?.sellByMeasure;
+  const measureUpm = product?.unitsPerMeasure && product.unitsPerMeasure > 0 ? product.unitsPerMeasure : 1;
+  const measureUnit = product?.measureUnit ?? "";
+
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="flex items-center justify-between">
@@ -52,7 +58,8 @@ export function ProductInventory() {
         <div className="rounded-card border border-border bg-surface p-4">
           <div className="text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("In stock")}</div>
           <div className="mt-1 text-2xl font-extrabold text-text-primary tabular-nums">
-            {totalStock} <span className="text-sm font-medium text-text-secondary">{t("units")}</span>
+            {measure ? totalStock / measureUpm : totalStock}{" "}
+            <span className="text-sm font-medium text-text-secondary">{measure ? measureUnit : t("units")}</span>
           </div>
         </div>
         <div className="rounded-card border border-border bg-surface p-4">
@@ -116,12 +123,17 @@ export function ProductInventory() {
                 return (
                   <tr key={b.id} className="border-b border-border/60 last:border-0">
                     <td className="px-4 py-2.5 font-mono text-text-primary">{b.batchNumber}</td>
-                    <td className="px-4 py-2.5 text-right text-text-primary tabular-nums">{b.quantityInBaseUnits}</td>
+                    <td className="px-4 py-2.5 text-right text-text-primary tabular-nums">
+                      {measure ? `${b.quantityInBaseUnits / measureUpm} ${measureUnit}` : b.quantityInBaseUnits}
+                    </td>
                     <td className={`px-4 py-2.5 text-xs ${tone}`}>
                       {b.expiryDate ? b.expiryDate.slice(0, 10) : "—"}
                       {days != null && days < 0 ? ` · ${t("Expired")}` : null}
                     </td>
-                    <td className="px-4 py-2.5 text-right text-text-primary tabular-nums">{formatCurrency(b.purchasePricePerBaseUnit, currency)}</td>
+                    <td className="px-4 py-2.5 text-right text-text-primary tabular-nums">
+                      {formatCurrency(b.purchasePricePerBaseUnit * (measure ? measureUpm : 1), currency)}
+                      {measure ? `/${measureUnit}` : ""}
+                    </td>
                   </tr>
                 );
               })}

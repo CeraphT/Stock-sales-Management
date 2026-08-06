@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "-w", "pharmastock-web"],
       "port": 5174
+    },
+    {
+      "name": "desktop",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "-w", "pharmastock-desktop"],
+      "port": 5173
     }
   ]
 }

@@ -1,9 +1,12 @@
 import { ApiError } from "@stockflow/core/api/client";
 import { companiesApi } from "@stockflow/core/api/endpoints/companies";
+import type { InventoryCapabilities } from "@stockflow/core/api/types/auth";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/Button";
+import { CAPABILITY_META } from "@/lib/businessTypes";
+import { DEFAULT_CAPABILITIES } from "@/lib/useCapabilities";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { TextField } from "@/components/TextField";
 import { confirmDialog } from "@/lib/confirm";
@@ -17,7 +20,7 @@ import { useAuthStore } from "@/lib/stores";
 import { runSync } from "@/lib/sync/runSync";
 import { toast } from "@/lib/toast";
 
-type Tab = "business" | "tax" | "rewards" | "rules";
+type Tab = "business" | "tax" | "rewards" | "rules" | "manage";
 
 export function CompanySettings() {
   const companyId = useAuthStore((s) => s.companyId)!;
@@ -47,6 +50,7 @@ export function CompanySettings() {
   const [country, setCountry] = useState("");
   const [saving, setSaving] = useState(false);
   const [converting, setConverting] = useState(false);
+  const [capabilities, setCapabilities] = useState<InventoryCapabilities>(DEFAULT_CAPABILITIES);
 
   useEffect(() => {
     if (!company) return;
@@ -67,6 +71,7 @@ export function CompanySettings() {
     setFlatTaxAmount(String(company.flatTaxAmount));
     setFlatTaxPeriod(company.flatTaxPeriod);
     setCountry(countryForCurrency(company.currency) ?? "");
+    setCapabilities(company.capabilities ?? DEFAULT_CAPABILITIES);
   }, [company]);
 
   const currencyLabel = CURRENCY_OPTIONS.find((o) => o.value === currency)?.label ?? currency;
@@ -146,6 +151,7 @@ export function CompanySettings() {
         flatTaxAmount: Number(flatTaxAmount) || 0,
         flatTaxPeriod,
         taxId: companyTaxId.trim() || null,
+        capabilities,
       });
       await runSync();
       await queryClient.invalidateQueries({ queryKey: ["company", companyId] });
@@ -162,6 +168,7 @@ export function CompanySettings() {
     { id: "tax", label: t("Tax & currency"), icon: "💱" },
     { id: "rewards", label: t("Loyalty & rewards"), icon: "🎁" },
     { id: "rules", label: t("Data-entry rules"), icon: "📋" },
+    { id: "manage", label: t("What you manage"), icon: "📦" },
   ];
 
   return (
@@ -386,6 +393,28 @@ export function CompanySettings() {
             </label>
             <p className="text-xs text-text-secondary">{t("The supplier rule applies to this device; other settings apply company-wide.")}</p>
           </>
+        ) : null}
+
+        {tab === "manage" ? (
+          <div className="space-y-2">
+            <p className="text-sm text-text-secondary">
+              {t("Turn on only the inventory features this business needs — the rest stay hidden so the app stays simple.")}
+            </p>
+            {CAPABILITY_META.map((c) => (
+              <label key={c.key} className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-background">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4"
+                  checked={capabilities[c.key]}
+                  onChange={(e) => setCapabilities((prev) => ({ ...prev, [c.key]: e.target.checked }))}
+                />
+                <span>
+                  <span className="block text-sm font-semibold text-text-primary">{t(c.label)}</span>
+                  <span className="block text-xs text-text-secondary">{t(c.desc)}</span>
+                </span>
+              </label>
+            ))}
+          </div>
         ) : null}
 
         <div className="flex justify-end border-t border-border pt-4">

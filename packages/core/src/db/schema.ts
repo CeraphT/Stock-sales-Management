@@ -88,6 +88,12 @@ export const products = sqliteTable(
     lowStockThreshold: integer("low_stock_threshold").notNull(),
     taxRateOverridePercent: real("tax_rate_override_percent"),
     updatedAt: text("updated_at").notNull(),
+    // Inventory-capability fields (mirrored for the offline POS).
+    sellByMeasure: integer("sell_by_measure", { mode: "boolean" }).notNull().default(false),
+    measureUnit: text("measure_unit"),
+    unitsPerMeasure: integer("units_per_measure").notNull().default(1),
+    serialTracked: integer("serial_tracked", { mode: "boolean" }).notNull().default(false),
+    hasVariants: integer("has_variants", { mode: "boolean" }).notNull().default(false),
   },
   (table) => [index("products_barcode_idx").on(table.barcode), index("products_category_idx").on(table.categoryId)],
 );

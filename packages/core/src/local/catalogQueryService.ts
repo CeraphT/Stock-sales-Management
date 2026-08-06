@@ -100,7 +100,15 @@ export const localCatalogQueryService = {
 
     const pattern = `%${search}%`;
     const rows = await db.query.products.findMany({
-      where: and(eq(products.companyId, companyId), eq(products.isActive, true), or(like(products.name, pattern), like(products.barcode, pattern))),
+      // Variant-parent headers (hasVariants) hold no stock and are never sold
+      // directly — only their variant rows are — so they're excluded here, same
+      // as the online search endpoint.
+      where: and(
+        eq(products.companyId, companyId),
+        eq(products.isActive, true),
+        eq(products.hasVariants, false),
+        or(like(products.name, pattern), like(products.barcode, pattern)),
+      ),
       orderBy: (p, { asc }) => asc(p.name),
       limit: MAX_SEARCH_RESULTS,
     });
@@ -123,6 +131,10 @@ export const localCatalogQueryService = {
         stockStatus: computeStockStatus(totalBaseUnits, product.lowStockThreshold),
         packagingLevels: levels,
         earliestExpiry,
+        sellByMeasure: product.sellByMeasure,
+        measureUnit: product.measureUnit,
+        unitsPerMeasure: product.unitsPerMeasure,
+        serialTracked: product.serialTracked,
       });
     }
     return results;

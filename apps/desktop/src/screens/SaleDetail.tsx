@@ -116,18 +116,27 @@ export function SaleDetail() {
 
         <table className="w-full text-sm">
           <tbody>
-            {sale.productLines.map((l, i) => (
-              <tr key={`p${i}`} className="border-b border-border/50 last:border-0">
-                <td className="py-2">
-                  <div className="font-medium text-text-primary">{l.productName}</div>
-                  <div className="text-xs text-text-secondary">
-                    {l.quantityInBaseUnits} × {formatCurrency(l.unitPrice, currency)}
-                    {l.batchNumber ? ` · batch ${l.batchNumber}` : ""}
-                  </div>
-                </td>
-                <td className="py-2 text-right font-medium text-text-primary">{formatCurrency(l.lineTotal, currency)}</td>
-              </tr>
-            ))}
+            {sale.productLines.map((l, i) => {
+              const upm = l.sellByMeasure && l.unitsPerMeasure && l.unitsPerMeasure > 0 ? l.unitsPerMeasure : 0;
+              const qtyLine = upm
+                ? `${l.quantityInBaseUnits / upm} ${l.measureUnit} × ${formatCurrency(l.unitPrice * upm, currency)}/${l.measureUnit}`
+                : `${l.quantityInBaseUnits} × ${formatCurrency(l.unitPrice, currency)}`;
+              return (
+                <tr key={`p${i}`} className="border-b border-border/50 last:border-0">
+                  <td className="py-2">
+                    <div className="font-medium text-text-primary">{l.productName}</div>
+                    <div className="text-xs text-text-secondary">
+                      {qtyLine}
+                      {l.batchNumber ? ` · batch ${l.batchNumber}` : ""}
+                    </div>
+                    {l.serialNumbers && l.serialNumbers.length > 0 ? (
+                      <div className="mt-0.5 font-mono text-[11px] text-text-secondary">S/N: {l.serialNumbers.join(", ")}</div>
+                    ) : null}
+                  </td>
+                  <td className="py-2 text-right font-medium text-text-primary">{formatCurrency(l.lineTotal, currency)}</td>
+                </tr>
+              );
+            })}
             {sale.serviceLines.map((l, i) => (
               <tr key={`s${i}`} className="border-b border-border/50 last:border-0">
                 <td className="py-2">
