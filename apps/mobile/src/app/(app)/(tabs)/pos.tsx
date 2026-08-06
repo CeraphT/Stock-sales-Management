@@ -318,7 +318,7 @@ export default function PosScreen() {
       <Modal visible={!!measurePick} transparent animationType="fade" onRequestClose={() => setMeasurePick(null)}>
         <Pressable className="flex-1 items-center justify-center bg-black/40 p-6" onPress={() => setMeasurePick(null)}>
           <Pressable className="w-full max-w-sm gap-3 rounded-2xl bg-surface p-5" onPress={(e) => e.stopPropagation()}>
-            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">⚖️ Enter weight / quantity</Text>
+            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">⚖️ {t('pos.enterWeight')}</Text>
             <Text className="text-lg font-bold text-text-primary">{measurePick?.name}</Text>
             {measurePick ? (
               <Text className="text-sm text-text-secondary">
@@ -339,7 +339,7 @@ export default function PosScreen() {
             </View>
             {Number(measureQty) > 0 && measurePick ? (
               <Text className="text-sm text-text-secondary">
-                Total:{' '}
+                {t('common.total')}:{' '}
                 <Text className="font-bold text-text-primary">
                   {formatCurrency(measurePick.salePrice * (measurePick.unitsPerMeasure || 1) * Number(measureQty), currency)}
                 </Text>
@@ -353,7 +353,7 @@ export default function PosScreen() {
                 disabled={!(Number(measureQty) > 0)}
                 onPress={() => measurePick && addMeasure(measurePick, Number(measureQty))}
                 className="flex-1 items-center rounded-xl bg-primary py-3 disabled:opacity-50">
-                <Text className="text-base font-semibold text-white">Add to cart</Text>
+                <Text className="text-base font-semibold text-white">{t('pos.addToCart')}</Text>
               </Pressable>
             </View>
           </Pressable>

@@ -116,6 +116,8 @@ export const translations = {
     "pos.hold": "Hold",
     "pos.holding": "Holding…",
     "pos.charge": "Charge",
+    "pos.enterWeight": "Enter weight / quantity",
+    "pos.addToCart": "Add to cart",
 
     // Checkout
     "checkout.title": "Checkout",
@@ -304,6 +306,8 @@ export const translations = {
     "pos.hold": "Mettre en attente",
     "pos.holding": "Mise en attente…",
     "pos.charge": "Encaisser",
+    "pos.enterWeight": "Saisir le poids / la quantité",
+    "pos.addToCart": "Ajouter au panier",
 
     // Checkout
     "checkout.title": "Paiement",
