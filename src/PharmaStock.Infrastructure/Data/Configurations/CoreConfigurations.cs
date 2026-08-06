@@ -45,6 +45,14 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .WithMany()
             .HasForeignKey(p => p.CategoryId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Variant → parent self-reference. Restrict so a parent grouping header
+        // can't be deleted while variant rows still hang off it (archive instead).
+        builder.HasOne(p => p.ParentProduct)
+            .WithMany()
+            .HasForeignKey(p => p.ParentProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(p => p.ParentProductId);
     }
 }
 

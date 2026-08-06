@@ -64,6 +64,14 @@ export const productsApi = {
       locationId: opts?.locationId,
     }),
 
+  // Variant child rows of a parent product.
+  variants: (companyId: string, productId: string) =>
+    api.get<ProductDetailResponse[]>(`/api/companies/${companyId}/products/${productId}/variants`),
+
+  // Bulk-create variants from labels (e.g. ["S","M","L"]); returns all variants.
+  createVariants: (companyId: string, productId: string, labels: string[]) =>
+    api.post<ProductDetailResponse[]>(`/api/companies/${companyId}/products/${productId}/variants`, { labels }),
+
   receiveStock: (companyId: string, productId: string, body: ReceiveStockRequest) =>
     api.post<BatchResponse>(`/api/companies/${companyId}/products/${productId}/stock/receive`, body),
 

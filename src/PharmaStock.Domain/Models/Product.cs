@@ -42,6 +42,19 @@ public class Product : ITimestamped
     /// for display/entry; the stored quantities and prices are always per base unit.</summary>
     public int UnitsPerMeasure { get; set; } = 1;
 
+    // ── Variants (size / colour) ─────────────────────────────────────────────
+    // A variant is a full child Product row (its own barcode, price, stock,
+    // packaging, serials) linked to a parent by ParentProductId — so the entire
+    // stock/POS/serial engine works per-variant unchanged. The parent row
+    // (HasVariants = true) is a grouping header, not directly sellable, and is
+    // excluded from POS search; only its variant rows are sold. Name on a variant
+    // is the full sellable label (e.g. "T-Shirt — M / Red"); VariantName is just
+    // the distinguishing part ("M / Red") for grouped display.
+    public Guid? ParentProductId { get; set; }
+    public Product? ParentProduct { get; set; }
+    public string? VariantName { get; set; }
+    public bool HasVariants { get; set; } = false;
+
     // ── Serial / IMEI tracking ──────────────────────────────────────────────
     // A per-unit serial registry (ProductSerial) layered ON TOP of the integer
     // ledger — Batch/StockMovement/FEFO are unchanged, so a serialized product

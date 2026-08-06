@@ -26,6 +26,12 @@ export interface ProductSearchResult {
   /** When true, each unit is tracked by serial/IMEI: the POS requires picking
    * specific in-stock serials before this product can be added to the cart. */
   serialTracked?: boolean;
+  /** Variant metadata: variantName is the distinguishing label ("M / Red") on a
+   * variant row; parentProductId links it to its parent; hasVariants marks a
+   * parent grouping header (not itself sold). */
+  variantName?: string | null;
+  parentProductId?: string | null;
+  hasVariants?: boolean;
 }
 
 export interface StockAvailabilityResponse {
@@ -89,6 +95,9 @@ export interface ProductDetailResponse {
   measureUnit?: string | null;
   unitsPerMeasure?: number;
   serialTracked?: boolean;
+  variantName?: string | null;
+  parentProductId?: string | null;
+  hasVariants?: boolean;
 }
 
 /** A single serialized/IMEI unit (electronics). Status: 0 InStock, 1 Sold,

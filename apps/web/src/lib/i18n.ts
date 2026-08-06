@@ -160,6 +160,12 @@ export const FR: Record<string, string> = {
   "unit(s) — each serial is one unit received.": "unité(s) — chaque numéro de série correspond à une unité reçue.",
   "Pick serial / IMEI": "Choisir le numéro de série / IMEI",
   "No serials in stock at this location.": "Aucun numéro de série en stock à cet emplacement.",
+  "Variants": "Variantes",
+  "Add sizes/colours as variants — each gets its own stock, barcode and price.": "Ajoutez des tailles/couleurs comme variantes — chacune a son propre stock, code-barres et prix.",
+  "New variants (comma-separated)": "Nouvelles variantes (séparées par des virgules)",
+  "This is a variant — its stock, barcode and price are managed here independently.": "Ceci est une variante — son stock, son code-barres et son prix sont gérés ici indépendamment.",
+  "Variants added.": "Variantes ajoutées.",
+  "Could not add variants.": "Impossible d'ajouter les variantes.",
 
   // ── Cash register ──────────────────────────────────────────────────
   "Register open": "Caisse ouverte",

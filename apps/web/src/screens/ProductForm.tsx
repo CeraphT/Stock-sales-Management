@@ -108,6 +108,34 @@ export function ProductForm() {
     enabled: isEdit,
   });
 
+  // Variants: a saved, non-variant product in a variants-enabled company can own
+  // child variant rows (size/colour), each a full product with its own stock.
+  const isVariant = !!detail?.parentProductId;
+  const showVariants = isEdit && caps.variants && !isVariant;
+  const { data: variants = [], refetch: refetchVariants } = useQuery({
+    queryKey: ["variants", companyId, productId],
+    queryFn: () => productsApi.variants(companyId, productId!),
+    enabled: showVariants,
+  });
+  const [variantInput, setVariantInput] = useState("");
+  const [addingVariants, setAddingVariants] = useState(false);
+  async function addVariants() {
+    const labels = variantInput.split(/[,\n]/).map((s) => s.trim()).filter(Boolean);
+    if (labels.length === 0 || addingVariants) return;
+    setAddingVariants(true);
+    try {
+      await productsApi.createVariants(companyId, productId!, labels);
+      setVariantInput("");
+      await refetchVariants();
+      await runSync();
+      toast(t("Variants added."), "success");
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : t("Could not add variants."), "error");
+    } finally {
+      setAddingVariants(false);
+    }
+  }
+
   useSetBreadcrumb([
     { label: "Products", to: "/products" },
     { label: isEdit ? detail?.name ?? "Edit product" : "New product" },
@@ -379,6 +407,44 @@ export function ProductForm() {
             </div>
           )}
         </div>
+        ) : null}
+
+        {showVariants ? (
+          <div className="rounded-xl border border-border p-4">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-text-secondary">🎨 {t("Variants")}</span>
+              {variants.length > 0 ? (
+                <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">{variants.length}</span>
+              ) : null}
+            </div>
+            {variants.length > 0 ? (
+              <div className="mb-3 space-y-1.5">
+                {variants.map((v) => (
+                  <div key={v.id} className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 text-sm">
+                    <span className="font-medium text-text-primary">{v.variantName}</span>
+                    <div className="flex gap-3 text-xs font-semibold">
+                      <button onClick={() => navigate(`/products/${v.id}/edit`)} className="text-primary hover:brightness-110">{t("Edit")}</button>
+                      <button onClick={() => navigate(`/products/${v.id}/receive`)} className="text-primary hover:brightness-110">{t("Receive")}</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mb-3 text-xs text-text-secondary">{t("Add sizes/colours as variants — each gets its own stock, barcode and price.")}</p>
+            )}
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <TextField label={t("New variants (comma-separated)")} value={variantInput} onChange={(e) => setVariantInput(e.target.value)} placeholder="S, M, L" />
+              </div>
+              <Button variant="secondary" onClick={addVariants} loading={addingVariants} disabled={!variantInput.trim()}>{t("Add")}</Button>
+            </div>
+          </div>
+        ) : null}
+
+        {isVariant ? (
+          <p className="rounded-lg bg-primary/5 px-3 py-2 text-xs text-text-secondary">
+            🎨 {t("This is a variant — its stock, barcode and price are managed here independently.")}
+          </p>
         ) : null}
 
         {error ? <p className="text-sm font-medium text-error">{error}</p> : null}

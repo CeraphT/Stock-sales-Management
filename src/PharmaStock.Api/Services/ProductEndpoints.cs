@@ -17,7 +17,10 @@ public record ProductSearchResult(
     bool SellByMeasure = false,
     string? MeasureUnit = null,
     int UnitsPerMeasure = 1,
-    bool SerialTracked = false
+    bool SerialTracked = false,
+    string? VariantName = null,
+    Guid? ParentProductId = null,
+    bool HasVariants = false
 );
 
 public record StockAvailabilityResponse(
@@ -54,7 +57,8 @@ public record ProductDetailResponse(
     decimal PurchasePrice, decimal SalePrice, bool IsFavorite, bool IsActive, int LowStockThreshold,
     decimal? TaxRateOverridePercent, List<PackagingLevelDetail> PackagingLevels,
     bool SellByMeasure = false, string? MeasureUnit = null, int UnitsPerMeasure = 1,
-    bool SerialTracked = false
+    bool SerialTracked = false,
+    string? VariantName = null, Guid? ParentProductId = null, bool HasVariants = false
 );
 
 // Section 3.4 — restock suggestions for the "Nouvelle commande" supplier-first
@@ -66,6 +70,8 @@ public record RestockSuggestionItem(Guid ProductId, string Name, int CurrentStoc
 public record ProductCatalogItem(Guid Id, string Name, string? Barcode, string? CategoryName, decimal SalePrice, bool IsFavorite, bool IsActive, string StockStatus, DateTime? EarliestExpiry);
 
 public record ProductCatalogPageResponse(List<ProductCatalogItem> Items, bool HasMore);
+
+public record CreateVariantsRequest(List<string> Labels);
 
 public static class ProductEndpoints
 {
@@ -94,7 +100,9 @@ public static class ProductEndpoints
             var products = await db.Products
                 .Include(p => p.PackagingLevels)
                 .Include(p => p.Batches)
-                .Where(p => p.CompanyId == companyId && p.IsActive &&
+                // Exclude variant-parent headers — they hold no stock and are
+                // never sold directly; only their individual variant rows are.
+                .Where(p => p.CompanyId == companyId && p.IsActive && !p.HasVariants &&
                     (EF.Functions.ILike(p.Name, $"%{search}%") ||
                      (p.Barcode != null && EF.Functions.ILike(p.Barcode, $"%{search}%"))))
                 .OrderBy(p => p.Name)
@@ -114,7 +122,8 @@ public static class ProductEndpoints
                 return new ProductSearchResult(
                     product.Id, product.Name, product.Barcode, product.SalePrice,
                     ComputeStockStatus(totalBaseUnits, product.LowStockThreshold), levels,
-                    product.SellByMeasure, product.MeasureUnit, product.UnitsPerMeasure, product.SerialTracked);
+                    product.SellByMeasure, product.MeasureUnit, product.UnitsPerMeasure, product.SerialTracked,
+                    product.VariantName, product.ParentProductId, product.HasVariants);
             });
 
             return Results.Ok(results);
@@ -177,7 +186,10 @@ public static class ProductEndpoints
 
             var pageNumber = page is > 0 ? page.Value : 1;
 
-            var query = db.Products.Where(p => p.CompanyId == companyId && p.IsActive != (archivedOnly == true));
+            // Variant children are managed from their parent's edit screen, so
+            // they're kept out of the top-level catalog list (which shows the
+            // parent grouping header instead).
+            var query = db.Products.Where(p => p.CompanyId == companyId && p.IsActive != (archivedOnly == true) && p.ParentProductId == null);
             if (!string.IsNullOrWhiteSpace(search))
             {
                 query = query.Where(p =>
@@ -305,6 +317,81 @@ public static class ProductEndpoints
                 .FirstOrDefaultAsync(p => p.Id == productId && p.CompanyId == companyId);
 
             return product is null ? Results.NotFound(new { message = "Produit introuvable." }) : Results.Ok(ToDetailResponse(product));
+        }).RequireAuthorization();
+
+        // Variant rows for a parent product (size/colour). Each is a full child
+        // Product with its own stock/barcode/price, so the whole engine reuses.
+        group.MapGet("/{productId:guid}/variants", async (Guid companyId, Guid productId, PharmaStockDbContext db, HttpContext http) =>
+        {
+            if (http.User.GetCompanyId() != companyId)
+                return Results.Forbid();
+
+            var variants = await db.Products
+                .Include(p => p.PackagingLevels).Include(p => p.Category).Include(p => p.Supplier)
+                .Where(p => p.CompanyId == companyId && p.ParentProductId == productId)
+                .OrderBy(p => p.VariantName)
+                .ToListAsync();
+            return Results.Ok(variants.Select(ToDetailResponse).ToList());
+        }).RequireAuthorization();
+
+        // Bulk-create variant rows from a list of labels (e.g. ["S","M","L"]).
+        // Each clones the parent's category/supplier/prices/tax/tracking flags;
+        // Name becomes "Parent — label". Existing labels are skipped (idempotent).
+        group.MapPost("/{productId:guid}/variants", async (Guid companyId, Guid productId, CreateVariantsRequest request, PharmaStockDbContext db, HttpContext http) =>
+        {
+            if (http.User.GetCompanyId() != companyId)
+                return Results.Forbid();
+
+            var parent = await db.Products.FirstOrDefaultAsync(p => p.Id == productId && p.CompanyId == companyId);
+            if (parent is null)
+                return Results.NotFound(new { message = "Produit introuvable." });
+            if (parent.ParentProductId is not null)
+                return Results.BadRequest(new { message = "Un variant ne peut pas avoir ses propres variants." });
+
+            var labels = (request.Labels ?? new List<string>())
+                .Select(l => l?.Trim() ?? "")
+                .Where(l => l.Length > 0)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            if (labels.Count == 0)
+                return Results.BadRequest(new { message = "Indiquez au moins un libellé de variant." });
+
+            var existing = await db.Products
+                .Where(p => p.ParentProductId == productId)
+                .Select(p => p.VariantName!)
+                .ToListAsync();
+            var existingSet = existing.Select(e => e.ToLowerInvariant()).ToHashSet();
+
+            foreach (var label in labels)
+            {
+                if (existingSet.Contains(label.ToLowerInvariant())) continue;
+                db.Products.Add(new Product
+                {
+                    CompanyId = companyId,
+                    Name = $"{parent.Name} — {label}",
+                    VariantName = label,
+                    ParentProductId = parent.Id,
+                    CategoryId = parent.CategoryId,
+                    SupplierId = parent.SupplierId,
+                    PurchasePrice = parent.PurchasePrice,
+                    SalePrice = parent.SalePrice,
+                    TaxRateOverridePercent = parent.TaxRateOverridePercent,
+                    LowStockThreshold = parent.LowStockThreshold,
+                    SerialTracked = parent.SerialTracked,
+                    SellByMeasure = parent.SellByMeasure,
+                    MeasureUnit = parent.MeasureUnit,
+                    UnitsPerMeasure = parent.UnitsPerMeasure,
+                });
+            }
+            parent.HasVariants = true;
+            await db.SaveChangesAsync();
+
+            var all = await db.Products
+                .Include(p => p.PackagingLevels).Include(p => p.Category).Include(p => p.Supplier)
+                .Where(p => p.ParentProductId == productId)
+                .OrderBy(p => p.VariantName)
+                .ToListAsync();
+            return Results.Ok(all.Select(ToDetailResponse).ToList());
         }).RequireAuthorization();
 
         group.MapPost("/", async (Guid companyId, ProductRequest request, PharmaStockDbContext db, HttpContext http) =>
@@ -504,7 +591,8 @@ public static class ProductEndpoints
         product.PurchasePrice, product.SalePrice, product.IsFavorite, product.IsActive, product.LowStockThreshold,
         product.TaxRateOverridePercent,
         product.PackagingLevels.Select(l => new PackagingLevelDetail(l.Id, l.UnitName, l.QuantityInBaseUnits, l.SalePriceOverride)).ToList(),
-        product.SellByMeasure, product.MeasureUnit, product.UnitsPerMeasure, product.SerialTracked
+        product.SellByMeasure, product.MeasureUnit, product.UnitsPerMeasure, product.SerialTracked,
+        product.VariantName, product.ParentProductId, product.HasVariants
     );
 
     private static bool IsForeignKeyViolation(DbUpdateException ex) =>
