@@ -1,6 +1,6 @@
 import { authApi } from "@stockflow/core/api/endpoints/auth";
 import { ApiError } from "@stockflow/core/api/client";
-import { DevicePlatform } from "@stockflow/core/api/enums";
+import { DevicePlatform, UserRole } from "@stockflow/core/api/enums";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -40,8 +40,15 @@ export function Login() {
         user: auth.user,
         companyId: auth.companyId,
       });
-      if (auth.companyId) await resolveDefaultLocation(auth.companyId);
-      navigate("/dashboard", { replace: true });
+      if (auth.companyId) {
+        await resolveDefaultLocation(auth.companyId);
+        navigate("/dashboard", { replace: true });
+      } else if (auth.user.role === UserRole.SuperAdmin) {
+        // SuperAdmins have no company of their own — land on the cross-tenant console.
+        navigate("/superadmin", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("Could not log in. Check the API is running."));
     } finally {

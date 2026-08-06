@@ -19,6 +19,14 @@ public record SuperAdminCompanyDetail(
 
 public record SuperAdminBootstrapRequest(string Name, string Phone, string Password);
 
+/// <summary>The scoped session a SuperAdmin uses to operate inside one company.
+/// <c>Token</c> carries that company's tenant claim; <c>LocationId</c>/<c>LocationName</c>
+/// pre-select the company's default branch so the scoped app has an operating
+/// location the moment it loads.</summary>
+public record ImpersonateResponse(
+    string Token, DateTime ExpiresAt, Guid CompanyId, string CompanyName,
+    Guid? LocationId, string? LocationName);
+
 public record SuperAdminAccountResponse(Guid Id, string Name, string Phone, bool Active);
 public record CreateSuperAdminRequest(string Name, string Phone, string Password);
 public record SetSuperAdminActiveRequest(bool Active);
@@ -66,6 +74,41 @@ public static class SuperAdminEndpoints
             return Results.Ok(new SuperAdminCompanyDetail(
                 company.Id, company.Name, company.UniqueCode, company.CreatedAt,
                 users.Count, productCount, salesCount, totalRevenue, users, locations));
+        });
+
+        // Impersonation — mint a company-scoped session for the calling SuperAdmin
+        // so they can view AND administer a tenant's data remotely through the
+        // exact same company-scoped endpoints a normal admin uses. The returned
+        // token keeps the SuperAdmin's own identity/role (audit-friendly) but
+        // carries the target company_id claim; no refresh token is issued, so the
+        // session is time-boxed (see JwtTokenService.IssueImpersonationToken).
+        group.MapPost("/companies/{id:guid}/impersonate", async (Guid id, PharmaStockDbContext db, JwtTokenService tokens, HttpContext http, ILoggerFactory loggerFactory) =>
+        {
+            var company = await db.Companies.FindAsync(id);
+            if (company is null)
+                return Results.NotFound(new { message = "Entreprise introuvable." });
+
+            var superAdminId = http.User.GetUserId();
+            if (superAdminId is null)
+                return Results.Unauthorized();
+            var superAdminName = http.User.Identity?.Name ?? "SuperAdmin";
+
+            // Default operating branch: the company's first active location (same
+            // rule the normal login flow uses via resolveDefaultLocation).
+            var location = await db.Locations
+                .Where(l => l.CompanyId == id && l.Active)
+                .OrderBy(l => l.Name)
+                .FirstOrDefaultAsync();
+
+            var (token, expiresAt) = tokens.IssueImpersonationToken(superAdminId.Value, superAdminName, id);
+
+            // Audit: impersonation grants full cross-tenant reach, so leave a trail.
+            loggerFactory.CreateLogger("SuperAdmin.Impersonation").LogWarning(
+                "SuperAdmin {SuperAdminId} ({SuperAdminName}) started impersonating company {CompanyId} ({CompanyName})",
+                superAdminId, superAdminName, id, company.Name);
+
+            return Results.Ok(new ImpersonateResponse(
+                token, expiresAt, company.Id, company.Name, location?.Id, location?.Name));
         });
 
         // Administer SuperAdmin access itself (who else can use this web app).

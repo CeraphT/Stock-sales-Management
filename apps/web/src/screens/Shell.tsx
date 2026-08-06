@@ -6,6 +6,7 @@ import { isolateCompany } from "@stockflow/core/db/isolation";
 import { localShiftService } from "@stockflow/core/local/shiftService";
 
 import { IconButton } from "@/components/IconButton";
+import { ImpersonationBanner } from "@/components/ImpersonationBanner";
 import { RegisterGate } from "@/components/RegisterGate";
 import { ScreenBackground } from "@/components/ScreenBackground";
 import { SetupWizard } from "@/components/SetupWizard";
@@ -226,6 +227,7 @@ export function Shell() {
       </aside>
 
       <div className="flex flex-1 flex-col overflow-hidden">
+        <ImpersonationBanner />
         <header className="flex h-16 items-center justify-between border-b border-border/60 bg-surface/70 px-4 backdrop-blur-xl">
           <div className="flex items-center gap-2">
             <button

@@ -1,7 +1,9 @@
+import { UserRole } from "@stockflow/core/api/enums";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import { RootErrorFallback, ScreenErrorFallback } from "@/components/Errors";
 import { useDbReady } from "@/lib/db/ready";
+import { useImpersonation } from "@/lib/impersonation";
 import { ALL_NAV_ITEMS } from "@/lib/nav";
 import { useAuthStore } from "@/lib/stores";
 
@@ -48,12 +50,22 @@ import { CreateCompany } from "@/screens/auth/CreateCompany";
 import { JoinCompany } from "@/screens/auth/JoinCompany";
 import { Login } from "@/screens/auth/Login";
 import { Onboarding } from "@/screens/auth/Onboarding";
+import { SuperAdminAdmins } from "@/screens/superadmin/Admins";
+import { SuperAdminCompanies } from "@/screens/superadmin/Companies";
+import { SuperAdminCompanyDetail } from "@/screens/superadmin/CompanyDetail";
+import { SuperAdminShell } from "@/screens/superadmin/SuperAdminShell";
 
 function RootRedirect() {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const token = useAuthStore((s) => s.token);
+  const role = useAuthStore((s) => s.user?.role);
+  const impersonating = useImpersonation((s) => s.active);
   if (!hasHydrated) return null;
-  return <Navigate to={token ? "/dashboard" : "/onboarding"} replace />;
+  if (!token) return <Navigate to="/onboarding" replace />;
+  // A SuperAdmin with no company of their own lands on the console; once they
+  // enter a company (impersonating), they belong in the scoped app.
+  if (role === UserRole.SuperAdmin && !impersonating) return <Navigate to="/superadmin" replace />;
+  return <Navigate to="/dashboard" replace />;
 }
 
 /** Layout route for the authenticated app — renders the Shell (which hosts the
@@ -61,13 +73,32 @@ function RootRedirect() {
 function AuthGuard() {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const token = useAuthStore((s) => s.token);
+  const role = useAuthStore((s) => s.user?.role);
+  const impersonating = useImpersonation((s) => s.active);
   const dbReady = useDbReady((s) => s.ready);
   const dbError = useDbReady((s) => s.error);
   if (!hasHydrated) return null;
   if (!token) return <Navigate to="/onboarding" replace />;
+  // A non-impersonating SuperAdmin has no company context — keep them out of
+  // the scoped app and on the console.
+  if (role === UserRole.SuperAdmin && !impersonating) return <Navigate to="/superadmin" replace />;
   if (dbError) return <FullScreenMessage title="Local database error" body={dbError} />;
   if (!dbReady) return <FullScreenMessage title="Preparing local database…" />;
   return <Shell />;
+}
+
+/** Layout route for the cross-tenant super-admin console. */
+function SuperAdminGuard() {
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const token = useAuthStore((s) => s.token);
+  const role = useAuthStore((s) => s.user?.role);
+  const impersonating = useImpersonation((s) => s.active);
+  if (!hasHydrated) return null;
+  if (!token) return <Navigate to="/onboarding" replace />;
+  if (role !== UserRole.SuperAdmin) return <Navigate to="/dashboard" replace />;
+  // While impersonating, the console is off-limits — they're inside a company.
+  if (impersonating) return <Navigate to="/dashboard" replace />;
+  return <SuperAdminShell />;
 }
 
 export const router = createBrowserRouter([
@@ -81,6 +112,19 @@ export const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/create-company", element: <CreateCompany /> },
   { path: "/join-company", element: <JoinCompany /> },
+  {
+    element: <SuperAdminGuard />,
+    children: [
+      {
+        errorElement: <ScreenErrorFallback />,
+        children: [
+          { path: "/superadmin", element: <SuperAdminCompanies /> },
+          { path: "/superadmin/companies/:id", element: <SuperAdminCompanyDetail /> },
+          { path: "/superadmin/admins", element: <SuperAdminAdmins /> },
+        ],
+      },
+    ],
+  },
   {
     element: <AuthGuard />,
     children: [

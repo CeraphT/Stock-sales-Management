@@ -53,6 +53,45 @@ public class JwtTokenService
         return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
     }
 
+    /// <summary>Issues a short-lived access token that lets a SuperAdmin operate
+    /// INSIDE a specific company ("impersonation"). The token keeps the caller's
+    /// own SuperAdmin identity + role (so every company-scoped endpoint that
+    /// allows SuperAdmin still passes, and audit trails point at the real person),
+    /// but carries the target company's <c>company_id</c> claim so tenant-scoped
+    /// queries resolve to that company. An <c>impersonating</c> marker claim is
+    /// added purely so logs/UI can tell an impersonated session apart. No refresh
+    /// token is issued — impersonation is deliberately time-boxed.</summary>
+    public (string Token, DateTime ExpiresAt) IssueImpersonationToken(Guid superAdminId, string superAdminName, Guid companyId)
+    {
+        var secret = _configuration["Jwt:Secret"]
+            ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
+        var issuer = _configuration["Jwt:Issuer"] ?? "PharmaStock";
+        var audience = _configuration["Jwt:Audience"] ?? "PharmaStock";
+        var expiryMinutes = _configuration.GetValue<int?>("Jwt:ImpersonationExpiryMinutes") ?? 120;
+
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, superAdminId.ToString()),
+            new(ClaimTypes.Name, superAdminName),
+            new(ClaimTypes.Role, nameof(UserRole.SuperAdmin)),
+            new(CompanyIdClaimType, companyId.ToString()),
+            new("impersonating", "true"),
+        };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var expiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes);
+
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: expiresAt,
+            signingCredentials: credentials);
+
+        return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
+    }
+
     /// <summary>Generates a new refresh token for a device. Returns the raw
     /// value (sent to the client once, never stored) alongside the hash that
     /// gets persisted on Device.RefreshTokenHash — mirrors how User.PasswordHash
