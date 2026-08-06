@@ -15,6 +15,7 @@ export function SuperAdminAdmins() {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const { data, isLoading } = useQuery({
@@ -23,11 +24,12 @@ export function SuperAdminAdmins() {
   });
 
   const create = useMutation({
-    mutationFn: () => superAdminApi.createAdmin({ name: name.trim(), phone: phone.trim(), password }),
+    mutationFn: () => superAdminApi.createAdmin({ name: name.trim(), phone: phone.trim(), email: email.trim() || undefined, password }),
     onSuccess: () => {
       toast(t("Administrator created"), "success");
       setName("");
       setPhone("");
+      setEmail("");
       setPassword("");
       setShowForm(false);
       void qc.invalidateQueries({ queryKey: ["superadmin", "admins"] });
@@ -53,9 +55,10 @@ export function SuperAdminAdmins() {
 
       {showForm ? (
         <div className="mb-5 rounded-card border border-border bg-surface p-4">
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <TextField label={t("Name")} value={name} onChange={(e) => setName(e.target.value)} />
             <TextField label={t("Phone")} value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <TextField label={t("Email (optional)")} value={email} onChange={(e) => setEmail(e.target.value)} />
             <TextField label={t("Password")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           <div className="mt-3">
@@ -88,8 +91,11 @@ export function SuperAdminAdmins() {
                 const isSelf = a.id === myId;
                 return (
                   <tr key={a.id} className="border-b border-border/50 last:border-0">
-                    <td className="px-4 py-3 font-semibold text-text-primary">
-                      {a.name} {isSelf ? <span className="text-xs font-normal text-text-secondary">({t("you")})</span> : null}
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-text-primary">
+                        {a.name} {isSelf ? <span className="text-xs font-normal text-text-secondary">({t("you")})</span> : null}
+                      </div>
+                      {a.email ? <div className="text-xs text-text-secondary">{a.email}</div> : null}
                     </td>
                     <td className="px-4 py-3 text-text-secondary">{a.phone}</td>
                     <td className="px-4 py-3">

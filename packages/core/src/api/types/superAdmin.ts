@@ -38,6 +38,7 @@ export interface SuperAdminAccount {
   id: string;
   name: string;
   phone: string;
+  email: string | null;
   active: boolean;
 }
 
@@ -45,6 +46,7 @@ export interface CreateSuperAdminRequest {
   name: string;
   phone: string;
   password: string;
+  email?: string;
 }
 
 /** The company-scoped session returned when a SuperAdmin enters ("impersonates")

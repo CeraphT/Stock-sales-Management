@@ -12,6 +12,9 @@ public class User
 
     public string Name { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
+    /// <summary>Optional contact email. Login is by phone, so this is metadata
+    /// (notifications, identifying a SuperAdmin) rather than a credential.</summary>
+    public string? Email { get; set; }
     public UserRole Role { get; set; } = UserRole.Cashier;
     public string PasswordHash { get; set; } = string.Empty;
 

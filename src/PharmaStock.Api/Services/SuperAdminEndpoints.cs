@@ -28,8 +28,8 @@ public record ImpersonateResponse(
     string Token, DateTime ExpiresAt, Guid CompanyId, string CompanyName,
     Guid? LocationId, string? LocationName);
 
-public record SuperAdminAccountResponse(Guid Id, string Name, string Phone, bool Active);
-public record CreateSuperAdminRequest(string Name, string Phone, string Password);
+public record SuperAdminAccountResponse(Guid Id, string Name, string Phone, string? Email, bool Active);
+public record CreateSuperAdminRequest(string Name, string Phone, string Password, string? Email);
 public record SetSuperAdminActiveRequest(bool Active);
 
 // ── Monitoring / fleet administration (Section 22.4) ────────────────────────
@@ -254,7 +254,7 @@ public static class SuperAdminEndpoints
         {
             var admins = await db.Users.Where(u => u.Role == UserRole.SuperAdmin)
                 .OrderBy(u => u.Name)
-                .Select(u => new SuperAdminAccountResponse(u.Id, u.Name, u.Phone, u.Active))
+                .Select(u => new SuperAdminAccountResponse(u.Id, u.Name, u.Phone, u.Email, u.Active))
                 .ToListAsync();
             return Results.Ok(admins);
         });
@@ -271,6 +271,7 @@ public static class SuperAdminEndpoints
                 CompanyId = null,
                 Name = request.Name,
                 Phone = request.Phone,
+                Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
                 Role = UserRole.SuperAdmin,
             };
             user.PasswordHash = hasher.HashPassword(user, request.Password);
@@ -278,7 +279,7 @@ public static class SuperAdminEndpoints
             await db.SaveChangesAsync();
 
             return Results.Created($"/api/superadmin/admins/{user.Id}",
-                new SuperAdminAccountResponse(user.Id, user.Name, user.Phone, user.Active));
+                new SuperAdminAccountResponse(user.Id, user.Name, user.Phone, user.Email, user.Active));
         });
 
         // Deactivate/reactivate rather than delete — mirrors how every other
@@ -296,7 +297,7 @@ public static class SuperAdminEndpoints
 
             user.Active = request.Active;
             await db.SaveChangesAsync();
-            return Results.Ok(new SuperAdminAccountResponse(user.Id, user.Name, user.Phone, user.Active));
+            return Results.Ok(new SuperAdminAccountResponse(user.Id, user.Name, user.Phone, user.Email, user.Active));
         });
 
         // One-time-only bootstrap for the very first SuperAdmin account — there's
