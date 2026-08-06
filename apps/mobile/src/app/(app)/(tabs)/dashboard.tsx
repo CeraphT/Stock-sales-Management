@@ -229,7 +229,7 @@ export default function DashboardScreen() {
                       key={d}
                       onPress={() => setTrendDays(d)}
                       className={`rounded-full px-2.5 py-1 ${trendDays === d ? 'bg-primary' : ''}`}>
-                      <Text className={`text-xs font-semibold ${trendDays === d ? 'text-white' : 'text-text-secondary'}`}>{d}D</Text>
+                      <Text className={`text-xs font-semibold ${trendDays === d ? 'text-white' : 'text-text-secondary'}`}>{`${d}${t('dashboard.rangeDaySuffix')}`}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -241,6 +241,11 @@ export default function DashboardScreen() {
                   </View>
                 ) : (
                   <ScrollView
+                    // Remount on range change: without a fresh key the same
+                    // ScrollView keeps its old scroll offset, so switching from a
+                    // wide range (30/90D) back to 7D leaves it scrolled past the
+                    // narrower chart — it looked blank until you toggled repeatedly.
+                    key={trendDays}
                     ref={trendScrollRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}

@@ -116,7 +116,7 @@ export function Dashboard() {
                     trendDays === d ? "bg-primary text-white" : "text-text-secondary hover:text-text-primary"
                   }`}
                 >
-                  {d}D
+                  {t(`${d}D`)}
                 </button>
               ))}
             </div>
