@@ -19,6 +19,7 @@ import { type DashboardStats, type DailyRevenuePoint, getDashboardStats } from '
 import { localShiftService } from '@/lib/local/shiftService';
 import { syncNow } from '@/lib/sync/syncNow';
 import { useThemeColors } from '@/lib/theme/colors';
+import { useIsTablet } from '@/lib/useIsTablet';
 import { toast } from '@/lib/ui/toastStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -35,6 +36,7 @@ export default function DashboardScreen() {
   const locationName = useAuthStore((s) => s.locationName);
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
+  const isTablet = useIsTablet();
   const { t } = useTranslation();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -214,7 +216,7 @@ export default function DashboardScreen() {
           <>
             <View className="-m-1.5 flex-row flex-wrap">
               {cards.map((c) => (
-                <View key={c.key} className="w-1/2 p-1.5">
+                <View key={c.key} className={`${isTablet ? 'w-1/4' : 'w-1/2'} p-1.5`}>
                   <StatCard icon={<Text className="text-base">{c.icon}</Text>} label={c.label} value={c.value} color={c.color} onPress={c.onPress} />
                 </View>
               ))}
