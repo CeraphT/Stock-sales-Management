@@ -9,4 +9,8 @@ stock.mfspace.lu {
 	reverse_proxy web:80
 }
 
-# budget.mfspace.lu → HouseBudget — added in Phase B.
+budget.mfspace.lu {
+	# Blazor Server — Caddy forwards WebSocket upgrades automatically for the
+	# SignalR circuit; the app trusts X-Forwarded-Proto (ForwardedHeaders).
+	reverse_proxy housebudget:8080
+}

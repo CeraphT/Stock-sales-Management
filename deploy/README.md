@@ -96,7 +96,34 @@ Migrations re-run automatically on API start.
 
 ---
 
-## Phase B — HouseBudget (added after StockFlow is live)
-HouseBudget (C#) gets its own image + a `budget.mfspace.lu` block in the Caddyfile,
-plus a PWA manifest/service worker so it installs on phones. Its service + DB volume
-are appended to this same `docker-compose.yml`.
+## Phase B — HouseBudget (`budget.mfspace.lu`)
+HouseBudget is a **.NET 10 Blazor Server** app in a **separate repo**. It's already
+prepared to run behind Caddy (forwarded headers, Data-Protection keys + SQLite DB on
+a volume) and is an installable **PWA** (online-only — Blazor Server needs a live
+connection; true offline is a later feature).
+
+**Layout on the server** — clone it as a *sibling* of this repo so the compose build
+context resolves:
+```
+/opt/apps/stockflow      ← this repo (run compose from stockflow/deploy)
+/opt/apps/HouseBudget-master   ← HouseBudget repo
+```
+If you clone it elsewhere, set `HB_REPO_PATH=/absolute/path/to/HouseBudget-master` in
+`deploy/.env`.
+
+Then the same `docker compose up -d --build` builds and starts it too. Verify:
+- `https://budget.mfspace.lu` → the HouseBudget login.
+- On a phone: browser menu → **Add to Home screen** installs it as an app.
+
+**Notes**
+- Persistent data lives in the `hb_data` (DB + auth keys) and `hb_uploads` volumes.
+  Auto DB-backups/audit-archives currently stay inside the container (fine — the live
+  DB is on a volume); persisting those too is a small follow-up.
+- **First login**: the app seeds an initial admin at startup (`IdentitySeeder`). Check
+  that seeder for the default credentials and **change the password immediately** after
+  first login, before the app is public.
+- **PWA icons**: the manifest reuses `wwwroot/logo-app.png`. For the best install
+  experience, drop in proper 192×192 and 512×512 PNGs and update
+  `wwwroot/manifest.webmanifest`.
+- **Email** (reminders / confirmation) is optional — set `Email__Host`, `Email__User`,
+  `Email__Password`, `Email__FromEmail` on the `housebudget` service to enable it.

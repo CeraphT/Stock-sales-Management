@@ -46,6 +46,21 @@ services:
         VITE_API_BASE_URL: "https://api.mfspace.lu"
     restart: unless-stopped
 
+  # HouseBudget (separate repo — clone it as a sibling of this one and set
+  # HB_REPO_PATH in .env if the default relative path doesn't match).
+  housebudget:
+    build:
+      context: ${HB_REPO_PATH:-../../HouseBudget-master}
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: "http://+:8080"
+      HB_DATA_DIR: /app/data
+    volumes:
+      - hb_data:/app/data
+      - hb_uploads:/app/wwwroot/uploads
+    restart: unless-stopped
+
   caddy:
     image: caddy:2-alpine
     ports:
@@ -58,9 +73,12 @@ services:
     depends_on:
       - api
       - web
+      - housebudget
     restart: unless-stopped
 
 volumes:
   pgdata:
   caddy_data:
   caddy_config:
+  hb_data:
+  hb_uploads:
