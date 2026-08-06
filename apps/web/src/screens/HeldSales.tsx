@@ -1,7 +1,7 @@
 import type { CartLine } from "@stockflow/core/cart/store";
 import { useCartStore } from "@stockflow/core/cart/store";
+import { salesApi } from "@stockflow/core/api/endpoints/sales";
 import { formatCurrency } from "@stockflow/core/format";
-import { localSalesService } from "@stockflow/core/local/salesService";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
@@ -25,7 +25,7 @@ export function HeldSales() {
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["held-sales", companyId, locationId],
-    queryFn: () => localSalesService.getHeldSales(companyId!, locationId ?? null),
+    queryFn: () => salesApi.held(companyId!, { locationId: locationId ?? undefined }),
     enabled: !!companyId,
   });
 
@@ -38,7 +38,7 @@ export function HeldSales() {
       return;
     }
     try {
-      const detail = await localSalesService.getSaleDetail(companyId, saleId);
+      const detail = await salesApi.detail(companyId, saleId);
       const lines: CartLine[] = detail.productLines.map((line) => ({
         key: `${line.productId}:${line.packagingLevelId ?? "base"}`,
         productId: line.productId,
@@ -49,7 +49,7 @@ export function HeldSales() {
         quantity: Math.round(line.quantityInBaseUnits / line.unitsPerPackagingLevel),
       }));
       loadLines(lines, null, null);
-      await localSalesService.deleteHeldSale(companyId, saleId);
+      await salesApi.discardHeld(companyId, saleId);
       navigate("/pos");
     } catch (e) {
       toast(e instanceof Error ? e.message : "Could not resume the sale.", "error");
@@ -60,7 +60,7 @@ export function HeldSales() {
     if (!companyId) return;
     if (!(await confirmDialog({ message: t("Delete this held sale? This cannot be undone."), danger: true, confirmLabel: t("Delete") }))) return;
     try {
-      await localSalesService.deleteHeldSale(companyId, saleId);
+      await salesApi.discardHeld(companyId, saleId);
       refresh();
     } catch (e) {
       toast(e instanceof Error ? e.message : "Could not delete the sale.", "error");
