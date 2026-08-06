@@ -4,9 +4,12 @@
 FROM node:20-alpine AS build
 WORKDIR /repo
 
-# Install workspace deps (root package.json defines the npm workspaces).
+# Install workspace deps. npm ci validates the lockfile against EVERY workspace
+# manifest, so all of them must be present (even the ones we don't build here).
 COPY package.json package-lock.json ./
 COPY apps/web/package.json apps/web/package.json
+COPY apps/desktop/package.json apps/desktop/package.json
+COPY apps/mobile/package.json apps/mobile/package.json
 COPY packages/core/package.json packages/core/package.json
 RUN npm ci
 
