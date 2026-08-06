@@ -11,6 +11,16 @@ export function configureApi(baseUrl: string) {
   API_BASE_URL = baseUrl;
 }
 
+// Invoked when the server signals a remote wipe for this device (see the
+// refresh flow below). Apps with a local mirror inject a wiper here at startup
+// (mobile/desktop → clearLocalData()); the online-only web client leaves it
+// unset. Kept out of client.ts's imports so the HTTP layer stays DB-free.
+let onRemoteWipe: (() => Promise<void>) | null = null;
+
+export function configureOnRemoteWipe(handler: () => Promise<void>) {
+  onRemoteWipe = handler;
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -46,7 +56,22 @@ async function refreshSession(): Promise<boolean> {
     return false;
   }
 
-  const auth: AuthResponse = await response.json();
+  const payload = await response.json();
+
+  // Remote wipe: the server is telling this device to erase its local mirror
+  // and sign out. Reversible from the admin console (Unblock clears the flag),
+  // after which a fresh login re-syncs from the server.
+  if (payload?.wipeRequested === true) {
+    try {
+      await onRemoteWipe?.();
+    } catch {
+      /* never let a wipe failure trap the app; sign out regardless */
+    }
+    getAuthStore().getState().clear();
+    return false;
+  }
+
+  const auth = payload as AuthResponse;
   getAuthStore()
     .getState()
     .setSession({

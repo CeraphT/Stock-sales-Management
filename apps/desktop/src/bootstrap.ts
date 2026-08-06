@@ -1,6 +1,7 @@
 // Side-effect module: inject every platform capability into @stockflow/core
 // BEFORE any screen, store, or API call runs. main.tsx imports this first.
-import { configureApi } from "@stockflow/core/api/client";
+import { configureApi, configureOnRemoteWipe } from "@stockflow/core/api/client";
+import { clearLocalData } from "@stockflow/core/db/isolation";
 import { setIdGenerator } from "@stockflow/core/idGenerator";
 
 import { generateId } from "@/platform";
@@ -13,6 +14,12 @@ import "@/lib/theme";
 
 configureApi(import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5080");
 setIdGenerator(generateId);
+
+// When a SuperAdmin remote-wipes this device, erase the local mirror before the
+// session is cleared. Reversible from the console (Unblock re-enables login).
+configureOnRemoteWipe(async () => {
+  await clearLocalData();
+});
 
 // Kick off the async language hydrate (non-blocking; defaults to English).
 void useLanguageStore.getState().hydrate();

@@ -1,3 +1,5 @@
+import { configureOnRemoteWipe } from '@stockflow/core/api/client';
+import { clearLocalData } from '@stockflow/core/db/isolation';
 import { setIdGenerator } from '@stockflow/core/idGenerator';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
@@ -41,6 +43,13 @@ useLanguageStore.getState().hydrate();
 // crypto.randomUUID() global is unreliable across Hermes builds on RN (see
 // idGenerator.ts and auth/store.ts, which injects the same wrapper).
 setIdGenerator(() => Crypto.randomUUID());
+
+// When a SuperAdmin remote-wipes this device, erase the local mirror before
+// the session is cleared. Reversible from the console (Unblock re-enables login,
+// which re-syncs from the server).
+configureOnRemoteWipe(async () => {
+  await clearLocalData();
+});
 
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();

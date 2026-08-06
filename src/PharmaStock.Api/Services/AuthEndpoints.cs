@@ -63,6 +63,13 @@ public static class AuthEndpoints
                 .Include(d => d.User)
                 .FirstOrDefaultAsync(d => d.Id == request.DeviceId);
 
+            // A remote wipe was requested for this device: tell it to erase its
+            // local data (the client acts on this, then signs out). Returned even
+            // though the refresh token was nulled — the deviceId alone identifies
+            // it. Reversible: an admin Unblock clears RemoteWipeRequested.
+            if (device is not null && device.RemoteWipeRequested)
+                return Results.Ok(new { wipeRequested = true });
+
             if (device is null || device.User is null || !device.User.Active
                 || device.IsRevoked || device.RemoteWipeRequested
                 || device.RefreshTokenHash is null
