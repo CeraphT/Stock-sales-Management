@@ -208,6 +208,7 @@ export const FR: Record<string, string> = {
   "label(s)": "étiquette(s)",
   "Labels": "Étiquettes",
   "Allow pop-ups to print labels.": "Autorisez les fenêtres contextuelles pour imprimer les étiquettes.",
+  "Could not open the print dialog.": "Impossible d'ouvrir la boîte de dialogue d'impression.",
   "Track serial / IMEI numbers": "Suivre les numéros de série / IMEI",
   "Capture one serial per unit when receiving; pick the exact unit when selling.": "Saisissez un numéro de série par unité à la réception ; choisissez l'unité exacte à la vente.",
   "Serial / IMEI numbers (one per line)": "Numéros de série / IMEI (un par ligne)",

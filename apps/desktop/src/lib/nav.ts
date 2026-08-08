@@ -12,7 +12,7 @@ export interface NavGroup {
 }
 
 export const NAV: NavGroup[] = [
-  { title: "", items: [{ label: "Dashboard", path: "/dashboard", icon: "🏠" }] },
+  { title: "", items: [{ label: "Dashboard", path: "/dashboard", icon: "🏠" }, { label: "Alerts", path: "/alerts", icon: "🔔" }] },
   {
     title: "Sales",
     items: [
@@ -27,6 +27,8 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "Products", path: "/products", icon: "📦" },
       { label: "Bulk stock", path: "/bulk-stock", icon: "📋" },
+      { label: "Stock count", path: "/stock-count", icon: "🔢" },
+      { label: "Print labels", path: "/print-labels", icon: "🏷️" },
       { label: "Categories", path: "/categories", icon: "🏷️" },
       { label: "Archived", path: "/archived", icon: "🗄️" },
     ],

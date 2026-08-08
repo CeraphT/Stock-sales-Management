@@ -41,6 +41,10 @@ import { Products } from "@/screens/Products";
 import { SaleDetail } from "@/screens/SaleDetail";
 import { StockAdjust } from "@/screens/StockAdjust";
 import { StockReceive } from "@/screens/StockReceive";
+import { StockSupplierReturn } from "@/screens/StockSupplierReturn";
+import { StockCount } from "@/screens/StockCount";
+import { PrintLabels } from "@/screens/PrintLabels";
+import { Alerts } from "@/screens/Alerts";
 import { Suppliers } from "@/screens/Suppliers";
 import { SalesHistory } from "@/screens/SalesHistory";
 import { Shell } from "@/screens/Shell";
@@ -95,7 +99,11 @@ export const router = createHashRouter([
       { path: "/products/:productId/edit", element: <ProductForm /> },
       { path: "/products/:productId/receive", element: <StockReceive /> },
       { path: "/products/:productId/adjust", element: <StockAdjust /> },
+      { path: "/products/:productId/supplier-return", element: <StockSupplierReturn /> },
       { path: "/products/:productId/inventory", element: <ProductInventory /> },
+      { path: "/stock-count", element: <StockCount /> },
+      { path: "/print-labels", element: <PrintLabels /> },
+      { path: "/alerts", element: <Alerts /> },
       { path: "/bulk-stock", element: <BulkStockRegister /> },
       { path: "/archived", element: <Archived /> },
       { path: "/pos", element: <Pos /> },
@@ -127,6 +135,9 @@ export const router = createHashRouter([
             "/products",
             "/bulk-stock",
             "/archived",
+            "/stock-count",
+            "/print-labels",
+            "/alerts",
             "/pos",
             "/cash-register",
             "/held-sales",

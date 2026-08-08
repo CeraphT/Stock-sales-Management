@@ -595,6 +595,9 @@ export function ProductForm() {
               <Button variant="secondary" onClick={() => navigate(`/products/${productId}/adjust`)}>
                 ✏️ {t("Adjust stock")}
               </Button>
+              <Button variant="secondary" onClick={() => navigate(`/products/${productId}/supplier-return`)}>
+                ↩️ {t("Return to supplier")}
+              </Button>
               <Button variant={isActive ? "danger" : "secondary"} onClick={toggleArchive}>
                 {isActive ? `🗄️ ${t("Archive")}` : `♻️ ${t("Restore")}`}
               </Button>
