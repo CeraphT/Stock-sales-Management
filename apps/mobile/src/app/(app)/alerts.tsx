@@ -56,19 +56,31 @@ function StockSection({ title, items, tone, showThreshold }: { title: string; it
     <View>
       <Text className="mb-2 text-sm font-bold text-text-primary">{title} ({items.length})</Text>
       <View className="overflow-hidden rounded-xl bg-surface">
-        {items.map((p) => (
-          <Pressable
-            key={p.productId}
-            onPress={() => router.push({ pathname: '/stock-receive', params: { productId: p.productId } })}
-            className="flex-row items-center justify-between border-b border-border/50 px-4 py-3 last:border-0 active:opacity-70">
-            <Text className="flex-1 text-sm text-text-primary">{p.name}</Text>
-            {showThreshold ? (
-              <Text className={`text-xs font-semibold ${tone === 'error' ? 'text-error' : 'text-accent-amber'}`}>{p.currentStock} / {p.lowStockThreshold}</Text>
-            ) : (
-              <Text className="text-xs font-semibold text-error">0</Text>
-            )}
-          </Pressable>
-        ))}
+        {items.map((p) => {
+          const onOrder = !!p.openPurchaseOrderId;
+          return (
+            <Pressable
+              key={p.productId}
+              onPress={() =>
+                onOrder
+                  ? router.push({ pathname: '/purchase-order-detail', params: { id: p.openPurchaseOrderId! } })
+                  : router.push({ pathname: '/stock-receive', params: { productId: p.productId } })
+              }
+              className="flex-row items-center justify-between border-b border-border/50 px-4 py-3 last:border-0 active:opacity-70">
+              <View className="flex-1 pr-2">
+                <Text className="text-sm text-text-primary">{p.name}</Text>
+                {onOrder ? <Text className="text-xs text-text-secondary">🧾 already on order — open to print / share</Text> : null}
+              </View>
+              {onOrder ? (
+                <Text className="text-xs font-semibold text-primary">On order</Text>
+              ) : showThreshold ? (
+                <Text className={`text-xs font-semibold ${tone === 'error' ? 'text-error' : 'text-accent-amber'}`}>{p.currentStock} / {p.lowStockThreshold}</Text>
+              ) : (
+                <Text className="text-xs font-semibold text-error">0</Text>
+              )}
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );

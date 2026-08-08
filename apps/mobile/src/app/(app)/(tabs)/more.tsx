@@ -74,6 +74,8 @@ const GROUPS: MenuGroup[] = [
     items: [
       { labelKey: 'drawer.item.alerts', icon: 'notifications-outline', route: '/alerts' },
       { labelKey: 'drawer.item.reports', icon: 'bar-chart-outline', route: '/reports' },
+      { labelKey: 'drawer.item.demandForecast', icon: 'trending-up-outline', route: '/demand-forecast' },
+      { labelKey: 'drawer.item.deadStock', icon: 'skull-outline', route: '/dead-stock' },
       { labelKey: 'drawer.item.inventoryReport', icon: 'cube-outline', route: '/inventory-report' },
       { labelKey: 'drawer.item.taxDeclaration', icon: 'receipt-outline', route: '/tax-declaration' },
       { labelKey: 'drawer.item.printer', icon: 'print-outline', route: '/printer-settings' },
