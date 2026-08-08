@@ -233,11 +233,18 @@ export default function ProductDetailScreen() {
                 {batch.expiryDate ? `Expires ${batch.expiryDate.slice(0, 10)}` : 'No expiry'} · Cost{' '}
                 {formatCurrency(batch.purchasePricePerBaseUnit, currency)}
               </Text>
-              <Pressable
-                onPress={() => router.push({ pathname: '/stock-adjust', params: { productId: id, batchId: batch.id } })}
-                className="mt-2 self-start rounded-lg border border-primary px-3 py-1.5">
-                <Text className="text-xs font-semibold text-primary">Adjust</Text>
-              </Pressable>
+              <View className="mt-2 flex-row gap-2">
+                <Pressable
+                  onPress={() => router.push({ pathname: '/stock-adjust', params: { productId: id, batchId: batch.id } })}
+                  className="self-start rounded-lg border border-primary px-3 py-1.5">
+                  <Text className="text-xs font-semibold text-primary">Adjust</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => router.push({ pathname: '/supplier-return' as never, params: { productId: id, batchId: batch.id, batchNumber: batch.batchNumber, available: String(batch.quantityInBaseUnits) } })}
+                  className="self-start rounded-lg border border-border px-3 py-1.5">
+                  <Text className="text-xs font-semibold text-text-secondary">Return to supplier</Text>
+                </Pressable>
+              </View>
             </View>
           ))
         )}

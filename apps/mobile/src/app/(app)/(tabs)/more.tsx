@@ -47,6 +47,8 @@ const GROUPS: MenuGroup[] = [
       { labelKey: 'drawer.item.categories', icon: 'pricetag-outline', route: '/categories' },
       { labelKey: 'drawer.item.archive', icon: 'archive-outline', route: '/archived-products' },
       { labelKey: 'drawer.item.bulkStock', icon: 'cloud-upload-outline', route: '/bulk-stock-register' },
+      { labelKey: 'drawer.item.stockCount', icon: 'reader-outline', route: '/stock-count' },
+      { labelKey: 'drawer.item.printLabels', icon: 'pricetags-outline', route: '/print-labels' },
       { labelKey: 'drawer.item.services', icon: 'medkit-outline', route: '/services' },
     ],
   },
@@ -70,6 +72,7 @@ const GROUPS: MenuGroup[] = [
     labelKey: 'drawer.group.management',
     tint: 'accentBlue',
     items: [
+      { labelKey: 'drawer.item.alerts', icon: 'notifications-outline', route: '/alerts' },
       { labelKey: 'drawer.item.reports', icon: 'bar-chart-outline', route: '/reports' },
       { labelKey: 'drawer.item.inventoryReport', icon: 'cube-outline', route: '/inventory-report' },
       { labelKey: 'drawer.item.taxDeclaration', icon: 'receipt-outline', route: '/tax-declaration' },
