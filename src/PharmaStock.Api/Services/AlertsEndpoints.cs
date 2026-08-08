@@ -1,9 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using PharmaStock.Domain.Models;
 using PharmaStock.Infrastructure.Data;
 
 namespace PharmaStock.Api.Services;
 
-public record StockAlertItem(Guid ProductId, string Name, int CurrentStock, int LowStockThreshold);
+public record StockAlertItem(
+    Guid ProductId, string Name, int CurrentStock, int LowStockThreshold,
+    // When an open purchase order (Pending / PartiallyReceived) already covers
+    // this product, the alert links to it ("print/share the existing order")
+    // instead of prompting a new one.
+    Guid? OpenPurchaseOrderId = null, PurchaseOrderStatus? OpenPurchaseOrderStatus = null);
 public record ExpiryAlertItem(
     Guid ProductId, string Name, Guid BatchId, string BatchNumber,
     DateTime ExpiryDate, int QuantityInBaseUnits, int DaysUntilExpiry);
@@ -46,15 +52,31 @@ public static class AlertsEndpoints
                 })
                 .ToListAsync();
 
+            // Products already covered by an open PO (most-recent one wins), so a
+            // low/out-of-stock alert can point at the existing order to print/share.
+            var openPoLines = await db.PurchaseOrderLines
+                .Where(l => l.PurchaseOrder!.CompanyId == companyId
+                    && (l.PurchaseOrder.Status == PurchaseOrderStatus.Pending
+                        || l.PurchaseOrder.Status == PurchaseOrderStatus.PartiallyReceived))
+                .OrderByDescending(l => l.PurchaseOrder!.CreatedAt)
+                .Select(l => new { l.ProductId, l.PurchaseOrderId, Status = l.PurchaseOrder!.Status })
+                .ToListAsync();
+            var openPo = openPoLines
+                .GroupBy(x => x.ProductId)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            (Guid?, PurchaseOrderStatus?) PoFor(Guid productId) =>
+                openPo.TryGetValue(productId, out var po) ? (po.PurchaseOrderId, po.Status) : (null, null);
+
             var outOfStock = products
                 .Where(p => p.TotalStock <= 0)
-                .Select(p => new StockAlertItem(p.Id, p.Name, p.TotalStock, p.LowStockThreshold))
+                .Select(p => { var (poId, st) = PoFor(p.Id); return new StockAlertItem(p.Id, p.Name, p.TotalStock, p.LowStockThreshold, poId, st); })
                 .OrderBy(p => p.Name)
                 .ToList();
 
             var lowStock = products
                 .Where(p => p.TotalStock > 0 && p.LowStockThreshold > 0 && p.TotalStock <= p.LowStockThreshold)
-                .Select(p => new StockAlertItem(p.Id, p.Name, p.TotalStock, p.LowStockThreshold))
+                .Select(p => { var (poId, st) = PoFor(p.Id); return new StockAlertItem(p.Id, p.Name, p.TotalStock, p.LowStockThreshold, poId, st); })
                 .OrderBy(p => p.CurrentStock)
                 .ToList();
 

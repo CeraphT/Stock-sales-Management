@@ -47,6 +47,8 @@ import { StockSupplierReturn } from "@/screens/StockSupplierReturn";
 import { StockCount } from "@/screens/StockCount";
 import { PrintLabels } from "@/screens/PrintLabels";
 import { Alerts } from "@/screens/Alerts";
+import { DemandForecast } from "@/screens/DemandForecast";
+import { DeadStock } from "@/screens/DeadStock";
 import { Suppliers } from "@/screens/Suppliers";
 import { SalesHistory } from "@/screens/SalesHistory";
 import { Shell } from "@/screens/Shell";
@@ -156,6 +158,8 @@ export const router = createBrowserRouter([
       { path: "/stock-count", element: <StockCount /> },
       { path: "/print-labels", element: <PrintLabels /> },
       { path: "/alerts", element: <Alerts /> },
+      { path: "/demand-forecast", element: <DemandForecast /> },
+      { path: "/dead-stock", element: <DeadStock /> },
       { path: "/bulk-stock", element: <BulkStockRegister /> },
       { path: "/archived", element: <Archived /> },
       { path: "/pos", element: <Pos /> },
@@ -190,6 +194,8 @@ export const router = createBrowserRouter([
             "/stock-count",
             "/print-labels",
             "/alerts",
+            "/demand-forecast",
+            "/dead-stock",
             "/pos",
             "/cash-register",
             "/held-sales",

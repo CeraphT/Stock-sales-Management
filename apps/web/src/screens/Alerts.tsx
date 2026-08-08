@@ -37,17 +37,27 @@ export function Alerts() {
       ) : (
         <div className="space-y-5">
           <Section title={`⛔ ${t("Out of stock")}`} count={data!.outOfStock.length}>
-            {data!.outOfStock.map((p) => (
-              <Row key={p.productId} onClick={() => navigate(`/products/${p.productId}/receive`)}
-                left={p.name} right={t("Receive")} tone="error" />
-            ))}
+            {data!.outOfStock.map((p) =>
+              p.openPurchaseOrderId ? (
+                <Row key={p.productId} onClick={() => navigate(`/purchase-orders/${p.openPurchaseOrderId}`)}
+                  left={p.name} sub={`🧾 ${t("already on order — open to print / share")}`} right={t("On order")} tone="info" />
+              ) : (
+                <Row key={p.productId} onClick={() => navigate(`/products/${p.productId}/receive`)}
+                  left={p.name} right={t("Receive")} tone="error" />
+              ),
+            )}
           </Section>
 
           <Section title={`⚠️ ${t("Low stock")}`} count={data!.lowStock.length}>
-            {data!.lowStock.map((p) => (
-              <Row key={p.productId} onClick={() => navigate(`/products/${p.productId}/receive`)}
-                left={p.name} sub={`${p.currentStock} / ${p.lowStockThreshold}`} right={t("Receive")} tone="warn" />
-            ))}
+            {data!.lowStock.map((p) =>
+              p.openPurchaseOrderId ? (
+                <Row key={p.productId} onClick={() => navigate(`/purchase-orders/${p.openPurchaseOrderId}`)}
+                  left={p.name} sub={`${p.currentStock} / ${p.lowStockThreshold} · 🧾 ${t("already on order — open to print / share")}`} right={t("On order")} tone="info" />
+              ) : (
+                <Row key={p.productId} onClick={() => navigate(`/products/${p.productId}/receive`)}
+                  left={p.name} sub={`${p.currentStock} / ${p.lowStockThreshold}`} right={t("Receive")} tone="warn" />
+              ),
+            )}
           </Section>
 
           <Section title={`⏰ ${t("Expired")}`} count={data!.expired.length}>
@@ -81,14 +91,15 @@ function Section({ title, count, children }: { title: string; count: number; chi
   );
 }
 
-function Row({ left, sub, right, tone, onClick }: { left: string; sub?: string; right: string; tone: "error" | "warn"; onClick: () => void }) {
+function Row({ left, sub, right, tone, onClick }: { left: string; sub?: string; right: string; tone: "error" | "warn" | "info"; onClick: () => void }) {
+  const toneCls = tone === "error" ? "bg-error/10 text-error" : tone === "info" ? "bg-primary/10 text-primary" : "bg-accent-amber/15 text-accent-amber";
   return (
     <button onClick={onClick} className="flex w-full items-center justify-between border-b border-border/60 px-4 py-3 text-left last:border-0 hover:bg-background">
       <div>
         <div className="text-sm font-medium text-text-primary">{left}</div>
         {sub ? <div className="text-xs text-text-secondary">{sub}</div> : null}
       </div>
-      <span className={`rounded-lg px-2 py-1 text-xs font-semibold ${tone === "error" ? "bg-error/10 text-error" : "bg-accent-amber/15 text-accent-amber"}`}>{right}</span>
+      <span className={`rounded-lg px-2 py-1 text-xs font-semibold ${toneCls}`}>{right}</span>
     </button>
   );
 }

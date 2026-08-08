@@ -104,3 +104,24 @@ export interface TopProductItem {
   revenue: number;
   profit: number;
 }
+
+export interface DemandForecastItem {
+  productId: string;
+  productName: string;
+  unitsSold: number;
+  avgDailyUnits: number;
+  currentStock: number;
+  daysOfCover: number | null;
+  suggestedReorder: number;
+  /** % change in units sold this window vs the previous one (trend/seasonality). */
+  trendPct: number;
+}
+
+export interface DeadStockItem {
+  productId: string;
+  productName: string;
+  currentStock: number;
+  stockValue: number;
+  lastSaleDate: string | null;
+  daysSinceLastSale: number | null;
+}

@@ -1,6 +1,8 @@
 import { api } from "../client";
 import type {
   CashBookItem,
+  DeadStockItem,
+  DemandForecastItem,
   PurchasesJournalItem,
   SalesJournalItem,
   SalesSummaryResponse,
@@ -29,6 +31,17 @@ export const reportsApi = {
       to: filter?.to,
       limit: filter?.limit,
     }),
+
+  // Demand forecast: sales velocity, days of cover, suggested reorder, trend.
+  demandForecast: (companyId: string, opts?: { days?: number; horizon?: number }) =>
+    api.get<DemandForecastItem[]>(`/api/companies/${companyId}/reports/demand-forecast`, {
+      days: opts?.days,
+      horizon: opts?.horizon,
+    }),
+
+  // Dead stock: items holding stock with no sale in the window, by value at risk.
+  deadStock: (companyId: string, opts?: { days?: number }) =>
+    api.get<DeadStockItem[]>(`/api/companies/${companyId}/reports/dead-stock`, { days: opts?.days }),
 
   taxDeclaration: (companyId: string, filter?: ReportDateFilter) =>
     api.get<TaxDeclarationResponse>(`/api/companies/${companyId}/reports/tax-declaration`, {

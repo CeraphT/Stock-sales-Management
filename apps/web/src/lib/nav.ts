@@ -51,6 +51,8 @@ export const NAV: NavGroup[] = [
     title: "Management",
     items: [
       { label: "Reports", path: "/reports", icon: "📊" },
+      { label: "Demand forecast", path: "/demand-forecast", icon: "📈" },
+      { label: "Dead stock", path: "/dead-stock", icon: "🪦" },
       { label: "Inventory report", path: "/inventory-report", icon: "📦" },
       { label: "Customer credits", path: "/customer-credits", icon: "💳" },
       { label: "Tax declaration", path: "/tax-declaration", icon: "🧾" },

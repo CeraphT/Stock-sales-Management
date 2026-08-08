@@ -247,6 +247,11 @@ export interface StockAlertItem {
   name: string;
   currentStock: number;
   lowStockThreshold: number;
+  /** Set when an open PO (Pending/PartiallyReceived) already covers this product
+   * — the alert links to it to print/share instead of prompting a new order.
+   * openPurchaseOrderStatus: 0 Pending, 1 PartiallyReceived. */
+  openPurchaseOrderId?: string | null;
+  openPurchaseOrderStatus?: number | null;
 }
 
 export interface ExpiryAlertItem {
