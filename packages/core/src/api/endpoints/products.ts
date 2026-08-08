@@ -1,10 +1,15 @@
 import { api } from "../client";
 import type {
   AdjustStockRequest,
+  AlertsResponse,
   BatchResponse,
   BomLine,
   BomLineRequest,
   BuildAssemblyRequest,
+  CompanyBatchItem,
+  StockCountRequest,
+  StockCountResultLine,
+  SupplierReturnRequest,
   ProductCatalogFilter,
   ProductCatalogPageResponse,
   ProductDetailResponse,
@@ -91,6 +96,21 @@ export const productsApi = {
 
   adjustStock: (companyId: string, productId: string, body: AdjustStockRequest) =>
     api.post<BatchResponse>(`/api/companies/${companyId}/products/${productId}/stock/adjust`, body),
+
+  supplierReturn: (companyId: string, productId: string, body: SupplierReturnRequest) =>
+    api.post<BatchResponse>(`/api/companies/${companyId}/products/${productId}/stock/supplier-return`, body),
+
+  // Company-wide in-stock batches for the cycle-count screen.
+  companyBatches: (companyId: string, locationId?: string) =>
+    api.get<CompanyBatchItem[]>(`/api/companies/${companyId}/stock/batches`, { locationId }),
+
+  // Cycle count / stock-take — company-scoped (posts variances across batches).
+  countStock: (companyId: string, body: StockCountRequest) =>
+    api.post<StockCountResultLine[]>(`/api/companies/${companyId}/stock/count`, body),
+
+  // In-app alerts feed (low-stock / out-of-stock / expiring / expired).
+  alerts: (companyId: string, expiryWithinDays?: number) =>
+    api.get<AlertsResponse>(`/api/companies/${companyId}/alerts`, { expiryWithinDays }),
 
   restockSuggestions: (companyId: string, supplierId: string, locationId: string) =>
     api.get<RestockSuggestionItem[]>(`/api/companies/${companyId}/products/restock-suggestions`, { supplierId, locationId }),

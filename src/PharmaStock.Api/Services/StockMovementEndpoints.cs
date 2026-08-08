@@ -11,6 +11,13 @@ public record ReceiveStockRequest(
     // non-serialized products.
     List<string>? SerialNumbers = null);
 public record AdjustStockRequest(Guid BatchId, int DeltaInBaseUnits, string Reason);
+public record SupplierReturnRequest(Guid BatchId, int QuantityInBaseUnits, string? Reason);
+public record StockCountLine(Guid BatchId, int CountedQuantityInBaseUnits);
+public record StockCountRequest(List<StockCountLine> Lines);
+public record StockCountResultLine(Guid BatchId, int Before, int Counted, int Delta);
+public record CompanyBatchItem(
+    Guid BatchId, Guid ProductId, string ProductName, string BatchNumber,
+    Guid LocationId, int QuantityInBaseUnits, DateTime? ExpiryDate);
 
 public record BatchResponse(
     Guid Id, Guid LocationId, string BatchNumber, DateTime? ExpiryDate,
@@ -195,6 +202,132 @@ public static class StockMovementEndpoints
             return Results.Ok(new BatchResponse(batch.Id, batch.LocationId, batch.BatchNumber, batch.ExpiryDate,
                 batch.QuantityInBaseUnits, batch.PurchasePricePerBaseUnit, batch.ReceivedAt));
         });
+
+        // Return stock to the supplier — decrements a specific batch and records a
+        // SupplierReturn movement so the loss is traceable and never confused with
+        // a sale. Can't drive the batch negative.
+        group.MapPost("/stock/supplier-return", async (
+            Guid companyId, Guid productId, SupplierReturnRequest request,
+            PharmaStockDbContext db, HttpContext http) =>
+        {
+            var forbidden = RequireSameCompany(http, companyId);
+            if (forbidden is not null) return forbidden;
+
+            if (request.QuantityInBaseUnits <= 0)
+                return Results.BadRequest(new { message = "La quantité à retourner doit être positive." });
+
+            var product = await db.Products.FirstOrDefaultAsync(p => p.Id == productId && p.CompanyId == companyId);
+            if (product is null)
+                return Results.NotFound(new { message = "Produit introuvable." });
+
+            await using var transaction = await db.Database.BeginTransactionAsync();
+
+            var batch = await db.Batches
+                .FromSqlInterpolated($@"SELECT * FROM ""Batches"" WHERE ""Id"" = {request.BatchId} FOR UPDATE")
+                .FirstOrDefaultAsync();
+            if (batch is null || batch.ProductId != productId)
+                return Results.NotFound(new { message = "Lot introuvable pour ce produit." });
+
+            if (batch.QuantityInBaseUnits < request.QuantityInBaseUnits)
+            {
+                await transaction.RollbackAsync();
+                return Results.Conflict(new { message = $"Retour supérieur au stock du lot ({batch.QuantityInBaseUnits} disponible(s))." });
+            }
+
+            batch.QuantityInBaseUnits -= request.QuantityInBaseUnits;
+            db.StockMovements.Add(new StockMovement
+            {
+                ProductId = productId,
+                BatchId = batch.Id,
+                LocationId = batch.LocationId,
+                Type = StockMovementType.SupplierReturn,
+                QuantityInBaseUnits = -request.QuantityInBaseUnits,
+                Reason = string.IsNullOrWhiteSpace(request.Reason) ? "Supplier return" : request.Reason,
+                UserId = http.User.GetUserId()!.Value,
+            });
+
+            await db.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Results.Ok(new BatchResponse(batch.Id, batch.LocationId, batch.BatchNumber, batch.ExpiryDate,
+                batch.QuantityInBaseUnits, batch.PurchasePricePerBaseUnit, batch.ReceivedAt));
+        });
+
+        // Cycle count / stock-take: the caller submits the physically-counted
+        // quantity per batch; each non-zero variance is applied and recorded as a
+        // StockCount movement (delta = counted − system), all in one transaction.
+        // Company-scoped (not under /products/{id}) so a whole location is counted at once.
+        app.MapPost("/api/companies/{companyId:guid}/stock/count", async (
+            Guid companyId, StockCountRequest request, PharmaStockDbContext db, HttpContext http) =>
+        {
+            if (http.User.GetCompanyId() != companyId)
+                return Results.Forbid();
+            var userId = http.User.GetUserId();
+            if (userId is null) return Results.Unauthorized();
+
+            var lines = (request.Lines ?? new List<StockCountLine>())
+                .Where(l => l.CountedQuantityInBaseUnits >= 0)
+                .GroupBy(l => l.BatchId).Select(g => g.Last()) // last wins if a batch repeats
+                .ToList();
+            if (lines.Count == 0)
+                return Results.BadRequest(new { message = "Aucune ligne de comptage fournie." });
+
+            var batchIds = lines.Select(l => l.BatchId).ToList();
+            await using var transaction = await db.Database.BeginTransactionAsync();
+
+            var batches = await db.Batches
+                .Where(b => batchIds.Contains(b.Id) && b.Product!.CompanyId == companyId)
+                .ToListAsync();
+            var byId = batches.ToDictionary(b => b.Id);
+            if (byId.Count != lines.Count)
+            {
+                await transaction.RollbackAsync();
+                return Results.BadRequest(new { message = "Un ou plusieurs lots sont introuvables." });
+            }
+
+            var results = new List<StockCountResultLine>();
+            foreach (var line in lines)
+            {
+                var batch = byId[line.BatchId];
+                var before = batch.QuantityInBaseUnits;
+                var delta = line.CountedQuantityInBaseUnits - before;
+                results.Add(new StockCountResultLine(batch.Id, before, line.CountedQuantityInBaseUnits, delta));
+                if (delta == 0) continue;
+                batch.QuantityInBaseUnits = line.CountedQuantityInBaseUnits;
+                db.StockMovements.Add(new StockMovement
+                {
+                    ProductId = batch.ProductId,
+                    BatchId = batch.Id,
+                    LocationId = batch.LocationId,
+                    Type = StockMovementType.StockCount,
+                    QuantityInBaseUnits = delta,
+                    Reason = "Stock count",
+                    UserId = userId.Value,
+                });
+            }
+
+            await db.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return Results.Ok(results);
+        }).RequireAuthorization();
+
+        // Company-wide batch list for the cycle-count screen (optionally scoped to
+        // a location). Only batches that still hold stock, active products.
+        app.MapGet("/api/companies/{companyId:guid}/stock/batches", async (
+            Guid companyId, Guid? locationId, PharmaStockDbContext db, HttpContext http) =>
+        {
+            if (http.User.GetCompanyId() != companyId)
+                return Results.Forbid();
+
+            var q = db.Batches.Where(b => b.Product!.CompanyId == companyId && b.Product.IsActive && b.QuantityInBaseUnits > 0);
+            if (locationId is not null) q = q.Where(b => b.LocationId == locationId);
+            var items = await q
+                .OrderBy(b => b.Product!.Name).ThenBy(b => b.ExpiryDate)
+                .Select(b => new CompanyBatchItem(
+                    b.Id, b.ProductId, b.Product!.Name, b.BatchNumber, b.LocationId, b.QuantityInBaseUnits, b.ExpiryDate))
+                .ToListAsync();
+            return Results.Ok(items);
+        }).RequireAuthorization();
 
         // Section 3.3 — per-product, per-batch quantity view.
         group.MapGet("/batches", async (Guid companyId, Guid productId, PharmaStockDbContext db, HttpContext http) =>

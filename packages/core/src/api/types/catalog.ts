@@ -209,6 +209,63 @@ export interface AdjustStockRequest {
   reason: string;
 }
 
+export interface SupplierReturnRequest {
+  batchId: string;
+  quantityInBaseUnits: number;
+  reason: string | null;
+}
+
+export interface StockCountLine {
+  batchId: string;
+  countedQuantityInBaseUnits: number;
+}
+
+export interface StockCountRequest {
+  lines: StockCountLine[];
+}
+
+export interface StockCountResultLine {
+  batchId: string;
+  before: number;
+  counted: number;
+  delta: number;
+}
+
+export interface CompanyBatchItem {
+  batchId: string;
+  productId: string;
+  productName: string;
+  batchNumber: string;
+  locationId: string;
+  quantityInBaseUnits: number;
+  expiryDate: string | null;
+}
+
+// ── Alerts centre ────────────────────────────────────────────────────────────
+export interface StockAlertItem {
+  productId: string;
+  name: string;
+  currentStock: number;
+  lowStockThreshold: number;
+}
+
+export interface ExpiryAlertItem {
+  productId: string;
+  name: string;
+  batchId: string;
+  batchNumber: string;
+  expiryDate: string;
+  quantityInBaseUnits: number;
+  daysUntilExpiry: number;
+}
+
+export interface AlertsResponse {
+  outOfStock: StockAlertItem[];
+  lowStock: StockAlertItem[];
+  expiringSoon: ExpiryAlertItem[];
+  expired: ExpiryAlertItem[];
+}
+
 export interface BatchResponse {
   id: string;
   locationId: string;

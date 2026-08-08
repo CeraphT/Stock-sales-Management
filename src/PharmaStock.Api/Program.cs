@@ -119,5 +119,6 @@ app.MapLoyaltyEndpoints();
 app.MapRefundEndpoints();
 app.MapServiceEndpoints();
 app.MapReconciliationEndpoints();
+app.MapAlertsEndpoints();
 
 app.Run();

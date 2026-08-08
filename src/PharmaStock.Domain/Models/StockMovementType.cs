@@ -10,5 +10,6 @@ public enum StockMovementType
     Transfer,       // moved to/from another location/branch
     ServiceConsumption, // consumed automatically by a linked service (Section 20.6)
     AssemblyConsumption, // component consumed by building an assembly
-    AssemblyOutput      // finished units added to stock by building an assembly
+    AssemblyOutput,     // finished units added to stock by building an assembly
+    StockCount          // variance posted by a physical count / stock-take
 }
