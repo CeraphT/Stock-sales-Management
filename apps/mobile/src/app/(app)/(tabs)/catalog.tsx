@@ -18,6 +18,7 @@ import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { syncNow } from '@/lib/sync/syncNow';
 import { useThemeColors } from '@/lib/theme/colors';
+import { useIsTablet } from '@/lib/useIsTablet';
 import { toast } from '@/lib/ui/toastStore';
 
 type StockFilter = 'all' | 'low' | 'out' | 'expiring';
@@ -41,6 +42,8 @@ export default function CatalogScreen() {
   const locationId = useAuthStore((s) => s.locationId);
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
+  const isTablet = useIsTablet();
+  const numColumns = isTablet ? 2 : 1;
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [orderingId, setOrderingId] = useState<string | null>(null);
@@ -249,6 +252,9 @@ export default function CatalogScreen() {
       <FlatList
         data={filteredProducts}
         keyExtractor={(item) => item.id}
+        key={`cols-${numColumns}`}
+        numColumns={numColumns}
+        columnWrapperStyle={numColumns > 1 ? { gap: 12 } : undefined}
         contentContainerClassName="gap-3 p-4"
         refreshControl={<RefreshControl refreshing={syncing} onRefresh={runSync} />}
         renderItem={({ item }) => {
@@ -263,6 +269,7 @@ export default function CatalogScreen() {
           return (
             <Pressable
               onPress={() => router.push({ pathname: '/product-detail', params: { id: item.id } })}
+              style={{ flex: 1 }}
               className="rounded-2xl bg-surface p-4 shadow-sm shadow-black/5 active:opacity-80">
               <View className="flex-row items-start justify-between">
                 <View className="flex-1 pr-3">
