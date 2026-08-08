@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Slot } from 'expo-router';
 import { Tabs } from 'expo-router/tabs';
 import type { ColorValue } from 'react-native';
 
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useThemeColors } from '@/lib/theme/colors';
+import { useIsTablet } from '@/lib/useIsTablet';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -13,6 +15,13 @@ type IconName = keyof typeof Ionicons.glyphMap;
 export default function TabsLayout() {
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const isTablet = useIsTablet();
+
+  // On tablets the persistent left rail (in the (app) layout) is the navigation,
+  // so the 5 sections just render their content here — no bottom tab bar.
+  if (isTablet) {
+    return <Slot />;
+  }
 
   const icon = (name: IconName, focusedName: IconName) =>
     ({ focused, color, size }: { focused: boolean; color: ColorValue; size: number }) => (

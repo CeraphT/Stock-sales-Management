@@ -1,12 +1,15 @@
 import { Redirect, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { View } from 'react-native';
 
 import { RegisterGate } from '@/components/RegisterGate';
+import { TabletNavRail } from '@/components/TabletNavRail';
 import { UserRole } from '@/lib/api/enums';
 import { useAuthStore } from '@/lib/auth/store';
 import { localShiftService } from '@/lib/local/shiftService';
 import { useAutoBackup } from '@/lib/useAutoBackup';
 import { useHeartbeat } from '@/lib/useHeartbeat';
+import { useIsTablet } from '@/lib/useIsTablet';
 
 // Crash fallback for the authenticated app. It must live in a NESTED layout
 // (inside the root navigator), not the root _layout: Expo Router wraps an
@@ -21,6 +24,7 @@ export default function AppLayout() {
   const companyId = useAuthStore((s) => s.companyId);
   const locationId = useAuthStore((s) => s.locationId);
   const isCashier = useAuthStore((s) => s.user?.role) === UserRole.Cashier;
+  const isTablet = useIsTablet();
   // Daily local safety backup (offline-resilient); no-op until a company is set.
   useAutoBackup();
   // Keep this device visible as "live" in the fleet monitoring view.
@@ -62,5 +66,17 @@ export default function AppLayout() {
   if (gate === 'gated') {
     return <RegisterGate onOpened={() => setGate('clear')} />;
   }
-  return <Stack screenOptions={{ headerShown: false }} />;
+  const stack = <Stack screenOptions={{ headerShown: false }} />;
+  // Desktop-style shell on tablets: a persistent left nav rail beside the
+  // content stack (so it stays visible across tab screens AND pushed detail
+  // screens). Phones keep the bottom-tab layout.
+  if (isTablet) {
+    return (
+      <View style={{ flex: 1, flexDirection: 'row' }}>
+        <TabletNavRail />
+        <View style={{ flex: 1 }}>{stack}</View>
+      </View>
+    );
+  }
+  return stack;
 }
