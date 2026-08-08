@@ -1017,6 +1017,26 @@ export const FR: Record<string, string> = {
   "Labels": "Étiquettes",
   "Allow pop-ups to print labels.": "Autorisez les fenêtres contextuelles pour imprimer les étiquettes.",
   "Could not open the print dialog.": "Impossible d'ouvrir la boîte de dialogue d'impression.",
+  // ── Alerts ↔ PO + analytics (demand forecast / dead stock) ──
+  "On order": "En commande",
+  "already on order — open to print / share": "déjà commandé — ouvrir pour imprimer / partager",
+  "Demand forecast": "Prévision de la demande",
+  "Sales velocity, days of cover left, and a suggested reorder for the next period.": "Vitesse des ventes, jours de couverture restants et réapprovisionnement suggéré pour la période à venir.",
+  "Sold": "Vendu",
+  "Per day": "Par jour",
+  "Cover": "Couverture",
+  "Reorder": "Réappro.",
+  "Trend": "Tendance",
+  "No sales in this period to forecast from.": "Aucune vente sur cette période pour établir une prévision.",
+  "Cover = days of stock left at the current rate. Reorder = suggested units to cover the next period.": "Couverture = jours de stock restants au rythme actuel. Réappro. = unités suggérées pour couvrir la période à venir.",
+  "Dead stock": "Stock dormant",
+  "Items still in stock with no sale in the period — money tied up you could liquidate.": "Articles en stock sans vente sur la période — de l'argent immobilisé que vous pourriez liquider.",
+  "Value tied up in dead stock": "Valeur immobilisée en stock dormant",
+  "item(s), no sale in": "article(s), aucune vente depuis",
+  "Value": "Valeur",
+  "Last sold": "Dernière vente",
+  "never sold": "jamais vendu",
+  "No dead stock — everything's moving. 🎉": "Aucun stock dormant — tout se vend. 🎉",
 };
 
 /** Reactive translator hook. `t(en)` returns the French string when the app
