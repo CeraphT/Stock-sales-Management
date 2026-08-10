@@ -138,7 +138,10 @@ public static class CompanyEndpoints
 
             if (string.IsNullOrWhiteSpace(request.Name))
                 return Results.BadRequest(new { message = "Le nom de l'entreprise est requis." });
-            if (request.LoyaltyEarnRateAmount <= 0 || request.LoyaltyPointValue <= 0)
+            // Only enforce positive loyalty rates when loyalty is actually enabled —
+            // a company with loyalty off (rates left at 0) must still be able to save
+            // its name/currency/capabilities/etc. without being blocked here.
+            if (request.LoyaltyEnabled && (request.LoyaltyEarnRateAmount <= 0 || request.LoyaltyPointValue <= 0))
                 return Results.BadRequest(new { message = "Les paramètres de fidélité doivent être des montants positifs." });
 
             var company = await db.Companies.FindAsync(id);
@@ -150,8 +153,10 @@ public static class CompanyEndpoints
             company.Currency = string.IsNullOrWhiteSpace(request.Currency) ? company.Currency : request.Currency.Trim();
             company.DefaultTaxRatePercent = request.DefaultTaxRatePercent;
             company.LoyaltyEnabled = request.LoyaltyEnabled;
-            company.LoyaltyEarnRateAmount = request.LoyaltyEarnRateAmount;
-            company.LoyaltyPointValue = request.LoyaltyPointValue;
+            // Keep the existing rates if the payload sends 0 (loyalty off) so we don't
+            // clobber previously-configured values — only overwrite with real positives.
+            company.LoyaltyEarnRateAmount = request.LoyaltyEarnRateAmount > 0 ? request.LoyaltyEarnRateAmount : company.LoyaltyEarnRateAmount;
+            company.LoyaltyPointValue = request.LoyaltyPointValue > 0 ? request.LoyaltyPointValue : company.LoyaltyPointValue;
             company.ServicesModuleEnabled = request.ServicesModuleEnabled;
             company.RewardProgramEnabled = request.RewardProgramEnabled;
             company.RewardPurchaseCount = request.RewardPurchaseCount > 0 ? request.RewardPurchaseCount : company.RewardPurchaseCount;
