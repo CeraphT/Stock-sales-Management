@@ -13,6 +13,7 @@ import { localCatalogQueryService } from '@/lib/local/catalogQueryService';
 import { localSalesService } from '@/lib/local/salesService';
 import { useThemeColors } from '@/lib/theme/colors';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { useIsTablet } from '@/lib/useIsTablet';
 import { showAlert } from '@/lib/ui/alertStore';
 import type { ProductSearchResult } from '@/lib/api/types/catalog';
 
@@ -22,6 +23,7 @@ export default function PosScreen() {
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const isTablet = useIsTablet();
 
   const lines = useCartStore((s) => s.lines);
   const serviceLines = useCartStore((s) => s.serviceLines);
@@ -121,9 +123,8 @@ export default function PosScreen() {
     }
   };
 
-  return (
-    <SafeAreaView className="flex-1 bg-background">
-      <ScreenBackground />
+  const browsePane = (
+    <>
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-center">
           <Text className="text-lg font-bold text-text-primary">{t('pos.title')}</Text>
@@ -149,7 +150,7 @@ export default function PosScreen() {
       </View>
 
       {query.trim() ? (
-        <View className="max-h-64 border-b border-border">
+        <View className={isTablet ? 'flex-1 border-b border-border' : 'max-h-64 border-b border-border'}>
           {searching ? (
             <ActivityIndicator className="py-4" />
           ) : (
@@ -203,8 +204,17 @@ export default function PosScreen() {
             />
           )}
         </View>
+      ) : isTablet ? (
+        <View className="flex-1 items-center justify-center p-8">
+          <Ionicons name="search-outline" size={40} color={colors.iconMuted} />
+          <Text className="mt-2 text-sm text-text-secondary">{t('pos.searchPlaceholder')}</Text>
+        </View>
       ) : null}
+    </>
+  );
 
+  const cartPane = (
+    <>
       <View className="mx-4 mt-3">
         <Pressable
           onPress={() => router.push('/customer-picker')}
@@ -313,6 +323,23 @@ export default function PosScreen() {
           </Pressable>
         </View>
       </View>
+    </>
+  );
+
+  return (
+    <SafeAreaView className="flex-1 bg-background">
+      <ScreenBackground />
+      {isTablet ? (
+        <View className="flex-1 flex-row">
+          <View className="flex-1">{browsePane}</View>
+          <View style={{ width: 400 }} className="border-l border-border">{cartPane}</View>
+        </View>
+      ) : (
+        <>
+          {browsePane}
+          {cartPane}
+        </>
+      )}
 
       {/* Sell-by-measure weight entry */}
       <Modal visible={!!measurePick} transparent animationType="fade" onRequestClose={() => setMeasurePick(null)}>
