@@ -56,6 +56,7 @@ const GROUPS: MenuGroup[] = [
     labelKey: 'drawer.group.purchasing',
     tint: 'accentOrange',
     items: [
+      { labelKey: 'drawer.item.receiveStock', icon: 'download-outline', route: '/receive-stock-picker' },
       { labelKey: 'drawer.item.suppliers', icon: 'boat-outline', route: '/suppliers' },
       { labelKey: 'drawer.item.purchaseOrders', icon: 'clipboard-outline', route: '/purchase-orders' },
     ],

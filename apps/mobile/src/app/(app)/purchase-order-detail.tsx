@@ -207,7 +207,7 @@ export default function PurchaseOrderDetailScreen() {
                   onPress={() =>
                     router.push({
                       pathname: '/po-receive-line',
-                      params: { orderId: order.id, lineId: line.id, productName: line.productName, remaining: String(remaining) },
+                      params: { orderId: order.id, lineId: line.id, productName: line.productName, remaining: String(remaining), serialTracked: line.serialTracked ? '1' : '' },
                     })
                   }
                   className="mt-2 self-start rounded-lg border border-primary px-3 py-1.5">

@@ -6,9 +6,11 @@ namespace PharmaStock.Api.Services;
 
 public record PurchaseOrderLineRequest(Guid ProductId, int QuantityOrdered, decimal UnitCost);
 public record CreatePurchaseOrderRequest(Guid LocationId, Guid SupplierId, string? Notes, List<PurchaseOrderLineRequest> Lines);
-public record ReceivePurchaseOrderLineRequest(int QuantityReceivedNow, string BatchNumber, DateTime? ExpiryDate, decimal? ActualUnitCost);
+// SerialNumbers: for serial-tracked products, one serial/IMEI per unit received
+// (its count must equal QuantityReceivedNow). Ignored for non-serial products.
+public record ReceivePurchaseOrderLineRequest(int QuantityReceivedNow, string BatchNumber, DateTime? ExpiryDate, decimal? ActualUnitCost, List<string>? SerialNumbers = null);
 
-public record PurchaseOrderLineResponse(Guid Id, Guid ProductId, string ProductName, int QuantityOrdered, int QuantityReceived, decimal UnitCost);
+public record PurchaseOrderLineResponse(Guid Id, Guid ProductId, string ProductName, int QuantityOrdered, int QuantityReceived, decimal UnitCost, bool SerialTracked);
 public record PurchaseOrderSummaryResponse(Guid Id, DateTime CreatedAt, string SupplierName, string LocationName, PurchaseOrderStatus Status, int LineCount, decimal TotalCost);
 public record PurchaseOrderDetailResponse(Guid Id, DateTime CreatedAt, string SupplierName, string LocationName, PurchaseOrderStatus Status, string? Notes, List<PurchaseOrderLineResponse> Lines);
 
@@ -187,7 +189,15 @@ public static class PurchaseOrderEndpoints
                 return Results.BadRequest(new { message = "La quantité reçue doit être positive." });
             if (string.IsNullOrWhiteSpace(request.BatchNumber))
                 return Results.BadRequest(new { message = "Le numéro de lot est requis." });
-            if (request.ExpiryDate is null)
+
+            var company = await db.Companies.FirstOrDefaultAsync(c => c.Id == companyId);
+            if (company is null)
+                return Results.NotFound(new { message = "Entreprise introuvable." });
+
+            // Expiry is only mandatory for businesses that actually track it —
+            // same rule as the manual stock-receive (StockMovementEndpoints): an
+            // electronics shop receiving serial-tracked phones has no expiry.
+            if (company.ExpiryTrackingEnabled && request.ExpiryDate is null)
                 return Results.BadRequest(new { message = "La date d'expiration est requise." });
 
             var order = await db.PurchaseOrders
@@ -206,7 +216,34 @@ public static class PurchaseOrderEndpoints
             if (request.QuantityReceivedNow > remaining)
                 return Results.BadRequest(new { message = $"La quantité reçue dépasse la quantité restante ({remaining})." });
 
-            var stdVatRate = await db.Companies.Where(c => c.Id == companyId).Select(c => c.DefaultTaxRatePercent).FirstOrDefaultAsync();
+            var product = await db.Products.FirstOrDefaultAsync(p => p.Id == line.ProductId && p.CompanyId == companyId);
+            if (product is null)
+                return Results.NotFound(new { message = "Produit introuvable." });
+
+            // Serial-tracked products: capture one serial/IMEI per unit received.
+            // Mirrors the manual stock-receive validation exactly (count matches
+            // the quantity, no blanks/duplicates, none already in stock).
+            List<string> serials = new();
+            if (product.SerialTracked)
+            {
+                serials = (request.SerialNumbers ?? new List<string>())
+                    .Select(s => s?.Trim() ?? "")
+                    .Where(s => s.Length > 0)
+                    .ToList();
+                if (serials.Count != request.QuantityReceivedNow)
+                    return Results.BadRequest(new { message = $"Ce produit est suivi par numéro de série : indiquez exactement {request.QuantityReceivedNow} numéro(s) de série." });
+                if (serials.Distinct(StringComparer.OrdinalIgnoreCase).Count() != serials.Count)
+                    return Results.BadRequest(new { message = "Des numéros de série en double ont été saisis." });
+                var clash = await db.ProductSerials
+                    .Where(s => s.CompanyId == companyId && s.ProductId == line.ProductId && s.Status == SerialStatus.InStock)
+                    .Select(s => s.SerialNumber)
+                    .ToListAsync();
+                var clashSet = clash.Select(c => c.ToLowerInvariant()).ToHashSet();
+                var dup = serials.FirstOrDefault(s => clashSet.Contains(s.ToLowerInvariant()));
+                if (dup is not null)
+                    return Results.Conflict(new { message = $"Le numéro de série « {dup} » est déjà en stock." });
+            }
+
             var batch = new Batch
             {
                 ProductId = line.ProductId,
@@ -215,7 +252,7 @@ public static class PurchaseOrderEndpoints
                 ExpiryDate = request.ExpiryDate,
                 QuantityInBaseUnits = request.QuantityReceivedNow,
                 PurchasePricePerBaseUnit = request.ActualUnitCost ?? line.UnitCost,
-                PurchaseVatRatePercent = stdVatRate,
+                PurchaseVatRatePercent = company.DefaultTaxRatePercent,
             };
             db.Batches.Add(batch);
 
@@ -228,6 +265,19 @@ public static class PurchaseOrderEndpoints
                 QuantityInBaseUnits = request.QuantityReceivedNow,
                 UserId = callerUserId.Value,
             });
+
+            foreach (var sn in serials)
+            {
+                db.ProductSerials.Add(new ProductSerial
+                {
+                    CompanyId = companyId,
+                    ProductId = line.ProductId,
+                    LocationId = order.LocationId,
+                    BatchId = batch.Id,
+                    SerialNumber = sn,
+                    Status = SerialStatus.InStock,
+                });
+            }
 
             line.QuantityReceivedInBaseUnits += request.QuantityReceivedNow;
             order.Status = order.Lines.All(l => l.QuantityReceivedInBaseUnits >= l.QuantityOrderedInBaseUnits)
@@ -312,7 +362,7 @@ public static class PurchaseOrderEndpoints
                 o.Status,
                 o.Notes,
                 Lines = o.Lines.Select(l => new PurchaseOrderLineResponse(
-                    l.Id, l.ProductId, l.Product!.Name, l.QuantityOrderedInBaseUnits, l.QuantityReceivedInBaseUnits, l.UnitCost)).ToList(),
+                    l.Id, l.ProductId, l.Product!.Name, l.QuantityOrderedInBaseUnits, l.QuantityReceivedInBaseUnits, l.UnitCost, l.Product!.SerialTracked)).ToList(),
             })
             .FirstOrDefaultAsync();
 

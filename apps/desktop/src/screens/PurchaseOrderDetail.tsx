@@ -12,6 +12,7 @@ import { IconButton } from "@/components/IconButton";
 import { PoStatusBadge } from "@/components/PoStatusBadge";
 import { useSetBreadcrumb } from "@/lib/breadcrumb";
 import { confirmDialog } from "@/lib/confirm";
+import { useCapabilities } from "@/lib/useCapabilities";
 import { useT } from "@/lib/i18n";
 import { queryClient } from "@/lib/queryClient";
 import { printColoredReport } from "@/lib/reportPdf";
@@ -31,14 +32,19 @@ export function PurchaseOrderDetail() {
   const currency = useCurrency();
   const company = useCompany().data;
   const t = useT();
+  const caps = useCapabilities();
 
   const [receivingId, setReceivingId] = useState<string | null>(null);
   const [qty, setQty] = useState("");
   const [batch, setBatch] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cost, setCost] = useState("");
+  const [serialText, setSerialText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Serial-tracked lines: one IMEI per line; the received quantity IS the count.
+  const serials = serialText.split("\n").map((s) => s.trim()).filter((s) => s.length > 0);
 
   const { data: po, isLoading } = useQuery({
     queryKey: ["purchase-order", companyId, poId],
@@ -53,25 +59,31 @@ export function PurchaseOrderDetail() {
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["purchase-order", companyId, poId] });
 
-  function startReceive(lineId: string, remaining: number) {
+  function startReceive(lineId: string, remaining: number, serialTracked: boolean) {
     setReceivingId(lineId);
-    setQty(String(remaining));
+    // Serial lines derive quantity from the IMEI count, so leave qty blank.
+    setQty(serialTracked ? "" : String(remaining));
     setBatch("");
     setExpiry("");
     setCost("");
+    setSerialText("");
     setError(null);
   }
 
   async function receive(lineId: string) {
     if (busy) return;
+    const line = po?.lines.find((l) => l.id === lineId);
+    const isSerial = !!line?.serialTracked;
+    const quantity = isSerial ? serials.length : Number(qty) || 0;
     setBusy(true);
     setError(null);
     try {
       await purchaseOrdersApi.receiveLine(companyId, poId!, lineId, {
-        quantityReceivedNow: Number(qty) || 0,
+        quantityReceivedNow: quantity,
         batchNumber: batch.trim(),
         expiryDate: expiry ? new Date(expiry).toISOString() : null,
         actualUnitCost: cost.trim() ? Number(cost) : null,
+        serialNumbers: isSerial ? serials : undefined,
       });
       setReceivingId(null);
       await runSync(); // pulls the new batch/stock into the local mirror
@@ -201,7 +213,7 @@ export function PurchaseOrderDetail() {
                   </div>
                   {canReceive && remaining > 0 && receivingId !== l.id ? (
                     <div className="flex shrink-0 items-center gap-1">
-                      <button onClick={() => startReceive(l.id, remaining)} className="rounded-lg px-2.5 py-1.5 text-sm font-semibold text-primary hover:bg-primary/10">
+                      <button onClick={() => startReceive(l.id, remaining, l.serialTracked)} className="rounded-lg px-2.5 py-1.5 text-sm font-semibold text-primary hover:bg-primary/10">
                         {t("Receive")}
                       </button>
                       <IconButton icon="🚫" label={t("Cancel outstanding")} tone="danger" onClick={() => cancelLine(l.id, l.productName)} />
@@ -211,15 +223,41 @@ export function PurchaseOrderDetail() {
 
                 {receivingId === l.id ? (
                   <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border/60 pt-3">
-                    <input value={qty} onChange={(e) => setQty(e.target.value)} type="number" placeholder={t("Qty received")} className="h-9 rounded-lg border border-border bg-background px-2 text-sm outline-none focus:border-primary" />
-                    <input value={batch} onChange={(e) => setBatch(e.target.value)} placeholder={t("Batch number")} className="h-9 rounded-lg border border-border bg-background px-2 text-sm outline-none focus:border-primary" />
-                    <input value={expiry} onChange={(e) => setExpiry(e.target.value)} type="date" className="h-9 rounded-lg border border-border bg-background px-2 text-sm outline-none focus:border-primary" />
-                    <input value={cost} onChange={(e) => setCost(e.target.value)} type="number" placeholder={t("Actual unit cost")} className="h-9 rounded-lg border border-border bg-background px-2 text-sm outline-none focus:border-primary" />
+                    {l.serialTracked ? (
+                      <div className="col-span-2">
+                        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                          {t("Serial / IMEI numbers (one per line)")}
+                        </span>
+                        <textarea
+                          value={serialText}
+                          onChange={(e) => setSerialText(e.target.value)}
+                          rows={5}
+                          placeholder={"SN-0001\nSN-0002"}
+                          className="w-full rounded-lg border border-border bg-background px-2 py-1.5 font-mono text-sm outline-none focus:border-primary"
+                        />
+                        <p className="mt-1 text-xs text-text-secondary">
+                          {serials.length} {t("unit(s) — each serial is one unit received.")} {serials.length > remaining ? `· ⚠ ${t("exceeds outstanding")} (${remaining})` : ""}
+                        </p>
+                      </div>
+                    ) : (
+                      <input value={qty} onChange={(e) => setQty(e.target.value)} type="number" placeholder={t("Qty received")} className="h-9 rounded-lg border border-border bg-background px-2 text-sm outline-none focus:border-primary" />
+                    )}
+                    <input value={batch} onChange={(e) => setBatch(e.target.value)} placeholder={t("Batch number")} className={`h-9 rounded-lg border border-border bg-background px-2 text-sm outline-none focus:border-primary ${l.serialTracked ? "col-span-2" : ""}`} />
+                    <input value={expiry} onChange={(e) => setExpiry(e.target.value)} type="date" title={caps.expiryTracking ? t("Expiry date (required)") : t("Expiry date (optional)")} className="h-9 rounded-lg border border-border bg-background px-2 text-sm outline-none focus:border-primary" />
+                    <input value={cost} onChange={(e) => setCost(e.target.value)} type="number" placeholder={l.serialTracked ? t("Unit cost (optional)") : t("Actual unit cost")} className="h-9 rounded-lg border border-border bg-background px-2 text-sm outline-none focus:border-primary" />
                     <div className="col-span-2 flex justify-end gap-2">
                       <Button variant="ghost" onClick={() => setReceivingId(null)}>
                         {t("Cancel")}
                       </Button>
-                      <Button onClick={() => receive(l.id)} loading={busy} disabled={!batch.trim() || !expiry || Number(qty) <= 0}>
+                      <Button
+                        onClick={() => receive(l.id)}
+                        loading={busy}
+                        disabled={
+                          !batch.trim() ||
+                          (caps.expiryTracking && !expiry) ||
+                          (l.serialTracked ? serials.length <= 0 || serials.length > remaining : Number(qty) <= 0)
+                        }
+                      >
                         {t("Confirm receive")}
                       </Button>
                     </div>

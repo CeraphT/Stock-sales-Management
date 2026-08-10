@@ -18,6 +18,9 @@ export interface ReceivePurchaseOrderLineRequest {
   batchNumber: string;
   expiryDate: string | null;
   actualUnitCost: number | null;
+  // Serial-tracked products only: one serial/IMEI per unit received; its length
+  // must equal quantityReceivedNow. Omitted for non-serial products.
+  serialNumbers?: string[];
 }
 
 export interface PurchaseOrderLineResponse {
@@ -27,6 +30,7 @@ export interface PurchaseOrderLineResponse {
   quantityOrdered: number;
   quantityReceived: number;
   unitCost: number;
+  serialTracked: boolean;
 }
 
 export interface PurchaseOrderSummaryResponse {

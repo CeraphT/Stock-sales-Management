@@ -36,6 +36,7 @@ export const NAV: NavGroup[] = [
   {
     title: "Purchasing",
     items: [
+      { label: "Receive stock", path: "/receive", icon: "📥" },
       { label: "Suppliers", path: "/suppliers", icon: "🚚" },
       { label: "Purchase orders", path: "/purchase-orders", icon: "📋" },
     ],

@@ -36,6 +36,7 @@ import { ProductForm } from "@/screens/ProductForm";
 import { PurchaseOrderDetail } from "@/screens/PurchaseOrderDetail";
 import { PurchaseOrderForm } from "@/screens/PurchaseOrderForm";
 import { PurchaseOrders } from "@/screens/PurchaseOrders";
+import { ReceiveStockPicker } from "@/screens/ReceiveStockPicker";
 import { ProductInventory } from "@/screens/ProductInventory";
 import { Products } from "@/screens/Products";
 import { SaleDetail } from "@/screens/SaleDetail";
@@ -119,6 +120,7 @@ export const router = createHashRouter([
       { path: "/suppliers", element: <Suppliers /> },
       { path: "/customers", element: <Customers /> },
       { path: "/gift-cards", element: <GiftCards /> },
+      { path: "/receive", element: <ReceiveStockPicker /> },
       { path: "/purchase-orders", element: <PurchaseOrders /> },
       { path: "/purchase-orders/new", element: <PurchaseOrderForm /> },
       { path: "/purchase-orders/:poId", element: <PurchaseOrderDetail /> },
@@ -152,6 +154,7 @@ export const router = createHashRouter([
             "/suppliers",
             "/customers",
             "/gift-cards",
+            "/receive",
             "/purchase-orders",
             "/reports",
             "/inventory-report",
