@@ -49,19 +49,30 @@ services:
         VITE_API_BASE_URL: "https://api.mfspace.lu"
     restart: unless-stopped
 
-  # HouseBudget (separate repo — clone it as a sibling of this one and set
-  # HB_REPO_PATH in .env if the default relative path doesn't match).
-  housebudget:
+  # HouseBudget v2 — the rebuilt rental-management app (separate repo
+  # CeraphT/HouseBudget-v2). Clone it as a sibling of this repo on the server, or
+  # set HB_REPO_PATH in .env. Reuses this stack's Postgres (own "housebudget" DB,
+  # auto-created + migrated on start) and Caddy. Replaces the old Blazor app.
+  hbapi:
     build:
-      context: ${HB_REPO_PATH:-../../HouseBudget-master}
-      dockerfile: Dockerfile
+      context: ${HB_REPO_PATH:-../../HouseBudget-v2}
+      dockerfile: src/HouseBudget.Api/Dockerfile
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_URLS: "http://+:8080"
-      HB_DATA_DIR: /app/data
-    volumes:
-      - hb_data:/app/data
-      - hb_uploads:/app/wwwroot/uploads
+      ConnectionStrings__Default: "Host=db;Database=housebudget;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      Jwt__Secret: ${HB_JWT_SECRET}
+      CORS_ORIGINS: "https://budget.mfspace.lu,http://tauri.localhost,https://tauri.localhost"
+      AUTO_MIGRATE: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  hbweb:
+    build:
+      context: ${HB_REPO_PATH:-../../HouseBudget-v2}
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_BASE_URL: "https://budgetapi.mfspace.lu"
     restart: unless-stopped
 
   caddy:
@@ -76,12 +87,11 @@ services:
     depends_on:
       - api
       - web
-      - housebudget
+      - hbapi
+      - hbweb
     restart: unless-stopped
 
 volumes:
   pgdata:
   caddy_data:
   caddy_config:
-  hb_data:
-  hb_uploads:
