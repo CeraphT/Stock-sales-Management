@@ -2,6 +2,7 @@ import { locationsApi } from "../api/endpoints/locations";
 import { localDbWriteLock } from "../db/writeLock";
 import { getAuthStore } from "../auth/store";
 
+import { pushPendingOps } from "./outboxPush";
 import { pullAll } from "./syncPull";
 import { pushAll } from "./syncPush";
 
@@ -9,6 +10,10 @@ export interface SyncResult {
   salesPushed: number;
   salesFailed: number;
   rowsPulled: number;
+  /** Offline outbox (stock ops, created customers/suppliers/categories). */
+  opsPushed: number;
+  /** Outbox ops the server rejected for good this cycle (reverted locally). */
+  opsFailed: number;
 }
 
 /** Orchestrates one full sync cycle: always push-then-pull, mirroring the
@@ -20,9 +25,13 @@ export interface SyncResult {
 export async function syncNow(): Promise<SyncResult> {
   return localDbWriteLock.run(async () => {
     const { companyId } = getAuthStore().getState();
-    if (!companyId) return { salesPushed: 0, salesFailed: 0, rowsPulled: 0 };
+    if (!companyId) return { salesPushed: 0, salesFailed: 0, rowsPulled: 0, opsPushed: 0, opsFailed: 0 };
 
     const locationId = await resolveLocationId(companyId);
+
+    // Outbox first: sales rung up offline may depend on stock received or a
+    // customer created offline. A transport failure throws (nothing lost).
+    const { opsPushed, opsFailed } = await pushPendingOps(companyId);
 
     const { pushed, failed } = await pushAll(companyId);
 
@@ -31,7 +40,7 @@ export async function syncNow(): Promise<SyncResult> {
       rowsPulled = await pullAll(companyId, locationId);
     }
 
-    return { salesPushed: pushed, salesFailed: failed, rowsPulled };
+    return { salesPushed: pushed, salesFailed: failed, rowsPulled, opsPushed, opsFailed };
   });
 }
 

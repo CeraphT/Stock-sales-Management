@@ -17,6 +17,7 @@ import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { type DashboardStats, type DailyRevenuePoint, getDashboardStats } from '@/lib/local/dashboardQueries';
 import { localShiftService } from '@/lib/local/shiftService';
+import { offlineWrites } from '@stockflow/core/local/offlineWrites';
 import { syncNow } from '@/lib/sync/syncNow';
 import { useThemeColors } from '@/lib/theme/colors';
 import { useIsTablet } from '@/lib/useIsTablet';
@@ -41,6 +42,9 @@ export default function DashboardScreen() {
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
+  // Offline outbox visibility: changes waiting to be sent, and any the server rejected.
+  const [outboxPending, setOutboxPending] = useState(0);
+  const [outboxFailed, setOutboxFailed] = useState<Awaited<ReturnType<typeof offlineWrites.listFailed>>>([]);
   const [syncing, setSyncing] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   // Sales are push-only and never synced back down (see CLAUDE.md), so today's
@@ -109,6 +113,8 @@ export default function DashboardScreen() {
       setInitialLoading(false);
       return;
     }
+    offlineWrites.counts(companyId).then((c) => setOutboxPending(c.pending)).catch(() => {});
+    offlineWrites.listFailed(companyId).then(setOutboxFailed).catch(() => {});
     try {
       const [localResult, , summaryResult] = await Promise.allSettled([
         getDashboardStats(companyId, locationId),
@@ -174,6 +180,44 @@ export default function DashboardScreen() {
           </Text>
           <Text className="text-sm text-text-secondary">{locationName ?? t('drawer.noLocation')}</Text>
         </View>
+
+        {outboxPending > 0 ? (
+          <View className="flex-row items-center gap-2 rounded-card p-3" style={{ backgroundColor: colors.accentAmber + '1A' }}>
+            <Ionicons name="cloud-upload-outline" size={18} color={colors.accentAmber} />
+            <Text className="flex-1 text-xs font-semibold" style={{ color: colors.accentAmber }}>
+              {t('outbox.pending').replace('{count}', String(outboxPending))}
+            </Text>
+          </View>
+        ) : null}
+
+        {outboxFailed.length > 0 ? (
+          <View className="gap-2 rounded-card bg-error/10 p-4">
+            <View className="flex-row items-center gap-2">
+              <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
+              <Text className="flex-1 text-sm font-bold text-error">{t('outbox.failedTitle')}</Text>
+            </View>
+            <Text className="text-xs text-text-secondary">{t('outbox.failedHint')}</Text>
+            {outboxFailed.map((op) => (
+              <View key={op.id} className="flex-row items-start gap-2 rounded-xl bg-surface p-3">
+                <View className="flex-1">
+                  <Text className="text-xs font-bold text-text-primary">
+                    {t(('outbox.kind.' + op.kind) as Parameters<typeof t>[0])} · {new Date(op.createdAt).toLocaleString()}
+                  </Text>
+                  {op.error ? <Text className="mt-0.5 text-xs text-text-secondary">{op.error}</Text> : null}
+                </View>
+                <Pressable
+                  onPress={async () => {
+                    await offlineWrites.dismissFailed(op.id);
+                    setOutboxFailed((list) => list.filter((x) => x.id !== op.id));
+                  }}
+                  hitSlop={6}
+                  className="rounded-lg bg-error/15 px-2.5 py-1 active:opacity-80">
+                  <Text className="text-xs font-bold text-error">{t('outbox.dismiss')}</Text>
+                </Pressable>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         {negativeStockBatchCount + autoClosedShiftConflictCount > 0 ? (
           <View className="flex-row items-start gap-3 rounded-card bg-error/10 p-4">

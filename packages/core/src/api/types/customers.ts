@@ -3,6 +3,8 @@ export interface CustomerRequest {
   phone: string | null;
   isBusiness?: boolean;
   taxId?: string | null;
+  /** Client-generated id (offline outbox) — the server acknowledges a replay. */
+  id?: string;
 }
 
 export interface CustomerResponse {

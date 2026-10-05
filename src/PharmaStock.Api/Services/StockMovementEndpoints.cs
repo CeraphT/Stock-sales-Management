@@ -9,10 +9,16 @@ public record ReceiveStockRequest(
     int QuantityInBaseUnits, decimal? PurchasePricePerBaseUnit, decimal? VatRatePercent = null,
     // For serial-tracked products: one serial/IMEI per unit received. Ignored for
     // non-serialized products.
-    List<string>? SerialNumbers = null);
-public record AdjustStockRequest(Guid BatchId, int DeltaInBaseUnits, string Reason);
+    List<string>? SerialNumbers = null,
+    // Offline outbox (client-generated ids): a replayed receipt whose batch
+    // already exists is acknowledged instead of creating a second lot.
+    Guid? ClientBatchId = null, Guid? ClientMovementId = null);
+// ClientMovementId: offline outbox idempotency — a replay is a no-op.
+public record AdjustStockRequest(Guid BatchId, int DeltaInBaseUnits, string Reason, Guid? ClientMovementId = null);
 public record SupplierReturnRequest(Guid BatchId, int QuantityInBaseUnits, string? Reason);
-public record StockCountLine(Guid BatchId, int CountedQuantityInBaseUnits);
+// ClientMovementId: offline outbox idempotency — a line whose movement already
+// exists is skipped, so a late replay can't undo sales made in between.
+public record StockCountLine(Guid BatchId, int CountedQuantityInBaseUnits, Guid? ClientMovementId = null);
 public record StockCountRequest(List<StockCountLine> Lines);
 public record StockCountResultLine(Guid BatchId, int Before, int Counted, int Delta);
 public record CompanyBatchItem(
@@ -51,6 +57,16 @@ public static class StockMovementEndpoints
                 return Results.BadRequest(new { message = "La quantité doit être positive." });
             if (string.IsNullOrWhiteSpace(request.BatchNumber))
                 return Results.BadRequest(new { message = "Le numéro de lot est requis." });
+
+            // Offline-outbox replay of a receipt already applied: acknowledge it.
+            if (request.ClientBatchId is Guid replayBatchId)
+            {
+                var existing = await db.Batches.FirstOrDefaultAsync(b =>
+                    b.Id == replayBatchId && b.ProductId == productId && b.Product!.CompanyId == companyId);
+                if (existing is not null)
+                    return Results.Ok(new BatchResponse(existing.Id, existing.LocationId, existing.BatchNumber, existing.ExpiryDate,
+                        existing.QuantityInBaseUnits, existing.PurchasePricePerBaseUnit, existing.ReceivedAt));
+            }
 
             var company = await db.Companies.FirstOrDefaultAsync(c => c.Id == companyId);
             if (company is null)
@@ -100,6 +116,7 @@ public static class StockMovementEndpoints
 
             var batch = new Batch
             {
+                Id = request.ClientBatchId ?? Guid.NewGuid(),
                 ProductId = productId,
                 LocationId = request.LocationId,
                 BatchNumber = request.BatchNumber,
@@ -116,6 +133,7 @@ public static class StockMovementEndpoints
 
             db.StockMovements.Add(new StockMovement
             {
+                Id = request.ClientMovementId ?? Guid.NewGuid(),
                 ProductId = productId,
                 BatchId = batch.Id,
                 LocationId = request.LocationId,
@@ -165,6 +183,17 @@ public static class StockMovementEndpoints
             if (!product.IsActive)
                 return Results.BadRequest(new { message = "Ce produit est archivé et ne peut plus être ajusté." });
 
+            // Offline-outbox replay of an adjustment already applied: acknowledge it.
+            // (product is already verified to belong to this company above).
+            if (request.ClientMovementId is Guid replayMovementId
+                && await db.StockMovements.AnyAsync(m => m.Id == replayMovementId && m.ProductId == productId))
+            {
+                var current = await db.Batches.FirstOrDefaultAsync(b => b.Id == request.BatchId && b.ProductId == productId);
+                if (current is not null)
+                    return Results.Ok(new BatchResponse(current.Id, current.LocationId, current.BatchNumber, current.ExpiryDate,
+                        current.QuantityInBaseUnits, current.PurchasePricePerBaseUnit, current.ReceivedAt));
+            }
+
             await using var transaction = await db.Database.BeginTransactionAsync();
 
             var batch = await db.Batches
@@ -187,6 +216,7 @@ public static class StockMovementEndpoints
             batch.QuantityInBaseUnits = newBalance;
             db.StockMovements.Add(new StockMovement
             {
+                Id = request.ClientMovementId ?? Guid.NewGuid(),
                 ProductId = productId,
                 BatchId = batch.Id,
                 LocationId = batch.LocationId,
@@ -285,10 +315,21 @@ public static class StockMovementEndpoints
                 return Results.BadRequest(new { message = "Un ou plusieurs lots sont introuvables." });
             }
 
+            // Offline-outbox replay: lines whose movement already exists were applied.
+            var clientIds = lines.Where(l => l.ClientMovementId is not null).Select(l => l.ClientMovementId!.Value).ToList();
+            var alreadyApplied = clientIds.Count == 0
+                ? new HashSet<Guid>()
+                : (await db.StockMovements.Where(m => clientIds.Contains(m.Id) && batchIds.Contains(m.BatchId!.Value)).Select(m => m.Id).ToListAsync()).ToHashSet();
+
             var results = new List<StockCountResultLine>();
             foreach (var line in lines)
             {
                 var batch = byId[line.BatchId];
+                if (line.ClientMovementId is Guid applied && alreadyApplied.Contains(applied))
+                {
+                    results.Add(new StockCountResultLine(batch.Id, batch.QuantityInBaseUnits, batch.QuantityInBaseUnits, 0));
+                    continue;
+                }
                 var before = batch.QuantityInBaseUnits;
                 var delta = line.CountedQuantityInBaseUnits - before;
                 results.Add(new StockCountResultLine(batch.Id, before, line.CountedQuantityInBaseUnits, delta));
@@ -296,6 +337,7 @@ public static class StockMovementEndpoints
                 batch.QuantityInBaseUnits = line.CountedQuantityInBaseUnits;
                 db.StockMovements.Add(new StockMovement
                 {
+                    Id = line.ClientMovementId ?? Guid.NewGuid(),
                     ProductId = batch.ProductId,
                     BatchId = batch.Id,
                     LocationId = batch.LocationId,

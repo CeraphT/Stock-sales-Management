@@ -9,12 +9,16 @@ import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { suppliersApi } from '@/lib/api/endpoints/suppliers';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { afterOfflineWrite } from '@/lib/sync/afterOfflineWrite';
+import { offlineWrites } from '@stockflow/core/local/offlineWrites';
 import { useAuthStore } from '@/lib/auth/store';
 import { showAlert } from '@/lib/ui/alertStore';
 
 export default function SupplierFormScreen() {
   const params = useLocalSearchParams<{ id?: string; name?: string; contactPhone?: string; contactEmail?: string }>();
   const companyId = useAuthStore((s) => s.companyId);
+  const { t } = useTranslation();
   useFeatureGuard(useAuthStore((s) => s.user?.restrictPurchasing));
   const isEdit = !!params.id;
 
@@ -39,7 +43,9 @@ export default function SupplierFormScreen() {
       if (isEdit && params.id) {
         await suppliersApi.update(companyId, params.id, body);
       } else {
-        await suppliersApi.create(companyId, body);
+        // Creating is offline-capable (editing an existing supplier stays online).
+        await offlineWrites.createSupplier(companyId, body);
+        afterOfflineWrite({ queued: t('offline.queued'), rejected: t('offline.rejected') });
       }
       router.back();
     } catch (err) {

@@ -7,21 +7,31 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
-import { ApiError } from '@/lib/api/client';
+import { ApiError, NetworkError } from '@/lib/api/client';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { useAuthStore } from '@/lib/auth/store';
-import { syncNow } from '@/lib/sync/syncNow';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { afterOfflineWrite } from '@/lib/sync/afterOfflineWrite';
+import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
+import { offlineWrites } from '@stockflow/core/local/offlineWrites';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
 
 export default function StockCountScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   const locationId = useAuthStore((s) => s.locationId);
+  const { t } = useTranslation();
   const colors = useThemeColors();
 
   const { data: batches = [], refetch } = useQuery({
     queryKey: ['company-batches', companyId, locationId],
-    queryFn: () => productsApi.companyBatches(companyId!, locationId ?? undefined),
+    // Offline: the local mirror's batches (as of the last sync).
+    queryFn: () =>
+      productsApi
+        .companyBatches(companyId!, locationId ?? undefined)
+        .catch((err) =>
+          err instanceof NetworkError ? localMirrorQueries.listCompanyBatches(companyId!, locationId ?? undefined) : Promise.reject(err),
+        ),
     enabled: !!companyId,
   });
 
@@ -47,10 +57,12 @@ export default function StockCountScreen() {
     if (!companyId || variances.length === 0) return;
     setSubmitting(true);
     try {
-      const result = await productsApi.countStock(companyId, {
-        lines: variances.map((v) => ({ batchId: v.batchId, countedQuantityInBaseUnits: v.counted })),
-      });
-      await syncNow();
+      // Offline-capable: counted quantities applied locally at once, sent when online.
+      const result = await offlineWrites.countStock(
+        companyId,
+        variances.map((v) => ({ batchId: v.batchId, countedQuantityInBaseUnits: v.counted })),
+      );
+      afterOfflineWrite({ queued: t('offline.queued'), rejected: t('offline.rejected') });
       await refetch();
       setCounts({});
       const applied = result.filter((r) => r.delta !== 0).length;

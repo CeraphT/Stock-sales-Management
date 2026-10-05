@@ -9,7 +9,12 @@ import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { DateField } from '@/components/DateField';
 import { TextField } from '@/components/TextField';
+import { NetworkError } from '@/lib/api/client';
 import { productsApi } from '@/lib/api/endpoints/products';
+import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
+import { offlineWrites } from '@stockflow/core/local/offlineWrites';
+import { afterOfflineWrite } from '@/lib/sync/afterOfflineWrite';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useAuthStore } from '@/lib/auth/store';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { syncNow } from '@/lib/sync/syncNow';
@@ -24,10 +29,15 @@ export default function StockReceiveScreen() {
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
   const caps = useCapabilities();
+  const { t } = useTranslation();
 
+  // Offline: the product (unit, measure, serial flag) comes from the local mirror.
   const { data: product } = useQuery({
     queryKey: ['product', companyId, productId],
-    queryFn: () => productsApi.get(companyId!, productId!),
+    queryFn: () =>
+      productsApi
+        .get(companyId!, productId!)
+        .catch((err) => (err instanceof NetworkError ? localMirrorQueries.getProductDetail(companyId!, productId!) : Promise.reject(err))),
     enabled: !!companyId && !!productId,
   });
 
@@ -63,16 +73,23 @@ export default function StockReceiveScreen() {
 
     setSubmitting(true);
     try {
-      await productsApi.receiveStock(companyId, productId, {
+      const body = {
         locationId,
         batchNumber: batchNumber.trim(),
         expiryDate: expiryDate ? `${expiryDate}T00:00:00.000Z` : null,
         quantityInBaseUnits: baseUnits,
         // Cost entered per received unit (kg for measure); store per base unit.
         purchasePricePerBaseUnit: purchasePrice.trim() ? Number(purchasePrice) / (measure ? measureUpm : 1) : null,
-        serialNumbers: serialTracked ? serials : undefined,
-      });
-      await syncNow();
+      };
+      if (serialTracked) {
+        // Serials must be checked for duplicates server-side — online only.
+        await productsApi.receiveStock(companyId, productId, { ...body, serialNumbers: serials });
+        await syncNow();
+      } else {
+        // Offline-capable: applied to the local stock at once, sent when online.
+        await offlineWrites.receiveStock(companyId, productId, body);
+        afterOfflineWrite({ queued: t('offline.queued'), rejected: t('offline.rejected') });
+      }
       router.back();
     } catch (err) {
       showAlert('Could not receive stock', err instanceof Error ? err.message : 'Something went wrong.');

@@ -20,6 +20,7 @@ const TABLES = [
   schema.locations,
   schema.companies,
   schema.syncState,
+  schema.pendingOps,
 ];
 
 /** Wipe every local table — the offline mirror is a per-company cache, not a

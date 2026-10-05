@@ -1,7 +1,7 @@
 import { and, asc, eq, like, or } from "drizzle-orm";
 
 import { ApiError } from "../api/client";
-import type { BatchResponse, CategoryResponse, ProductDetailResponse, SupplierResponse } from "../api/types/catalog";
+import type { BatchResponse, CategoryResponse, CompanyBatchItem, ProductDetailResponse, SupplierResponse } from "../api/types/catalog";
 import type { CustomerResponse, GiftCardResponse } from "../api/types/customers";
 import { db } from "../db/client";
 import {
@@ -123,6 +123,26 @@ export const localMirrorQueries = {
       isAssembly: false,
       manufacturer: null,
     };
+  },
+
+  /** Stock-count list: batches still holding stock, active products, optionally
+   * one location — same rule and order as GET /stock/batches. */
+  async listCompanyBatches(companyId: string, locationId?: string): Promise<CompanyBatchItem[]> {
+    const activeProducts = await db.query.products.findMany({ where: and(eq(products.companyId, companyId), eq(products.isActive, true)) });
+    const nameById = new Map(activeProducts.map((p) => [p.id, p.name]));
+    const rows = await db.query.batches.findMany();
+    return rows
+      .filter((b) => nameById.has(b.productId) && b.quantityInBaseUnits > 0 && (!locationId || b.locationId === locationId))
+      .map((b) => ({
+        batchId: b.id,
+        productId: b.productId,
+        productName: nameById.get(b.productId)!,
+        batchNumber: b.batchNumber,
+        locationId: b.locationId,
+        quantityInBaseUnits: b.quantityInBaseUnits,
+        expiryDate: b.expiryDate,
+      }))
+      .sort((a, b) => a.productName.localeCompare(b.productName) || (a.expiryDate ?? "9999").localeCompare(b.expiryDate ?? "9999"));
   },
 
   async listProductBatches(companyId: string, productId: string): Promise<BatchResponse[]> {

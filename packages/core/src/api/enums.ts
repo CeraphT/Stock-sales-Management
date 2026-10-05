@@ -57,6 +57,10 @@ export enum StockMovementType {
   SupplierReturn = 4,
   Transfer = 5,
   ServiceConsumption = 6,
+  // Must mirror the C# declaration order (enums travel as integers).
+  AssemblyConsumption = 7,
+  AssemblyOutput = 8,
+  StockCount = 9,
 }
 
 export enum PurchaseOrderStatus {

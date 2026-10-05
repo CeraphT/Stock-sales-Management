@@ -173,6 +173,8 @@ export interface ProductCatalogFilter {
 
 export interface CategoryRequest {
   name: string;
+  /** Client-generated id (offline outbox) — the server acknowledges a replay. */
+  id?: string;
 }
 
 export interface CategoryResponse {
@@ -184,6 +186,8 @@ export interface SupplierRequest {
   name: string;
   contactPhone: string | null;
   contactEmail: string | null;
+  /** Client-generated id (offline outbox, create only) — replay-safe. */
+  id?: string;
 }
 
 export interface SupplierResponse {
@@ -201,12 +205,17 @@ export interface ReceiveStockRequest {
   purchasePricePerBaseUnit: number | null;
   /** For serial-tracked products: one serial/IMEI per unit received. */
   serialNumbers?: string[];
+  /** Client-generated ids (offline outbox): a replay is acknowledged, not re-applied. */
+  clientBatchId?: string;
+  clientMovementId?: string;
 }
 
 export interface AdjustStockRequest {
   batchId: string;
   deltaInBaseUnits: number;
   reason: string;
+  /** Client-generated (offline outbox) — a replay is a no-op. */
+  clientMovementId?: string;
 }
 
 export interface SupplierReturnRequest {
@@ -218,6 +227,8 @@ export interface SupplierReturnRequest {
 export interface StockCountLine {
   batchId: string;
   countedQuantityInBaseUnits: number;
+  /** Client-generated (offline outbox) — an already-applied line is skipped. */
+  clientMovementId?: string;
 }
 
 export interface StockCountRequest {

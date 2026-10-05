@@ -223,6 +223,30 @@ export const paymentSplits = sqliteTable(
   (table) => [index("payment_splits_sale_idx").on(table.saleId)],
 );
 
+// Offline outbox for non-sale writes (stock receive/adjust/count, create
+// customer/supplier/category). Each row is applied to the local mirror at once
+// and replayed against the normal API endpoint, oldest first, at the start of
+// every sync push (before sales, which may depend on it). Ids are generated
+// here so a replay is idempotent server-side. Local-only, never pulled.
+export const pendingOps = sqliteTable(
+  "pending_ops",
+  {
+    id: text("id").primaryKey(),
+    companyId: text("company_id").notNull(),
+    // e.g. "stock.receive" | "stock.adjust" | "stock.count" | "customer.create" | …
+    kind: text("kind").notNull(),
+    // JSON: { path params + the exact request body to replay }
+    payload: text("payload").notNull(),
+    createdAt: text("created_at").notNull(),
+    attempts: integer("attempts").notNull().default(0),
+    // Set when the server rejected it for good (validation/conflict): kept for
+    // the user to see, no longer replayed; its local effect has been reverted.
+    failedAt: text("failed_at"),
+    lastError: text("last_error"),
+  },
+  (table) => [index("pending_ops_company_idx").on(table.companyId, table.createdAt)],
+);
+
 // Bookkeeping for incremental sync — tracks the server's `ServerTimestamp`
 // from the last successful pull so the next pull can send `since` and only
 // fetch what changed.

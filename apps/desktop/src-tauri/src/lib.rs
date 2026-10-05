@@ -124,6 +124,12 @@ pub fn run() {
             sql: include_str!("../../src/lib/db/migrations/004_customer_b2b_sync.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 5,
+            description: "offline outbox for non-sale writes",
+            sql: include_str!("../../src/lib/db/migrations/005_offline_outbox.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

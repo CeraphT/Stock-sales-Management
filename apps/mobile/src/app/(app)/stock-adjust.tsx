@@ -8,14 +8,16 @@ import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { ApiError } from '@/lib/api/client';
-import { productsApi } from '@/lib/api/endpoints/products';
 import { useAuthStore } from '@/lib/auth/store';
-import { syncNow } from '@/lib/sync/syncNow';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { afterOfflineWrite } from '@/lib/sync/afterOfflineWrite';
+import { offlineWrites } from '@stockflow/core/local/offlineWrites';
 import { showAlert } from '@/lib/ui/alertStore';
 
 export default function StockAdjustScreen() {
   const { productId, batchId } = useLocalSearchParams<{ productId: string; batchId: string }>();
   const companyId = useAuthStore((s) => s.companyId);
+  const { t } = useTranslation();
 
   const [delta, setDelta] = useState('');
   const [reason, setReason] = useState('');
@@ -35,12 +37,13 @@ export default function StockAdjustScreen() {
 
     setSubmitting(true);
     try {
-      await productsApi.adjustStock(companyId, productId, {
+      // Offline-capable: applied to the local batch at once, sent when online.
+      await offlineWrites.adjustStock(companyId, productId, {
         batchId,
         deltaInBaseUnits: deltaNumber,
         reason: reason.trim(),
       });
-      await syncNow();
+      afterOfflineWrite({ queued: t('offline.queued'), rejected: t('offline.rejected') });
       router.back();
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Something went wrong.';

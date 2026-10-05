@@ -8,12 +8,15 @@ import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
-import { customersApi } from '@/lib/api/endpoints/customers';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { afterOfflineWrite } from '@/lib/sync/afterOfflineWrite';
+import { offlineWrites } from '@stockflow/core/local/offlineWrites';
 import { useAuthStore } from '@/lib/auth/store';
 import { showAlert } from '@/lib/ui/alertStore';
 
 export default function CustomerFormScreen() {
   const companyId = useAuthStore((s) => s.companyId);
+  const { t } = useTranslation();
   useFeatureGuard(useAuthStore((s) => s.user?.restrictCustomers));
 
   const [name, setName] = useState('');
@@ -30,12 +33,15 @@ export default function CustomerFormScreen() {
     }
     setSubmitting(true);
     try {
-      await customersApi.create(companyId, {
+      // Offline-capable: the customer exists locally at once (pickable at the
+      // POS, credit sales included) and is created on the server when online.
+      await offlineWrites.createCustomer(companyId, {
         name: name.trim(),
         phone: phone.trim() || null,
         isBusiness,
         taxId: isBusiness ? taxId.trim() || null : null,
       });
+      afterOfflineWrite({ queued: t('offline.queued'), rejected: t('offline.rejected') });
       router.back();
     } catch (err) {
       showAlert('Could not create customer', err instanceof Error ? err.message : 'Something went wrong.');

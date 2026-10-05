@@ -14,6 +14,9 @@ import { categoriesApi } from '@/lib/api/endpoints/categories';
 import type { CategoryResponse } from '@/lib/api/types/catalog';
 import { useAuthStore } from '@/lib/auth/store';
 import { syncNow } from '@/lib/sync/syncNow';
+import { afterOfflineWrite } from '@/lib/sync/afterOfflineWrite';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { offlineWrites } from '@stockflow/core/local/offlineWrites';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
 
@@ -21,6 +24,7 @@ export default function CategoriesScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   useFeatureGuard(useAuthStore((s) => s.user?.restrictCatalog));
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
@@ -42,10 +46,11 @@ export default function CategoriesScreen() {
     if (!companyId || !newName.trim()) return;
     setCreating(true);
     try {
-      await categoriesApi.create(companyId, { name: newName.trim() });
+      // Offline-capable: the category exists locally at once, sent when online.
+      await offlineWrites.createCategory(companyId, { name: newName.trim() });
       setNewName('');
       await refresh();
-      await syncNow();
+      afterOfflineWrite({ queued: t('offline.queued'), rejected: t('offline.rejected') });
     } catch (err) {
       showAlert('Could not create category', err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
