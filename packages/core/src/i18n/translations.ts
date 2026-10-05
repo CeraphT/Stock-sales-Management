@@ -97,6 +97,8 @@ export const translations = {
     "dashboard.giftCardValue": "Gift cards",
     "dashboard.quickAccess": "More features",
     "dashboard.hello": "Hello",
+    "dashboard.noCompanyTitle": "No business linked to this account",
+    "dashboard.noCompanyMsg": "This super-admin account isn't attached to a business, so there is nothing to show here yet. Manage businesses from the web console, or sign in with a business account.",
     "dashboard.reconciliationTitle": "Needs reconciliation",
     "dashboard.negativeBatchesMsg":
       "{count} batch(es) went negative — offline sales likely oversold the same stock on two devices.",
@@ -295,6 +297,8 @@ export const translations = {
     "dashboard.giftCardValue": "Cartes cadeaux",
     "dashboard.quickAccess": "Autres fonctionnalités",
     "dashboard.hello": "Bonjour",
+    "dashboard.noCompanyTitle": "Aucune entreprise liée à ce compte",
+    "dashboard.noCompanyMsg": "Ce compte super-admin n'est rattaché à aucune entreprise : il n'y a rien à afficher ici pour l'instant. Gérez les entreprises depuis la console web, ou connectez-vous avec un compte d'entreprise.",
     "dashboard.reconciliationTitle": "Réconciliation nécessaire",
     "dashboard.negativeBatchesMsg":
       "{count} lot(s) sont devenus négatifs — des ventes hors ligne ont probablement vendu le même stock sur deux appareils.",

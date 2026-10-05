@@ -102,7 +102,13 @@ export default function DashboardScreen() {
   const isAdmin = user?.role === UserRole.CompanyAdmin || user?.role === UserRole.SuperAdmin;
 
   const refresh = useCallback(async () => {
-    if (!companyId || !locationId) return;
+    // No company (a SuperAdmin account) or no location yet: nothing to load, but
+    // still clear the skeleton — returning before the try/finally left it
+    // spinning forever.
+    if (!companyId || !locationId) {
+      setInitialLoading(false);
+      return;
+    }
     try {
       const [localResult, , summaryResult] = await Promise.allSettled([
         getDashboardStats(companyId, locationId),
@@ -210,7 +216,17 @@ export default function DashboardScreen() {
           </Pressable>
         ) : null}
 
-        {initialLoading ? (
+        {!companyId ? (
+          // SuperAdmin accounts aren't attached to a business, and mobile has no
+          // company picker yet (M8) — say so instead of showing empty stats.
+          <View className="flex-row items-start gap-3 rounded-card border border-border bg-surface p-5">
+            <Ionicons name="business-outline" size={22} color={colors.primary} />
+            <View className="flex-1">
+              <Text className="text-base font-bold text-text-primary">{t('dashboard.noCompanyTitle')}</Text>
+              <Text className="mt-1 text-sm text-text-secondary">{t('dashboard.noCompanyMsg')}</Text>
+            </View>
+          </View>
+        ) : initialLoading ? (
           <DashboardSkeleton />
         ) : (
           <>
