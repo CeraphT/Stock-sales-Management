@@ -9,7 +9,7 @@ import { Button } from "@/components/Button";
 import { DateRange } from "@/components/DateRange";
 import { StatCard } from "@/components/StatCard";
 import { useT } from "@/lib/i18n";
-import { printColoredReport } from "@/lib/reportPdf";
+import { exportReport, type ReportFormat, type ReportOptions } from "@/lib/reportExcel";
 import { useAuthStore } from "@/lib/stores";
 import { useCompany, useCurrency } from "@/lib/useCompany";
 
@@ -31,6 +31,10 @@ export function TaxDeclaration() {
   const isFlatRegime = company?.taxRegime === 1;
   const flatPeriodLabel = [t("month"), t("quarter"), t("year")][company?.flatTaxPeriod ?? 1] ?? t("quarter");
   const [journalBusy, setJournalBusy] = useState(false);
+  // Every report button below exports in the chosen format.
+  const [format, setFormat] = useState<ReportFormat>("pdf");
+  const emit = (o: ReportOptions) =>
+    exportReport(o, format).catch(() => toast(t("Could not export the report."), "error"));
 
   async function salesJournalPdf() {
     if (journalBusy) return;
@@ -44,7 +48,7 @@ export function TaxDeclaration() {
       const tHt = rows.reduce((s, r) => s + r.ht, 0);
       const tVat = rows.reduce((s, r) => s + r.vat, 0);
       const tTtc = rows.reduce((s, r) => s + r.ttc, 0);
-      printColoredReport({
+      await emit({
         companyName: company?.name ?? "",
         logoUrl: company?.logoUrl,
         taxId: company?.taxId,
@@ -82,9 +86,9 @@ export function TaxDeclaration() {
     }
   }
 
-  function exportPdf() {
+  async function exportPdf() {
     if (!d) return;
-    printColoredReport({
+    await emit({
       companyName: company?.name ?? "",
       logoUrl: company?.logoUrl,
         taxId: company?.taxId,
@@ -126,7 +130,7 @@ export function TaxDeclaration() {
       const tHt = rows.reduce((s, r) => s + r.ht, 0);
       const tVat = rows.reduce((s, r) => s + r.vat, 0);
       const tTtc = rows.reduce((s, r) => s + r.ttc, 0);
-      printColoredReport({
+      await emit({
         ...docBase(),
         title: t("Purchases journal"),
         meta: [{ label: t("Receipts"), value: String(rows.length) }, { label: t("VAT deductible"), value: fmt(tVat) }],
@@ -147,7 +151,7 @@ export function TaxDeclaration() {
     try {
       const rows = await reportsApi.cashBook(companyId, { from: from || undefined, to: to || undefined });
       if (rows.length === 0) return toast(t("No shifts in this period."), "info");
-      printColoredReport({
+      await emit({
         ...docBase(),
         title: t("Cash book"),
         meta: [{ label: t("Shifts"), value: String(rows.length) }],
@@ -166,7 +170,7 @@ export function TaxDeclaration() {
     setJournalBusy(true);
     try {
       const s = await reportsApi.salesSummary(companyId, { from: from || undefined, to: to || undefined });
-      printColoredReport({
+      await emit({
         ...docBase(),
         title: t("Income statement"),
         meta: [{ label: t("Revenue"), value: fmt(s.totalRevenue) }, { label: t("Gross margin"), value: fmt(s.totalProfit) }],
@@ -189,7 +193,19 @@ export function TaxDeclaration() {
     <div className="mx-auto max-w-4xl space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-text-primary">🧾 {t("VAT declaration (TVA)")}</h2>
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex rounded-full border border-border bg-surface p-0.5 text-xs font-semibold" role="group" aria-label={t("Export format")}>
+            {(["pdf", "xlsx"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFormat(f)}
+                aria-pressed={format === f}
+                className={`rounded-full px-3 py-1.5 transition ${format === f ? "bg-primary text-white" : "text-text-secondary hover:text-text-primary"}`}
+              >
+                {f === "pdf" ? "PDF" : "Excel"}
+              </button>
+            ))}
+          </div>
           <Button variant="secondary" onClick={salesJournalPdf} loading={journalBusy}>📋 {t("Sales journal")}</Button>
           <Button variant="secondary" onClick={purchasesJournalPdf} loading={journalBusy}>📥 {t("Purchases journal")}</Button>
           <Button variant="secondary" onClick={cashBookPdf} loading={journalBusy}>💵 {t("Cash book")}</Button>
