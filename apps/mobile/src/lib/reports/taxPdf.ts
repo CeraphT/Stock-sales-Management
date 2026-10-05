@@ -28,7 +28,7 @@ export interface ColoredReport {
 }
 
 function buildHtml(o: ColoredReport): string {
-  const accent = '#4F46E5';
+  const accent = '#0F766E';
   const th = o.columns.map((c) => `<th style="text-align:${c.align ?? 'left'}">${esc(c.header)}</th>`).join('');
   const body = o.rows
     .map(
@@ -48,7 +48,7 @@ function buildHtml(o: ColoredReport): string {
     .band{background:${accent};color:#fff;border-radius:12px;padding:16px 18px;margin-bottom:14px}
     .biz{font-size:12px;opacity:.85}.ttl{font-size:20px;font-weight:800;margin-top:2px}.sub{font-size:12px;opacity:.9;margin-top:3px}
     .meta{margin:0 2px 14px;display:flex;flex-wrap:wrap;gap:8px}
-    .chip{background:#EEF0FE;color:#3730A3;border-radius:999px;padding:4px 10px;font-size:11px}
+    .chip{background:#CCFBF1;color:#115E59;border-radius:999px;padding:4px 10px;font-size:11px}
     table{width:100%;border-collapse:collapse;font-size:12px}
     thead th{background:${accent};color:#fff;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.4px}
     td{padding:7px 10px;border-bottom:1px solid #E3E7E5}

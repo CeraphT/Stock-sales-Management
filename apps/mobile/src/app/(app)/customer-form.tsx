@@ -64,7 +64,7 @@ export default function CustomerFormScreen() {
             <Text className="text-sm font-semibold text-text-primary">Business customer</Text>
             <Text className="text-xs text-text-secondary">Enables a compliant invoice with the buyer's Tax ID (VAT added on top).</Text>
           </View>
-          <Switch value={isBusiness} onValueChange={setIsBusiness} trackColor={{ true: '#4F46E5' }} />
+          <Switch value={isBusiness} onValueChange={setIsBusiness} trackColor={{ true: '#0F766E' }} />
         </View>
         {isBusiness ? <TextField label="Tax ID / NIU" value={taxId} onChangeText={setTaxId} /> : null}
 

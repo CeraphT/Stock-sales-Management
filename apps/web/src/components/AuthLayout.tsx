@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { BrandLogo } from "@/components/BrandLogo";
 import { useLanguageStore } from "@/lib/stores";
 
 /**
@@ -23,12 +24,7 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
 
       <div className="w-full max-w-md">
         <div className="mb-5 flex items-center gap-3">
-          <div
-            className="grid h-12 w-12 place-items-center rounded-2xl text-2xl font-black text-white shadow-lg"
-            style={{ backgroundColor: "rgb(99 102 241)", boxShadow: "0 8px 24px rgb(99 102 241 / 0.45)" }}
-          >
-            ◆
-          </div>
+          <BrandLogo size={48} />
           <div>
             <div className="text-xl font-extrabold tracking-tight text-primary">StockFlow</div>
             <div className="text-xs text-text-secondary">Business management</div>

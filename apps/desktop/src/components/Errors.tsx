@@ -111,7 +111,7 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, { error
           <div style={{ fontSize: 13, opacity: 0.75, marginTop: 4, maxWidth: 420 }}>Your data is safe. Please reload.</div>
           <button
             onClick={reload}
-            style={{ marginTop: 16, padding: "8px 18px", borderRadius: 10, border: "none", background: "#6366f1", color: "white", fontWeight: 600, cursor: "pointer" }}
+            style={{ marginTop: 16, padding: "8px 18px", borderRadius: 10, border: "none", background: "#0F766E", color: "white", fontWeight: 600, cursor: "pointer" }}
           >
             Reload app
           </button>

@@ -27,7 +27,7 @@ const COL_COUNT = TEMPLATE_COLUMNS.length;
  * are forced to text so long codes don't turn into scientific notation. */
 export function buildTemplateWorkbook(): string {
   const C = {
-    primary: "#4F46E5",
+    primary: "#0F766E",
     background: "#F5F8F7",
     surface: "#FFFFFF",
     border: "#E3E7E5",

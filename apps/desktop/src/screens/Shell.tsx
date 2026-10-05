@@ -174,12 +174,12 @@ export function Shell() {
               src={company.logoUrl}
               alt={companyName}
               className="h-10 w-10 shrink-0 rounded-2xl object-cover shadow-lg"
-              style={{ boxShadow: "0 4px 14px rgb(99 102 241 / 0.35)" }}
+              style={{ boxShadow: "0 4px 14px rgb(var(--color-primary) / 0.35)" }}
             />
           ) : (
             <div
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-lg font-extrabold text-white shadow-lg"
-              style={{ backgroundColor: "rgb(99 102 241)", boxShadow: "0 4px 14px rgb(99 102 241 / 0.4)" }}
+              style={{ backgroundColor: "rgb(var(--color-primary))", boxShadow: "0 4px 14px rgb(var(--color-primary) / 0.4)" }}
             >
               {initial}
             </div>
@@ -200,7 +200,7 @@ export function Shell() {
                   }`
                 }
                 style={({ isActive }) =>
-                  isActive ? { backgroundColor: "rgb(99 102 241)", boxShadow: "0 2px 14px rgb(99 102 241 / 0.4)" } : undefined
+                  isActive ? { backgroundColor: "rgb(var(--color-primary))", boxShadow: "0 2px 14px rgb(var(--color-primary) / 0.4)" } : undefined
                 }
               >
                 <span className="w-5 text-center text-base">{item.icon}</span>

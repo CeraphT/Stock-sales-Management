@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BrandLogo } from '@/components/BrandLogo';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -24,11 +25,7 @@ export default function OnboardingScreen() {
           <View className="w-full self-center" style={{ maxWidth: 420 }}>
             {/* Brand */}
             <View className="mb-5 flex-row items-center gap-3">
-              <View
-                className="h-12 w-12 items-center justify-center rounded-2xl"
-                style={{ backgroundColor: '#6366F1', shadowColor: '#6366F1', shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 6 }}>
-                <Text className="text-2xl font-black text-white">◆</Text>
-              </View>
+              <BrandLogo size={48} />
               <View>
                 <Text className="text-xl font-extrabold tracking-tight text-primary">StockFlow</Text>
                 <Text className="text-xs text-text-secondary">Business management</Text>

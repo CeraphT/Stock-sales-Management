@@ -10,7 +10,7 @@ export interface ReportColumn {
 /**
  * Renders a colored, print-ready PDF of a tabular report through a hidden
  * iframe + the OS print dialog (which doubles as "Save as PDF" for sharing).
- * The palette matches the app (indigo primary). Used for the filtered-sales
+ * The palette matches the app (teal primary). Used for the filtered-sales
  * export and the purchase-order document — anything that's "header + table +
  * optional totals".
  */
@@ -27,7 +27,7 @@ export function printColoredReport(opts: {
   contact?: string | null;
   taxId?: string | null;
 }): void {
-  const accent = opts.accent ?? "#4F46E5";
+  const accent = opts.accent ?? "#0F766E";
   const th = opts.columns
     .map((c) => `<th style="text-align:${c.align ?? "left"}">${esc(c.header)}</th>`)
     .join("");
@@ -57,7 +57,7 @@ export function printColoredReport(opts: {
     .band .ttl{font-size:20px;font-weight:800;margin-top:2px}
     .band .sub{font-size:12px;opacity:.9;margin-top:3px}
     .meta{margin:0 2px 14px;display:flex;flex-wrap:wrap;gap:8px}
-    .chip{background:#EEF0FE;color:#3730A3;border-radius:999px;padding:4px 10px;font-size:11px}
+    .chip{background:#CCFBF1;color:#115E59;border-radius:999px;padding:4px 10px;font-size:11px}
     table{width:100%;border-collapse:collapse;font-size:12px}
     thead th{background:var(--accent);color:#fff;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.4px}
     td{padding:7px 10px;border-bottom:1px solid #E3E7E5}

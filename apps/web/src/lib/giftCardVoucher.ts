@@ -14,9 +14,9 @@ export function printGiftCardVoucher(opts: { companyName: string; code: string; 
   const { companyName, code, value, currency, customerName } = opts;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>Gift card ${esc(code)}</title><style>
     body{font-family:system-ui,Segoe UI,Arial,sans-serif;color:#111;margin:0;padding:24px;display:flex;justify-content:center}
-    .card{width:320px;border:2px dashed #4F46E5;border-radius:16px;padding:22px;text-align:center}
+    .card{width:320px;border:2px dashed #0F766E;border-radius:16px;padding:22px;text-align:center}
     .biz{font-size:13px;color:#666;margin-bottom:6px}
-    .title{font-size:16px;font-weight:800;color:#4F46E5;margin-bottom:14px}
+    .title{font-size:16px;font-weight:800;color:#0F766E;margin-bottom:14px}
     .val{font-size:30px;font-weight:800;margin:6px 0}
     .code{font-family:ui-monospace,Consolas,monospace;font-size:22px;font-weight:800;letter-spacing:2px;background:#F5F8F7;border-radius:10px;padding:10px;margin:14px 0}
     .note{font-size:11px;color:#666;margin-top:10px}

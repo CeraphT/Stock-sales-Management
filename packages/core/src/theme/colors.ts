@@ -7,8 +7,8 @@
  * (`useThemeColors()`) is platform-specific (NativeWind's `colorScheme` on
  * mobile, a CSS-class/media-query read on desktop) and lives in each app. */
 export const LIGHT = {
-  primary: "#4F46E5",
-  primaryDark: "#818CF8",
+  primary: "#0F766E",
+  primaryDark: "#2DD4BF",
   icon: "#374151",
   iconMuted: "#9CA3AF",
   placeholder: "#9CA3AF",
@@ -28,8 +28,8 @@ export const LIGHT = {
 };
 
 export const DARK = {
-  primary: "#818CF8",
-  primaryDark: "#4F46E5",
+  primary: "#14B8A6",
+  primaryDark: "#0F766E",
   icon: "#D1D5DB",
   iconMuted: "#6B7280",
   placeholder: "#6B7280",

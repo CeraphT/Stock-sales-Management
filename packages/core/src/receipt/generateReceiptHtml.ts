@@ -122,7 +122,7 @@ export function generateReceiptHtml(data: ReceiptData): string {
   .company-name {
     font-size: 22px;
     font-weight: 700;
-    color: #4F46E5;
+    color: #0F766E;
     margin: 0;
   }
   .location-name {
@@ -173,7 +173,7 @@ export function generateReceiptHtml(data: ReceiptData): string {
     margin-top: 16px;
   }
   .total-label { font-size: 14px; color: #6B7280; }
-  .total-value { font-size: 24px; font-weight: 700; color: #4F46E5; }
+  .total-value { font-size: 24px; font-weight: 700; color: #0F766E; }
   .payment-row {
     display: flex;
     justify-content: space-between;

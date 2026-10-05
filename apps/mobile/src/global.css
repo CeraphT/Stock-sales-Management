@@ -11,8 +11,8 @@
   --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
   --font-serif: Georgia, 'Times New Roman', serif;
 
-  --color-primary: 79 70 229;
-  --color-primary-dark: 129 140 248;
+  --color-primary: 15 118 110;
+  --color-primary-dark: 45 212 191;
   --color-background: 245 248 247;
   --color-surface: 255 255 255;
   --color-text-primary: 31 41 55;
@@ -31,8 +31,8 @@
 }
 
 .dark {
-  --color-primary: 129 140 248;
-  --color-primary-dark: 79 70 229;
+  --color-primary: 20 184 166;
+  --color-primary-dark: 15 118 110;
   /* Deep-slate dark ramp — kept in lockstep with desktop (apps/desktop/src/index.css). */
   --color-background: 15 20 32;
   --color-surface: 30 41 59;

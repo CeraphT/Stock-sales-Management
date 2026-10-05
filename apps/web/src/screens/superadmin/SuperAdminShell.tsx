@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { BrandLogo } from "@/components/BrandLogo";
 
 import { IconButton } from "@/components/IconButton";
 import { ScreenBackground } from "@/components/ScreenBackground";
@@ -38,12 +39,7 @@ export function SuperAdminShell() {
       <ScreenBackground />
       <aside className="sidebar flex h-full w-64 shrink-0 flex-col">
         <div className="flex items-center gap-2.5 px-4 py-5">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-2xl text-lg font-extrabold text-white shadow-lg"
-            style={{ backgroundColor: "rgb(99 102 241)", boxShadow: "0 4px 14px rgb(99 102 241 / 0.4)" }}
-          >
-            S
-          </div>
+          <BrandLogo size={40} />
           <div className="leading-tight">
             <div className="text-base font-bold text-text-primary">StockFlow</div>
             <div className="text-[11px] font-semibold uppercase tracking-wider text-primary">{t("Super Admin")}</div>
@@ -62,7 +58,7 @@ export function SuperAdminShell() {
                 }`
               }
               style={({ isActive }) =>
-                isActive ? { backgroundColor: "rgb(99 102 241)", boxShadow: "0 2px 14px rgb(99 102 241 / 0.4)" } : undefined
+                isActive ? { backgroundColor: "rgb(var(--color-primary))", boxShadow: "0 2px 14px rgb(var(--color-primary) / 0.4)" } : undefined
               }
             >
               <span className="w-5 text-center text-base">{item.icon}</span>

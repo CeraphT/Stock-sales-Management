@@ -71,10 +71,10 @@ export function generateReportHtml(data: ReportData): string {
     justify-content: space-between;
     align-items: flex-start;
     padding-bottom: 16px;
-    border-bottom: 2px solid #4F46E5;
+    border-bottom: 2px solid #0F766E;
     margin-bottom: 20px;
   }
-  .company-name { font-size: 22px; font-weight: 700; color: #4F46E5; margin: 0; }
+  .company-name { font-size: 22px; font-weight: 700; color: #0F766E; margin: 0; }
   .report-title { font-size: 13px; color: #6B7280; margin: 4px 0 0; }
   .meta { text-align: right; font-size: 11px; color: #6B7280; }
   .meta strong { color: #1F2937; }
@@ -91,7 +91,7 @@ export function generateReportHtml(data: ReportData): string {
   }
   .summary-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #6B7280; margin: 0 0 4px; }
   .summary-value { font-size: 17px; font-weight: 700; color: #1F2937; margin: 0; }
-  .summary-value.accent { color: #4F46E5; }
+  .summary-value.accent { color: #0F766E; }
   section { margin-bottom: 22px; }
   h2 {
     font-size: 13px;
@@ -120,9 +120,9 @@ export function generateReportHtml(data: ReportData): string {
     padding: 8px;
     font-weight: 700;
     color: #1F2937;
-    border-top: 2px solid #4F46E5;
+    border-top: 2px solid #0F766E;
   }
-  tfoot td.accent { color: #4F46E5; }
+  tfoot td.accent { color: #0F766E; }
   .empty { font-size: 12px; color: #9CA3AF; padding: 10px 0; }
   .footer {
     margin-top: 28px;

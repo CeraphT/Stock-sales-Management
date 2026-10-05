@@ -9,7 +9,7 @@ function escapeHtml(value: string): string {
 
 const STATUS_COLOR: Record<PurchaseOrderStatus, string> = {
   [PurchaseOrderStatus.Pending]: "#D97706",
-  [PurchaseOrderStatus.PartiallyReceived]: "#4F46E5",
+  [PurchaseOrderStatus.PartiallyReceived]: "#2563EB",
   [PurchaseOrderStatus.Received]: "#059669",
   [PurchaseOrderStatus.Cancelled]: "#6B7280",
 };
@@ -52,8 +52,8 @@ export function generatePurchaseOrderHtml(data: PurchaseOrderPdfData): string {
   @page { margin: 28px; }
   * { box-sizing: border-box; }
   body { font-family: -apple-system, Helvetica, Arial, sans-serif; color: #1F2937; background: #FFFFFF; margin: 0; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 16px; border-bottom: 2px solid #4F46E5; margin-bottom: 20px; }
-  .company-name { font-size: 22px; font-weight: 700; color: #4F46E5; margin: 0; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 16px; border-bottom: 2px solid #0F766E; margin-bottom: 20px; }
+  .company-name { font-size: 22px; font-weight: 700; color: #0F766E; margin: 0; }
   .doc-title { font-size: 13px; color: #6B7280; margin: 4px 0 0; }
   .meta { text-align: right; font-size: 11px; color: #6B7280; }
   .meta strong { color: #1F2937; }
@@ -77,7 +77,7 @@ export function generatePurchaseOrderHtml(data: PurchaseOrderPdfData): string {
   thead th.num, td.num { text-align: right; }
   tbody td { padding: 7px 8px; border-bottom: 1px solid #F3F4F6; }
   tbody tr:nth-child(even) { background: #FAFBFA; }
-  tfoot td { padding: 8px; font-weight: 700; color: #4F46E5; border-top: 2px solid #4F46E5; }
+  tfoot td { padding: 8px; font-weight: 700; color: #0F766E; border-top: 2px solid #0F766E; }
   .footer { margin-top: 28px; padding-top: 12px; border-top: 1px solid #E3E7E5; text-align: center; font-size: 10px; color: #9CA3AF; }
 </style>
 </head>

@@ -4,10 +4,10 @@
 
 /* Palette as space-separated RGB channels so Tailwind's opacity modifiers
    (bg-primary/10, bg-success/15, …) resolve to valid rgb(... / a). Mirrors
-   @stockflow/core/theme/colors.ts (Expo indigo palette). */
+   @stockflow/core/theme/colors.ts (StockFlow teal palette). */
 :root {
-  --color-primary: 79 70 229;
-  --color-primary-dark: 129 140 248;
+  --color-primary: 15 118 110;
+  --color-primary-dark: 45 212 191;
   --color-background: 245 248 247;
   --color-surface: 255 255 255;
   --color-border: 227 231 229;
@@ -22,8 +22,8 @@
 }
 
 .dark {
-  --color-primary: 129 140 248;
-  --color-primary-dark: 79 70 229;
+  --color-primary: 20 184 166;
+  --color-primary-dark: 15 118 110;
   --color-background: 15 20 32;
   --color-surface: 30 41 59;
   --color-border: 51 65 85;
@@ -52,15 +52,15 @@ body {
   text-rendering: optimizeLegibility;
   background:
     radial-gradient(1200px 640px at 6% -12%, rgb(var(--color-primary) / 0.14), transparent 60%),
-    radial-gradient(1000px 520px at 102% -4%, rgb(var(--color-accent-purple) / 0.12), transparent 55%),
-    radial-gradient(1000px 760px at 100% 112%, rgb(var(--color-accent-blue) / 0.1), transparent 55%),
+    radial-gradient(1000px 520px at 102% -4%, rgb(6 182 212 / 0.11), transparent 55%),
+    radial-gradient(1000px 760px at 100% 112%, rgb(var(--color-accent-amber) / 0.07), transparent 55%),
     rgb(var(--color-background));
   background-attachment: fixed;
 }
 
 /* Sidebar — white in light mode with a clear separation from the content, and
    a deep-slate gradient in dark mode. Nav item colors are theme tokens (set in
-   the Shell) so they adapt; only hover/active accents stay indigo. */
+   the Shell) so they adapt; only hover/active accents use the teal primary. */
 .sidebar {
   background: #ffffff;
   border-right: 1px solid rgb(var(--color-border));
