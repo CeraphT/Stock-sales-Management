@@ -15,6 +15,8 @@ import { useT } from "@/lib/i18n";
 import { NAV } from "@/lib/nav";
 import { logout } from "@/lib/session";
 import { setLastScreen } from "@/lib/lastScreen";
+import { confirmDialog } from "@/lib/confirm";
+import { pendingSupportUpdates } from "@stockflow/core/support/replyNotifications";
 import { useAutoBackup } from "@/lib/useAutoBackup";
 import { useHeartbeat } from "@/lib/useHeartbeat";
 import { useIdleLogout } from "@/lib/useIdleLogout";
@@ -27,6 +29,44 @@ import { useCompany } from "@/lib/useCompany";
 export function Shell() {
   const navigate = useNavigate();
   const location = useLocation();
+  // Support pop-up: support replied to / resolved one of this user's requests —
+  // shown once (on load, on window focus, every 3 min); "View" opens it.
+  const shownSupportUpdates = useRef(new Set<string>());
+  useEffect(() => {
+    let busy = false;
+    const check = async () => {
+      if (busy) return;
+      busy = true;
+      try {
+        const u = (await pendingSupportUpdates(shownSupportUpdates.current))[0];
+        if (u) {
+          const view = await confirmDialog({
+            title: u.kind === "resolved" ? t("✅ Request resolved") : t("💬 Support replied"),
+            message:
+              (u.kind === "resolved" ? t("Support resolved your request") : t("Support replied to your request")) +
+              ` « ${u.title} ».` +
+              (u.reply ? `
+
+« ${u.reply.length > 220 ? u.reply.slice(0, 220) + "…" : u.reply} »` : ""),
+            confirmLabel: t("View"),
+            cancelLabel: t("Later"),
+          });
+          if (view) navigate(`/support?ticket=${u.ticketId}`);
+        }
+      } finally {
+        busy = false;
+      }
+    };
+    void check();
+    const timer = setInterval(check, 3 * 60_000);
+    window.addEventListener("focus", check);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", check);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Context for Support requests: where the user was before opening Support.
   useEffect(() => {
     setLastScreen(location.pathname);

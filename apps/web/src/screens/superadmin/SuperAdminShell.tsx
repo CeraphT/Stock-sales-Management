@@ -1,4 +1,6 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { supportApi } from "@stockflow/core/api/endpoints/support";
+import { useQuery } from "@tanstack/react-query";
 import { BrandLogo } from "@/components/BrandLogo";
 
 import { IconButton } from "@/components/IconButton";
@@ -20,6 +22,14 @@ const NAV: { to: string; label: string; icon: string; end?: boolean }[] = [
 ];
 
 export function SuperAdminShell() {
+  // Requests awaiting support (red when some are past their response target).
+  const supportSummary = useQuery({
+    queryKey: ["superadmin", "support", "summary"],
+    queryFn: () => supportApi.summary(),
+    refetchInterval: 60000,
+  });
+  const supportTodo = supportSummary.data?.awaitingSupport ?? 0;
+  const supportLate = supportSummary.data?.slaBreached ?? 0;
   const navigate = useNavigate();
   const routeLocation = useLocation();
   const t = useT();
@@ -64,6 +74,14 @@ export function SuperAdminShell() {
             >
               <span className="w-5 text-center text-base">{item.icon}</span>
               {t(item.label)}
+              {item.to === "/superadmin/support" && supportTodo > 0 ? (
+                <span
+                  className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold ${supportLate > 0 ? "bg-error text-white" : "bg-accent-amber text-white"}`}
+                  title={supportLate > 0 ? `${supportLate} ${t("late")}` : undefined}
+                >
+                  {supportTodo}
+                </span>
+              ) : null}
             </NavLink>
           ))}
         </nav>

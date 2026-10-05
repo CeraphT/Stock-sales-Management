@@ -15,6 +15,44 @@ export enum SupportTicketStatus {
   Closed = 3,
 }
 
+/** Mirrors PharmaStock.Domain SupportTicketPriority — integers, keep the C# order. */
+export enum SupportTicketPriority {
+  Low = 0,
+  Normal = 1,
+  High = 2,
+  Urgent = 3,
+}
+
+export interface SupportMessageInfo {
+  id: string;
+  authorName: string;
+  fromSupport: boolean;
+  /** Support-only note (console only — never sent to the reporter). */
+  isInternal: boolean;
+  body: string;
+  createdAt: string;
+}
+
+/** The reporter's view of their own request (no triage, no internal notes). */
+export interface MySupportTicketDetail {
+  id: string;
+  category: SupportTicketCategory;
+  status: SupportTicketStatus;
+  title: string;
+  description: string;
+  createdAt: string;
+  attachmentCount: number;
+  messages: SupportMessageInfo[];
+}
+
+export interface SupportQueueSummary {
+  open: number;
+  awaitingSupport: number;
+  slaBreached: number;
+  unassigned: number;
+  mine: number;
+}
+
 export interface SupportAttachmentUpload {
   fileName: string;
   contentType: string;
@@ -49,6 +87,17 @@ export interface SupportTicketSummary {
   companyName: string | null;
   userName: string | null;
   platform: DevicePlatform;
+  // Process fields (optional: absent from an older API).
+  priority?: SupportTicketPriority;
+  assignedToName?: string | null;
+  awaitingSupport?: boolean;
+  /** Support replied / resolved and the reporter hasn't opened it yet. */
+  unreadByReporter?: boolean;
+  slaDueAt?: string | null;
+  slaBreached?: boolean;
+  messageCount?: number;
+  /** Console only. */
+  assignedToUserId?: string | null;
 }
 
 export interface SupportAttachmentInfo {
@@ -79,4 +128,11 @@ export interface SupportTicketDetail {
   deviceInfo: string | null;
   screen: string | null;
   attachments: SupportAttachmentInfo[];
+  priority: SupportTicketPriority;
+  assignedToUserId: string | null;
+  assignedToName: string | null;
+  awaitingSupport: boolean;
+  slaDueAt: string | null;
+  slaBreached: boolean;
+  messages: SupportMessageInfo[];
 }

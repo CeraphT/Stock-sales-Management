@@ -22,7 +22,7 @@ public record SupportTicketSummary(
     string? CompanyName, string? UserName, DevicePlatform Platform,
     // Process fields.
     SupportTicketPriority Priority, string? AssignedToName, bool AwaitingSupport, bool UnreadByReporter,
-    DateTime? SlaDueAt, bool SlaBreached, int MessageCount);
+    DateTime? SlaDueAt, bool SlaBreached, int MessageCount, Guid? AssignedToUserId = null);
 
 public record SupportAttachmentInfo(Guid Id, string FileName, string ContentType, int SizeBytes);
 public record SupportMessageInfo(Guid Id, string AuthorName, bool FromSupport, bool IsInternal, string Body, DateTime CreatedAt);
@@ -91,7 +91,7 @@ public static class SupportEndpoints
             console ? t.CompanyName : null, console ? t.UserName : null, t.Platform,
             t.Priority, console ? t.AssignedToName : null, t.AwaitingSupport, t.UnreadByReporter,
             console ? due : null, console && due is not null && due < DateTime.UtcNow,
-            t.Messages.Count(m => console || !m.IsInternal));
+            t.Messages.Count(m => console || !m.IsInternal), console ? t.AssignedToUserId : null);
     }
 
     public static void MapSupportEndpoints(this WebApplication app)

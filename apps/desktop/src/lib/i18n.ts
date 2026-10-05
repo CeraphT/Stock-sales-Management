@@ -1093,6 +1093,19 @@ export const FR: Record<string, string> = {
   "In progress": "En cours",
   "Resolved": "Résolue",
   "Closed": "Fermée",
+  // ── Support: replies / pop-up ──
+  "✅ Request resolved": "✅ Demande résolue",
+  "💬 Support replied": "💬 Le support a répondu",
+  "Support resolved your request": "Le support a résolu votre demande",
+  "Support replied to your request": "Le support a répondu à votre demande",
+  "View": "Voir",
+  "Later": "Plus tard",
+  "New reply — click to read": "Nouvelle réponse — cliquez pour lire",
+  "Your request has been reopened.": "Votre demande a été rouverte.",
+  "Reply sent.": "Réponse envoyée.",
+  "This request is resolved. Replying will reopen it.": "Cette demande est résolue. Répondre la rouvrira.",
+  "Reply to support…": "Répondre au support…",
+  "Send": "Envoyer",
 };
 
 /** Reactive translator hook. `t(en)` returns the French string when the app

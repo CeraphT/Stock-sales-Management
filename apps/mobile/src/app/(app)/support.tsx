@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import { useCallback, useEffect, useState } from 'react';
+import { router } from 'expo-router';
 import { ActivityIndicator, Image, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -244,8 +245,12 @@ export default function SupportScreen() {
             mine.map((tk) => {
               const st = statusStyle(tk.status);
               return (
-                <View key={tk.id} className="gap-1.5 rounded-xl border border-border bg-surface p-4">
+                <Pressable
+                  key={tk.id}
+                  onPress={() => router.push({ pathname: '/support-ticket' as never, params: { id: tk.id } } as never)}
+                  className={`gap-1.5 rounded-xl border bg-surface p-4 active:opacity-80 ${tk.unreadByReporter ? 'border-primary' : 'border-border'}`}>
                   <View className="flex-row items-center justify-between gap-2">
+                    {tk.unreadByReporter ? <View className="h-2.5 w-2.5 rounded-full bg-primary" /> : null}
                     <Text className="flex-1 text-sm font-bold text-text-primary" numberOfLines={2}>
                       {tk.title}
                     </Text>
@@ -260,10 +265,11 @@ export default function SupportScreen() {
                   {tk.adminReply ? (
                     <View className="mt-1 rounded-lg bg-primary/5 p-3">
                       <Text className="text-[11px] font-bold text-primary">{t('support.reply')}</Text>
-                      <Text className="mt-0.5 text-sm text-text-primary">{tk.adminReply}</Text>
+                      <Text className="mt-0.5 text-sm text-text-primary" numberOfLines={3}>{tk.adminReply}</Text>
                     </View>
                   ) : null}
-                </View>
+                  {tk.unreadByReporter ? <Text className="text-[11px] font-bold text-primary">{t('support.newReply')}</Text> : null}
+                </Pressable>
               );
             })
           )}

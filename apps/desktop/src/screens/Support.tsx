@@ -3,6 +3,7 @@ import { supportApi } from "@stockflow/core/api/endpoints/support";
 import { DevicePlatform } from "@stockflow/core/api/enums";
 import {
   SupportTicketCategory,
+  SupportTicketStatus,
   type SupportAttachmentUpload,
   type SupportTicketSummary,
 } from "@stockflow/core/api/types/support";
@@ -12,8 +13,9 @@ import {
   SUPPORT_MAX_TOTAL_BYTES,
   submitSupportTicket,
 } from "@stockflow/core/support/submitSupportTicket";
-import { useQuery } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { Button } from "@/components/Button";
 import { useT } from "@/lib/i18n";
@@ -63,6 +65,13 @@ export function Support() {
   const [sending, setSending] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const screen = getLastScreen();
+  // ?ticket=<id> (from the reply pop-up) opens that request's conversation.
+  const [params, setParams] = useSearchParams();
+  const openTicketId = params.get("ticket");
+  useEffect(() => {
+    if (openTicketId) setTab("mine");
+  }, [openTicketId]);
+  const openTicket = (id: string | null) => setParams(id ? { ticket: id } : {});
 
   const mine = useQuery({
     queryKey: ["support", "mine"],
@@ -246,6 +255,8 @@ export function Support() {
             {t("Send to support")}
           </Button>
         </div>
+      ) : openTicketId ? (
+        <MyTicket id={openTicketId} onBack={() => openTicket(null)} onChanged={() => void mine.refetch()} />
       ) : (
         <div className="space-y-2">
           {mine.isLoading ? (
@@ -258,9 +269,16 @@ export function Support() {
             <div className="rounded-card border border-border bg-surface p-8 text-center text-sm text-text-secondary">{t("No requests yet.")}</div>
           ) : (
             (mine.data as SupportTicketSummary[]).map((tk) => (
-              <div key={tk.id} className="rounded-card border border-border bg-surface p-4">
+              <button
+                key={tk.id}
+                onClick={() => openTicket(tk.id)}
+                className={`block w-full rounded-card border bg-surface p-4 text-left transition hover:border-primary/50 ${tk.unreadByReporter ? "border-primary" : "border-border"}`}
+              >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="font-semibold text-text-primary">{tk.title}</div>
+                  <div className="font-semibold text-text-primary">
+                    {tk.unreadByReporter ? <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full bg-primary align-middle" /> : null}
+                    {tk.title}
+                  </div>
                   <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${STATUS[tk.status]?.cls ?? STATUS[0].cls}`}>
                     {t(STATUS[tk.status]?.label ?? "Open")}
                   </span>
@@ -272,10 +290,11 @@ export function Support() {
                 {tk.adminReply ? (
                   <div className="mt-3 rounded-xl bg-primary/5 p-3">
                     <div className="text-[11px] font-bold text-primary">{t("Support reply")}</div>
-                    <div className="mt-0.5 whitespace-pre-wrap text-sm text-text-primary">{tk.adminReply}</div>
+                    <div className="mt-0.5 line-clamp-3 whitespace-pre-wrap text-sm text-text-primary">{tk.adminReply}</div>
                   </div>
                 ) : null}
-              </div>
+                {tk.unreadByReporter ? <div className="mt-2 text-xs font-bold text-primary">{t("New reply — click to read")}</div> : null}
+              </button>
             ))
           )}
         </div>
@@ -284,3 +303,93 @@ export function Support() {
   );
 }
 
+
+/** One of the user's requests: the conversation with support + a reply box.
+ * Opening it marks support's reply as read; replying to a resolved request
+ * reopens it. */
+function MyTicket({ id, onBack, onChanged }: { id: string; onBack: () => void; onChanged: () => void }) {
+  const t = useT();
+  const queryClient = useQueryClient();
+  const [reply, setReply] = useState("");
+  const [sending, setSending] = useState(false);
+  const detail = useQuery({ queryKey: ["support", "mine", id], queryFn: () => supportApi.mineDetail(id), retry: false });
+
+  useEffect(() => {
+    if (detail.data) onChanged(); // the server just cleared the unread flag
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detail.data?.id]);
+
+  if (detail.isLoading) {
+    return <div className="rounded-card border border-border bg-surface p-8 text-center text-sm text-text-secondary">{t("Loading…")}</div>;
+  }
+  if (detail.error || !detail.data) {
+    return (
+      <div className="rounded-card border border-border bg-surface p-8 text-center text-sm text-text-secondary">
+        {detail.error instanceof NetworkError ? t("Offline — your requests can't be loaded right now.") : (detail.error as Error | null)?.message}
+      </div>
+    );
+  }
+  const d = detail.data;
+  const resolved = d.status === SupportTicketStatus.Resolved || d.status === SupportTicketStatus.Closed;
+
+  async function send() {
+    if (!reply.trim()) return;
+    setSending(true);
+    try {
+      await supportApi.mineReply(id, reply.trim());
+      setReply("");
+      toast(resolved ? t("Your request has been reopened.") : t("Reply sent."), "success");
+      await queryClient.invalidateQueries({ queryKey: ["support"] });
+    } catch (e) {
+      toast(e instanceof NetworkError ? t("No connection — try again once connected.") : e instanceof Error ? e.message : t("Something went wrong."), "error");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <button onClick={onBack} className="text-sm font-medium text-text-secondary transition hover:text-primary">
+        ← {t("My requests")}
+      </button>
+      <div className="rounded-card border border-border bg-surface p-5">
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="text-lg font-bold text-text-primary">{d.title}</h2>
+          <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${STATUS[d.status]?.cls ?? STATUS[0].cls}`}>
+            {t(STATUS[d.status]?.label ?? "Open")}
+          </span>
+        </div>
+        <div className="mt-1 text-xs text-text-secondary">{new Date(d.createdAt).toLocaleString()}</div>
+        <div className="mt-4 space-y-3">
+          <div className="ml-auto max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tr-sm bg-primary/10 p-3 text-sm text-text-primary">
+            {d.description}
+            {d.attachmentCount > 0 ? <div className="mt-1 text-[11px] text-text-secondary">{d.attachmentCount} 🖼️</div> : null}
+          </div>
+          {d.messages.map((m) => (
+            <div
+              key={m.id}
+              className={`max-w-[85%] whitespace-pre-wrap rounded-2xl p-3 text-sm text-text-primary ${m.fromSupport ? "rounded-tl-sm border border-border bg-background" : "ml-auto rounded-tr-sm bg-primary/10"}`}
+            >
+              {m.fromSupport ? <div className="mb-0.5 text-[11px] font-bold text-primary">{t("Support reply")}</div> : null}
+              {m.body}
+              <div className="mt-1 text-[10px] text-text-secondary">{new Date(m.createdAt).toLocaleString()}</div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 space-y-2">
+          {resolved ? <div className="text-xs text-text-secondary">{t("This request is resolved. Replying will reopen it.")}</div> : null}
+          <textarea
+            value={reply}
+            onChange={(e) => setReply(e.target.value)}
+            rows={3}
+            placeholder={t("Reply to support…")}
+            className="w-full rounded-xl border border-border bg-background p-3 text-sm text-text-primary outline-none focus:border-primary"
+          />
+          <Button onClick={send} loading={sending} disabled={!reply.trim()}>
+            {t("Send")}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

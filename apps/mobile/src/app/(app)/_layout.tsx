@@ -1,6 +1,6 @@
-import { Redirect, Stack, usePathname } from 'expo-router';
+import { Redirect, Stack, router, usePathname } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { AppState, View } from 'react-native';
 
 import { ImpersonationBanner } from '@/components/ImpersonationBanner';
 import { NoCompanyNotice } from '@/components/NoCompanyNotice';
@@ -11,6 +11,9 @@ import { UserRole } from '@/lib/api/enums';
 import { useAuthStore } from '@/lib/auth/store';
 import { isCompanyRoute } from '@/lib/companyGate';
 import { useLastScreen } from '@/lib/support/lastScreen';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { showAlert } from '@/lib/ui/alertStore';
+import { pendingSupportUpdates } from '@stockflow/core/support/replyNotifications';
 import { localShiftService } from '@/lib/local/shiftService';
 import { syncNow } from '@/lib/sync/syncNow';
 import { useSyncStatus } from '@/lib/sync/syncStatus';
@@ -44,6 +47,47 @@ export default function AppLayout() {
   useAutoBackup();
   // Keep this device visible as "live" in the fleet monitoring view.
   useHeartbeat();
+
+  // Support pop-up: when support replies to / resolves one of this user's
+  // requests, show it once (on open, on return to the foreground, every 3 min).
+  const { t } = useTranslation();
+  const shownSupportUpdates = useRef(new Set<string>());
+  useEffect(() => {
+    if (!token) return;
+    let busy = false;
+    const check = async () => {
+      if (busy) return;
+      busy = true;
+      try {
+        const updates = await pendingSupportUpdates(shownSupportUpdates.current);
+        const u = updates[0]; // one at a time; the rest come on the next check
+        if (u) {
+          showAlert(
+            u.kind === 'resolved' ? t('support.popup.resolvedTitle') : t('support.popup.replyTitle'),
+            (u.kind === 'resolved' ? t('support.popup.resolvedMsg') : t('support.popup.replyMsg')).replace('{title}', u.title) +
+              (u.reply ? `
+
+« ${u.reply.length > 180 ? u.reply.slice(0, 180) + '…' : u.reply} »` : ''),
+            [
+              { text: t('support.popup.later'), style: 'cancel' },
+              { text: t('support.popup.view'), onPress: () => router.push({ pathname: '/support-ticket' as never, params: { id: u.ticketId } } as never) },
+            ],
+          );
+        }
+      } finally {
+        busy = false;
+      }
+    };
+    check();
+    const timer = setInterval(check, 3 * 60_000);
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') check();
+    });
+    return () => {
+      clearInterval(timer);
+      sub.remove();
+    };
+  }, [token, t]);
 
   // Initial sync once per company session (app start, login, entering a
   // company) — mobile previously only synced on manual pull-to-refresh. Tenant
