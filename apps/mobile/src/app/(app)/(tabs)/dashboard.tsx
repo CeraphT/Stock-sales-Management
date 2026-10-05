@@ -224,6 +224,14 @@ export default function DashboardScreen() {
             <View className="flex-1">
               <Text className="text-base font-bold text-text-primary">{t('dashboard.noCompanyTitle')}</Text>
               <Text className="mt-1 text-sm text-text-secondary">{t('dashboard.noCompanyMsg')}</Text>
+              {user?.role === UserRole.SuperAdmin ? (
+                <Pressable
+                  onPress={() => router.push('/company-picker' as never)}
+                  className="mt-3 flex-row items-center gap-2 self-start rounded-xl bg-primary px-4 py-2.5 active:opacity-80">
+                  <Ionicons name="swap-horizontal-outline" size={16} color="#FFFFFF" />
+                  <Text className="text-sm font-bold text-white">{t('superAdmin.pickerTitle')}</Text>
+                </Pressable>
+              ) : null}
             </View>
           </View>
         ) : initialLoading ? (

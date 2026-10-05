@@ -1,12 +1,16 @@
 import { Redirect, Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 
+import { ImpersonationBanner } from '@/components/ImpersonationBanner';
 import { RegisterGate } from '@/components/RegisterGate';
 import { TabletNavRail } from '@/components/TabletNavRail';
 import { UserRole } from '@/lib/api/enums';
 import { useAuthStore } from '@/lib/auth/store';
 import { localShiftService } from '@/lib/local/shiftService';
+import { syncNow } from '@/lib/sync/syncNow';
+import { isolateCompany } from '@stockflow/core/db/isolation';
+import { localDbWriteLock } from '@stockflow/core/db/writeLock';
 import { useAutoBackup } from '@/lib/useAutoBackup';
 import { useHeartbeat } from '@/lib/useHeartbeat';
 import { useIsTablet } from '@/lib/useIsTablet';
@@ -29,6 +33,28 @@ export default function AppLayout() {
   useAutoBackup();
   // Keep this device visible as "live" in the fleet monitoring view.
   useHeartbeat();
+
+  // Initial sync once per company session (app start, login, entering a
+  // company) — mobile previously only synced on manual pull-to-refresh. Tenant
+  // isolation first, as on web/desktop (Shell.tsx): if the local mirror still
+  // holds another company's rows, wipe them before pulling this one.
+  const syncedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!token || !companyId || syncedFor.current === companyId) return;
+    syncedFor.current = companyId;
+    (async () => {
+      try {
+        await localDbWriteLock.run(() => isolateCompany(companyId));
+      } catch {
+        /* non-blocking */
+      }
+      try {
+        await syncNow();
+      } catch {
+        /* offline — screens use the local mirror; next sync retries */
+      }
+    })();
+  }, [token, companyId]);
 
   // Cashier start-of-day freeze: 'checking' shows nothing (never flashes the app
   // to a cashier), then resolves to 'gated' (RegisterGate is the only thing
@@ -67,16 +93,26 @@ export default function AppLayout() {
     return <RegisterGate onOpened={() => setGate('clear')} />;
   }
   const stack = <Stack screenOptions={{ headerShown: false }} />;
+  // SuperAdmin inside a company (M8): amber banner above everything.
+  const banner = <ImpersonationBanner />;
   // Desktop-style shell on tablets: a persistent left nav rail beside the
   // content stack (so it stays visible across tab screens AND pushed detail
   // screens). Phones keep the bottom-tab layout.
   if (isTablet) {
     return (
-      <View style={{ flex: 1, flexDirection: 'row' }}>
-        <TabletNavRail />
-        <View style={{ flex: 1 }}>{stack}</View>
+      <View style={{ flex: 1 }}>
+        {banner}
+        <View style={{ flex: 1, flexDirection: 'row' }}>
+          <TabletNavRail />
+          <View style={{ flex: 1 }}>{stack}</View>
+        </View>
       </View>
     );
   }
-  return stack;
+  return (
+    <View style={{ flex: 1 }}>
+      {banner}
+      {stack}
+    </View>
+  );
 }

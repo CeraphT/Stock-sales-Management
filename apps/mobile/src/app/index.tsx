@@ -1,10 +1,11 @@
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandLogo } from '@/components/BrandLogo';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { useAuthStore } from '@/lib/auth/store';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 // Matches the desktop onboarding (apps/desktop/src/screens/auth/Onboarding.tsx +
@@ -12,6 +13,14 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 // action, Create a company, and a subtle invite-code lookup — same routes/flow.
 export default function OnboardingScreen() {
   const { t } = useTranslation();
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const token = useAuthStore((s) => s.token);
+
+  // "/" is the app's entry route: with a persisted session, go straight to the
+  // app instead of asking to log in again on every launch. (The (app) layout
+  // sends back here once the session is cleared, so this can't loop.)
+  if (!hasHydrated) return null;
+  if (token) return <Redirect href="/dashboard" />;
 
   return (
     <View className="flex-1 bg-background">
