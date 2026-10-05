@@ -1,5 +1,6 @@
 import { locationsApi } from "@stockflow/core/api/endpoints/locations";
 
+import { useImpersonation } from "@/lib/impersonation";
 import { useAuthStore } from "@/lib/stores";
 
 /** After login/company-create, pick the operating branch. Mirrors the mobile
@@ -15,4 +16,7 @@ export async function resolveDefaultLocation(companyId: string): Promise<void> {
 
 export function logout(): void {
   useAuthStore.getState().clear();
+  // Logging out while inside a company must not leave the impersonation
+  // "active" for the next login (stale token + snapshot).
+  useImpersonation.getState().reset();
 }

@@ -1,7 +1,10 @@
 import { createHashRouter, Navigate } from "react-router-dom";
 
 import { RootErrorFallback, ScreenErrorFallback } from "@/components/Errors";
+import { UserRole } from "@stockflow/core/api/enums";
+
 import { useDbReady } from "@/lib/db/ready";
+import { useImpersonation } from "@/lib/impersonation";
 import { ALL_NAV_ITEMS } from "@/lib/nav";
 import { useAuthStore } from "@/lib/stores";
 
@@ -14,6 +17,7 @@ function FullScreenMessage({ title, body }: { title: string; body?: string }) {
   );
 }
 import { Archived } from "@/screens/Archived";
+import { CompanyPicker } from "@/screens/CompanyPicker";
 import { BulkStockRegister } from "@/screens/BulkStockRegister";
 import { CashRegister } from "@/screens/CashRegister";
 import { Categories } from "@/screens/Categories";
@@ -59,8 +63,26 @@ import { Onboarding } from "@/screens/auth/Onboarding";
 function RootRedirect() {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const token = useAuthStore((s) => s.token);
+  const role = useAuthStore((s) => s.user?.role);
+  const impersonating = useImpersonation((s) => s.active);
   if (!hasHydrated) return null;
-  return <Navigate to={token ? "/dashboard" : "/onboarding"} replace />;
+  if (!token) return <Navigate to="/onboarding" replace />;
+  // A SuperAdmin has no company of their own: they pick one first.
+  if (role === UserRole.SuperAdmin && !impersonating) return <Navigate to="/companies" replace />;
+  return <Navigate to="/dashboard" replace />;
+}
+
+/** SuperAdmin company picker. Only for a SuperAdmin who isn't already inside a
+ * company — everyone else belongs in the scoped app. */
+function CompanyPickerGuard() {
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const token = useAuthStore((s) => s.token);
+  const role = useAuthStore((s) => s.user?.role);
+  const impersonating = useImpersonation((s) => s.active);
+  if (!hasHydrated) return null;
+  if (!token) return <Navigate to="/onboarding" replace />;
+  if (role !== UserRole.SuperAdmin || impersonating) return <Navigate to="/dashboard" replace />;
+  return <CompanyPicker />;
 }
 
 /** Layout route for the authenticated app — renders the Shell (which hosts the
@@ -68,10 +90,14 @@ function RootRedirect() {
 function AuthGuard() {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const token = useAuthStore((s) => s.token);
+  const role = useAuthStore((s) => s.user?.role);
+  const impersonating = useImpersonation((s) => s.active);
   const dbReady = useDbReady((s) => s.ready);
   const dbError = useDbReady((s) => s.error);
   if (!hasHydrated) return null;
   if (!token) return <Navigate to="/onboarding" replace />;
+  // A SuperAdmin outside any company has no data to show here — pick one first.
+  if (role === UserRole.SuperAdmin && !impersonating) return <Navigate to="/companies" replace />;
   if (dbError) return <FullScreenMessage title="Local database error" body={dbError} />;
   if (!dbReady) return <FullScreenMessage title="Preparing local database…" />;
   return <Shell />;
@@ -85,6 +111,7 @@ export const router = createHashRouter([
     children: [
   { path: "/", element: <RootRedirect /> },
   { path: "/onboarding", element: <Onboarding /> },
+  { path: "/companies", element: <CompanyPickerGuard /> },
   { path: "/login", element: <Login /> },
   { path: "/create-company", element: <CreateCompany /> },
   { path: "/join-company", element: <JoinCompany /> },

@@ -1040,6 +1040,27 @@ export const FR: Record<string, string> = {
   "Last sold": "Dernière vente",
   "never sold": "jamais vendu",
   "No dead stock — everything's moving. 🎉": "Aucun stock dormant — tout se vend. 🎉",
+
+  // ── Super-admin company picker / impersonation ─────────────────────
+  "Unsynced changes": "Modifications non synchronisées",
+  "Some changes made on this computer couldn't be sent to the server (offline?). Leaving now will discard them from this computer.": "Des modifications faites sur cet ordinateur n'ont pas pu être envoyées au serveur (hors ligne ?). Quitter maintenant les supprimera de cet ordinateur.",
+  "Leave anyway": "Quitter quand même",
+  "Super-admin view — you are managing": "Vue super-admin — vous gérez",
+  "Leaving…": "Sortie…",
+  "Exit": "Quitter",
+  "Super Admin": "Super-admin",
+  "Choose a business": "Choisir une entreprise",
+  "Enter a business to view and manage its data as a super-admin. Access lasts about 2 hours.": "Entrez dans une entreprise pour consulter et gérer ses données en tant que super-admin. L'accès dure environ 2 heures.",
+  "Search by name or code": "Rechercher par nom ou code",
+  "Could not load businesses.": "Impossible de charger les entreprises.",
+  "No businesses found.": "Aucune entreprise trouvée.",
+  "product": "produit",
+  "user": "utilisateur",
+  "users": "utilisateurs",
+  "Entering…": "Ouverture…",
+  "Enter": "Entrer",
+  "Could not enter this business.": "Impossible d'entrer dans cette entreprise.",
+  "Super-admin access expired — you've left the business.": "Accès super-admin expiré : vous avez quitté l'entreprise.",
 };
 
 /** Reactive translator hook. `t(en)` returns the French string when the app

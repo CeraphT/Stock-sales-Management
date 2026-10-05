@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { UserRole } from '@/lib/api/enums';
 import { useAuthStore } from '@/lib/auth/store';
+import { useImpersonation } from '@/lib/auth/impersonation';
 import type { Language } from '@/lib/i18n/store';
 import { useLanguageStore } from '@/lib/i18n/store';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -146,6 +147,8 @@ export default function MoreScreen() {
   };
   const onLogout = () => {
     clear();
+    // Don't leave a SuperAdmin impersonation "active" for the next login.
+    useImpersonation.getState().reset();
     router.replace('/');
   };
   const isActive = (route?: string) => !!route && pathname === route;

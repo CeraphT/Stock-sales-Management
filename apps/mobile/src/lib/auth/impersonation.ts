@@ -37,6 +37,8 @@ interface ImpersonationState {
   snapshot: SuperAdminSnapshot | null;
   enter: (resp: ImpersonateResponse) => void;
   exit: () => void;
+  /** Forget any impersonation without restoring a session (used on logout). */
+  reset: () => void;
 }
 
 // Holds the SuperAdmin's tokens, so it lives in SecureStore like the auth store.
@@ -75,6 +77,8 @@ export const useImpersonation = create<ImpersonationState>()(
         set({ active: true, companyId: resp.companyId, companyName: resp.companyName, expiresAt: resp.expiresAt, snapshot });
       },
 
+      reset: () => set({ active: false, companyId: null, companyName: null, expiresAt: null, snapshot: null }),
+
       exit: () => {
         const snap = get().snapshot;
         const auth = useAuthStore.getState();
@@ -88,6 +92,15 @@ export const useImpersonation = create<ImpersonationState>()(
     { name: 'pharmastock-impersonation', storage: createJSONStorage(() => secureStoreAdapter) },
   ),
 );
+
+// Any end of the session — explicit logout, idle logout, or a 401 the refresh
+// can't recover (impersonation tokens have no refresh token) — must also end
+// the impersonation, or the next SuperAdmin login would resume a stale one.
+useAuthStore.subscribe((state, prev) => {
+  if (prev.token && !state.token && useImpersonation.getState().active) {
+    useImpersonation.getState().reset();
+  }
+});
 
 /** Wipe the offline mirror under the same lock syncNow uses, so a sync can't
  * be mid-write while the tables are emptied. */

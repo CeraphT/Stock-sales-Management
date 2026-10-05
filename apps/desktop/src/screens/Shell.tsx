@@ -5,6 +5,7 @@ import { UserRole } from "@stockflow/core/api/enums";
 import { isolateCompany } from "@stockflow/core/db/isolation";
 import { localShiftService } from "@stockflow/core/local/shiftService";
 
+import { ImpersonationBanner } from "@/components/ImpersonationBanner";
 import { IconButton } from "@/components/IconButton";
 import { RegisterGate } from "@/components/RegisterGate";
 import { ScreenBackground } from "@/components/ScreenBackground";
@@ -136,13 +137,18 @@ export function Shell() {
 
   // Reflect the company name in the browser tab / OS window title.
   useEffect(() => {
-    const t = companyName && companyName !== "…" ? companyName : "StockFlow";
-    document.title = t;
-    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
-      import("@tauri-apps/api/window")
-        .then((m) => m.getCurrentWindow().setTitle(t))
-        .catch(() => {});
-    }
+    const setTitle = (t: string) => {
+      document.title = t;
+      if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+        import("@tauri-apps/api/window")
+          .then((m) => m.getCurrentWindow().setTitle(t))
+          .catch(() => {});
+      }
+    };
+    setTitle(companyName && companyName !== "…" ? companyName : "StockFlow");
+    // Leaving the Shell (logout, or a SuperAdmin exiting a company) must not
+    // keep the previous company's name in the title.
+    return () => setTitle("StockFlow");
   }, [companyName]);
 
   function onLogout() {
@@ -229,6 +235,7 @@ export function Shell() {
       </aside>
 
       <div className="flex flex-1 flex-col overflow-hidden">
+        <ImpersonationBanner />
         <header className="flex h-16 items-center justify-between border-b border-border/60 bg-surface/70 px-4 backdrop-blur-xl">
           <div className="flex items-center gap-2">
             <button
