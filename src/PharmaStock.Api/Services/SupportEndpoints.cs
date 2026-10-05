@@ -47,7 +47,8 @@ public static class SupportEndpoints
         // ── Reporter side ───────────────────────────────────────────────────
         var mine = app.MapGroup("/api/support/tickets").RequireAuthorization();
 
-        mine.MapPost("/", async (CreateSupportTicketRequest request, PharmaStockDbContext db, HttpContext http) =>
+        mine.MapPost("/", async (CreateSupportTicketRequest request, PharmaStockDbContext db, HttpContext http,
+            EmailService email, IConfiguration config, ILoggerFactory loggerFactory) =>
         {
             var userId = http.User.GetUserId();
             if (userId is null) return Results.Unauthorized();
@@ -120,6 +121,8 @@ public static class SupportEndpoints
             };
             db.SupportTickets.Add(ticket);
             await db.SaveChangesAsync();
+            // Tell the support inbox (background — never delays or fails the request).
+            SupportNotifier.NotifyNewTicket(ticket, email, config, loggerFactory.CreateLogger("Support"));
             return Results.Created($"/api/support/tickets/{ticket.Id}", new { ticket.Id });
         });
 
