@@ -11,7 +11,9 @@ import type {
   SaleDetailResponse,
   SaleLineResponse,
   SaleResponse,
+  SaleSummaryResponse,
 } from "../api/types/sales";
+import { SaleTimelineKind } from "../api/types/sales";
 import { getAuthStore } from "../auth/store";
 import { db } from "../db/client";
 import { localDbWriteLock } from "../db/writeLock";
@@ -489,6 +491,46 @@ export const localSalesService = {
       });
     }
     return results;
+  },
+
+  /** Offline fallback for Sales History: the completed sales present in this
+   * device's local mirror (the sync pull doesn't mirror server-side history,
+   * so these are the sales rung up on THIS device — pushed or still pending),
+   * newest first, in the same shape as GET /api/companies/{id}/sales.
+   * from/to are date-only "YYYY-MM-DD", compared like the server does. */
+  async getSalesHistory(
+    companyId: string,
+    opts: { from?: string; to?: string; limit?: number } = {},
+  ): Promise<{ items: SaleSummaryResponse[]; pendingIds: Set<string> }> {
+    const rows = await db.query.sales.findMany({
+      where: and(eq(sales.companyId, companyId), eq(sales.status, SaleStatus.Completed)),
+      orderBy: [desc(sales.timestamp)],
+      limit: opts.limit ?? 200,
+    });
+    const toExclusive = opts.to ? new Date(new Date(`${opts.to}T00:00:00Z`).getTime() + 86_400_000).toISOString() : null;
+    const fromInclusive = opts.from ? new Date(`${opts.from}T00:00:00Z`).toISOString() : null;
+
+    const items: SaleSummaryResponse[] = [];
+    const pendingIds = new Set<string>();
+    for (const sale of rows) {
+      if (fromInclusive && sale.timestamp < fromInclusive) continue;
+      if (toExclusive && sale.timestamp >= toExclusive) continue;
+      const user = await db.query.users.findFirst({ where: eq(users.id, sale.userId) });
+      const customer = sale.customerId ? await db.query.customers.findFirst({ where: eq(customers.id, sale.customerId) }) : undefined;
+      const lineCount = await db.query.saleLines.findMany({ where: eq(saleLines.saleId, sale.id) });
+      if (sale.syncStatus === SyncStatus.PendingPush) pendingIds.add(sale.id);
+      items.push({
+        id: sale.id,
+        timestamp: sale.timestamp,
+        total: sale.total,
+        paymentMethod: sale.paymentMethod,
+        cashierName: user?.name ?? "—",
+        itemCount: lineCount.length,
+        customerName: customer?.name ?? null,
+        kind: SaleTimelineKind.Sale,
+      });
+    }
+    return { items, pendingIds };
   },
 
   async getSaleDetail(companyId: string, saleId: string): Promise<SaleDetailResponse> {

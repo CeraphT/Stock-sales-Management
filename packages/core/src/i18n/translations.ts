@@ -122,6 +122,8 @@ export const translations = {
     "noCompany.lockedHint": "Business features are locked until you choose one.",
     "catalog.loading": "Loading products…",
     "sync.initialSyncing": "Syncing your business data…",
+    "history.offline": "Offline — showing the sales recorded on this device only.",
+    "history.pending": "Not synced yet",
     "dashboard.reconciliationTitle": "Needs reconciliation",
     "dashboard.negativeBatchesMsg":
       "{count} batch(es) went negative — offline sales likely oversold the same stock on two devices.",
@@ -345,6 +347,8 @@ export const translations = {
     "noCompany.lockedHint": "Les fonctionnalités de l'entreprise sont verrouillées tant que vous n'en avez pas choisi une.",
     "catalog.loading": "Chargement des produits…",
     "sync.initialSyncing": "Synchronisation des données…",
+    "history.offline": "Hors ligne — seules les ventes enregistrées sur cet appareil sont affichées.",
+    "history.pending": "Non synchronisée",
     "dashboard.reconciliationTitle": "Réconciliation nécessaire",
     "dashboard.negativeBatchesMsg":
       "{count} lot(s) sont devenus négatifs — des ventes hors ligne ont probablement vendu le même stock sur deux appareils.",

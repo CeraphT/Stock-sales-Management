@@ -7,7 +7,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { BackButton } from '@/components/BackButton';
 import { SkeletonDetail } from '@/components/Skeleton';
+import { NetworkError } from '@/lib/api/client';
 import { salesApi } from '@/lib/api/endpoints/sales';
+import { localSalesService } from '@/lib/local/salesService';
 import { SaleStatus, UserRole } from '@/lib/api/enums';
 import type { SaleDetailResponse } from '@/lib/api/types/sales';
 import { useAuthStore } from '@/lib/auth/store';
@@ -35,6 +37,9 @@ export default function SaleDetailScreen() {
     setLoading(true);
     salesApi
       .detail(companyId, id)
+      // Offline: a sale rung up on this device is in the local mirror — show it
+      // (and allow reprinting the receipt) instead of failing.
+      .catch((err) => (err instanceof NetworkError ? localSalesService.getSaleDetail(companyId, id) : Promise.reject(err)))
       .then(setSale)
       .catch((err) => showAlert('Could not load sale', err instanceof Error ? err.message : 'Something went wrong.'))
       .finally(() => setLoading(false));
