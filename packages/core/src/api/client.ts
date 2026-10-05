@@ -31,6 +31,44 @@ export class ApiError extends Error {
   }
 }
 
+/** The request never got an HTTP answer: DNS failure, no connectivity, the
+ * server unreachable, or our own timeout. A subclass of ApiError (status 0) so
+ * every existing `instanceof ApiError` check keeps working, with a readable
+ * message instead of e.g. "fetch failed: java.net.UnknownHostException …". */
+export class NetworkError extends ApiError {
+  constructor(public cause?: unknown) {
+    super(0, NETWORK_ERROR_MESSAGE);
+    this.name = "NetworkError";
+  }
+}
+
+const NETWORK_ERROR_MESSAGE =
+  "Serveur injoignable — vérifiez votre connexion internet. / Can't reach the server — check your internet connection.";
+
+// Per-attempt timeout: a request on a flaky network must fail (and be retried
+// or reported) instead of spinning forever.
+const REQUEST_TIMEOUT_MS = 20_000;
+// Reads (GET) are retried after a network failure — a DNS hiccup on a weak
+// shop Wi-Fi (seen in the field: UnknownHostException, then fine a second
+// later) shouldn't surface as an error. Writes are never retried: a POST
+// that reached the server before the connection dropped could be applied twice.
+const GET_RETRY_DELAYS_MS = [800, 2000];
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** fetch() with a timeout; any transport-level failure becomes NetworkError. */
+async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (err) {
+    throw new NetworkError(err);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // Concurrent requests that all hit a 401 at once must not each fire their
 // own refresh call (the refresh token rotates on every use — a second
 // concurrent refresh would invalidate the first's new token). Shared
@@ -43,7 +81,8 @@ async function refreshSession(): Promise<boolean> {
   if (!refreshToken) return false;
 
   const body: RefreshRequest = { deviceId, refreshToken };
-  const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+  // Not retried (see GET_RETRY_DELAYS_MS): the refresh token rotates on use.
+  const response = await fetchWithTimeout(`${API_BASE_URL}/api/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -118,11 +157,16 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
       const token = getAuthStore().getState().token;
       if (token) headers.Authorization = `Bearer ${token}`;
     }
-    return fetch(buildUrl(path, query), {
-      method,
-      headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-    });
+    const init = { method, headers, body: body !== undefined ? JSON.stringify(body) : undefined };
+    const retryDelays = method === "GET" ? GET_RETRY_DELAYS_MS : [];
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await fetchWithTimeout(buildUrl(path, query), init);
+      } catch (err) {
+        if (!(err instanceof NetworkError) || attempt >= retryDelays.length) throw err;
+        await sleep(retryDelays[attempt]);
+      }
+    }
   };
 
   let response = await doFetch();
