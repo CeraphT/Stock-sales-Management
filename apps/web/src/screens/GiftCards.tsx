@@ -9,7 +9,7 @@ import { IconButton } from "@/components/IconButton";
 import { confirmDialog } from "@/lib/confirm";
 import { useT } from "@/lib/i18n";
 import { queryClient } from "@/lib/queryClient";
-import { printColoredReport } from "@/lib/reportPdf";
+import { exportReport, type ReportFormat } from "@/lib/reportExcel";
 import { useAuthStore } from "@/lib/stores";
 import { toast } from "@/lib/toast";
 import { useCompany, useCurrency } from "@/lib/useCompany";
@@ -69,13 +69,14 @@ export function GiftCards() {
     if (ok) deleteM.mutate(g.id);
   }
 
-  function exportPdf() {
+  async function exportFile(format: ReportFormat) {
     if (data.length === 0) {
       toast(t("No gift cards issued yet."), "info");
       return;
     }
     const outstanding = data.reduce((s, g) => s + (g.active ? g.remainingValue : 0), 0);
-    printColoredReport({
+    try {
+    await exportReport({
       companyName: company?.name ?? "",
       logoUrl: company?.logoUrl,
         taxId: company?.taxId,
@@ -101,7 +102,10 @@ export function GiftCards() {
         g.active ? t("Active") : t("Inactive"),
       ]),
       totals: [t("Total"), null, null, formatCurrency(outstanding, currency), null],
-    });
+    }, format);
+    } catch {
+      toast(t("Could not export the report."), "error");
+    }
   }
 
   return (
@@ -121,8 +125,11 @@ export function GiftCards() {
           {t("Issue card")}
         </Button>
         <div className="flex-1" />
-        <Button variant="secondary" onClick={exportPdf} disabled={data.length === 0}>
+        <Button variant="secondary" onClick={() => exportFile("pdf")} disabled={data.length === 0}>
           🧾 {t("Export PDF")}
+        </Button>
+        <Button variant="secondary" onClick={() => exportFile("xlsx")} disabled={data.length === 0}>
+          📊 {t("Export Excel")}
         </Button>
       </div>
 

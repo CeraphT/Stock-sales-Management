@@ -15,7 +15,7 @@ import { confirmDialog } from "@/lib/confirm";
 import { useCapabilities } from "@/lib/useCapabilities";
 import { useT } from "@/lib/i18n";
 import { queryClient } from "@/lib/queryClient";
-import { printColoredReport } from "@/lib/reportPdf";
+import { exportReport, type ReportFormat } from "@/lib/reportExcel";
 import { useAuthStore } from "@/lib/stores";
 import { toast } from "@/lib/toast";
 import { useCompany, useCurrency } from "@/lib/useCompany";
@@ -118,10 +118,11 @@ export function PurchaseOrderDetail() {
     }
   }
 
-  function printPo() {
+  async function exportPo(format: ReportFormat) {
     if (!po) return;
     const total = po.lines.reduce((s, l) => s + l.quantityOrdered * l.unitCost, 0);
-    printColoredReport({
+    try {
+    await exportReport({
       companyName: company?.name ?? "",
       logoUrl: company?.logoUrl,
         taxId: company?.taxId,
@@ -148,7 +149,10 @@ export function PurchaseOrderDetail() {
         formatCurrency(l.quantityOrdered * l.unitCost, currency),
       ]),
       totals: [t("Total"), null, null, null, formatCurrency(total, currency)],
-    });
+    }, format);
+    } catch {
+      toast(t("Could not export the report."), "error");
+    }
   }
 
   if (isLoading || !po) {
@@ -169,8 +173,11 @@ export function PurchaseOrderDetail() {
       <div className="mb-4 flex items-center justify-between">
         <BackButton />
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={printPo}>
+          <Button variant="secondary" onClick={() => exportPo("pdf")}>
             🖨 {t("Print / share PDF")}
+          </Button>
+          <Button variant="secondary" onClick={() => exportPo("xlsx")}>
+            📊 {t("Excel")}
           </Button>
           <PoStatusBadge status={po.status} label={purchaseOrderStatusLabel(po.status)} />
         </div>

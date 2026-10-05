@@ -9,7 +9,7 @@ import { Button } from "@/components/Button";
 import { DateRange } from "@/components/DateRange";
 import { useT } from "@/lib/i18n";
 import { printReceiptsBatch } from "@/lib/receipt";
-import { printColoredReport } from "@/lib/reportPdf";
+import { exportReport, type ReportFormat } from "@/lib/reportExcel";
 import { useAuthStore } from "@/lib/stores";
 import { toast } from "@/lib/toast";
 import { useCompany, useCurrency } from "@/lib/useCompany";
@@ -85,7 +85,7 @@ export function SalesHistory() {
 
   // Export ALL sales in the current range (not just the loaded pages) to a
   // colored PDF the user can print or save-as-PDF to share.
-  async function exportPdf() {
+  async function exportFile(format: ReportFormat) {
     if (!companyId || exporting) return;
     setExporting(true);
     try {
@@ -105,7 +105,7 @@ export function SalesHistory() {
       }
       const grand = all.reduce((s, x) => s + x.total, 0);
       const range = from || to ? `${from || "…"} → ${to || t("today")}` : t("All time");
-      printColoredReport({
+      await exportReport({
         companyName: company?.name ?? "",
         logoUrl: company?.logoUrl,
         taxId: company?.taxId,
@@ -133,7 +133,7 @@ export function SalesHistory() {
           formatCurrency(s.total, currency),
         ]),
         totals: [t("Total"), null, null, null, null, formatCurrency(grand, currency)],
-      });
+      }, format);
     } catch {
       toast(t("Could not export the report."), "error");
     } finally {
@@ -159,8 +159,11 @@ export function SalesHistory() {
             🧾 {t("Download")} {selected.size} {selected.size === 1 ? t("receipt") : t("receipts")}
           </Button>
         ) : null}
-        <Button variant="secondary" onClick={exportPdf} loading={exporting} disabled={items.length === 0 && !isLoading}>
+        <Button variant="secondary" onClick={() => exportFile("pdf")} loading={exporting} disabled={items.length === 0 && !isLoading}>
           🧾 {t("Export PDF")}
+        </Button>
+        <Button variant="secondary" onClick={() => exportFile("xlsx")} loading={exporting} disabled={items.length === 0 && !isLoading}>
+          📊 {t("Export Excel")}
         </Button>
       </div>
 

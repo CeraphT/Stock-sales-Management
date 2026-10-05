@@ -736,6 +736,8 @@ export const FR: Record<string, string> = {
 
   // ── PDF exports / inline category ──────────────────────────────────
   "Export PDF": "Exporter en PDF",
+  "Export Excel": "Exporter en Excel",
+  "Export format": "Format d'export",
   "Sales report": "Rapport des ventes",
   "today": "aujourd'hui",
   "All time": "Depuis le début",
