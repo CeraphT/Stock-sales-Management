@@ -6,6 +6,7 @@ import m0001 from './0001_bizarre_grey_gargoyle.sql';
 import m0002 from './0002_inventory_capabilities.sql';
 import m0003 from './0003_sync_customer_b2b.sql';
 import m0004 from './0004_offline_outbox.sql';
+import m0005 from './0005_remote_cache.sql';
 
   export default {
     journal,
@@ -14,7 +15,8 @@ import m0004 from './0004_offline_outbox.sql';
 m0001,
 m0002,
 m0003,
-m0004
+m0004,
+m0005
     }
   }
   

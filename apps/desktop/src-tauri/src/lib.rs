@@ -130,6 +130,12 @@ pub fn run() {
             sql: include_str!("../../src/lib/db/migrations/005_offline_outbox.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 6,
+            description: "remote_cache for server-only reads (offline B)",
+            sql: include_str!("../../src/lib/db/migrations/006_remote_cache.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

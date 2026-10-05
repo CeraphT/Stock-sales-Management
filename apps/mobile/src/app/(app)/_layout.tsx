@@ -14,6 +14,7 @@ import { localShiftService } from '@/lib/local/shiftService';
 import { syncNow } from '@/lib/sync/syncNow';
 import { useSyncStatus } from '@/lib/sync/syncStatus';
 import { isolateCompany } from '@stockflow/core/db/isolation';
+import { warmRemoteCache } from '@stockflow/core/local/remoteCache';
 import { localDbWriteLock } from '@stockflow/core/db/writeLock';
 import { useAutoBackup } from '@/lib/useAutoBackup';
 import { useHeartbeat } from '@/lib/useHeartbeat';
@@ -56,6 +57,9 @@ export default function AppLayout() {
       }
       try {
         await syncNow();
+        // Offline B: pre-load server-only lists (purchase orders, services) so
+        // they open offline later even if never viewed online. Best effort.
+        void warmRemoteCache(companyId);
       } catch {
         /* offline — screens use the local mirror; next sync retries */
       } finally {

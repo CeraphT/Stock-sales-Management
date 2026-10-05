@@ -4,7 +4,10 @@ import { useCallback, useState } from 'react';
 import { FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OfflineNotice } from '@/components/OfflineNotice';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { cachedFetch } from '@stockflow/core/local/remoteCache';
+import { useStaleNotice } from '@/lib/hooks/useStaleNotice';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
@@ -31,6 +34,8 @@ const emptyDraft = { name: '', fixedPrice: '', category: '' };
 
 export default function ServicesScreen() {
   const companyId = useAuthStore((s) => s.companyId);
+  // Offline B: server-only data — offline, the last answer is shown with its date.
+  const { staleAt, setStaleAt, staleMessage } = useStaleNotice();
   useFeatureGuard(useAuthStore((s) => s.user?.restrictCatalog));
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
@@ -51,7 +56,10 @@ export default function ServicesScreen() {
     if (!companyId) return;
     setLoading(true);
     try {
-      const [company, serviceList] = await Promise.all([companiesApi.get(companyId), servicesApi.list(companyId)]);
+      const [company, serviceList] = await Promise.all([
+        cachedFetch(companyId, 'company', () => companiesApi.get(companyId), setStaleAt),
+        cachedFetch(companyId, 'services:list', () => servicesApi.list(companyId), setStaleAt),
+      ]);
       setModuleEnabled(company.servicesModuleEnabled);
       setServices(serviceList);
     } catch (err) {
@@ -243,6 +251,7 @@ export default function ServicesScreen() {
         </ScrollView>
       ) : null}
 
+      <OfflineNotice visible={!!staleAt} message={staleMessage} />
       {loading ? (
         <SkeletonList />
       ) : (

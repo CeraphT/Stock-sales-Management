@@ -4,7 +4,10 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OfflineNotice } from '@/components/OfflineNotice';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { cachedFetch } from '@stockflow/core/local/remoteCache';
+import { useStaleNotice } from '@/lib/hooks/useStaleNotice';
 import { BackButton } from '@/components/BackButton';
 import { reportsApi } from '@/lib/api/endpoints/reports';
 import { useAuthStore } from '@/lib/auth/store';
@@ -16,13 +19,15 @@ const WINDOWS = [60, 90, 180];
 
 export default function DeadStockScreen() {
   const companyId = useAuthStore((s) => s.companyId);
+  // Offline B: server-only data — offline, the last answer is shown with its date.
+  const { staleAt, setStaleAt, staleMessage } = useStaleNotice();
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
   const [days, setDays] = useState(60);
 
   const { data = [], isLoading } = useQuery({
     queryKey: ['dead-stock', companyId, days],
-    queryFn: () => reportsApi.deadStock(companyId!, { days }),
+    queryFn: () => cachedFetch(companyId!, `deadStock:${days}`, () => reportsApi.deadStock(companyId!, { days }), setStaleAt),
     enabled: !!companyId,
   });
 
@@ -51,6 +56,7 @@ export default function DeadStockScreen() {
         ))}
       </View>
 
+      <OfflineNotice visible={!!staleAt} message={staleMessage} />
       <ScrollView contentContainerClassName="gap-2 p-5">
         {data.length > 0 ? (
           <View className="mb-2 rounded-xl bg-surface p-4">

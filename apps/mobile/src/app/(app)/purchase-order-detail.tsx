@@ -4,7 +4,10 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OfflineNotice } from '@/components/OfflineNotice';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { cachedFetch } from '@stockflow/core/local/remoteCache';
+import { useStaleNotice } from '@/lib/hooks/useStaleNotice';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
@@ -24,6 +27,8 @@ import { showAlert } from '@/lib/ui/alertStore';
 export default function PurchaseOrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const companyId = useAuthStore((s) => s.companyId);
+  // Offline B: server-only data — offline, the last answer is shown with its date.
+  const { staleAt, setStaleAt, staleMessage } = useStaleNotice();
   useFeatureGuard(useAuthStore((s) => s.user?.restrictPurchasing));
   const currency = useCompanyCurrency();
   const { name: companyName } = useCompanyInfo();
@@ -37,7 +42,7 @@ export default function PurchaseOrderDetailScreen() {
     if (!companyId || !id) return;
     setLoading(true);
     try {
-      setOrder(await purchaseOrdersApi.get(companyId, id));
+      setOrder(await cachedFetch(companyId, `purchaseOrders:${id}`, () => purchaseOrdersApi.get(companyId, id), setStaleAt));
     } finally {
       setLoading(false);
     }
@@ -134,6 +139,7 @@ export default function PurchaseOrderDetailScreen() {
         </View>
       </View>
 
+      <OfflineNotice visible={!!staleAt} message={staleMessage} />
       <ScrollView contentContainerClassName="gap-4 p-5">
         <View className="rounded-2xl bg-surface p-4">
           <View className="flex-row items-start justify-between">

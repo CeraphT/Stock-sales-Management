@@ -4,7 +4,10 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OfflineNotice } from '@/components/OfflineNotice';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { cachedFetch } from '@stockflow/core/local/remoteCache';
+import { useStaleNotice } from '@/lib/hooks/useStaleNotice';
 import { BackButton } from '@/components/BackButton';
 import { reportsApi } from '@/lib/api/endpoints/reports';
 import { useAuthStore } from '@/lib/auth/store';
@@ -14,12 +17,14 @@ const WINDOWS = [30, 90];
 
 export default function DemandForecastScreen() {
   const companyId = useAuthStore((s) => s.companyId);
+  // Offline B: server-only data — offline, the last answer is shown with its date.
+  const { staleAt, setStaleAt, staleMessage } = useStaleNotice();
   const colors = useThemeColors();
   const [days, setDays] = useState(30);
 
   const { data = [], isLoading } = useQuery({
     queryKey: ['demand-forecast', companyId, days],
-    queryFn: () => reportsApi.demandForecast(companyId!, { days, horizon: days }),
+    queryFn: () => cachedFetch(companyId!, `demandForecast:${days}`, () => reportsApi.demandForecast(companyId!, { days, horizon: days }), setStaleAt),
     enabled: !!companyId,
   });
 
@@ -46,6 +51,7 @@ export default function DemandForecastScreen() {
         ))}
       </View>
 
+      <OfflineNotice visible={!!staleAt} message={staleMessage} />
       <ScrollView contentContainerClassName="gap-2 p-5">
         {isLoading ? (
           <Text className="py-10 text-center text-sm text-text-secondary">Loading…</Text>

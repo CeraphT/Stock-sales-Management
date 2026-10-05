@@ -3,7 +3,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OfflineNotice } from '@/components/OfflineNotice';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { cachedFetch } from '@stockflow/core/local/remoteCache';
+import { useStaleNotice } from '@/lib/hooks/useStaleNotice';
 import { BackButton } from '@/components/BackButton';
 import { reconciliationApi, type ReconciliationResponse } from '@/lib/api/endpoints/reconciliation';
 import { useAuthStore } from '@/lib/auth/store';
@@ -14,6 +17,8 @@ import { toast } from '@/lib/ui/toastStore';
 
 export default function ReconciliationScreen() {
   const companyId = useAuthStore((s) => s.companyId);
+  // Offline B: server-only data — offline, the last answer is shown with its date.
+  const { staleAt, setStaleAt, staleMessage } = useStaleNotice();
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
 
@@ -25,7 +30,7 @@ export default function ReconciliationScreen() {
     if (!companyId) return;
     setLoading(true);
     try {
-      setData(await reconciliationApi.get(companyId));
+      setData(await cachedFetch(companyId, 'reconciliation', () => reconciliationApi.get(companyId), setStaleAt));
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Could not load reconciliation.', 'error');
     } finally {
@@ -78,6 +83,7 @@ export default function ReconciliationScreen() {
         </View>
       </View>
 
+      <OfflineNotice visible={!!staleAt} message={staleMessage} />
       {loading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={colors.primary} />

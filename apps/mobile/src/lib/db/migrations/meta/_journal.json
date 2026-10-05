@@ -36,6 +36,13 @@
       "when": 1791194175874,
       "tag": "0004_offline_outbox",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1791194917595,
+      "tag": "0005_remote_cache",
+      "breakpoints": true
     }
   ]
 }

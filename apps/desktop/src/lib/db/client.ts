@@ -6,6 +6,7 @@ import migration002 from "./migrations/002_b2b.sql?raw";
 import migration003 from "./migrations/003_inventory_capabilities.sql?raw";
 import migration004 from "./migrations/004_customer_b2b_sync.sql?raw";
 import migration005 from "./migrations/005_offline_outbox.sql?raw";
+import migration006 from "./migrations/006_remote_cache.sql?raw";
 import schemaSql from "./schema.sql?raw";
 
 /** Tauri exposes this global inside the native webview; absent in a plain
@@ -72,6 +73,7 @@ async function initBrowserDb(): Promise<void> {
   sqlDb.run(migration003);
   sqlDb.run(migration004);
   sqlDb.run(migration005);
+  sqlDb.run(migration006);
 
   const db = drizzleProxy(
     async (sql, params, method) => {

@@ -4,7 +4,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OfflineNotice } from '@/components/OfflineNotice';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { cachedFetch } from '@stockflow/core/local/remoteCache';
+import { useStaleNotice } from '@/lib/hooks/useStaleNotice';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
@@ -27,6 +30,8 @@ function isoDaysAgo(days: number): string {
 
 export default function ReportsScreen() {
   const companyId = useAuthStore((s) => s.companyId);
+  // Offline B: server-only data — offline, the last answer is shown with its date.
+  const { staleAt, setStaleAt, staleMessage } = useStaleNotice();
   useFeatureGuard(useAuthStore((s) => s.user?.restrictReportsAndFullSales));
   const { name: companyName, currency } = useCompanyInfo();
   const colors = useThemeColors();
@@ -42,8 +47,8 @@ export default function ReportsScreen() {
     setLoading(true);
     try {
       const [summaryResult, topResult] = await Promise.all([
-        reportsApi.salesSummary(companyId, { from, to }),
-        reportsApi.topProducts(companyId, { from, to, limit: 10 }),
+        cachedFetch(companyId, `salesSummary:${from}:${to}`, () => reportsApi.salesSummary(companyId, { from, to }), setStaleAt),
+        cachedFetch(companyId, `topProducts:${from}:${to}`, () => reportsApi.topProducts(companyId, { from, to, limit: 10 }), setStaleAt),
       ]);
       setSummary(summaryResult);
       setTopProducts(topResult);
@@ -94,6 +99,7 @@ export default function ReportsScreen() {
         </View>
       </View>
 
+      <OfflineNotice visible={!!staleAt} message={staleMessage} />
       <ScrollView contentContainerClassName="gap-4 p-5">
         <View className="flex-row gap-3">
           <View className="flex-1">

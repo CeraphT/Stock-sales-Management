@@ -247,6 +247,16 @@ export const pendingOps = sqliteTable(
   (table) => [index("pending_ops_company_idx").on(table.companyId, table.createdAt)],
 );
 
+// Last successful answer of server-only reads (reports, purchase orders,
+// services, reconciliation…) so those screens still show something offline,
+// labelled with its date. Keyed by endpoint + params. Local-only. (offline B)
+export const remoteCache = sqliteTable("remote_cache", {
+  key: text("key").primaryKey(),
+  companyId: text("company_id").notNull(),
+  json: text("json").notNull(),
+  savedAt: text("saved_at").notNull(),
+});
+
 // Bookkeeping for incremental sync — tracks the server's `ServerTimestamp`
 // from the last successful pull so the next pull can send `since` and only
 // fetch what changed.

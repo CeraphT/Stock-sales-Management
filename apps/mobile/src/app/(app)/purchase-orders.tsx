@@ -4,7 +4,10 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Linking, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OfflineNotice } from '@/components/OfflineNotice';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { cachedFetch } from '@stockflow/core/local/remoteCache';
+import { useStaleNotice } from '@/lib/hooks/useStaleNotice';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { PurchaseOrderStatus } from '@/lib/api/enums';
@@ -41,6 +44,8 @@ function daysSince(iso: string): number {
 
 export default function PurchaseOrdersScreen() {
   const companyId = useAuthStore((s) => s.companyId);
+  // Offline B: server-only data — offline, the last answer is shown with its date.
+  const { staleAt, setStaleAt, staleMessage } = useStaleNotice();
   useFeatureGuard(useAuthStore((s) => s.user?.restrictPurchasing));
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
@@ -60,7 +65,10 @@ export default function PurchaseOrdersScreen() {
     if (!companyId) return;
     setLoading(true);
     try {
-      const [orders, sups] = await Promise.all([purchaseOrdersApi.list(companyId), suppliersApi.list(companyId)]);
+      const [orders, sups] = await Promise.all([
+        cachedFetch(companyId, 'purchaseOrders:list', () => purchaseOrdersApi.list(companyId), setStaleAt),
+        cachedFetch(companyId, 'suppliers:list', () => suppliersApi.list(companyId), setStaleAt),
+      ]);
       setAllOrders(orders);
       setSuppliers(sups);
     } catch (err) {
@@ -165,6 +173,7 @@ export default function PurchaseOrdersScreen() {
         </FiltersDisclosure>
       </View>
 
+      <OfflineNotice visible={!!staleAt} message={staleMessage} />
       {loading ? (
         <SkeletonList />
       ) : (
