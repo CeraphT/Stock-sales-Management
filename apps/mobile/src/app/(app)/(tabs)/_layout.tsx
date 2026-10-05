@@ -3,6 +3,7 @@ import { Slot } from 'expo-router';
 import { Tabs } from 'expo-router/tabs';
 import type { ColorValue } from 'react-native';
 
+import { useCompanyLocked } from '@/lib/companyGate';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useThemeColors } from '@/lib/theme/colors';
 import { useIsTablet } from '@/lib/useIsTablet';
@@ -16,6 +17,7 @@ export default function TabsLayout() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const isTablet = useIsTablet();
+  const companyLocked = useCompanyLocked();
 
   // On tablets the persistent left rail (in the (app) layout) is the navigation,
   // so the 5 sections just render their content here — no bottom tab bar.
@@ -27,6 +29,15 @@ export default function TabsLayout() {
     ({ focused, color, size }: { focused: boolean; color: ColorValue; size: number }) => (
       <Ionicons name={focused ? focusedName : name} size={size} color={color as string} />
     );
+
+  // No company yet (SuperAdmin outside any business): the company tabs are
+  // greyed out and inert; Home and More stay usable.
+  const lockedTab = companyLocked
+    ? {
+        options: { tabBarItemStyle: { opacity: 0.35 } },
+        listeners: { tabPress: (e: { preventDefault: () => void }) => e.preventDefault() },
+      }
+    : { options: {}, listeners: {} };
 
   return (
     <Tabs
@@ -41,14 +52,20 @@ export default function TabsLayout() {
         name="dashboard"
         options={{ title: t('tabs.dashboard'), tabBarIcon: icon('home-outline', 'home') }}
       />
-      <Tabs.Screen name="pos" options={{ title: t('tabs.pos'), tabBarIcon: icon('add-circle-outline', 'add-circle') }} />
+      <Tabs.Screen
+        name="pos"
+        options={{ title: t('tabs.pos'), tabBarIcon: icon('add-circle-outline', 'add-circle'), ...lockedTab.options }}
+        listeners={lockedTab.listeners}
+      />
       <Tabs.Screen
         name="catalog"
-        options={{ title: t('tabs.catalog'), tabBarIcon: icon('cube-outline', 'cube') }}
+        options={{ title: t('tabs.catalog'), tabBarIcon: icon('cube-outline', 'cube'), ...lockedTab.options }}
+        listeners={lockedTab.listeners}
       />
       <Tabs.Screen
         name="sales-history"
-        options={{ title: t('tabs.sales'), tabBarIcon: icon('time-outline', 'time') }}
+        options={{ title: t('tabs.sales'), tabBarIcon: icon('time-outline', 'time'), ...lockedTab.options }}
+        listeners={lockedTab.listeners}
       />
       <Tabs.Screen
         name="more"

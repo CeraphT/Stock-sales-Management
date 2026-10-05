@@ -117,6 +117,11 @@ export const translations = {
     "superAdmin.unsyncedTitle": "Unsynced changes",
     "superAdmin.unsyncedMsg": "Some changes made on this device couldn't be sent to the server (offline?). Leaving now will discard them from this device.",
     "superAdmin.leaveAnyway": "Leave anyway",
+    "noCompany.screenMsg": "This screen belongs to a business. Choose a business first to work inside it.",
+    "noCompany.backHome": "Back to home",
+    "noCompany.lockedHint": "Business features are locked until you choose one.",
+    "catalog.loading": "Loading products…",
+    "sync.initialSyncing": "Syncing your business data…",
     "dashboard.reconciliationTitle": "Needs reconciliation",
     "dashboard.negativeBatchesMsg":
       "{count} batch(es) went negative — offline sales likely oversold the same stock on two devices.",
@@ -335,6 +340,11 @@ export const translations = {
     "superAdmin.unsyncedTitle": "Modifications non synchronisées",
     "superAdmin.unsyncedMsg": "Des modifications faites sur cet appareil n'ont pas pu être envoyées au serveur (hors ligne ?). Quitter maintenant les supprimera de cet appareil.",
     "superAdmin.leaveAnyway": "Quitter quand même",
+    "noCompany.screenMsg": "Cet écran appartient à une entreprise. Choisissez d'abord une entreprise pour y travailler.",
+    "noCompany.backHome": "Retour à l'accueil",
+    "noCompany.lockedHint": "Les fonctionnalités de l'entreprise sont verrouillées tant que vous n'en avez pas choisi une.",
+    "catalog.loading": "Chargement des produits…",
+    "sync.initialSyncing": "Synchronisation des données…",
     "dashboard.reconciliationTitle": "Réconciliation nécessaire",
     "dashboard.negativeBatchesMsg":
       "{count} lot(s) sont devenus négatifs — des ventes hors ligne ont probablement vendu le même stock sur deux appareils.",

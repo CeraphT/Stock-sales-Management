@@ -1,14 +1,18 @@
-import { Redirect, Stack } from 'expo-router';
+import { Redirect, Stack, usePathname } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 
 import { ImpersonationBanner } from '@/components/ImpersonationBanner';
+import { NoCompanyNotice } from '@/components/NoCompanyNotice';
 import { RegisterGate } from '@/components/RegisterGate';
+import { SyncingBar } from '@/components/SyncingBar';
 import { TabletNavRail } from '@/components/TabletNavRail';
 import { UserRole } from '@/lib/api/enums';
 import { useAuthStore } from '@/lib/auth/store';
+import { isCompanyRoute } from '@/lib/companyGate';
 import { localShiftService } from '@/lib/local/shiftService';
 import { syncNow } from '@/lib/sync/syncNow';
+import { useSyncStatus } from '@/lib/sync/syncStatus';
 import { isolateCompany } from '@stockflow/core/db/isolation';
 import { localDbWriteLock } from '@stockflow/core/db/writeLock';
 import { useAutoBackup } from '@/lib/useAutoBackup';
@@ -29,6 +33,7 @@ export default function AppLayout() {
   const locationId = useAuthStore((s) => s.locationId);
   const isCashier = useAuthStore((s) => s.user?.role) === UserRole.Cashier;
   const isTablet = useIsTablet();
+  const pathname = usePathname();
   // Daily local safety backup (offline-resilient); no-op until a company is set.
   useAutoBackup();
   // Keep this device visible as "live" in the fleet monitoring view.
@@ -43,6 +48,7 @@ export default function AppLayout() {
     if (!token || !companyId || syncedFor.current === companyId) return;
     syncedFor.current = companyId;
     (async () => {
+      useSyncStatus.getState().setInitialSyncing(true);
       try {
         await localDbWriteLock.run(() => isolateCompany(companyId));
       } catch {
@@ -52,6 +58,8 @@ export default function AppLayout() {
         await syncNow();
       } catch {
         /* offline — screens use the local mirror; next sync retries */
+      } finally {
+        useSyncStatus.getState().setInitialSyncing(false);
       }
     })();
   }, [token, companyId]);
@@ -92,7 +100,18 @@ export default function AppLayout() {
   if (gate === 'gated') {
     return <RegisterGate onOpened={() => setGate('clear')} />;
   }
-  const stack = <Stack screenOptions={{ headerShown: false }} />;
+  // No company yet (SuperAdmin outside any business): a company screen reached
+  // anyway (deep link, back stack) is covered by an explanation instead of
+  // spinning forever on its early `if (!companyId) return`. The navigation
+  // greys these out too (TabletNavRail, tabs, More); this is the safety net.
+  const blocked = !companyId && isCompanyRoute(pathname);
+  const stack = (
+    <View style={{ flex: 1 }}>
+      <Stack screenOptions={{ headerShown: false }} />
+      {blocked ? <NoCompanyNotice /> : null}
+      <SyncingBar />
+    </View>
+  );
   // SuperAdmin inside a company (M8): amber banner above everything.
   const banner = <ImpersonationBanner />;
   // Desktop-style shell on tablets: a persistent left nav rail beside the

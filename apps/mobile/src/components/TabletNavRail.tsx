@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { isCompanyRoute, useCompanyLocked } from '@/lib/companyGate';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useThemeColors } from '@/lib/theme/colors';
 
@@ -34,6 +35,8 @@ export function TabletNavRail() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const pathname = usePathname();
+  // No company yet (SuperAdmin outside any business): company sections are greyed out.
+  const companyLocked = useCompanyLocked();
 
   const isActive = (item: RailItem) =>
     pathname === item.route || (item.match ?? []).some((m) => pathname.startsWith(m));
@@ -47,12 +50,15 @@ export function TabletNavRail() {
       </View>
       {ITEMS.map((item) => {
         const active = isActive(item);
+        const locked = companyLocked && isCompanyRoute(item.route);
         return (
           <Pressable
             key={item.route}
             onPress={() => router.push(item.route as never)}
+            disabled={locked}
+            accessibilityState={{ disabled: locked }}
             className="mb-2 w-full items-center gap-1 py-2.5 active:opacity-70"
-            style={{ backgroundColor: active ? colors.primary + '14' : 'transparent' }}>
+            style={{ backgroundColor: active ? colors.primary + '14' : 'transparent', opacity: locked ? 0.35 : 1 }}>
             <Ionicons name={active ? item.activeIcon : item.icon} size={24} color={active ? colors.primary : colors.iconMuted} />
             <Text numberOfLines={1} className="text-[10px] font-semibold" style={{ color: active ? colors.primary : colors.textSecondary }}>
               {t(item.labelKey)}

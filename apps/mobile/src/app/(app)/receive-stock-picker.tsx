@@ -3,7 +3,7 @@ import { and, asc, eq } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -13,6 +13,7 @@ import { products } from '@/lib/db/schema';
 import { useAuthStore } from '@/lib/auth/store';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { useSyncStatus } from '@/lib/sync/syncStatus';
 import { useThemeColors } from '@/lib/theme/colors';
 
 /** Purchasing → "Receive stock": pick (or search) the product you got a
@@ -26,7 +27,8 @@ export default function ReceiveStockPickerScreen() {
   const colors = useThemeColors();
   const [query, setQuery] = useState('');
 
-  const { data: productRows } = useLiveQuery(
+  const initialSyncing = useSyncStatus((s) => s.initialSyncing);
+  const { data: productRows, updatedAt: productsLoadedAt } = useLiveQuery(
     db
       .select({ id: products.id, name: products.name, barcode: products.barcode })
       .from(products)
@@ -69,7 +71,13 @@ export default function ReceiveStockPickerScreen() {
       </View>
 
       <ScrollView contentContainerClassName="gap-2 p-5" keyboardShouldPersistTaps="handled">
-        {filtered.length === 0 ? (
+        {filtered.length === 0 && (!productsLoadedAt || initialSyncing) ? (
+          // Still loading / first sync bringing the catalogue in — not "empty".
+          <View className="items-center gap-3 py-10">
+            <ActivityIndicator color={colors.primary} />
+            <Text className="text-center text-sm text-text-secondary">{t('catalog.loading')}</Text>
+          </View>
+        ) : filtered.length === 0 ? (
           <Text className="px-2 py-10 text-center text-sm text-text-secondary">{t('receive.empty')}</Text>
         ) : (
           filtered.map((p) => (

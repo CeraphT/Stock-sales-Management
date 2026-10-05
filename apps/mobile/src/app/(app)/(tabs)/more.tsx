@@ -9,6 +9,7 @@ import { ScreenBackground } from '@/components/ScreenBackground';
 import { UserRole } from '@/lib/api/enums';
 import { useAuthStore } from '@/lib/auth/store';
 import { useImpersonation } from '@/lib/auth/impersonation';
+import { isCompanyRoute, useCompanyLocked } from '@/lib/companyGate';
 import type { Language } from '@/lib/i18n/store';
 import { useLanguageStore } from '@/lib/i18n/store';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -109,6 +110,10 @@ export default function MoreScreen() {
   const language = useLanguageStore((s) => s.language);
   const setLanguage = useLanguageStore((s) => s.setLanguage);
   const [query, setQuery] = useState('');
+  // No company yet (SuperAdmin outside any business): company features are
+  // greyed out and inert — only settings that need no company stay usable.
+  const companyLocked = useCompanyLocked();
+  const isLocked = (item: MenuLeaf) => companyLocked && isCompanyRoute(item.route);
 
   const roleLabel = user?.role === UserRole.SuperAdmin ? 'Super admin' : user?.role === UserRole.CompanyAdmin ? 'Admin' : 'Cashier';
   const initial = (user?.name?.trim()[0] ?? '•').toUpperCase();
@@ -139,6 +144,7 @@ export default function MoreScreen() {
   const results = q ? allItems.filter((x) => t(x.item.labelKey).toLowerCase().includes(q)) : [];
 
   const go = (item: MenuLeaf) => {
+    if (isLocked(item)) return;
     if (!item.route) {
       showAlert(t(item.labelKey), t('drawer.comingSoon'));
       return;
@@ -156,19 +162,22 @@ export default function MoreScreen() {
   const row = (entry: { item: MenuLeaf; tint: Tint }, last: boolean) => {
     const tint = colors[entry.tint];
     const active = isActive(entry.item.route);
+    const locked = isLocked(entry.item);
     return (
       <Pressable
         key={entry.item.labelKey}
         onPress={() => go(entry.item)}
+        disabled={locked}
+        accessibilityState={{ disabled: locked }}
         className="flex-row items-center gap-3 px-3.5 py-3 active:opacity-70"
-        style={{ backgroundColor: active ? colors.primary + '14' : 'transparent', borderBottomColor: colors.border, borderBottomWidth: last ? 0 : 0.5 }}>
+        style={{ backgroundColor: active ? colors.primary + '14' : 'transparent', borderBottomColor: colors.border, borderBottomWidth: last ? 0 : 0.5, opacity: locked ? 0.4 : 1 }}>
         <View className="h-8 w-8 items-center justify-center rounded-[9px]" style={{ backgroundColor: tint + '22' }}>
           <Ionicons name={entry.item.icon} size={17} color={tint} />
         </View>
         <Text className="flex-1 text-sm" style={{ color: active ? colors.primary : colors.textPrimary }}>
           {t(entry.item.labelKey)}
         </Text>
-        <Ionicons name="chevron-forward" size={16} color={colors.iconMuted} />
+        <Ionicons name={locked ? "lock-closed-outline" : "chevron-forward"} size={16} color={colors.iconMuted} />
       </Pressable>
     );
   };
@@ -243,6 +252,21 @@ export default function MoreScreen() {
             </View>
           ) : (
             <>
+              {/* SuperAdmin with no business entered: the way in, above the locked menu. */}
+              {companyLocked && user?.role === UserRole.SuperAdmin ? (
+                <Pressable
+                  onPress={() => router.push('/company-picker' as never)}
+                  className="mb-5 flex-row items-center gap-3 rounded-2xl border p-4 active:opacity-80"
+                  style={{ borderColor: colors.primary, backgroundColor: colors.primary + '10' }}>
+                  <Ionicons name="swap-horizontal-outline" size={20} color={colors.primary} />
+                  <View className="flex-1">
+                    <Text className="text-sm font-bold" style={{ color: colors.primary }}>{t('superAdmin.pickerTitle')}</Text>
+                    <Text className="mt-0.5 text-xs" style={{ color: colors.textSecondary }}>{t('noCompany.lockedHint')}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+                </Pressable>
+              ) : null}
+
               {/* Quick access */}
               {quick.length > 0 ? (
                 <>
@@ -252,12 +276,15 @@ export default function MoreScreen() {
                   <View className="mb-5 flex-row flex-wrap justify-between">
                     {quick.map(({ item, tint }) => {
                       const c = colors[tint];
+                      const locked = isLocked(item);
                       return (
                         <Pressable
                           key={item.labelKey}
                           onPress={() => go(item)}
+                          disabled={locked}
+                          accessibilityState={{ disabled: locked }}
                           className="mb-2.5 rounded-2xl border p-3 active:opacity-70"
-                          style={{ width: '48.5%', borderColor: colors.border, backgroundColor: colors.surface }}>
+                          style={{ width: '48.5%', borderColor: colors.border, backgroundColor: colors.surface, opacity: locked ? 0.4 : 1 }}>
                           <View className="h-9 w-9 items-center justify-center rounded-[10px]" style={{ backgroundColor: c + '22' }}>
                             <Ionicons name={item.icon} size={19} color={c} />
                           </View>

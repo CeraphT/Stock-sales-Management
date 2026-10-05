@@ -3,7 +3,7 @@ import { and, asc, eq } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, TextInput, View } from 'react-native';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { FiltersDisclosure } from '@/components/FiltersDisclosure';
@@ -16,7 +16,9 @@ import { db } from '@/lib/db/client';
 import { batches, categories, productPackagingLevels, products } from '@/lib/db/schema';
 import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { syncNow } from '@/lib/sync/syncNow';
+import { useSyncStatus } from '@/lib/sync/syncStatus';
 import { useThemeColors } from '@/lib/theme/colors';
 import { useIsTablet } from '@/lib/useIsTablet';
 import { toast } from '@/lib/ui/toastStore';
@@ -42,6 +44,8 @@ export default function CatalogScreen() {
   const locationId = useAuthStore((s) => s.locationId);
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
+  const { t } = useTranslation();
+  const initialSyncing = useSyncStatus((s) => s.initialSyncing);
   const isTablet = useIsTablet();
   const numColumns = isTablet ? 2 : 1;
   const [syncing, setSyncing] = useState(false);
@@ -66,7 +70,7 @@ export default function CatalogScreen() {
   //
   // All queries are scoped to the current company. The local SQLite mirror can
   // end up holding rows from a company no longer signed in on this device.
-  const { data: productRows } = useLiveQuery(
+  const { data: productRows, updatedAt: productsLoadedAt } = useLiveQuery(
     db
       .select()
       .from(products)
@@ -314,11 +318,20 @@ export default function CatalogScreen() {
           );
         }}
         ListEmptyComponent={
-          <View className="items-center py-16">
-            <Text className="text-sm text-text-secondary">
-              {syncing ? 'Loading products…' : hasActiveFilters ? 'No products match these filters.' : 'No products yet.'}
-            </Text>
-          </View>
+          // Still loading (first local read not back yet, or the initial/pull
+          // sync is bringing the catalogue in) → spinner, not "No products yet".
+          !productsLoadedAt || syncing || initialSyncing ? (
+            <View className="items-center gap-3 py-16">
+              <ActivityIndicator color={colors.primary} />
+              <Text className="text-sm text-text-secondary">{t('catalog.loading')}</Text>
+            </View>
+          ) : (
+            <View className="items-center py-16">
+              <Text className="text-sm text-text-secondary">
+                {hasActiveFilters ? 'No products match these filters.' : 'No products yet.'}
+              </Text>
+            </View>
+          )
         }
       />
     </View>
