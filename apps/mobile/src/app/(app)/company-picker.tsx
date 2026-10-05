@@ -20,7 +20,9 @@ import { toast } from '@/lib/ui/toastStore';
  * the impersonation token, so the whole app then runs inside that company.
  * Mirrors the web console's Companies → Enter (apps/web/src/screens/superadmin/Companies.tsx). */
 export default function CompanyPickerScreen() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  // French uses the singular for 0 and 1 ("0 produit"), English only for 1.
+  const isSingular = (n: number) => (language === 'fr' ? n < 2 : n === 1);
   const colors = useThemeColors();
   const isSuperAdmin = useAuthStore((s) => s.user?.role) === UserRole.SuperAdmin;
   const currentCompanyId = useImpersonation((s) => s.companyId);
@@ -125,7 +127,8 @@ export default function CompanyPickerScreen() {
                     {item.name}
                   </Text>
                   <Text className="mt-0.5 text-xs text-text-secondary">
-                    {item.uniqueCode} · {item.productCount} {t('superAdmin.products')} · {item.userCount} {t('superAdmin.users')}
+                    {item.uniqueCode} · {item.productCount} {t(isSingular(item.productCount) ? 'superAdmin.product' : 'superAdmin.products')} · {item.userCount}{' '}
+                    {t(isSingular(item.userCount) ? 'superAdmin.user' : 'superAdmin.users')}
                   </Text>
                 </View>
                 {busy ? (
