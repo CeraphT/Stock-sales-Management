@@ -36,6 +36,14 @@ services:
       # to CORS. Adjust if the desktop reports a different origin.
       CORS_ORIGINS: "https://stock.mfspace.lu,http://tauri.localhost,https://tauri.localhost"
       AUTO_MIGRATE: "true"
+      # Support-request notifications (MailKit SMTP) — same LWS mailbox as HouseBudget.
+      # SMTP_PASS lives in deploy/.env (secret, never committed).
+      SMTP_HOST: "mail.mfspace.lu"
+      SMTP_PORT: "587"
+      SMTP_USER: "infos@mfspace.lu"
+      SMTP_FROM: "infos@mfspace.lu"
+      SMTP_PASS: ${SMTP_PASS}
+      SUPPORT_NOTIFY_EMAIL: "infos@mfspace.lu"
     depends_on:
       db:
         condition: service_healthy
