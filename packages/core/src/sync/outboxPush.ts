@@ -5,6 +5,7 @@ import { categoriesApi } from "../api/endpoints/categories";
 import { customersApi } from "../api/endpoints/customers";
 import { productsApi } from "../api/endpoints/products";
 import { suppliersApi } from "../api/endpoints/suppliers";
+import { supportApi } from "../api/endpoints/support";
 import { db } from "../db/client";
 import { batches, categories, customers, loyaltyAccounts, pendingOps, stockMovements, suppliers } from "../db/schema";
 import { listPendingOps, type PendingOpKind, type PendingOpPayloads } from "../local/offlineWrites";
@@ -90,6 +91,11 @@ async function replay(companyId: string, kind: PendingOpKind, payload: unknown):
     case "category.create": {
       const p = payload as PendingOpPayloads["category.create"];
       await categoriesApi.create(companyId, p.body);
+      return;
+    }
+    case "support.create": {
+      const p = payload as PendingOpPayloads["support.create"];
+      await supportApi.create(p.body);
       return;
     }
     default:

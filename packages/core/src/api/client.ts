@@ -198,6 +198,15 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
   return (text ? JSON.parse(text) : undefined) as T;
 }
 
+/** GET returning raw bytes (images, files) with the session's auth header —
+ * for content a plain <img src> can't fetch because it needs the token. */
+export async function apiFetchBlob(path: string): Promise<Blob> {
+  const token = getAuthStore().getState().token;
+  const response = await fetchWithTimeout(buildUrl(path), { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  if (!response.ok) throw new ApiError(response.status, response.statusText);
+  return response.blob();
+}
+
 export const api = {
   get: <T>(path: string, query?: RequestOptions["query"]) =>
     apiFetch<T>(path, { method: "GET", query }),

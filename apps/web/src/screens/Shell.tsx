@@ -14,6 +14,7 @@ import { useBreadcrumb, type Crumb } from "@/lib/breadcrumb";
 import { useT } from "@/lib/i18n";
 import { NAV } from "@/lib/nav";
 import { logout } from "@/lib/session";
+import { setLastScreen } from "@/lib/lastScreen";
 import { useAutoBackup } from "@/lib/useAutoBackup";
 import { useHeartbeat } from "@/lib/useHeartbeat";
 import { useIdleLogout } from "@/lib/useIdleLogout";
@@ -26,6 +27,10 @@ import { useCompany } from "@/lib/useCompany";
 export function Shell() {
   const navigate = useNavigate();
   const location = useLocation();
+  // Context for Support requests: where the user was before opening Support.
+  useEffect(() => {
+    setLastScreen(location.pathname);
+  }, [location.pathname]);
   const locationName = useAuthStore((s) => s.locationName);
   const role = useAuthStore((s) => s.user?.role);
   const companyId = useAuthStore((s) => s.companyId);

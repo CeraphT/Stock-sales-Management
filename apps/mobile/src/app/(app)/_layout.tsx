@@ -10,6 +10,7 @@ import { TabletNavRail } from '@/components/TabletNavRail';
 import { UserRole } from '@/lib/api/enums';
 import { useAuthStore } from '@/lib/auth/store';
 import { isCompanyRoute } from '@/lib/companyGate';
+import { useLastScreen } from '@/lib/support/lastScreen';
 import { localShiftService } from '@/lib/local/shiftService';
 import { syncNow } from '@/lib/sync/syncNow';
 import { useSyncStatus } from '@/lib/sync/syncStatus';
@@ -35,6 +36,10 @@ export default function AppLayout() {
   const isCashier = useAuthStore((s) => s.user?.role) === UserRole.Cashier;
   const isTablet = useIsTablet();
   const pathname = usePathname();
+  // Remember where the user was, for the Support request's context.
+  useEffect(() => {
+    if (pathname && pathname !== '/support') useLastScreen.getState().set(pathname);
+  }, [pathname]);
   // Daily local safety backup (offline-resilient); no-op until a company is set.
   useAutoBackup();
   // Keep this device visible as "live" in the fleet monitoring view.

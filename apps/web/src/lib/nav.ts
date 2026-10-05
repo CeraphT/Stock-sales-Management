@@ -63,6 +63,7 @@ export const NAV: NavGroup[] = [
       { label: "Company settings", path: "/settings", icon: "🏢" },
     ],
   },
+  { title: "Help", items: [{ label: "Support", path: "/support", icon: "🆘" }] },
 ];
 
 export const ALL_NAV_ITEMS: NavItem[] = NAV.flatMap((g) => g.items);

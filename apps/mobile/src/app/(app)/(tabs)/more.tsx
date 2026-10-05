@@ -87,6 +87,13 @@ const GROUPS: MenuGroup[] = [
       { labelKey: 'drawer.item.myBusiness', icon: 'business-outline', route: '/my-business' },
     ],
   },
+  {
+    // Always reachable — a blocked user (or one with no business selected) must
+    // still be able to ask for help.
+    labelKey: 'drawer.group.help',
+    tint: 'primary',
+    items: [{ labelKey: 'drawer.item.support', icon: 'chatbubbles-outline', route: '/support' }],
+  },
 ];
 
 // Most-reached destinations, shown as big tiles at the top (any that a cashier

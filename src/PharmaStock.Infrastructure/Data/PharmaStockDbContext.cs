@@ -57,6 +57,8 @@ public class PharmaStockDbContext : DbContext
     public DbSet<CustomFieldValue> CustomFieldValues => Set<CustomFieldValue>();
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<SupportTicket> SupportTickets => Set<SupportTicket>();
+    public DbSet<SupportAttachment> SupportAttachments => Set<SupportAttachment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -14,6 +14,7 @@ const NAV: { to: string; label: string; icon: string; end?: boolean }[] = [
   { to: "/superadmin/companies", label: "Companies", icon: "🏢" },
   { to: "/superadmin/devices", label: "Devices & sessions", icon: "💻" },
   { to: "/superadmin/users", label: "Users", icon: "👥" },
+  { to: "/superadmin/support", label: "Support", icon: "🆘" },
   { to: "/superadmin/audit", label: "Audit log", icon: "📜" },
   { to: "/superadmin/admins", label: "Administrators", icon: "🛡️" },
 ];

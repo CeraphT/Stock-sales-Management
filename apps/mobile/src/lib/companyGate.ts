@@ -4,7 +4,7 @@ import { useAuthStore } from '@/lib/auth/store';
  * who hasn't entered a business yet). Everything else is company-scoped: the
  * navigation greys it out, and (app)/_layout covers it with NoCompanyNotice if
  * it's reached anyway (deep link, back stack). */
-const NO_COMPANY_ROUTES = ['/dashboard', '/more', '/company-picker', '/change-password', '/printer-settings'];
+const NO_COMPANY_ROUTES = ['/dashboard', '/more', '/company-picker', '/change-password', '/printer-settings', '/support'];
 
 export function isCompanyRoute(route: string | undefined): boolean {
   if (!route) return false;

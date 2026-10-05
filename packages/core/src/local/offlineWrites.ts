@@ -10,6 +10,7 @@ import type {
   SupplierRequest,
 } from "../api/types/catalog";
 import type { CustomerRequest } from "../api/types/customers";
+import type { CreateSupportTicketRequest } from "../api/types/support";
 import { getAuthStore } from "../auth/store";
 import { db } from "../db/client";
 import { batches, categories, customers, loyaltyAccounts, pendingOps, products, stockMovements, suppliers } from "../db/schema";
@@ -34,7 +35,14 @@ import { generateId } from "../idGenerator";
  * marked failed and its local effect reverted (see outboxPush.ts).
  */
 
-export type PendingOpKind = "stock.receive" | "stock.adjust" | "stock.count" | "customer.create" | "supplier.create" | "category.create";
+export type PendingOpKind =
+  | "stock.receive"
+  | "stock.adjust"
+  | "stock.count"
+  | "customer.create"
+  | "supplier.create"
+  | "category.create"
+  | "support.create";
 
 export interface PendingOpPayloads {
   "stock.receive": { productId: string; body: ReceiveStockRequest & { clientBatchId: string; clientMovementId: string } };
@@ -43,6 +51,7 @@ export interface PendingOpPayloads {
   "customer.create": { body: CustomerRequest & { id: string } };
   "supplier.create": { body: SupplierRequest & { id: string } };
   "category.create": { body: CategoryRequest & { id: string } };
+  "support.create": { body: CreateSupportTicketRequest & { id: string } };
 }
 
 const now = () => new Date().toISOString();
@@ -233,6 +242,14 @@ export const offlineWrites = {
       await db.insert(categories).values({ id, companyId, name, updatedAt: now() });
       await enqueue(companyId, "category.create", { body: { name, id } });
       return { id };
+    }),
+
+  /** Queue a support request that couldn't be sent (offline). Only possible
+   * inside a company — the outbox drains per company. Images travel in the
+   * payload (size-capped by the screen). */
+  queueSupportTicket: (companyId: string, request: CreateSupportTicketRequest & { id: string }) =>
+    localDbWriteLock.run(async () => {
+      await enqueue(companyId, "support.create", { body: request });
     }),
 
   /** Ops still waiting to be sent, and ops the server rejected for good. */

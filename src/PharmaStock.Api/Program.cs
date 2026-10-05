@@ -120,5 +120,6 @@ app.MapRefundEndpoints();
 app.MapServiceEndpoints();
 app.MapReconciliationEndpoints();
 app.MapAlertsEndpoints();
+app.MapSupportEndpoints();
 
 app.Run();

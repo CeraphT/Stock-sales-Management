@@ -31,6 +31,7 @@ import { PrinterSettings } from "@/screens/PrinterSettings";
 import { Reconciliation } from "@/screens/Reconciliation";
 import { Reports } from "@/screens/Reports";
 import { Staff } from "@/screens/Staff";
+import { Support } from "@/screens/Support";
 import { TaxDeclaration } from "@/screens/TaxDeclaration";
 import { Placeholder } from "@/screens/Placeholder";
 import { Pos } from "@/screens/Pos";
@@ -59,6 +60,7 @@ import { Login } from "@/screens/auth/Login";
 import { Onboarding } from "@/screens/auth/Onboarding";
 import { SuperAdminAdmins } from "@/screens/superadmin/Admins";
 import { SuperAdminAudit } from "@/screens/superadmin/Audit";
+import { SuperAdminSupport } from "@/screens/superadmin/Support";
 import { SuperAdminCompanies } from "@/screens/superadmin/Companies";
 import { SuperAdminCompanyDetail } from "@/screens/superadmin/CompanyDetail";
 import { SuperAdminDevices } from "@/screens/superadmin/Devices";
@@ -134,6 +136,7 @@ export const router = createBrowserRouter([
           { path: "/superadmin/companies/:id", element: <SuperAdminCompanyDetail /> },
           { path: "/superadmin/devices", element: <SuperAdminDevices /> },
           { path: "/superadmin/users", element: <SuperAdminUsers /> },
+          { path: "/superadmin/support", element: <SuperAdminSupport /> },
           { path: "/superadmin/audit", element: <SuperAdminAudit /> },
           { path: "/superadmin/admins", element: <SuperAdminAdmins /> },
         ],
@@ -185,11 +188,13 @@ export const router = createBrowserRouter([
       { path: "/data", element: <DataMaintenance /> },
       { path: "/staff", element: <Staff /> },
       { path: "/settings", element: <CompanySettings /> },
+      { path: "/support", element: <Support /> },
       // Any nav destination without a screen yet (Printer) falls back to a placeholder.
       ...ALL_NAV_ITEMS.filter(
         (i) =>
           ![
             "/dashboard",
+            "/support",
             "/products",
             "/bulk-stock",
             "/archived",

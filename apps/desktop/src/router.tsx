@@ -33,6 +33,7 @@ import { PrinterSettings } from "@/screens/PrinterSettings";
 import { Reconciliation } from "@/screens/Reconciliation";
 import { Reports } from "@/screens/Reports";
 import { Staff } from "@/screens/Staff";
+import { Support } from "@/screens/Support";
 import { TaxDeclaration } from "@/screens/TaxDeclaration";
 import { Placeholder } from "@/screens/Placeholder";
 import { Pos } from "@/screens/Pos";
@@ -160,11 +161,13 @@ export const router = createHashRouter([
       { path: "/data", element: <DataMaintenance /> },
       { path: "/staff", element: <Staff /> },
       { path: "/settings", element: <CompanySettings /> },
+      { path: "/support", element: <Support /> },
       // Any nav destination without a screen yet (Printer) falls back to a placeholder.
       ...ALL_NAV_ITEMS.filter(
         (i) =>
           ![
             "/dashboard",
+            "/support",
             "/products",
             "/bulk-stock",
             "/archived",
