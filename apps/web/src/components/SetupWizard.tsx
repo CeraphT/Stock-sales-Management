@@ -108,7 +108,7 @@ export function SetupWizard({ company, onDone }: { company: CompanyResponse; onD
         <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
           {step === 0 ? (
             <>
-              <p className="text-sm text-text-secondary">{t("Pick your country — we'll set the currency and default tax rate for you.")}</p>
+              <p className="text-sm text-text-secondary">{t("Pick your country. We'll set the currency and default tax rate for you.")}</p>
               <SearchableSelect
                 value={country}
                 options={COUNTRY_OPTIONS}
@@ -125,7 +125,7 @@ export function SetupWizard({ company, onDone }: { company: CompanyResponse; onD
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Currency")}</div>
-                  <div className="flex h-10 items-center rounded-xl border border-border bg-background/60 px-3 text-sm text-text-secondary">{currencyLabel || "—"}</div>
+                  <div className="flex h-10 items-center rounded-xl border border-border bg-background/60 px-3 text-sm text-text-secondary">{currencyLabel || "-"}</div>
                 </div>
                 <TextField label={t("Default tax %")} type="number" value={tax} onChange={(e) => setTax(e.target.value)} />
               </div>

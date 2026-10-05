@@ -61,7 +61,7 @@ export function Services() {
         {isLoading ? (
           <div className="p-10 text-center text-text-secondary">{t("Loading…")}</div>
         ) : data.length === 0 ? (
-          <div className="p-10 text-center text-text-secondary">{t("No services. (Requires the Services module — enable it in Company settings.)")}</div>
+          <div className="p-10 text-center text-text-secondary">{t("No services. (Requires the Services module. Enable it in Company settings.)")}</div>
         ) : (
           data.map((s) => (
             <div key={s.id} className="flex items-center gap-3 border-b border-border/60 px-4 py-3 last:border-0">

@@ -29,7 +29,7 @@ export default function JoinCompanyScreen() {
     } catch (err) {
       const message =
         err instanceof ApiError && err.status === 404
-          ? "No business found with that code — double-check it and try again."
+          ? "No business found with that code. Double-check it and try again."
           : err instanceof Error
             ? err.message
             : 'Something went wrong.';

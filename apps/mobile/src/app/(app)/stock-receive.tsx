@@ -128,7 +128,7 @@ export default function StockReceiveScreen() {
               value={serialText}
               onChangeText={setSerialText}
             />
-            <Text className="text-xs text-text-secondary">{serials.length} unit(s) — each serial is one unit received.</Text>
+            <Text className="text-xs text-text-secondary">{serials.length} unit(s) - each serial is one unit received.</Text>
           </View>
         ) : (
           <TextField

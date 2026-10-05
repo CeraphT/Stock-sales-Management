@@ -126,7 +126,7 @@ export function Reconciliation() {
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-text-primary">{b.productName}</div>
                     <div className="mt-0.5 text-xs text-text-secondary">
-                      {t("Batch")} {b.batchNumber || "—"} · {b.locationName} ·{" "}
+                      {t("Batch")} {b.batchNumber || "-"} · {b.locationName} ·{" "}
                       <span className="font-semibold text-error">{b.quantityInBaseUnits}</span>
                     </div>
                   </div>

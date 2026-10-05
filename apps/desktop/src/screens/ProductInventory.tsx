@@ -127,7 +127,7 @@ export function ProductInventory() {
                       {measure ? `${b.quantityInBaseUnits / measureUpm} ${measureUnit}` : b.quantityInBaseUnits}
                     </td>
                     <td className={`px-4 py-2.5 text-xs ${tone}`}>
-                      {b.expiryDate ? b.expiryDate.slice(0, 10) : "—"}
+                      {b.expiryDate ? b.expiryDate.slice(0, 10) : "-"}
                       {days != null && days < 0 ? ` · ${t("Expired")}` : null}
                     </td>
                     <td className="px-4 py-2.5 text-right text-text-primary tabular-nums">

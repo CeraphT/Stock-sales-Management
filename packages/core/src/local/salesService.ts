@@ -77,7 +77,7 @@ async function createSaleInternal(companyId: string, request: CreateSaleRequest)
   }
 
   const company = await db.query.companies.findFirst({ where: eq(companies.id, companyId) });
-  if (!company) throw new ApiError(404, "Business not found locally — sync before continuing offline.");
+  if (!company) throw new ApiError(404, "Business not found locally. Sync before continuing offline.");
 
   if (request.customerId) {
     const customerExists = await db.query.customers.findFirst({
@@ -350,7 +350,7 @@ async function holdSaleInternal(companyId: string, request: HoldSaleRequest): Pr
   if (request.productLines.some((l) => l.quantity <= 0)) throw new ApiError(400, "Line quantities must be positive.");
 
   const company = await db.query.companies.findFirst({ where: eq(companies.id, companyId) });
-  if (!company) throw new ApiError(404, "Business not found locally — sync before continuing offline.");
+  if (!company) throw new ApiError(404, "Business not found locally. Sync before continuing offline.");
 
   const locationExists = await db.query.locations.findFirst({
     where: and(eq(locations.id, request.locationId), eq(locations.companyId, companyId)),
@@ -485,8 +485,8 @@ export const localSalesService = {
         id: sale.id,
         timestamp: sale.timestamp,
         total: sale.total,
-        cashierName: user?.name ?? "—",
-        locationName: location?.name ?? "—",
+        cashierName: user?.name ?? "-",
+        locationName: location?.name ?? "-",
         itemCount: lineCount.length,
       });
     }
@@ -524,7 +524,7 @@ export const localSalesService = {
         timestamp: sale.timestamp,
         total: sale.total,
         paymentMethod: sale.paymentMethod,
-        cashierName: user?.name ?? "—",
+        cashierName: user?.name ?? "-",
         itemCount: lineCount.length,
         customerName: customer?.name ?? null,
         kind: SaleTimelineKind.Sale,
@@ -553,7 +553,7 @@ export const localSalesService = {
 
       productLines.push({
         productId: line.productId,
-        productName: product?.name ?? "—",
+        productName: product?.name ?? "-",
         batchId: line.batchId,
         batchNumber: batch?.batchNumber ?? null,
         quantityInBaseUnits: line.quantityInBaseUnits,
@@ -572,8 +572,8 @@ export const localSalesService = {
       paymentMethod: sale.paymentMethod,
       status: sale.status,
       timestamp: sale.timestamp,
-      cashierName: user?.name ?? "—",
-      locationName: location?.name ?? "—",
+      cashierName: user?.name ?? "-",
+      locationName: location?.name ?? "-",
       productLines,
       serviceLines: [],
       paymentSplits: splits.map((s) => ({ method: s.method, amount: s.amount })),

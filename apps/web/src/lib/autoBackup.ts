@@ -11,7 +11,7 @@ import { buildBackup } from "@/lib/dataBackup";
 
 const BACKUP_DIR = "backups";
 const BOUNDARY_HOUR = 2; // a new "backup day" starts at 02:00 local time
-const KEEP_DAYS = 14; // rolling retention — never a single overwrite
+const KEEP_DAYS = 14; // rolling retention. Never a single overwrite
 const STATE_KEY = "pharmastock-autobackup";
 
 function isTauri(): boolean {

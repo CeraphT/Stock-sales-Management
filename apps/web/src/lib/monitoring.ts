@@ -2,9 +2,9 @@ import { DevicePlatform } from "@stockflow/core/api/enums";
 
 /** Compact relative time ("just now", "5m ago", "3h ago", "2d ago", or a date). */
 export function relativeTime(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const then = new Date(iso).getTime();
-  if (!Number.isFinite(then) || then <= 0) return "—";
+  if (!Number.isFinite(then) || then <= 0) return "-";
   const diff = Date.now() - then;
   if (diff < 0) return "just now";
   const min = Math.floor(diff / 60000);
@@ -40,5 +40,5 @@ export function platformMeta(p: DevicePlatform): { label: string; icon: string }
 export function locationLabel(city: string | null, country: string | null, ip: string | null): string {
   const parts = [city, country].filter(Boolean);
   if (parts.length) return parts.join(", ");
-  return ip ?? "—";
+  return ip ?? "-";
 }

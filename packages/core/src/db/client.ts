@@ -22,7 +22,7 @@ export function initDb(db: AppDatabase) {
 
 export function getDb(): AppDatabase {
   if (!registeredDb) {
-    throw new Error("Database not initialized — call initDb() at app startup before any query runs.");
+    throw new Error("Database not initialized. Call initDb() at app startup before any query runs.");
   }
   return registeredDb;
 }

@@ -51,8 +51,8 @@ async function toDetail(shiftId: string): Promise<ShiftDetailResponse> {
   return {
     id: shift.id,
     locationId: shift.locationId,
-    locationName: location?.name ?? "—",
-    openedByName: openedByUser?.name ?? "—",
+    locationName: location?.name ?? "-",
+    openedByName: openedByUser?.name ?? "-",
     closedByName: closedByUser?.name ?? null,
     status: shift.status,
     openedAt: shift.openedAt,

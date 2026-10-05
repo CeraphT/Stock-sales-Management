@@ -68,7 +68,7 @@ public static class SupportEmailActions
   <input type=""hidden"" name=""exp"" value=""{exp}""><input type=""hidden"" name=""sig"" value=""{e(sig)}"">
   <label style=""display:block;font-weight:600;margin:8px 0 4px"">Message à l'utilisateur (facultatif)</label>
   <textarea name=""message"" rows=""4"" style=""width:100%;box-sizing:border-box;border:1px solid #E3E7E5;border-radius:8px;padding:10px;font:inherit""
-    placeholder=""Ex. : C'est corrigé — mettez l'application à jour.""></textarea>
+    placeholder=""Ex. : C'est corrigé. Mettez l'application à jour.""></textarea>
   <p style=""color:#6B7280;font-size:13px"">L'utilisateur sera prévenu (fenêtre dans l'application, et e-mail si son adresse est connue).</p>
   <button type=""submit"" style=""background:#0F766E;color:#fff;border:0;border-radius:10px;padding:12px 20px;font-weight:700;font-size:15px;cursor:pointer"">{e(label)}</button>
 </form>";
@@ -125,7 +125,7 @@ public static class SupportEmailActions
 
     private static IResult Page(string title, string body, int status = 200) => Results.Content(
         $@"<!doctype html><html lang=""fr""><head><meta charset=""utf-8""><meta name=""viewport"" content=""width=device-width,initial-scale=1"">
-<title>{WebUtility.HtmlEncode(title)} — Support StockFlow</title></head>
+<title>{WebUtility.HtmlEncode(title)} - Support StockFlow</title></head>
 <body style=""margin:0;background:#F5F8F7;font-family:Segoe UI,Arial,sans-serif;color:#1F2937"">
 <div style=""max-width:640px;margin:32px auto;background:#fff;border:1px solid #E3E7E5;border-radius:14px;padding:24px"">
 <div style=""color:#0F766E;font-weight:800;margin-bottom:8px"">Support StockFlow</div>

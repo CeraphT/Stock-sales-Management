@@ -202,7 +202,7 @@ export default function BulkStockRegisterScreen() {
           </Text>
           <Text className="text-xs text-text-secondary">
             Barcode is used to match an existing product first, then the exact product name. If a product already exists, Purchase
-            Price/Sale Price/Threshold can be left blank — its stock is just topped up. Example:
+            Price/Sale Price/Threshold can be left blank. Its stock is just topped up. Example:
           </Text>
           <Text className="rounded-lg bg-background p-2 text-[11px] text-text-secondary">{EXAMPLE_ROW}</Text>
           <View className="mt-1 flex-row flex-wrap items-center gap-2">
@@ -241,15 +241,15 @@ export default function BulkStockRegisterScreen() {
             <View className="gap-1 rounded-xl border border-border bg-surface p-4">
               <Text className="text-sm font-bold text-text-primary">Check summary</Text>
               <Text className="text-sm text-text-secondary">
-                ✅ <Text className="font-semibold text-success">{validRows.length}</Text> ready —{' '}
+                ✅ <Text className="font-semibold text-success">{validRows.length}</Text> ready -{' '}
                 {validRows.filter((r) => r.kind === 'create').length} new, {validRows.filter((r) => r.kind === 'update').length} to restock
               </Text>
               {errorRows.length > 0 ? (
                 <Text className="text-sm font-medium text-error">
-                  ❌ {errorRows.length} with errors — fix the lines marked ❌ below, then Check rows again.
+                  ❌ {errorRows.length} with errors. Fix the lines marked ❌ below, then Check rows again.
                 </Text>
               ) : (
-                <Text className="text-sm font-medium text-success">✓ All rows are valid — ready to register.</Text>
+                <Text className="text-sm font-medium text-success">✓ All rows are valid. Ready to register.</Text>
               )}
             </View>
             {parsed.map((row) => (

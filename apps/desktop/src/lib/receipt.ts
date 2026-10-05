@@ -119,7 +119,7 @@ export function printTestReceipt(company: ReceiptCompany, sellerTaxId?: string |
     timestamp: new Date().toISOString(),
     companyName: company.name,
     locationName: "Main",
-    cashierName: "—",
+    cashierName: "-",
     currency: company.currency,
     logoUrl: company.logoUrl ?? null,
     address: company.address ?? null,
@@ -153,7 +153,7 @@ export function printReceipt(sale: SaleDetailResponse, company: ReceiptCompany):
       for (let i = 0; i < copies; i++) await printBytes(bytes, thermal);
     })().catch((e) => {
       // Fall back to the print dialog so a sale is never left without a receipt.
-      toast(e instanceof Error ? e.message : "Thermal print failed — using the dialog.", "error");
+      toast(e instanceof Error ? e.message : "Thermal print failed. Using the dialog.", "error");
       printHtmlDocument(generateReceiptHtml(data));
     });
     return;

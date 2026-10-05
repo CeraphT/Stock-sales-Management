@@ -21,7 +21,7 @@ export function RevenueTrendChart({ points }: { points: DailyRevenuePoint[] }) {
   if (points.length === 0) {
     return (
       <View style={{ height: H }} className="items-center justify-center">
-        <Text className="text-sm text-text-secondary">—</Text>
+        <Text className="text-sm text-text-secondary">-</Text>
       </View>
     );
   }

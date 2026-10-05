@@ -69,7 +69,7 @@ function StockSection({ title, items, tone, showThreshold }: { title: string; it
               className="flex-row items-center justify-between border-b border-border/50 px-4 py-3 last:border-0 active:opacity-70">
               <View className="flex-1 pr-2">
                 <Text className="text-sm text-text-primary">{p.name}</Text>
-                {onOrder ? <Text className="text-xs text-text-secondary">🧾 already on order — open to print / share</Text> : null}
+                {onOrder ? <Text className="text-xs text-text-secondary">🧾 already on order. Open to print / share</Text> : null}
               </View>
               {onOrder ? (
                 <Text className="text-xs font-semibold text-primary">On order</Text>

@@ -208,7 +208,7 @@ export function CompanySettings() {
                       await navigator.clipboard.writeText(company.uniqueCode);
                       toast(t("Invite code copied."), "success");
                     } catch {
-                      toast(t("Could not copy — copy it manually."), "error");
+                      toast(t("Could not copy. Copy it manually."), "error");
                     }
                   }}
                   className="rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-bold text-primary transition hover:border-primary"
@@ -243,7 +243,7 @@ export function CompanySettings() {
             <TextField label={t("Address")} value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t("Shown on receipts & purchase orders")} />
             <TextField label={t("Phone")} value={phone} onChange={(e) => setPhone(e.target.value)} />
             <TextField label={t("Receipt footer message")} value={receiptFooter} onChange={(e) => setReceiptFooter(e.target.value)} placeholder={t("e.g. Thank you for your business!")} />
-            <TextField label={t("Taxpayer number (NIU)")} value={companyTaxId} onChange={(e) => setCompanyTaxId(e.target.value)} placeholder={t("Your NIU — shown on tax invoices")} />
+            <TextField label={t("Taxpayer number (NIU)")} value={companyTaxId} onChange={(e) => setCompanyTaxId(e.target.value)} placeholder={t("Your NIU. Shown on tax invoices")} />
           </>
         ) : null}
 
@@ -270,7 +270,7 @@ export function CompanySettings() {
             <label className="block">
               <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Currency")}</span>
               <div className="flex h-10 w-full items-center rounded-xl border border-border bg-background/60 px-3 text-sm text-text-secondary">
-                {currencyLabel || "—"}
+                {currencyLabel || "-"}
               </div>
             </label>
 
@@ -295,7 +295,7 @@ export function CompanySettings() {
               <div className="mt-2 grid grid-cols-2 gap-2">
                 {[
                   { v: 0, label: t("Standard (collects VAT)"), hint: t("Régime du réel/simplifié") },
-                  { v: 1, label: t("Flat tax (impôt libératoire)"), hint: t("Very small business — no VAT") },
+                  { v: 1, label: t("Flat tax (impôt libératoire)"), hint: t("Very small business. No VAT") },
                 ].map((r) => (
                   <button
                     key={r.v}
@@ -333,7 +333,7 @@ export function CompanySettings() {
               ) : (
                 <div className="mt-4 border-t border-border pt-3">
                   <p className="mb-3 text-xs text-text-secondary">
-                    {t("Under impôt libératoire you charge no VAT; instead you pay a flat lump-sum tax set by your commune. Enter it below — it appears in the tax declaration.")}
+                    {t("Under impôt libératoire you charge no VAT; instead you pay a flat lump-sum tax set by your commune. Enter it below. It appears in the tax declaration.")}
                   </p>
                   <div className="grid grid-cols-2 gap-4">
                     <TextField label={`${t("Flat tax amount")} (${currencyLabel})`} type="number" value={flatTaxAmount} onChange={(e) => setFlatTaxAmount(e.target.value)} />
@@ -352,7 +352,7 @@ export function CompanySettings() {
 
             {company && currency !== company.currency ? (
               <div className="rounded-lg bg-accent-amber/10 px-3 py-2.5 text-xs text-accent-amber">
-                <p>⚠ {t("Changing the currency only relabels amounts — existing prices and balances keep their numbers and are NOT converted to")} {currency}.</p>
+                <p>⚠ {t("Changing the currency only relabels amounts. Existing prices and balances keep their numbers and are NOT converted to")} {currency}.</p>
                 <button
                   type="button"
                   onClick={convert}
@@ -387,7 +387,7 @@ export function CompanySettings() {
         {tab === "manage" ? (
           <div className="space-y-2">
             <p className="text-sm text-text-secondary">
-              {t("Turn on only the inventory features this business needs — the rest stay hidden so the app stays simple.")}
+              {t("Turn on only the inventory features this business needs. The rest stay hidden so the app stays simple.")}
             </p>
             {CAPABILITY_META.map((c) => (
               <label key={c.key} className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-background">

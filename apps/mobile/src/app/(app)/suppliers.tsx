@@ -126,7 +126,7 @@ export default function SuppliersScreen() {
             className="flex-row items-center justify-between rounded-xl bg-surface p-3.5">
             <View className="flex-1 pr-2">
               <Text className="text-sm font-semibold text-text-primary">{item.name}</Text>
-              <Text className="text-xs text-text-secondary">{item.contactPhone ?? '—'} · {item.contactEmail ?? '—'}</Text>
+              <Text className="text-xs text-text-secondary">{item.contactPhone ?? '-'} · {item.contactEmail ?? '-'}</Text>
             </View>
             <Pressable onPress={() => onContact(item)} hitSlop={8} accessibilityLabel="Contact supplier" className="h-8 w-8 items-center justify-center">
               <Ionicons name="call-outline" size={18} color={colors.primary} />

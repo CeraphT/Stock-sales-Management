@@ -97,7 +97,7 @@ export function Pos() {
   useEffect(() => {
     if (hasNoProducts && !warnedNoProducts.current) {
       warnedNoProducts.current = true;
-      toast(t("No products yet — add products (and receive stock) before selling."), "info");
+      toast(t("No products yet. Add products (and receive stock) before selling."), "info");
     }
   }, [hasNoProducts, t]);
 
@@ -261,13 +261,13 @@ export function Pos() {
 
   function add(p: ProductSearchResult) {
     if (p.stockStatus === "out_of_stock") {
-      toast(`${p.name} ${t("is out of stock — receive stock before selling it.")}`, "error");
+      toast(`${p.name} ${t("is out of stock. Receive stock before selling it.")}`, "error");
       setSearch("");
       return;
     }
     // Expired stock stays sellable (the date may have been keyed wrong) — but warn.
     if (isExpired(p)) {
-      toast(`⚠ ${p.name} — ${t("expired on")} ${p.earliestExpiry!.slice(0, 10)}. ${t("Sell with caution.")}`, "error");
+      toast(`⚠ ${p.name} - ${t("expired on")} ${p.earliestExpiry!.slice(0, 10)}. ${t("Sell with caution.")}`, "error");
     }
     setSearch("");
     // Sell-by-measure (weight/length): prompt for the amount in the display unit.
@@ -320,7 +320,7 @@ export function Pos() {
       return;
     }
     if (method === PaymentMethod.StoreCredit && storeCreditAvailable < total) {
-      toast(t("Not enough store credit — this customer has only") + ` ${formatCurrency(storeCreditAvailable, currency)}.`, "error");
+      toast(t("Not enough store credit. This customer has only") + ` ${formatCurrency(storeCreditAvailable, currency)}.`, "error");
       return;
     }
     if (method === PaymentMethod.GiftCard) {
@@ -337,7 +337,7 @@ export function Pos() {
         return;
       }
       if (giftCardInfo && giftCardInfo.remainingValue < total) {
-        toast(t("Not enough balance on this gift card — only") + ` ${formatCurrency(giftCardInfo.remainingValue, currency)}.`, "error");
+        toast(t("Not enough balance on this gift card. Only") + ` ${formatCurrency(giftCardInfo.remainingValue, currency)}.`, "error");
         return;
       }
     }
@@ -423,7 +423,7 @@ export function Pos() {
       clear();
       setTendered("");
       setGiftCardCode("");
-      toast("Sale held — resume it from Held sales.", "success");
+      toast("Sale held. Resume it from Held sales.", "success");
       await queryClient.invalidateQueries();
     } catch (e) {
       setMsg({ ok: false, text: e instanceof ApiError ? e.message : "Could not hold the sale." });
@@ -489,7 +489,7 @@ export function Pos() {
         <div className="mt-3 flex-1 overflow-auto rounded-card border border-border bg-surface">
           {lines.length === 0 ? (
             <div className="flex h-full items-center justify-center text-sm text-text-secondary">
-              {t("Cart is empty — search or scan to add products.")}
+              {t("Cart is empty. Search or scan to add products.")}
             </div>
           ) : (
             <table className="w-full text-sm">
@@ -673,7 +673,7 @@ export function Pos() {
             <div className="mt-0.5 text-xs">
               {storeCreditShort
                 ? t("Not enough to cover this sale. Take a smaller amount or use another method.")
-                : t("This customer's balance covers the sale — it will be deducted on charge.")}
+                : t("This customer's balance covers the sale. It will be deducted on charge.")}
             </div>
           </div>
         ) : null}
@@ -688,7 +688,7 @@ export function Pos() {
               className="h-10 w-full rounded-xl border border-border bg-background px-3.5 text-sm text-text-primary outline-none focus:border-primary"
             />
             <p className="mt-1.5 text-[11px] text-text-secondary">
-              {t("Gift cards are not tied to a customer — anyone holding a valid code can redeem it.")}
+              {t("Gift cards are not tied to a customer. Anyone holding a valid code can redeem it.")}
             </p>
             {giftCardInfo === "notfound" ? (
               <p className="mt-1.5 text-xs font-medium text-error">{t("No gift card matches that code.")}</p>
@@ -697,7 +697,7 @@ export function Pos() {
             ) : giftCardInfo ? (
               <p className={`mt-1.5 text-xs font-semibold ${giftCardShort ? "text-error" : "text-success"}`}>
                 {t("Balance")}: {formatCurrency(giftCardInfo.remainingValue, currency)}
-                {giftCardShort ? ` — ${t("not enough for this sale.")}` : ""}
+                {giftCardShort ? ` - ${t("not enough for this sale.")}` : ""}
               </p>
             ) : null}
           </div>

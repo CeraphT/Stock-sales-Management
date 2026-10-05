@@ -376,7 +376,7 @@ public static class ProductEndpoints
                 db.Products.Add(new Product
                 {
                     CompanyId = companyId,
-                    Name = $"{parent.Name} — {label}",
+                    Name = $"{parent.Name} - {label}",
                     VariantName = label,
                     ParentProductId = parent.Id,
                     CategoryId = parent.CategoryId,

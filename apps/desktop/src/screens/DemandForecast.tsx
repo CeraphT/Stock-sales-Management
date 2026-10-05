@@ -64,9 +64,9 @@ export function DemandForecast() {
                   <td className="px-3 py-2 text-right tabular-nums text-text-secondary">{i.avgDailyUnits}</td>
                   <td className="px-3 py-2 text-right tabular-nums text-text-secondary">{i.currentStock}</td>
                   <td className={`px-3 py-2 text-right tabular-nums font-semibold ${urgent ? "text-error" : "text-text-primary"}`}>
-                    {i.daysOfCover == null ? "—" : `${i.daysOfCover}${t("d")}`}
+                    {i.daysOfCover == null ? "-" : `${i.daysOfCover}${t("d")}`}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums font-semibold text-primary">{i.suggestedReorder > 0 ? `+${i.suggestedReorder}` : "—"}</td>
+                  <td className="px-3 py-2 text-right tabular-nums font-semibold text-primary">{i.suggestedReorder > 0 ? `+${i.suggestedReorder}` : "-"}</td>
                   <td className={`px-3 py-2 text-right tabular-nums ${i.trendPct > 0 ? "text-success" : i.trendPct < 0 ? "text-error" : "text-text-secondary"}`}>
                     {i.trendPct > 0 ? "▲" : i.trendPct < 0 ? "▼" : ""}{Math.abs(i.trendPct)}%
                   </td>

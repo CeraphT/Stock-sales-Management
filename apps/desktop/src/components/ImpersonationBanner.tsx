@@ -47,7 +47,7 @@ export function ImpersonationBanner() {
     if (!active || !expiresAt) return;
     const check = () => {
       if (Date.parse(expiresAt) <= Date.now()) {
-        toast(t("Super-admin access expired — you've left the business."), "info");
+        toast(t("Super-admin access expired. You've left the business."), "info");
         void exitCompany({ force: true }).then(() => navigate("/companies", { replace: true }));
       }
     };
@@ -65,7 +65,7 @@ export function ImpersonationBanner() {
     >
       <span className="truncate font-medium">
         <span aria-hidden>👁️ </span>
-        {t("Super-admin view — you are managing")} <strong>{companyName}</strong>
+        {t("Super-admin view: you are managing")} <strong>{companyName}</strong>
       </span>
       <button
         onClick={onExit}

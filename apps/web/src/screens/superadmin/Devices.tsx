@@ -136,7 +136,7 @@ export function SuperAdminDevices() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="font-medium text-text-primary">{d.userName}</div>
-                      <div className="text-xs text-text-secondary">{d.companyName ?? "—"}</div>
+                      <div className="text-xs text-text-secondary">{d.companyName ?? "-"}</div>
                     </td>
                     <td className="px-4 py-3 text-text-secondary">{relativeTime(d.lastActiveAt)}</td>
                     <td className="px-4 py-3">

@@ -116,7 +116,7 @@ export default function PoReceiveLineScreen() {
               onChangeText={setSerialText}
             />
             <Text className="text-xs text-text-secondary">
-              {serials.length} unit(s) — each serial is one unit received.{serials.length > maxQty ? ` · exceeds remaining (${maxQty})` : ''}
+              {serials.length} unit(s) - each serial is one unit received.{serials.length > maxQty ? ` · exceeds remaining (${maxQty})` : ''}
             </Text>
           </View>
         ) : (

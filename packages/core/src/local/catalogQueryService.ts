@@ -22,7 +22,7 @@ export const localCatalogQueryService = {
   async getCompany(companyId: string): Promise<CompanyResponse> {
     const company = await db.query.companies.findFirst({ where: eq(companies.id, companyId) });
     if (!company) {
-      throw new ApiError(404, "Business not found locally — sync before continuing offline.");
+      throw new ApiError(404, "Business not found locally. Sync before continuing offline.");
     }
     return {
       id: company.id,

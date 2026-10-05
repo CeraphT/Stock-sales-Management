@@ -82,7 +82,7 @@ export const offlineWrites = {
       if (request.quantityInBaseUnits <= 0) throw new ApiError(400, "La quantité doit être positive.");
       if (!request.batchNumber.trim()) throw new ApiError(400, "Le numéro de lot est requis.");
       const product = await db.query.products.findFirst({ where: and(eq(products.id, productId), eq(products.companyId, companyId)) });
-      if (!product) throw new ApiError(404, "Produit introuvable localement — synchronisez avant de continuer hors ligne.");
+      if (!product) throw new ApiError(404, "Produit introuvable localement. Synchronisez avant de continuer hors ligne.");
       if (!product.isActive) throw new ApiError(400, "Ce produit est archivé et ne peut plus recevoir de stock.");
       if (product.serialTracked) throw new ApiError(400, "Les produits suivis par numéro de série nécessitent une connexion pour la réception.");
 

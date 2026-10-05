@@ -86,7 +86,7 @@ export function CreateCompany() {
               </button>
             ))}
           </div>
-          <p className="mt-1 text-xs text-text-secondary">{t("Turns on the right features — you can change this later in Settings.")}</p>
+          <p className="mt-1 text-xs text-text-secondary">{t("Turns on the right features. You can change this later in Settings.")}</p>
         </div>
 
         <div className="my-1 border-t border-border" />

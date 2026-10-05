@@ -137,8 +137,8 @@ export function Support() {
       );
       toast(
         result === "sent"
-          ? t("Request sent — we'll get back to you here.")
-          : t("No connection — your request is saved and will be sent automatically."),
+          ? t("Request sent. We'll get back to you here.")
+          : t("No connection. Your request is saved and will be sent automatically."),
         result === "sent" ? "success" : "info",
       );
       images.forEach((i) => URL.revokeObjectURL(i.previewUrl));
@@ -147,7 +147,7 @@ export function Support() {
       setTab("mine");
     } catch (err) {
       toast(
-        err instanceof NetworkError ? t("No connection — try again once connected.") : err instanceof Error ? err.message : t("Something went wrong."),
+        err instanceof NetworkError ? t("No connection. Try again once connected.") : err instanceof Error ? err.message : t("Something went wrong."),
         "error",
       );
     } finally {
@@ -160,7 +160,7 @@ export function Support() {
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">{t("Support")}</h1>
-          <p className="mt-1 text-sm text-text-secondary">{t("Report a bug, a blocking problem or ask a question — with screenshots.")}</p>
+          <p className="mt-1 text-sm text-text-secondary">{t("Report a bug, a blocking problem or ask a question. With screenshots.")}</p>
         </div>
         <div className="flex gap-1 rounded-full border border-border bg-surface p-1">
           {(["new", "mine"] as const).map((k) => (
@@ -248,7 +248,7 @@ export function Support() {
           </div>
 
           <div className="rounded-xl bg-primary/5 p-3 text-xs text-text-secondary">
-            ℹ️ {t("Sent automatically with your request: app version, device, your business and the screen you came from")} ({screen ?? "—"}).
+            ℹ️ {t("Sent automatically with your request: app version, device, your business and the screen you came from")} ({screen ?? "-"}).
           </div>
 
           <Button onClick={onSubmit} loading={sending} className="w-full">
@@ -263,7 +263,7 @@ export function Support() {
             <div className="rounded-card border border-border bg-surface p-8 text-center text-sm text-text-secondary">{t("Loading…")}</div>
           ) : mine.error ? (
             <div className="rounded-card border border-border bg-surface p-8 text-center text-sm text-text-secondary">
-              {mine.error instanceof NetworkError ? t("Offline — your requests can't be loaded right now.") : (mine.error as Error).message}
+              {mine.error instanceof NetworkError ? t("Offline. Your requests can't be loaded right now.") : (mine.error as Error).message}
             </div>
           ) : (mine.data ?? []).length === 0 ? (
             <div className="rounded-card border border-border bg-surface p-8 text-center text-sm text-text-secondary">{t("No requests yet.")}</div>
@@ -293,7 +293,7 @@ export function Support() {
                     <div className="mt-0.5 line-clamp-3 whitespace-pre-wrap text-sm text-text-primary">{tk.adminReply}</div>
                   </div>
                 ) : null}
-                {tk.unreadByReporter ? <div className="mt-2 text-xs font-bold text-primary">{t("New reply — click to read")}</div> : null}
+                {tk.unreadByReporter ? <div className="mt-2 text-xs font-bold text-primary">{t("New reply. Click to read")}</div> : null}
               </button>
             ))
           )}
@@ -325,7 +325,7 @@ function MyTicket({ id, onBack, onChanged }: { id: string; onBack: () => void; o
   if (detail.error || !detail.data) {
     return (
       <div className="rounded-card border border-border bg-surface p-8 text-center text-sm text-text-secondary">
-        {detail.error instanceof NetworkError ? t("Offline — your requests can't be loaded right now.") : (detail.error as Error | null)?.message}
+        {detail.error instanceof NetworkError ? t("Offline. Your requests can't be loaded right now.") : (detail.error as Error | null)?.message}
       </div>
     );
   }
@@ -341,7 +341,7 @@ function MyTicket({ id, onBack, onChanged }: { id: string; onBack: () => void; o
       toast(resolved ? t("Your request has been reopened.") : t("Reply sent."), "success");
       await queryClient.invalidateQueries({ queryKey: ["support"] });
     } catch (e) {
-      toast(e instanceof NetworkError ? t("No connection — try again once connected.") : e instanceof Error ? e.message : t("Something went wrong."), "error");
+      toast(e instanceof NetworkError ? t("No connection. Try again once connected.") : e instanceof Error ? e.message : t("Something went wrong."), "error");
     } finally {
       setSending(false);
     }

@@ -71,7 +71,7 @@ export function CashRegister() {
       setNotes("");
       const d = closed.discrepancy ?? 0;
       toast(
-        d === 0 ? "Register closed — cash balanced." : `Register closed — ${d > 0 ? "over" : "short"} by ${formatCurrency(Math.abs(d), currency)}.`,
+        d === 0 ? "Register closed. Cash balanced." : `Register closed - ${d > 0 ? "over" : "short"} by ${formatCurrency(Math.abs(d), currency)}.`,
         d === 0 ? "success" : "info",
       );
       invalidate();
@@ -155,7 +155,7 @@ export function CashRegister() {
           {/* Close = count the physical CASH only (mobile money is electronic). */}
           <div className="mt-4 border-t border-border pt-4">
             <div className="text-sm font-bold text-text-primary">{t("Close register")}</div>
-            <p className="mb-2 text-xs text-text-secondary">{t("Count the physical cash in the drawer — mobile money is not counted here.")}</p>
+            <p className="mb-2 text-xs text-text-secondary">{t("Count the physical cash in the drawer. Mobile money is not counted here.")}</p>
             <div className="flex flex-wrap items-end gap-2">
               <label className="block">
                 <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Cash counted")}</span>

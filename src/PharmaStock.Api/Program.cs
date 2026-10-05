@@ -20,7 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddSingleton<JwtTokenService>();
-builder.Services.AddSingleton<EmailService>(); // MailKit SMTP (SMTP_* env) — support notifications
+builder.Services.AddSingleton<EmailService>(); // MailKit SMTP (SMTP_* env) - support notifications
 builder.Services.AddScoped<StockDeductionService>();
 builder.Services.AddHttpClient(); // outbound FX-rate lookups for currency conversion
 builder.Services.AddMemoryCache(); // device presence throttle + enforcement cache + geo cache

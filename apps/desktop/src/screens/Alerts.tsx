@@ -40,7 +40,7 @@ export function Alerts() {
             {data!.outOfStock.map((p) =>
               p.openPurchaseOrderId ? (
                 <Row key={p.productId} onClick={() => navigate(`/purchase-orders/${p.openPurchaseOrderId}`)}
-                  left={p.name} sub={`🧾 ${t("already on order — open to print / share")}`} right={t("On order")} tone="info" />
+                  left={p.name} sub={`🧾 ${t("already on order. Open to print / share")}`} right={t("On order")} tone="info" />
               ) : (
                 <Row key={p.productId} onClick={() => navigate(`/products/${p.productId}/receive`)}
                   left={p.name} right={t("Receive")} tone="error" />
@@ -52,7 +52,7 @@ export function Alerts() {
             {data!.lowStock.map((p) =>
               p.openPurchaseOrderId ? (
                 <Row key={p.productId} onClick={() => navigate(`/purchase-orders/${p.openPurchaseOrderId}`)}
-                  left={p.name} sub={`${p.currentStock} / ${p.lowStockThreshold} · 🧾 ${t("already on order — open to print / share")}`} right={t("On order")} tone="info" />
+                  left={p.name} sub={`${p.currentStock} / ${p.lowStockThreshold} · 🧾 ${t("already on order. Open to print / share")}`} right={t("On order")} tone="info" />
               ) : (
                 <Row key={p.productId} onClick={() => navigate(`/products/${p.productId}/receive`)}
                   left={p.name} sub={`${p.currentStock} / ${p.lowStockThreshold}`} right={t("Receive")} tone="warn" />

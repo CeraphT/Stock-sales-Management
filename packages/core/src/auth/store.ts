@@ -39,7 +39,7 @@ let registeredStore: AuthStore | null = null;
 
 export function getAuthStore(): AuthStore {
   if (!registeredStore) {
-    throw new Error("Auth store not initialized — call createAuthStore() at app startup before any API/sync call.");
+    throw new Error("Auth store not initialized. Call createAuthStore() at app startup before any API/sync call.");
   }
   return registeredStore;
 }

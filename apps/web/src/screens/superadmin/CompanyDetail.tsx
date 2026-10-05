@@ -51,7 +51,7 @@ export function SuperAdminCompanyDetail() {
     const ok = await confirmDialog({
       title: deactivating ? t("Deactivate this business?") : t("Reactivate this business?"),
       message: deactivating
-        ? t("Its users will be signed out within seconds and won't be able to log in or sync. It disappears from the desktop and mobile company pickers. No data is deleted — you can reactivate it at any time.")
+        ? t("Its users will be signed out within seconds and won't be able to log in or sync. It disappears from the desktop and mobile company pickers. No data is deleted. You can reactivate it at any time.")
         : t("Its users will be able to log in and sync again."),
       confirmLabel: deactivating ? t("Deactivate") : t("Reactivate"),
       danger: deactivating,
@@ -156,7 +156,7 @@ export function SuperAdminCompanyDetail() {
                 {data.locations.map((l) => (
                   <tr key={l.id} className="border-b border-border/50 last:border-0">
                     <td className="px-4 py-2.5 font-medium text-text-primary">📍 {l.name}</td>
-                    <td className="px-4 py-2.5 text-text-secondary">{l.address ?? "—"}</td>
+                    <td className="px-4 py-2.5 text-text-secondary">{l.address ?? "-"}</td>
                     <td className="px-4 py-2.5 text-right">
                       <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${l.active ? "bg-success/10 text-success" : "bg-error/10 text-error"}`}>
                         {l.active ? t("Active") : t("Inactive")}

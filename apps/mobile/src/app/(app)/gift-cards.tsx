@@ -89,10 +89,10 @@ export default function GiftCardsScreen() {
     // A used card (redeemed against a sale) has financial history — deleting it
     // would erase that trail, so it can only be deactivated. Same guard as desktop.
     if (card.remainingValue < card.initialValue) {
-      showAlert('Cannot delete', 'This card has been used — deactivate it instead of deleting.');
+      showAlert('Cannot delete', 'This card has been used. Deactivate it instead of deleting.');
       return;
     }
-    showAlert('Delete gift card?', `${card.code} — this permanently removes it. Continue?`, [
+    showAlert('Delete gift card?', `${card.code} - this permanently removes it. Continue?`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',

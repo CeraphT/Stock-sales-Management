@@ -35,7 +35,7 @@ export function DeadStock() {
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-text-secondary">{t("Items still in stock with no sale in the period — money tied up you could liquidate.")}</p>
+        <p className="text-sm text-text-secondary">{t("Items still in stock with no sale in the period. Money tied up you could liquidate.")}</p>
         <div className="flex gap-1">
           {WINDOWS.map((w) => (
             <button key={w} onClick={() => setDays(w)}
@@ -76,7 +76,7 @@ export function DeadStock() {
               </tr>
             ))}
             {!isLoading && data.length === 0 ? (
-              <tr><td colSpan={4} className="p-8 text-center text-sm text-text-secondary">{t("No dead stock — everything's moving. 🎉")}</td></tr>
+              <tr><td colSpan={4} className="p-8 text-center text-sm text-text-secondary">{t("No dead stock. Everything's moving. 🎉")}</td></tr>
             ) : null}
           </tbody>
         </table>

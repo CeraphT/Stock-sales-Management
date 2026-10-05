@@ -85,7 +85,7 @@ export const localMirrorQueries = {
 
   async getProductDetail(companyId: string, productId: string): Promise<ProductDetailResponse> {
     const p = await db.query.products.findFirst({ where: and(eq(products.id, productId), eq(products.companyId, companyId)) });
-    if (!p) throw new ApiError(404, "Product not found locally — sync before continuing offline.");
+    if (!p) throw new ApiError(404, "Product not found locally. Sync before continuing offline.");
     const category = p.categoryId ? await db.query.categories.findFirst({ where: eq(categories.id, p.categoryId) }) : undefined;
     const supplier = p.supplierId ? await db.query.suppliers.findFirst({ where: eq(suppliers.id, p.supplierId) }) : undefined;
     const levels = await db.query.productPackagingLevels.findMany({

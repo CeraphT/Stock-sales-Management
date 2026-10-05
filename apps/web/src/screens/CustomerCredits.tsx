@@ -22,7 +22,7 @@ function printReport(rows: CustomerResponse[], companyName: string, currency: st
   const body = rows
     .map(
       (c) =>
-        `<tr><td>${esc(c.name)}</td><td>${esc(c.phone ?? "—")}</td>` +
+        `<tr><td>${esc(c.name)}</td><td>${esc(c.phone ?? "-")}</td>` +
         `<td class="r">${esc(formatCurrency(c.creditBalance, currency))}</td>` +
         `<td class="r">${esc(formatCurrency(c.loyaltyStoreCreditBalance, currency))}</td>` +
         `<td class="r">${c.rewardsGranted}</td></tr>`,
@@ -35,7 +35,7 @@ function printReport(rows: CustomerResponse[], companyName: string, currency: st
     body{font-family:system-ui,Segoe UI,Arial,sans-serif;color:#111;margin:24px}h1{font-size:18px;margin:0 0 2px}.n{color:#666;font-size:12px;margin-bottom:16px}
     table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:6px 8px;border-bottom:1px solid #eee;text-align:left}th{font-size:10px;text-transform:uppercase;color:#666}
     td.r,th.r{text-align:right}tfoot td{border-top:2px solid #111;font-weight:700}@media print{body{margin:0}}</style></head><body>
-    <h1>${esc(companyName)} — Customer credits</h1><div class="n">${esc(note)}</div>
+    <h1>${esc(companyName)} - Customer credits</h1><div class="n">${esc(note)}</div>
     <table><thead><tr><th>Customer</th><th>Phone</th><th class="r">Owes (credit sales)</th><th class="r">Store credit</th><th class="r">Rewards earned</th></tr></thead>
     <tbody>${body}</tbody><tfoot><tr><td colspan="2">Total</td><td class="r">${esc(formatCurrency(owed, currency))}</td><td class="r">${esc(formatCurrency(credit, currency))}</td><td class="r">${rewards}</td></tr></tfoot></table></body></html>`;
   const iframe = document.createElement("iframe");
@@ -164,14 +164,14 @@ export function CustomerCredits() {
                   className="cursor-pointer border-b border-border/60 last:border-0 hover:bg-background/50"
                 >
                   <td className="px-4 py-3 font-medium text-text-primary">{c.name}</td>
-                  <td className="px-4 py-3 text-text-secondary">{c.phone ?? "—"}</td>
+                  <td className="px-4 py-3 text-text-secondary">{c.phone ?? "-"}</td>
                   <td className={`px-4 py-3 text-right font-semibold ${c.creditBalance > 0 ? "text-error" : "text-text-secondary"}`}>
                     {formatCurrency(c.creditBalance, currency)}
                   </td>
                   <td className={`px-4 py-3 text-right font-semibold ${c.loyaltyStoreCreditBalance > 0 ? "text-success" : "text-text-secondary"}`}>
                     {formatCurrency(c.loyaltyStoreCreditBalance, currency)}
                   </td>
-                  <td className="px-4 py-3 text-right text-text-primary">{c.rewardsGranted > 0 ? `🎁 ${c.rewardsGranted}` : "—"}</td>
+                  <td className="px-4 py-3 text-right text-text-primary">{c.rewardsGranted > 0 ? `🎁 ${c.rewardsGranted}` : "-"}</td>
                 </tr>
               ))
             )}

@@ -12,7 +12,7 @@ export function setIdGenerator(fn: () => string) {
 
 export function generateId(): string {
   if (!generator) {
-    throw new Error("ID generator not initialized — call setIdGenerator() at app startup.");
+    throw new Error("ID generator not initialized. Call setIdGenerator() at app startup.");
   }
   return generator();
 }

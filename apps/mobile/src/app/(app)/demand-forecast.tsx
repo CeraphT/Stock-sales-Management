@@ -68,7 +68,7 @@ export default function DemandForecastScreen() {
                 <View className="flex-row items-center justify-between">
                   <Text className="flex-1 pr-2 text-sm font-semibold text-text-primary">{i.productName}</Text>
                   <Text className={`text-sm font-bold ${urgent ? 'text-error' : 'text-text-primary'}`}>
-                    {i.daysOfCover == null ? '—' : `${i.daysOfCover}d cover`}
+                    {i.daysOfCover == null ? '-' : `${i.daysOfCover}d cover`}
                   </Text>
                 </View>
                 <Text className="mt-0.5 text-xs text-text-secondary">

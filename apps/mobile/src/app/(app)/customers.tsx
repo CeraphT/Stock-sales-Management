@@ -90,7 +90,7 @@ export default function CustomersScreen() {
                   </View>
                 ) : null}
               </View>
-              <Text className="text-xs text-text-secondary">{item.phone ?? '—'}</Text>
+              <Text className="text-xs text-text-secondary">{item.phone ?? '-'}</Text>
             </View>
             <View className="mt-1 flex-row flex-wrap gap-x-3">
               <Text className="text-xs text-text-secondary">

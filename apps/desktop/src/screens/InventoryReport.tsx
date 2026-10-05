@@ -43,7 +43,7 @@ function printReport(groups: [string, InventoryRow[]][], companyName: string, cu
     body{font-family:system-ui,Segoe UI,Arial,sans-serif;color:#111;margin:24px}h1{font-size:18px;margin:0 0 2px}.n{color:#666;font-size:12px;margin-bottom:16px}
     table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:6px 8px;border-bottom:1px solid #eee;text-align:left}th{font-size:10px;text-transform:uppercase;color:#666}
     td.r,th.r{text-align:right}tr.cat td{background:#ccfbf1;color:#115E59;font-weight:700}tr.sub td{font-weight:600;border-top:1px solid #ccc}tfoot td{border-top:2px solid #111;font-weight:700}@media print{body{margin:0}}</style></head><body>
-    <h1>${esc(companyName)} — Inventory report</h1><div class="n">${esc(note)}</div>
+    <h1>${esc(companyName)} - Inventory report</h1><div class="n">${esc(note)}</div>
     <table><thead><tr><th>Product</th><th>Supplier</th><th class="r">Stock</th><th class="r">Cost value</th><th class="r">Retail value</th></tr></thead>
     <tbody>${body}</tbody><tfoot><tr><td colspan="3">Total</td><td class="r">${esc(formatCurrency(tc, currency))}</td><td class="r">${esc(formatCurrency(ts, currency))}</td></tr></tfoot></table></body></html>`;
   const iframe = document.createElement("iframe");

@@ -162,8 +162,8 @@ export default function CheckoutScreen() {
         saleId: result.id,
         timestamp: result.timestamp,
         companyName,
-        locationName: locationName ?? '—',
-        cashierName: user?.name ?? '—',
+        locationName: locationName ?? '-',
+        cashierName: user?.name ?? '-',
         currency,
         paymentMethod: result.paymentMethod,
         productLines: result.productLines.map((l) => ({
@@ -285,7 +285,7 @@ export default function CheckoutScreen() {
           {customerId && method === PaymentMethod.StoreCredit ? (
             <Text className={`text-xs ${storeCreditShort ? 'text-error' : 'text-text-secondary'}`}>
               Store credit available: {formatCurrency(storeCreditAvailable, currency)}
-              {storeCreditShort ? ' — not enough for this sale' : ''}
+              {storeCreditShort ? '. Not enough for this sale' : ''}
             </Text>
           ) : null}
           {customerId && method === PaymentMethod.Credit ? (

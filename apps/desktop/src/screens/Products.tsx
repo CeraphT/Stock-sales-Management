@@ -61,7 +61,7 @@ export function Products() {
     try {
       const detail = await productsApi.get(companyId, productId);
       if (!detail.supplierId) {
-        toast(t("This product has no supplier — add one on the product first."), "error");
+        toast(t("This product has no supplier. Add one on the product first."), "error");
         navigate(`/products/${productId}/edit`);
         return;
       }
@@ -80,7 +80,7 @@ export function Products() {
         const po = await purchaseOrdersApi.create(companyId, {
           locationId,
           supplierId: detail.supplierId,
-          notes: t("Reorder — out of stock"),
+          notes: t("Reorder. Out of stock"),
           lines: [line],
         });
         navigate(`/purchase-orders/${po.id}`);
@@ -188,7 +188,7 @@ export function Products() {
                         ) : null}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-text-secondary">{p.barcode ?? "—"}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-text-secondary">{p.barcode ?? "-"}</td>
                     <td className="px-4 py-3 text-right text-text-primary">{formatCurrency(p.salePrice, currency)}</td>
                     <td className="px-4 py-3 text-right">
                       <button
@@ -202,7 +202,7 @@ export function Products() {
                         {p.stock}
                       </button>
                     </td>
-                    <td className={`px-4 py-3 text-xs ${expiryTone}`}>{p.earliestExpiry ? p.earliestExpiry.slice(0, 10) : "—"}</td>
+                    <td className={`px-4 py-3 text-xs ${expiryTone}`}>{p.earliestExpiry ? p.earliestExpiry.slice(0, 10) : "-"}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         <StockBadge status={p.status} />

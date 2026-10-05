@@ -74,7 +74,7 @@ export function Dashboard() {
             <div className="text-sm font-bold text-error">{t("Needs reconciliation")}</div>
             {negativeBatches > 0 ? (
               <div className="mt-0.5 text-xs text-text-secondary">
-                {negativeBatches} {t("stock batch(es) went negative from an offline sale — adjust their stock.")}
+                {negativeBatches} {t("stock batch(es) went negative from an offline sale. Adjust their stock.")}
               </div>
             ) : null}
             {shiftConflicts > 0 ? (

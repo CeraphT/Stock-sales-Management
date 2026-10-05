@@ -116,7 +116,7 @@ export function Customers() {
                       ) : null}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-text-secondary">{c.phone ?? "—"}</td>
+                  <td className="px-4 py-3 text-text-secondary">{c.phone ?? "-"}</td>
                   <td className={`px-4 py-3 text-right ${c.creditBalance > 0 ? "text-error" : "text-text-primary"}`}>
                     {formatCurrency(c.creditBalance, currency)}
                   </td>
@@ -124,7 +124,7 @@ export function Customers() {
                     {formatCurrency(c.loyaltyStoreCreditBalance, currency)}
                   </td>
                   <td className="px-4 py-3 text-right text-text-primary">
-                    {c.rewardsGranted > 0 ? `🎁 ${c.rewardsGranted}` : "—"}
+                    {c.rewardsGranted > 0 ? `🎁 ${c.rewardsGranted}` : "-"}
                   </td>
                 </tr>
               ))

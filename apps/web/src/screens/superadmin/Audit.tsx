@@ -38,7 +38,7 @@ export function SuperAdminAudit() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-text-primary">{t("Audit log")}</h1>
-      <p className="mt-1 text-sm text-text-secondary">{t("Every sensitive administrative action — impersonation, blocks, and remote wipes.")}</p>
+      <p className="mt-1 text-sm text-text-secondary">{t("Every sensitive administrative action. Impersonation, blocks, and remote wipes.")}</p>
 
       <input
         value={search}
@@ -74,8 +74,8 @@ export function SuperAdminAudit() {
                       <span className="mr-1.5">{meta.icon}</span>{t(meta.label)}
                     </td>
                     <td className="px-4 py-3 text-text-primary">{a.actorName}</td>
-                    <td className="px-4 py-3 text-text-secondary">{a.detail ?? "—"}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-text-secondary">{a.ip ?? "—"}</td>
+                    <td className="px-4 py-3 text-text-secondary">{a.detail ?? "-"}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-text-secondary">{a.ip ?? "-"}</td>
                     <td className="px-4 py-3 text-text-secondary">{new Date(a.createdAt).toLocaleString()}</td>
                   </tr>
                 );

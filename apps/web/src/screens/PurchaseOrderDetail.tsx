@@ -236,7 +236,7 @@ export function PurchaseOrderDetail() {
                           className="w-full rounded-lg border border-border bg-background px-2 py-1.5 font-mono text-sm outline-none focus:border-primary"
                         />
                         <p className="mt-1 text-xs text-text-secondary">
-                          {serials.length} {t("unit(s) — each serial is one unit received.")} {serials.length > remaining ? `· ⚠ ${t("exceeds outstanding")} (${remaining})` : ""}
+                          {serials.length} {t("unit(s) - each serial is one unit received.")} {serials.length > remaining ? `· ⚠ ${t("exceeds outstanding")} (${remaining})` : ""}
                         </p>
                       </div>
                     ) : (

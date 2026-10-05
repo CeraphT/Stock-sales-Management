@@ -57,12 +57,12 @@ export function GiftCards() {
     // A used card (redeemed against a sale) has financial history — deleting it
     // would erase that trail, so it can only be deactivated, never deleted.
     if (g.remainingValue < g.initialValue) {
-      toast(t("This card has been used — deactivate it instead of deleting."), "error");
+      toast(t("This card has been used. Deactivate it instead of deleting."), "error");
       return;
     }
     const ok = await confirmDialog({
       title: t("Delete gift card"),
-      message: `${g.code} — ${t("This permanently removes it. Continue?")}`,
+      message: `${g.code} - ${t("This permanently removes it. Continue?")}`,
       danger: true,
       confirmLabel: t("Delete"),
     });

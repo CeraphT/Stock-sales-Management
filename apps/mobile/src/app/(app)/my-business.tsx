@@ -150,7 +150,7 @@ export default function MyBusinessScreen() {
 
   const onSwitchBranch = (location: LocationResponse) => {
     if (location.id === currentLocationId) return;
-    showAlert('Switch branch?', `This device will operate against "${location.name}" — sales, stock, and cash register all switch to it.`, [
+    showAlert('Switch branch?', `This device will operate against "${location.name}". Sales, stock, and cash register all switch to it.`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Switch',
@@ -241,7 +241,7 @@ export default function MyBusinessScreen() {
             <TextField label="Address" placeholder="Shown on receipts & purchase orders" value={address} onChangeText={setAddress} />
             <TextField label="Phone" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
             <TextField label="Receipt footer message" placeholder="e.g. Thank you for your business!" value={receiptFooter} onChangeText={setReceiptFooter} />
-            <TextField label="Taxpayer number (NIU)" placeholder="Your NIU — shown on tax invoices" value={taxId} onChangeText={setTaxId} />
+            <TextField label="Taxpayer number (NIU)" placeholder="Your NIU. Shown on tax invoices" value={taxId} onChangeText={setTaxId} />
 
             {/* Branches (mobile multi-branch — desktop switches via its top bar). */}
             <Text className="mt-2 text-sm font-bold text-text-primary">Branches</Text>

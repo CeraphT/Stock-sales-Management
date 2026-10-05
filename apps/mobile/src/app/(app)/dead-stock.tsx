@@ -69,7 +69,7 @@ export default function DeadStockScreen() {
         {isLoading ? (
           <Text className="py-10 text-center text-sm text-text-secondary">Loading…</Text>
         ) : data.length === 0 ? (
-          <Text className="py-10 text-center text-sm text-text-secondary">No dead stock — everything's moving. 🎉</Text>
+          <Text className="py-10 text-center text-sm text-text-secondary">No dead stock. Everything's moving. 🎉</Text>
         ) : (
           data.map((d) => (
             <Pressable

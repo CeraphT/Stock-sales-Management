@@ -100,7 +100,7 @@ export function ProductForm() {
     if (isEdit || allowNoSupplier || warnedNoSuppliers.current) return;
     if (suppliersLoaded && suppliers.length === 0) {
       warnedNoSuppliers.current = true;
-      toast(t("No suppliers yet — add one first, or allow supplier-less stock in Company settings."), "info");
+      toast(t("No suppliers yet. Add one first, or allow supplier-less stock in Company settings."), "info");
     }
   }, [suppliersLoaded, suppliers.length, isEdit, allowNoSupplier, t]);
   const { data: detail } = useQuery({
@@ -190,7 +190,7 @@ export function ProductForm() {
       await runSync();
       setBuildQty("");
       setBuildBatch("");
-      toast(t("Built — finished stock added."), "success");
+      toast(t("Built. Finished stock added."), "success");
     } catch (e) {
       toast(e instanceof ApiError ? e.message : t("Build failed."), "error");
     } finally {
@@ -240,7 +240,7 @@ export function ProductForm() {
       if (suppliers.length === 0) {
         toast("Add a supplier first, then link it here. (Existing stock with no supplier? Enable it in Company settings.)", "error");
       } else {
-        toast("Select a supplier before saving — or allow supplier-less stock in Company settings.", "error");
+        toast("Select a supplier before saving. Or allow supplier-less stock in Company settings.", "error");
       }
       return;
     }
@@ -314,7 +314,7 @@ export function ProductForm() {
             <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Category")}</span>
             <div className="flex items-center gap-2">
               <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={`${selectCls} flex-1`}>
-                <option value="">{t("— none —")}</option>
+                <option value="">{t("None")}</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -356,7 +356,7 @@ export function ProductForm() {
               {t("Supplier")}{!allowNoSupplier ? <span className="text-error"> *</span> : null}
             </span>
             <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} className={selectCls}>
-              <option value="">{allowNoSupplier ? t("— none —") : t("— select a supplier —")}</option>
+              <option value="">{allowNoSupplier ? t("None") : t("Select a supplier")}</option>
               {suppliers.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
@@ -498,7 +498,7 @@ export function ProductForm() {
                 ))}
               </div>
             ) : (
-              <p className="mb-3 text-xs text-text-secondary">{t("Add sizes/colours as variants — each gets its own stock, barcode and price.")}</p>
+              <p className="mb-3 text-xs text-text-secondary">{t("Add sizes/colours as variants. Each gets its own stock, barcode and price.")}</p>
             )}
             <div className="flex items-end gap-2">
               <div className="flex-1">
@@ -511,7 +511,7 @@ export function ProductForm() {
 
         {isVariant ? (
           <p className="rounded-lg bg-primary/5 px-3 py-2 text-xs text-text-secondary">
-            🎨 {t("This is a variant — its stock, barcode and price are managed here independently.")}
+            🎨 {t("This is a variant. Its stock, barcode and price are managed here independently.")}
           </p>
         ) : null}
 

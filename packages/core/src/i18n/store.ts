@@ -25,7 +25,7 @@ let registeredStore: LanguageStore | null = null;
 
 export function getLanguageStore(): LanguageStore {
   if (!registeredStore) {
-    throw new Error("Language store not initialized — call createLanguageStore() at app startup.");
+    throw new Error("Language store not initialized. Call createLanguageStore() at app startup.");
   }
   return registeredStore;
 }

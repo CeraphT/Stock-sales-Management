@@ -70,7 +70,7 @@ export function generateCashReportHtml(
       tfoot td{border-top:2px solid #111;font-weight:700;}
       @media print{body{margin:0;}}
     </style></head><body>
-    <h1>${esc(companyName)} — Cash report</h1>
+    <h1>${esc(companyName)} - Cash report</h1>
     <div class="sub">${esc(range)} · Cash counted in the drawer vs. mobile money (electronic)</div>
     <table>
       <thead><tr><th>Day</th><th class="r">💵 Cash</th><th class="r">📱 Mobile money</th><th class="r">Total sales</th></tr></thead>

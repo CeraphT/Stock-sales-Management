@@ -228,7 +228,7 @@ export default function SupportScreen() {
           <View className="flex-row items-start gap-2 rounded-xl bg-primary/5 p-3">
             <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
             <Text className="flex-1 text-xs text-text-secondary">
-              {t('support.contextNote').replace('{screen}', lastScreen ?? '—')}
+              {t('support.contextNote').replace('{screen}', lastScreen ?? '-')}
             </Text>
           </View>
 

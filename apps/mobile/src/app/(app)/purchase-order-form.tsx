@@ -173,7 +173,7 @@ export default function PurchaseOrderFormScreen() {
       </View>
 
       <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
-        <Text className="text-xs text-text-secondary">Location: {locationName ?? '—'}</Text>
+        <Text className="text-xs text-text-secondary">Location: {locationName ?? '-'}</Text>
 
         <View className="gap-1.5">
           <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Supplier</Text>
@@ -209,7 +209,7 @@ export default function PurchaseOrderFormScreen() {
                 <View className="rounded-xl border border-border bg-surface">
                   {filteredSuppliers.length === 0 ? (
                     <Text className="p-3.5 text-sm text-text-secondary">
-                      {suppliers.length === 0 ? 'No suppliers yet — add one first.' : 'No matching suppliers.'}
+                      {suppliers.length === 0 ? 'No suppliers yet. Add one first.' : 'No matching suppliers.'}
                     </Text>
                   ) : (
                     filteredSuppliers.map((s, index) => (

@@ -125,7 +125,7 @@ export function StockReceive() {
               placeholder={"SN-0001\nSN-0002"}
               className="w-full rounded-xl border border-border bg-surface px-3 py-2 font-mono text-sm text-text-primary outline-none focus:border-primary"
             />
-            <p className="mt-1 text-xs text-text-secondary">{serials.length} {t("unit(s) — each serial is one unit received.")}</p>
+            <p className="mt-1 text-xs text-text-secondary">{serials.length} {t("unit(s) - each serial is one unit received.")}</p>
           </label>
         ) : (
           <div>

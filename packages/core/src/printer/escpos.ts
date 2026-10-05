@@ -11,7 +11,7 @@ import { encodeCp850 } from "./cp850";
 const ESC = 0x1b;
 const GS = 0x1d;
 const LINE_WIDTH = 32;
-const CODEPAGE_SELECTOR = 2; // ESC t n — "best effort", see cp850.ts
+const CODEPAGE_SELECTOR = 2; // ESC t n. "best effort", see cp850.ts
 
 enum Align {
   Left = 0,
@@ -103,8 +103,8 @@ function formatTimestamp(iso: string): string {
 export function buildEscPosReceipt(data: ReceiptData): Uint8Array {
   const w = new ByteWriter();
 
-  w.raw(ESC, 0x40); // ESC @ — initialize
-  w.raw(ESC, 0x74, CODEPAGE_SELECTOR); // ESC t n — select codepage
+  w.raw(ESC, 0x40); // ESC @. Initialize
+  w.raw(ESC, 0x74, CODEPAGE_SELECTOR); // ESC t n. Select codepage
 
   w.align(Align.Center);
   w.bold(true);
@@ -148,7 +148,7 @@ export function buildEscPosReceipt(data: ReceiptData): Uint8Array {
   w.line("Thank you for your business!");
   w.line("Powered by StockFlow");
   w.feed(4);
-  w.raw(GS, 0x56, 1); // GS V 1 — partial cut (ignored by printers with no cutter)
+  w.raw(GS, 0x56, 1); // GS V 1. Partial cut (ignored by printers with no cutter)
 
   return w.toBytes();
 }
@@ -162,7 +162,7 @@ export function buildEscPosTestPage(companyName: string, currency: string): Uint
     timestamp: now,
     companyName,
     locationName: "Print test",
-    cashierName: "—",
+    cashierName: "-",
     currency,
     paymentMethod: PaymentMethod.Cash,
     productLines: [

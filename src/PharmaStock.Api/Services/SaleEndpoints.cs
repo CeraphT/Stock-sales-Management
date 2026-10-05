@@ -702,7 +702,7 @@ public static class SaleEndpoints
                     .OrderByDescending(g => g.CreatedAt)
                     .Take(take)
                     .Select(g => new SaleSummaryResponse(
-                        g.Id, g.CreatedAt, g.InitialValue, PaymentMethod.Cash, "—", 0, g.Code, SaleTimelineKind.GiftCardIssued))
+                        g.Id, g.CreatedAt, g.InitialValue, PaymentMethod.Cash, "-", 0, g.Code, SaleTimelineKind.GiftCardIssued))
                     .ToListAsync();
             }
 
@@ -768,7 +768,7 @@ public static class SaleEndpoints
 
             return Results.Ok(new SaleDetailResponse(
                 sale.Id, sale.Total, sale.PaymentMethod, sale.Status, sale.Timestamp,
-                sale.User?.Name ?? "—", sale.Location?.Name ?? "—",
+                sale.User?.Name ?? "-", sale.Location?.Name ?? "-",
                 productLines, serviceLines, paymentSplits,
                 sale.AmountTendered, sale.ChangeDue,
                 sale.CustomerId, sale.Customer?.Name, sale.Customer?.Phone,

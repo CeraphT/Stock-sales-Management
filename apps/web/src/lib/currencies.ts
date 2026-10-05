@@ -71,6 +71,6 @@ const FOREIGN: Cur[] = [
 /** Options for the SearchableSelect: value = ISO code, label = "CODE — Name". */
 export const CURRENCY_OPTIONS: SelectOption[] = [...AFRICAN, ...FOREIGN].map((c) => ({
   value: c.code,
-  label: `${c.code} — ${c.name}`,
+  label: `${c.code} - ${c.name}`,
   sublabel: undefined,
 }));

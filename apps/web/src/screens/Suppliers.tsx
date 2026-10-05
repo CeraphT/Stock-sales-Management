@@ -124,7 +124,7 @@ export function Suppliers() {
                 {viewing.contactPhone ? (
                   <a href={`tel:${viewing.contactPhone}`} className="font-semibold text-primary">{viewing.contactPhone}</a>
                 ) : (
-                  <span className="text-text-secondary">{t("— not on file —")}</span>
+                  <span className="text-text-secondary">{t("Not on file")}</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -132,7 +132,7 @@ export function Suppliers() {
                 {viewing.contactEmail ? (
                   <a href={`mailto:${viewing.contactEmail}`} className="font-semibold text-primary">{viewing.contactEmail}</a>
                 ) : (
-                  <span className="text-text-secondary">{t("— not on file —")}</span>
+                  <span className="text-text-secondary">{t("Not on file")}</span>
                 )}
               </div>
             </div>

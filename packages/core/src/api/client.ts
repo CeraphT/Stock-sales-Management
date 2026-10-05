@@ -43,7 +43,7 @@ export class NetworkError extends ApiError {
 }
 
 const NETWORK_ERROR_MESSAGE =
-  "Serveur injoignable — vérifiez votre connexion internet. / Can't reach the server — check your internet connection.";
+  "Serveur injoignable. Vérifiez votre connexion internet. / Can't reach the server. Check your internet connection.";
 
 // Per-attempt timeout: a request on a flaky network must fail (and be retried
 // or reported) instead of spinning forever.

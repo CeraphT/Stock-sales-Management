@@ -62,7 +62,7 @@ public static class CurrencyEndpoints
             }
             catch
             {
-                return Results.BadRequest(new { message = "Impossible de récupérer le taux de change — une connexion internet est requise." });
+                return Results.BadRequest(new { message = "Impossible de récupérer le taux de change. Une connexion internet est requise." });
             }
             if (rate <= 0)
                 return Results.BadRequest(new { message = "Taux de change invalide." });

@@ -120,7 +120,7 @@ export function SuperAdminSupport() {
           ) : list.error ? (
             <div className="rounded-card border border-error/40 bg-error/5 p-4 text-sm text-error">{(list.error as Error).message}</div>
           ) : rows.length === 0 ? (
-            <div className="rounded-card border border-border bg-surface p-8 text-center text-sm text-text-secondary">{t("Nothing here — all caught up.")}</div>
+            <div className="rounded-card border border-border bg-surface p-8 text-center text-sm text-text-secondary">{t("Nothing here. All caught up.")}</div>
           ) : (
             rows.map((r) => {
               const st = STATUS[r.status] ?? STATUS[0];
@@ -138,7 +138,7 @@ export function SuperAdminSupport() {
                         {CATEGORY[r.category]?.icon} {r.title}
                       </div>
                       <div className="mt-0.5 truncate text-xs text-text-secondary">
-                        {r.companyName ?? t("No business")} · {r.userName} · {PLATFORM[r.platform] ?? "—"}
+                        {r.companyName ?? t("No business")} · {r.userName} · {PLATFORM[r.platform] ?? "-"}
                       </div>
                     </div>
                     <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${st.cls}`}>{t(st.label)}</span>
@@ -275,7 +275,7 @@ function TicketDetail({ id, onChanged }: { id: string; onChanged: () => void }) 
 
       <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-xl bg-background/60 p-3 text-xs">
         <dt className="text-text-secondary">{t("Business")}</dt>
-        <dd className="text-text-primary">{d.companyName ?? "—"}</dd>
+        <dd className="text-text-primary">{d.companyName ?? "-"}</dd>
         <dt className="text-text-secondary">{t("User")}</dt>
         <dd className="text-text-primary">
           {d.userName}
@@ -283,12 +283,12 @@ function TicketDetail({ id, onChanged }: { id: string; onChanged: () => void }) 
         </dd>
         <dt className="text-text-secondary">{t("App")}</dt>
         <dd className="text-text-primary">
-          {PLATFORM[d.platform] ?? "—"} {d.appVersion ? `v${d.appVersion}` : ""}
+          {PLATFORM[d.platform] ?? "-"} {d.appVersion ? `v${d.appVersion}` : ""}
         </dd>
         <dt className="text-text-secondary">{t("Screen")}</dt>
-        <dd className="break-all font-mono text-text-primary">{d.screen ?? "—"}</dd>
+        <dd className="break-all font-mono text-text-primary">{d.screen ?? "-"}</dd>
         <dt className="text-text-secondary">{t("Device")}</dt>
-        <dd className="break-all text-text-primary">{d.deviceInfo ?? "—"}</dd>
+        <dd className="break-all text-text-primary">{d.deviceInfo ?? "-"}</dd>
       </dl>
 
       {/* Conversation: the request, then messages (internal notes highlighted). */}

@@ -102,7 +102,7 @@ export default function ServicePickerScreen() {
           ListEmptyComponent={
             <Text className="p-4 text-center text-sm text-text-secondary">
               {services === null
-                ? 'Could not reach the server — services need an internet connection.'
+                ? 'Could not reach the server. Services need an internet connection.'
                 : services.length === 0
                   ? 'No services set up yet. Add some from More → Services.'
                   : 'No matching services.'}

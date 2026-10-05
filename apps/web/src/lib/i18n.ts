@@ -88,7 +88,7 @@ export const FR: Record<string, string> = {
   "30D": "30J",
   "90D": "90J",
   "Needs reconciliation": "Réconciliation requise",
-  "stock batch(es) went negative from an offline sale — adjust their stock.": "lot(s) de stock passés en négatif suite à une vente hors ligne — ajustez leur stock.",
+  "stock batch(es) went negative from an offline sale. Adjust their stock.": "lot(s) de stock passés en négatif suite à une vente hors ligne. Ajustez leur stock.",
   "cash register shift(s) auto-closed after two devices opened one at the same time.": "session(s) de caisse auto-fermée(s) après l'ouverture simultanée sur deux appareils.",
   "Mark as reviewed": "Marquer comme examiné",
   "shift(s) marked reviewed.": "session(s) marquée(s) comme examinée(s).",
@@ -114,7 +114,7 @@ export const FR: Record<string, string> = {
 
   // ── POS ────────────────────────────────────────────────────────────
   "Scan a barcode or search products…": "Scannez un code-barres ou recherchez un produit…",
-  "Cart is empty — search or scan to add products.": "Panier vide — recherchez ou scannez pour ajouter des produits.",
+  "Cart is empty. Search or scan to add products.": "Panier vide. Recherchez ou scannez pour ajouter des produits.",
   "No products to sell yet.": "Aucun produit à vendre pour l'instant.",
   "+ Add a product first": "+ Ajoutez d'abord un produit",
   "Mobile money": "Mobile money",
@@ -129,17 +129,17 @@ export const FR: Record<string, string> = {
   "Owes": "Doit",
   "Not enough to cover this sale. Take a smaller amount or use another method.":
     "Insuffisant pour couvrir cette vente. Réduisez le montant ou utilisez un autre mode.",
-  "This customer's balance covers the sale — it will be deducted on charge.":
-    "Le solde de ce client couvre la vente — il sera déduit à l'encaissement.",
-  "Gift cards are not tied to a customer — anyone holding a valid code can redeem it.":
-    "Les cartes cadeaux ne sont pas liées à un client — toute personne détenant un code valide peut l'utiliser.",
+  "This customer's balance covers the sale. It will be deducted on charge.":
+    "Le solde de ce client couvre la vente. Il sera déduit à l'encaissement.",
+  "Gift cards are not tied to a customer. Anyone holding a valid code can redeem it.":
+    "Les cartes cadeaux ne sont pas liées à un client. Toute personne détenant un code valide peut l'utiliser.",
   "No gift card matches that code.": "Aucune carte cadeau ne correspond à ce code.",
   "This gift card is disabled.": "Cette carte cadeau est désactivée.",
   "Balance": "Solde",
   "not enough for this sale.": "insuffisant pour cette vente.",
-  "Not enough store credit — this customer has only": "Avoir en magasin insuffisant — ce client n'a que",
+  "Not enough store credit. This customer has only": "Avoir en magasin insuffisant. Ce client n'a que",
   "Enter the gift card code to redeem.": "Saisissez le code de la carte cadeau à utiliser.",
-  "Not enough balance on this gift card — only": "Solde insuffisant sur cette carte cadeau — seulement",
+  "Not enough balance on this gift card. Only": "Solde insuffisant sur cette carte cadeau. Seulement",
   "Select a customer for this payment method.": "Sélectionnez un client pour ce mode de paiement.",
   "New customer": "Nouveau client",
   "Add & select": "Ajouter et sélectionner",
@@ -158,15 +158,15 @@ export const FR: Record<string, string> = {
   "Prices below are per": "Les prix ci-dessous sont par",
   "sell any weight in the POS.": "vendez n'importe quel poids au point de vente.",
   "Expiry & batches": "Péremption & lots",
-  "Track batch expiry dates (FEFO) — pharmacies, food, cosmetics.": "Suivi des dates de péremption par lot (FEFO) — pharmacies, alimentation, cosmétiques.",
+  "Track batch expiry dates (FEFO) - pharmacies, food, cosmetics.": "Suivi des dates de péremption par lot (FEFO) - pharmacies, alimentation, cosmétiques.",
   "Weight / measure selling": "Vente au poids / à la mesure",
-  "Sell by kg, m or L — butchers, delis, fabric, produce.": "Vente au kg, m ou L — boucheries, traiteurs, tissus, primeurs.",
+  "Sell by kg, m or L. Butchers, delis, fabric, produce.": "Vente au kg, m ou L. Boucheries, traiteurs, tissus, primeurs.",
   "Serial / IMEI numbers": "Numéros de série / IMEI",
-  "Per-unit serials + warranty — electronics, high-value goods.": "Numéros de série par unité + garantie — électronique, produits de valeur.",
+  "Per-unit serials + warranty. Electronics, high-value goods.": "Numéros de série par unité + garantie. Électronique, produits de valeur.",
   "Product variants": "Variantes de produit",
-  "Size / colour variants — fashion, footwear.": "Variantes de taille / couleur — mode, chaussures.",
+  "Size / colour variants. Fashion, footwear.": "Variantes de taille / couleur. Mode, chaussures.",
   "Assembly / kits": "Assemblage / kits",
-  "Build products from components — workshops, manufacturers.": "Assemblez des produits à partir de composants — ateliers, fabricants.",
+  "Build products from components. Workshops, manufacturers.": "Assemblez des produits à partir de composants. Ateliers, fabricants.",
   "General retail / shop": "Commerce de détail / boutique",
   "Pharmacy / health": "Pharmacie / santé",
   "Grocery / mini-market": "Épicerie / mini-marché",
@@ -175,9 +175,9 @@ export const FR: Record<string, string> = {
   "Butcher / deli / fabric": "Boucherie / traiteur / tissus",
   "Workshop / manufacturer": "Atelier / fabricant",
   "What do you manage?": "Que gérez-vous ?",
-  "Turns on the right features — you can change this later in Settings.": "Active les bonnes fonctions — modifiable plus tard dans les Paramètres.",
+  "Turns on the right features. You can change this later in Settings.": "Active les bonnes fonctions. Modifiable plus tard dans les Paramètres.",
   "What you manage": "Ce que vous gérez",
-  "Turn on only the inventory features this business needs — the rest stay hidden so the app stays simple.": "Activez uniquement les fonctions d'inventaire dont cette activité a besoin — le reste reste masqué pour garder l'application simple.",
+  "Turn on only the inventory features this business needs. The rest stay hidden so the app stays simple.": "Activez uniquement les fonctions d'inventaire dont cette activité a besoin. Le reste reste masqué pour garder l'application simple.",
   // ── Supplier returns / stock count / labels / alerts ──
   "Return to supplier": "Retour fournisseur",
   "Quantity to return (base units)": "Quantité à retourner (unités de base)",
@@ -191,7 +191,7 @@ export const FR: Record<string, string> = {
   "No stock batches to count.": "Aucun lot en stock à compter.",
   "batch(es) with a variance": "lot(s) avec un écart",
   "Post count & adjust": "Valider le comptage & ajuster",
-  "Count posted —": "Comptage validé —",
+  "Count posted:": "Comptage validé:",
   "batch(es) adjusted.": "lot(s) ajusté(s).",
   "Could not post the count.": "Impossible de valider le comptage.",
   "Alerts": "Alertes",
@@ -211,7 +211,7 @@ export const FR: Record<string, string> = {
   "Could not open the print dialog.": "Impossible d'ouvrir la boîte de dialogue d'impression.",
   // ── Alerts ↔ PO + analytics (demand forecast / dead stock) ──
   "On order": "En commande",
-  "already on order — open to print / share": "déjà commandé — ouvrir pour imprimer / partager",
+  "already on order. Open to print / share": "déjà commandé. Ouvrir pour imprimer / partager",
   "Demand forecast": "Prévision de la demande",
   "Sales velocity, days of cover left, and a suggested reorder for the next period.": "Vitesse des ventes, jours de couverture restants et réapprovisionnement suggéré pour la période à venir.",
   "Sold": "Vendu",
@@ -222,26 +222,26 @@ export const FR: Record<string, string> = {
   "No sales in this period to forecast from.": "Aucune vente sur cette période pour établir une prévision.",
   "Cover = days of stock left at the current rate. Reorder = suggested units to cover the next period.": "Couverture = jours de stock restants au rythme actuel. Réappro. = unités suggérées pour couvrir la période à venir.",
   "Dead stock": "Stock dormant",
-  "Items still in stock with no sale in the period — money tied up you could liquidate.": "Articles en stock sans vente sur la période — de l'argent immobilisé que vous pourriez liquider.",
+  "Items still in stock with no sale in the period. Money tied up you could liquidate.": "Articles en stock sans vente sur la période. De l'argent immobilisé que vous pourriez liquider.",
   "Value tied up in dead stock": "Valeur immobilisée en stock dormant",
   "item(s), no sale in": "article(s), aucune vente depuis",
   "Value": "Valeur",
   "Last sold": "Dernière vente",
   "never sold": "jamais vendu",
-  "No dead stock — everything's moving. 🎉": "Aucun stock dormant — tout se vend. 🎉",
+  "No dead stock. Everything's moving. 🎉": "Aucun stock dormant. Tout se vend. 🎉",
   "Track serial / IMEI numbers": "Suivre les numéros de série / IMEI",
   "Capture one serial per unit when receiving; pick the exact unit when selling.": "Saisissez un numéro de série par unité à la réception ; choisissez l'unité exacte à la vente.",
   "Serial / IMEI numbers (one per line)": "Numéros de série / IMEI (un par ligne)",
-  "unit(s) — each serial is one unit received.": "unité(s) — chaque numéro de série correspond à une unité reçue.",
+  "unit(s) - each serial is one unit received.": "unité(s) - chaque numéro de série correspond à une unité reçue.",
   "Pick the product you received a delivery for, then enter the batch, quantity or serial numbers.": "Choisissez le produit pour lequel vous avez reçu une livraison, puis saisissez le lot, la quantité ou les numéros de série.",
   "or scan": "ou scanner",
   "exceeds outstanding": "dépasse le reste à recevoir",
   "Pick serial / IMEI": "Choisir le numéro de série / IMEI",
   "No serials in stock at this location.": "Aucun numéro de série en stock à cet emplacement.",
   "Variants": "Variantes",
-  "Add sizes/colours as variants — each gets its own stock, barcode and price.": "Ajoutez des tailles/couleurs comme variantes — chacune a son propre stock, code-barres et prix.",
+  "Add sizes/colours as variants. Each gets its own stock, barcode and price.": "Ajoutez des tailles/couleurs comme variantes. Chacune a son propre stock, code-barres et prix.",
   "New variants (comma-separated)": "Nouvelles variantes (séparées par des virgules)",
-  "This is a variant — its stock, barcode and price are managed here independently.": "Ceci est une variante — son stock, son code-barres et son prix sont gérés ici indépendamment.",
+  "This is a variant. Its stock, barcode and price are managed here independently.": "Ceci est une variante. Son stock, son code-barres et son prix sont gérés ici indépendamment.",
   "Variants added.": "Variantes ajoutées.",
   "Could not add variants.": "Impossible d'ajouter les variantes.",
   "Manufacturer / brand (optional)": "Fabricant / marque (facultatif)",
@@ -257,7 +257,7 @@ export const FR: Record<string, string> = {
   "Deducts the components above and adds this many finished units to stock.": "Déduit les composants ci-dessus et ajoute ce nombre d'unités finies au stock.",
   "Bill of materials saved.": "Nomenclature enregistrée.",
   "Could not save the bill of materials.": "Impossible d'enregistrer la nomenclature.",
-  "Built — finished stock added.": "Assemblé — stock fini ajouté.",
+  "Built. Finished stock added.": "Assemblé. Stock fini ajouté.",
   "Build failed.": "Échec de l'assemblage.",
 
   // ── Cash register ──────────────────────────────────────────────────
@@ -270,8 +270,8 @@ export const FR: Record<string, string> = {
   "No sales on this shift yet.": "Aucune vente sur ce poste pour l'instant.",
   "Total sales": "Total des ventes",
   "Close register": "Fermer la caisse",
-  "Count the physical cash in the drawer — mobile money is not counted here.":
-    "Comptez les espèces physiques dans le tiroir — le mobile money n'est pas compté ici.",
+  "Count the physical cash in the drawer. Mobile money is not counted here.":
+    "Comptez les espèces physiques dans le tiroir. Le mobile money n'est pas compté ici.",
   "Cash counted": "Espèces comptées",
   "Open the register with the cash float you're starting the day with.":
     "Ouvrez la caisse avec le fonds de caisse de départ.",
@@ -338,9 +338,9 @@ export const FR: Record<string, string> = {
   "No matches.": "Aucun résultat.",
   "Type to search…": "Tapez pour rechercher…",
   "View contact": "Voir le contact",
-  "— not on file —": "— non renseigné —",
+  "Not on file": "Non renseigné",
   "not on file": "non renseigné",
-  "— none —": "— aucun —",
+  "None": "Aucun",
   "Location": "Emplacement",
   "Created": "Créé",
   "Items": "Articles",
@@ -384,7 +384,7 @@ export const FR: Record<string, string> = {
   "Price override": "Prix spécifique",
   "Receive stock": "Réceptionner du stock",
   "Adjust stock": "Ajuster le stock",
-  "— select a supplier —": "— choisir un fournisseur —",
+  "Select a supplier": "Choisir un fournisseur",
   "+ Add a supplier first": "+ Ajoutez d'abord un fournisseur",
 
   // ── Categories ─────────────────────────────────────────────────────
@@ -425,8 +425,8 @@ export const FR: Record<string, string> = {
   "excl. VAT": "HT",
   "Negative VAT due means a VAT credit carried forward to the next period.":
     "Une TVA due négative correspond à un crédit de TVA reporté sur la période suivante.",
-  "Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate, as purchase records don't store a per-line rate — have your accountant confirm against actual supplier invoices. This report follows the SYSCOHADA VAT accounts and is a working document, not an official filing.":
-    "Les prix sont TTC. La TVA déductible sur achats est estimée au taux normal, car les achats n'enregistrent pas de taux par ligne — faites confirmer par votre comptable sur la base des factures fournisseurs réelles. Ce rapport suit les comptes de TVA SYSCOHADA et constitue un document de travail, non une déclaration officielle.",
+  "Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate, as purchase records don't store a per-line rate. Have your accountant confirm against actual supplier invoices. This report follows the SYSCOHADA VAT accounts and is a working document, not an official filing.":
+    "Les prix sont TTC. La TVA déductible sur achats est estimée au taux normal, car les achats n'enregistrent pas de taux par ligne. Faites confirmer par votre comptable sur la base des factures fournisseurs réelles. Ce rapport suit les comptes de TVA SYSCOHADA et constitue un document de travail, non une déclaration officielle.",
 
   // ── B2B customers ──────────────────────────────────────────────────
   "Business customer (VAT added on top)": "Client professionnel (TVA en sus)",
@@ -443,32 +443,32 @@ export const FR: Record<string, string> = {
 
   // ── Thermal receipt printer (Bluetooth / status) ───────────────────
   "Receipt printer (thermal, ESC/POS)": "Imprimante de reçus (thermique, ESC/POS)",
-  "Dedicated to receipts only — receipts print straight to this printer as raw ESC/POS (no dialog); reports/PDFs still use the system dialog.":
-    "Dédiée aux reçus uniquement — les reçus s'impriment directement en ESC/POS brut (sans boîte) ; les rapports/PDF utilisent la boîte système.",
+  "Dedicated to receipts only. Receipts print straight to this printer as raw ESC/POS (no dialog); reports/PDFs still use the system dialog.":
+    "Dédiée aux reçus uniquement. Les reçus s'impriment directement en ESC/POS brut (sans boîte) ; les rapports/PDF utilisent la boîte système.",
   "Only available in the installed desktop app (needs serial/Bluetooth/network access).":
     "Disponible uniquement dans l'application de bureau installée (accès série/Bluetooth/réseau requis).",
   "Bluetooth": "Bluetooth",
-  "Pair the printer in Windows Bluetooth settings first — it then appears as a COM port below.":
-    "Associez d'abord l'imprimante dans les paramètres Bluetooth de Windows — elle apparaît ensuite comme un port COM ci-dessous.",
+  "Pair the printer in Windows Bluetooth settings first. It then appears as a COM port below.":
+    "Associez d'abord l'imprimante dans les paramètres Bluetooth de Windows. Elle apparaît ensuite comme un port COM ci-dessous.",
   "Check connection": "Vérifier la connexion",
-  "Configure it here — actual printing works only in the installed desktop app.":
-    "Configurez ici — l'impression réelle ne fonctionne que dans l'application de bureau installée.",
+  "Configure it here. Actual printing works only in the installed desktop app.":
+    "Configurez ici. L'impression réelle ne fonctionne que dans l'application de bureau installée.",
   "Reset printer": "Réinitialiser l'imprimante",
   "Printer connection reset.": "Connexion imprimante réinitialisée.",
   "Print receipts directly to a thermal printer": "Imprimer les reçus directement sur une imprimante thermique",
-  "Receipts only — they print straight to the printer with no dialog. Reports and PDFs still use the normal print dialog.":
-    "Reçus uniquement — ils s'impriment directement, sans boîte de dialogue. Les rapports et PDF utilisent toujours la boîte de dialogue normale.",
+  "Receipts only. They print straight to the printer with no dialog. Reports and PDFs still use the normal print dialog.":
+    "Reçus uniquement. Ils s'impriment directement, sans boîte de dialogue. Les rapports et PDF utilisent toujours la boîte de dialogue normale.",
   "Detecting a printer works only in the installed desktop app.":
     "La détection d'une imprimante ne fonctionne que dans l'application de bureau installée.",
   "Disconnect": "Déconnecter",
-  "Saved, but the printer didn't answer — check it's on and connected, then print a test.":
-    "Enregistré, mais l'imprimante n'a pas répondu — vérifiez qu'elle est allumée et connectée, puis imprimez un test.",
+  "Saved, but the printer didn't answer. Check it's on and connected, then print a test.":
+    "Enregistré, mais l'imprimante n'a pas répondu. Vérifiez qu'elle est allumée et connectée, puis imprimez un test.",
   "Receipts print here automatically. It reconnects on each print.":
     "Les reçus s'impriment ici automatiquement. La connexion se rétablit à chaque impression.",
-  "Plug your printer in over USB or USB-C, or pair it over Bluetooth in Windows settings — then detect it. No ports or settings to configure.":
-    "Branchez votre imprimante en USB ou USB-C, ou associez-la en Bluetooth dans les paramètres Windows — puis détectez-la. Aucun port ni réglage à configurer.",
+  "Plug your printer in over USB or USB-C, or pair it over Bluetooth in Windows settings. Then detect it. No ports or settings to configure.":
+    "Branchez votre imprimante en USB ou USB-C, ou associez-la en Bluetooth dans les paramètres Windows. Puis détectez-la. Aucun port ni réglage à configurer.",
   "Detect my printer": "Détecter mon imprimante",
-  "Found several — pick your printer:": "Plusieurs trouvées — choisissez votre imprimante :",
+  "Found several. Pick your printer:": "Plusieurs trouvées. Choisissez votre imprimante :",
   "Connect": "Connecter",
   "Use a network printer instead": "Utiliser plutôt une imprimante réseau",
   "No printer found. Plug it in over USB or pair it over Bluetooth, then try again.":
@@ -490,8 +490,8 @@ export const FR: Record<string, string> = {
   "Back up data (to Downloads)": "Sauvegarder les données (vers Téléchargements)",
   "Back up now": "Sauvegarder maintenant",
   "Automatic daily backup": "Sauvegarde quotidienne automatique",
-  "A full snapshot is saved automatically once a day (around 2 AM, or at the first launch afterwards) and the last 14 days are kept — so yesterday's work is always safe, even with no internet for months. Each day is its own file, so today's work can never overwrite yesterday's snapshot.":
-    "Un instantané complet est enregistré automatiquement une fois par jour (vers 2 h, ou au premier lancement suivant) et les 14 derniers jours sont conservés — le travail d'hier est donc toujours à l'abri, même sans internet pendant des mois. Chaque jour a son propre fichier, donc le travail d'aujourd'hui ne peut jamais écraser l'instantané d'hier.",
+  "A full snapshot is saved automatically once a day (around 2 AM, or at the first launch afterwards) and the last 14 days are kept. So yesterday's work is always safe, even with no internet for months. Each day is its own file, so today's work can never overwrite yesterday's snapshot.":
+    "Un instantané complet est enregistré automatiquement une fois par jour (vers 2 h, ou au premier lancement suivant) et les 14 derniers jours sont conservés. Le travail d'hier est donc toujours à l'abri, même sans internet pendant des mois. Chaque jour a son propre fichier, donc le travail d'aujourd'hui ne peut jamais écraser l'instantané d'hier.",
   "Last backup": "Dernière sauvegarde",
   "not yet": "pas encore",
   "Saved in": "Enregistré dans",
@@ -506,12 +506,12 @@ export const FR: Record<string, string> = {
   "records": "enregistrements",
   "Backup failed.": "Échec de la sauvegarde.",
   "Reset app data (complete refresh)": "Réinitialiser les données (remise à zéro complète)",
-  "Clears all data stored on this device and signs you out — for a clean start or to fix a glitchy device. Your business data on the server is not touched and downloads again when you sign back in.":
-    "Efface toutes les données stockées sur cet appareil et vous déconnecte — pour repartir à neuf ou réparer un appareil défaillant. Les données de votre entreprise sur le serveur ne sont pas touchées et se retéléchargent à la reconnexion.",
-  "Only affects this device — never another business's data.":
-    "N'affecte que cet appareil — jamais les données d'une autre entreprise.",
-  "Sync first if possible — unsynced sales cannot be recovered.":
-    "Synchronisez d'abord si possible — les ventes non synchronisées sont irrécupérables.",
+  "Clears all data stored on this device and signs you out. For a clean start or to fix a glitchy device. Your business data on the server is not touched and downloads again when you sign back in.":
+    "Efface toutes les données stockées sur cet appareil et vous déconnecte. Pour repartir à neuf ou réparer un appareil défaillant. Les données de votre entreprise sur le serveur ne sont pas touchées et se retéléchargent à la reconnexion.",
+  "Only affects this device. Never another business's data.":
+    "N'affecte que cet appareil. Jamais les données d'une autre entreprise.",
+  "Sync first if possible. Unsynced sales cannot be recovered.":
+    "Synchronisez d'abord si possible. Les ventes non synchronisées sont irrécupérables.",
   "Reset everything": "Tout réinitialiser",
   "Reset all data on this device?": "Réinitialiser toutes les données de cet appareil ?",
   "This permanently clears every record stored on THIS device and signs you out. Your business data on the server is safe and will download again the next time you sign in. Any sales not yet synced to the server will be lost.":
@@ -540,8 +540,8 @@ export const FR: Record<string, string> = {
     "« Ajouter » conserve vos enregistrements actuels et n'insère que les nouveaux. « Remplacer » écrase les enregistrements correspondants (en ambre) par la version de la sauvegarde.",
   "Add new only": "Ajouter seulement les nouveaux",
   "Replace selected": "Remplacer la sélection",
-  "This backup belongs to a different business — it can't be restored here.":
-    "Cette sauvegarde appartient à une autre entreprise — elle ne peut pas être restaurée ici.",
+  "This backup belongs to a different business. It can't be restored here.":
+    "Cette sauvegarde appartient à une autre entreprise. Elle ne peut pas être restaurée ici.",
   "This backup has no records to restore.": "Cette sauvegarde ne contient aucun enregistrement à restaurer.",
   "Couldn't read this backup file.": "Impossible de lire ce fichier de sauvegarde.",
   "Pick at least one type of data to restore.": "Choisissez au moins un type de données à restaurer.",
@@ -558,14 +558,14 @@ export const FR: Record<string, string> = {
   "updated": "mis à jour",
   "skipped": "ignorés",
   "Restore failed.": "Échec de la restauration.",
-  "Restore works on this device. Your catalogue and customers stay owned by the server (they reconcile on the next sync); only sales not yet synced can be sent up to become official — you'll be asked to confirm after restoring.":
-    "La restauration s'applique à cet appareil. Votre catalogue et vos clients restent gérés par le serveur (ils se réconcilient à la prochaine synchronisation) ; seules les ventes non encore synchronisées peuvent être envoyées pour devenir officielles — il vous sera demandé de confirmer après la restauration.",
+  "Restore works on this device. Your catalogue and customers stay owned by the server (they reconcile on the next sync); only sales not yet synced can be sent up to become official. You'll be asked to confirm after restoring.":
+    "La restauration s'applique à cet appareil. Votre catalogue et vos clients restent gérés par le serveur (ils se réconcilient à la prochaine synchronisation) ; seules les ventes non encore synchronisées peuvent être envoyées pour devenir officielles. Il vous sera demandé de confirmer après la restauration.",
   "Make restored sales official?": "Rendre les ventes restaurées officielles ?",
   "Some restored sales aren't on the server yet. Send them so they become official for every device. Already-synced sales and your catalogue are handled automatically.":
     "Certaines ventes restaurées ne sont pas encore sur le serveur. Envoyez-les pour qu'elles deviennent officielles sur tous les appareils. Les ventes déjà synchronisées et votre catalogue sont gérés automatiquement.",
   "Send to server": "Envoyer au serveur",
   "Sent to server": "Envoyé au serveur",
-  "Couldn't reach the server — try Sync later.": "Impossible de joindre le serveur — réessayez la synchronisation plus tard.",
+  "Couldn't reach the server. Try Sync later.": "Impossible de joindre le serveur. Réessayez la synchronisation plus tard.",
   "Company profile": "Profil de l'entreprise",
   "Branches": "Succursales",
   "Product packaging": "Conditionnement des produits",
@@ -582,8 +582,8 @@ export const FR: Record<string, string> = {
 
   // ── Thermal printer (ESC/POS) ──────────────────────────────────────
   "Thermal printer (ESC/POS, no dialog)": "Imprimante thermique (ESC/POS, sans boîte)",
-  "Send receipts straight to a serial/network thermal printer as raw ESC/POS — no print dialog.":
-    "Envoyez les reçus directement à une imprimante thermique série/réseau en ESC/POS brut — sans boîte d'impression.",
+  "Send receipts straight to a serial/network thermal printer as raw ESC/POS. No print dialog.":
+    "Envoyez les reçus directement à une imprimante thermique série/réseau en ESC/POS brut. Sans boîte d'impression.",
   "Only available in the installed desktop app (needs serial/network access).":
     "Disponible uniquement dans l'application de bureau installée (accès série/réseau requis).",
   "USB / Serial": "USB / Série",
@@ -597,8 +597,8 @@ export const FR: Record<string, string> = {
   // ── Printer settings ───────────────────────────────────────────────
   "Print a test receipt": "Imprimer un reçu de test",
   "How printing works": "Comment fonctionne l'impression",
-  "Receipts and reports open your system print dialog — pick any installed printer (thermal or office) or Save as PDF. Set the paper width below to match your receipt roll.":
-    "Les reçus et rapports ouvrent la boîte d'impression du système — choisissez une imprimante (thermique ou bureau) ou Enregistrer en PDF. Réglez la largeur ci-dessous selon votre rouleau.",
+  "Receipts and reports open your system print dialog. Pick any installed printer (thermal or office) or Save as PDF. Set the paper width below to match your receipt roll.":
+    "Les reçus et rapports ouvrent la boîte d'impression du système. Choisissez une imprimante (thermique ou bureau) ou Enregistrer en PDF. Réglez la largeur ci-dessous selon votre rouleau.",
   "Receipt paper width": "Largeur du papier de reçu",
   "Narrow thermal roll": "Rouleau thermique étroit",
   "Standard thermal roll": "Rouleau thermique standard",
@@ -613,7 +613,7 @@ export const FR: Record<string, string> = {
   // ── Onboarding / invite code ───────────────────────────────────────
   "Share this so a teammate can join your company.": "Partagez-le pour qu'un collègue rejoigne votre entreprise.",
   "Invite code copied.": "Code d'invitation copié.",
-  "Could not copy — copy it manually.": "Copie impossible — copiez-le manuellement.",
+  "Could not copy. Copy it manually.": "Copie impossible. Copiez-le manuellement.",
   "Copy": "Copier",
   "You already have an account.": "Vous avez déjà un compte.",
   "Set up a new business on StockFlow.": "Configurer une nouvelle entreprise sur StockFlow.",
@@ -636,24 +636,24 @@ export const FR: Record<string, string> = {
   "Cost of goods sold": "Coût des marchandises vendues",
   "of which VAT collected": "dont TVA collectée",
   "Gross margin": "Marge brute",
-  "Your NIU — shown on tax invoices": "Votre NIU — affiché sur les factures",
+  "Your NIU. Shown on tax invoices": "Votre NIU. Affiché sur les factures",
 
   // ── Tax regime (impôt libératoire) ─────────────────────────────────
   "Tax regime": "Régime fiscal",
   "Standard (collects VAT)": "Standard (avec TVA)",
   "Régime du réel/simplifié": "Régime du réel/simplifié",
   "Flat tax (impôt libératoire)": "Impôt libératoire (forfait)",
-  "Very small business — no VAT": "Très petite entreprise — sans TVA",
-  "Under impôt libératoire you charge no VAT; instead you pay a flat lump-sum tax set by your commune. Enter it below — it appears in the tax declaration.":
-    "Sous l'impôt libératoire, vous ne facturez pas de TVA ; vous payez un forfait fixé par votre commune. Saisissez-le ci-dessous — il apparaît dans la déclaration fiscale.",
+  "Very small business. No VAT": "Très petite entreprise. Sans TVA",
+  "Under impôt libératoire you charge no VAT; instead you pay a flat lump-sum tax set by your commune. Enter it below. It appears in the tax declaration.":
+    "Sous l'impôt libératoire, vous ne facturez pas de TVA ; vous payez un forfait fixé par votre commune. Saisissez-le ci-dessous. Il apparaît dans la déclaration fiscale.",
   "Flat tax amount": "Montant du forfait",
   "Period": "Période",
   "Monthly": "Mensuel",
   "Quarterly": "Trimestriel",
   "Yearly": "Annuel",
   "Impôt libératoire (flat tax)": "Impôt libératoire (forfait)",
-  "Your business is on the flat-tax regime — no VAT is collected on sales. This lump sum, set by your commune, is what you owe per period.":
-    "Votre entreprise est au régime du forfait — aucune TVA n'est collectée sur les ventes. Ce forfait, fixé par votre commune, est ce que vous devez par période.",
+  "Your business is on the flat-tax regime. No VAT is collected on sales. This lump sum, set by your commune, is what you owe per period.":
+    "Votre entreprise est au régime du forfait. Aucune TVA n'est collectée sur les ventes. Ce forfait, fixé par votre commune, est ce que vous devez par période.",
   "month": "mois",
   "quarter": "trimestre",
   "year": "an",
@@ -671,8 +671,8 @@ export const FR: Record<string, string> = {
   "Business details": "Détails de l'entreprise",
   "Let's set up": "Configurons",
   "Step": "Étape",
-  "Pick your country — we'll set the currency and default tax rate for you.":
-    "Choisissez votre pays — nous définirons la devise et le taux de taxe par défaut.",
+  "Pick your country. We'll set the currency and default tax rate for you.":
+    "Choisissez votre pays. Nous définirons la devise et le taux de taxe par défaut.",
   "Upload logo": "Téléverser un logo",
   "Optional: reward loyal customers with a gift card every so many purchases. You can change this later.":
     "Facultatif : récompensez les clients fidèles avec une carte cadeau tous les N achats. Modifiable plus tard.",
@@ -710,12 +710,12 @@ export const FR: Record<string, string> = {
   // ── Reorder / out-of-stock PO ──────────────────────────────────────
   "Order": "Commander",
   "Order from supplier": "Commander au fournisseur",
-  "This product has no supplier — add one on the product first.":
-    "Ce produit n'a pas de fournisseur — ajoutez-en un sur le produit d'abord.",
-  "Reorder — out of stock": "Réapprovisionnement — rupture de stock",
+  "This product has no supplier. Add one on the product first.":
+    "Ce produit n'a pas de fournisseur. Ajoutez-en un sur le produit d'abord.",
+  "Reorder. Out of stock": "Réapprovisionnement. Rupture de stock",
   "Could not start the order.": "Impossible de démarrer la commande.",
-  "This card has been used — deactivate it instead of deleting.":
-    "Cette carte a été utilisée — désactivez-la au lieu de la supprimer.",
+  "This card has been used. Deactivate it instead of deleting.":
+    "Cette carte a été utilisée. Désactivez-la au lieu de la supprimer.",
 
   // ── Gift cards: delete + PDF ───────────────────────────────────────
   "Gift card deleted.": "Carte cadeau supprimée.",
@@ -860,7 +860,7 @@ export const FR: Record<string, string> = {
   "Lines": "Lignes",
   "Contact supplier": "Contacter le fournisseur",
   "Supplier contact": "Contact du fournisseur",
-  "— select supplier —": "— choisir un fournisseur —",
+  "Select supplier": "Choisir un fournisseur",
   "Add products": "Ajouter des produits",
   "Search products to add…": "Rechercher des produits à ajouter…",
   "Create order": "Créer la commande",
@@ -927,8 +927,8 @@ export const FR: Record<string, string> = {
   "Not found.": "Introuvable.",
   "Sale not found.": "Vente introuvable.",
   "No products matching": "Aucun produit correspondant à",
-  "No services. (Requires the Services module — enable it in Company settings.)":
-    "Aucun service. (Nécessite le module Services — activez-le dans les paramètres de l'entreprise.)",
+  "No services. (Requires the Services module. Enable it in Company settings.)":
+    "Aucun service. (Nécessite le module Services. Activez-le dans les paramètres de l'entreprise.)",
   "Redeeming converts loyalty points into store credit the customer can spend on future purchases (pay with “Store credit” at checkout). It does not pay out cash.":
     "L'utilisation convertit les points de fidélité en avoir en magasin que le client peut dépenser lors de ses prochains achats (paiement « Avoir en magasin » à l'encaissement). Cela ne verse pas d'espèces.",
   "Adds": "Ajoute",
@@ -942,7 +942,7 @@ export const FR: Record<string, string> = {
   "Expiry date (optional)": "Date d'expiration (facultatif)",
   "Quantity (base units)": "Quantité (unités de base)",
   "Unit cost (optional)": "Coût unitaire (facultatif)",
-  "— select batch —": "— choisir un lot —",
+  "Select batch": "Choisir un lot",
   "in stock": "en stock",
   "Receive in": "Réceptionner en",
   "Quantity": "Quantité",
@@ -955,7 +955,7 @@ export const FR: Record<string, string> = {
   "Apply adjustment": "Appliquer l'ajustement",
 
   // ── Expiry / sub-units ─────────────────────────────────────────────
-  "is out of stock — receive stock before selling it.": "est en rupture de stock — réceptionnez du stock avant de le vendre.",
+  "is out of stock. Receive stock before selling it.": "est en rupture de stock. Réceptionnez du stock avant de le vendre.",
   "expired on": "expiré le",
   "Sell with caution.": "À vendre avec précaution.",
   "Expired": "Expiré",
@@ -979,16 +979,16 @@ export const FR: Record<string, string> = {
   "Potential margin": "Marge potentielle",
   "Any stock": "Tout stock",
   "Any expiry": "Toute expiration",
-  "No products yet — add products (and receive stock) before selling.":
-    "Aucun produit — ajoutez des produits (et réceptionnez du stock) avant de vendre.",
+  "No products yet. Add products (and receive stock) before selling.":
+    "Aucun produit. Ajoutez des produits (et réceptionnez du stock) avant de vendre.",
   "Could not save settings.": "Impossible d'enregistrer les paramètres.",
   "Currency conversion failed.": "La conversion de devise a échoué.",
   "customers": "clients",
   "gift cards": "cartes cadeaux",
 
   // ── Guardrail toasts (post-load) ───────────────────────────────────
-  "No suppliers yet — add one first, or allow supplier-less stock in Company settings.":
-    "Aucun fournisseur — ajoutez-en un d'abord, ou autorisez le stock sans fournisseur dans les paramètres.",
+  "No suppliers yet. Add one first, or allow supplier-less stock in Company settings.":
+    "Aucun fournisseur. Ajoutez-en un d'abord, ou autorisez le stock sans fournisseur dans les paramètres.",
   "You need a supplier to place an order. Add one first.":
     "Il faut un fournisseur pour passer une commande. Ajoutez-en un d'abord.",
 
@@ -999,8 +999,8 @@ export const FR: Record<string, string> = {
     "Un produit par ligne, sans en-tête. Collez directement depuis Excel/Sheets ou un fichier CSV. Colonnes, dans l'ordre :",
   "Name, Barcode, Category, Purchase price, Sale price, Low-stock threshold, Batch number, Expiry (YYYY-MM-DD), Quantity":
     "Nom, Code-barres, Catégorie, Prix d'achat, Prix de vente, Seuil de stock bas, Numéro de lot, Expiration (AAAA-MM-JJ), Quantité",
-  "Barcode matches an existing product first, then the exact name. For an existing product, prices/threshold can be left blank — its stock is just topped up. Example:":
-    "Le code-barres identifie d'abord un produit existant, puis le nom exact. Pour un produit existant, les prix/seuil peuvent rester vides — son stock est simplement réapprovisionné. Exemple :",
+  "Barcode matches an existing product first, then the exact name. For an existing product, prices/threshold can be left blank. Its stock is just topped up. Example:":
+    "Le code-barres identifie d'abord un produit existant, puis le nom exact. Pour un produit existant, les prix/seuil peuvent rester vides. Son stock est simplement réapprovisionné. Exemple :",
   "Paste product rows": "Collez les lignes de produits",
   "Check rows": "Vérifier les lignes",
   "ready": "prêtes",
@@ -1021,14 +1021,14 @@ export const FR: Record<string, string> = {
   "new": "nouveaux",
   "to restock": "à réapprovisionner",
   "fix the lines marked ❌ below, then Check rows again.": "corrigez les lignes marquées ❌ ci-dessous, puis revérifiez.",
-  "All rows are valid — ready to register.": "Toutes les lignes sont valides — prêtes à enregistrer.",
+  "All rows are valid. Ready to register.": "Toutes les lignes sont valides. Prêtes à enregistrer.",
   "Country (sets the default tax rate)": "Pays (définit le taux de taxe par défaut)",
   "Pick a country to prefill the tax rate…": "Choisissez un pays pour préremplir le taux de taxe…",
   "Country": "Pays",
   "Select your country…": "Choisissez votre pays…",
   "Sets the currency and default tax rate automatically.": "Définit automatiquement la devise et le taux de taxe par défaut.",
-  "Changing the currency only relabels amounts — existing prices and balances keep their numbers and are NOT converted to":
-    "Changer la devise ne fait que réétiqueter les montants — les prix et soldes existants conservent leurs valeurs et ne sont PAS convertis en",
+  "Changing the currency only relabels amounts. Existing prices and balances keep their numbers and are NOT converted to":
+    "Changer la devise ne fait que réétiqueter les montants. Les prix et soldes existants conservent leurs valeurs et ne sont PAS convertis en",
   "Converting…": "Conversion…",
   "Convert prices & balances at today's rate": "Convertir les prix et soldes au taux du jour",
   "Convert currency": "Convertir la devise",
@@ -1045,7 +1045,7 @@ export const FR: Record<string, string> = {
   "Reactivate": "Réactiver",
   "Deactivate this business?": "Désactiver cette entreprise ?",
   "Reactivate this business?": "Réactiver cette entreprise ?",
-  "Its users will be signed out within seconds and won't be able to log in or sync. It disappears from the desktop and mobile company pickers. No data is deleted — you can reactivate it at any time.": "Ses utilisateurs seront déconnectés en quelques secondes et ne pourront plus se connecter ni synchroniser. Elle disparaît des sélecteurs d'entreprise du desktop et du mobile. Aucune donnée n'est supprimée : vous pouvez la réactiver à tout moment.",
+  "Its users will be signed out within seconds and won't be able to log in or sync. It disappears from the desktop and mobile company pickers. No data is deleted. You can reactivate it at any time.": "Ses utilisateurs seront déconnectés en quelques secondes et ne pourront plus se connecter ni synchroniser. Elle disparaît des sélecteurs d'entreprise du desktop et du mobile. Aucune donnée n'est supprimée : vous pouvez la réactiver à tout moment.",
   "Its users will be able to log in and sync again.": "Ses utilisateurs pourront de nouveau se connecter et synchroniser.",
   "Business deactivated.": "Entreprise désactivée.",
   "Business reactivated.": "Entreprise réactivée.",
@@ -1053,7 +1053,7 @@ export const FR: Record<string, string> = {
   // ── Support ────────────────────────────────────────────────────────
   "Help": "Aide",
   "Support": "Support",
-  "Report a bug, a blocking problem or ask a question — with screenshots.": "Signalez un bug, un blocage ou posez une question — avec des captures d'écran.",
+  "Report a bug, a blocking problem or ask a question. With screenshots.": "Signalez un bug, un blocage ou posez une question. Avec des captures d'écran.",
   "New request": "Nouvelle demande",
   "My requests": "Mes demandes",
   "What's happening?": "Que se passe-t-il ?",
@@ -1068,13 +1068,13 @@ export const FR: Record<string, string> = {
   "Sent automatically with your request: app version, device, your business and the screen you came from": "Joint automatiquement à votre demande : version de l'app, appareil, votre entreprise et l'écran d'où vous venez",
   "Send to support": "Envoyer au support",
   "Please describe the problem before sending.": "Décrivez le problème avant d'envoyer.",
-  "Request sent — we'll get back to you here.": "Demande envoyée — nous vous répondrons ici.",
-  "No connection — your request is saved and will be sent automatically.": "Pas de connexion — votre demande est enregistrée et sera envoyée automatiquement.",
-  "No connection — try again once connected.": "Pas de connexion — réessayez une fois connecté.",
+  "Request sent. We'll get back to you here.": "Demande envoyée. Nous vous répondrons ici.",
+  "No connection. Your request is saved and will be sent automatically.": "Pas de connexion. Votre demande est enregistrée et sera envoyée automatiquement.",
+  "No connection. Try again once connected.": "Pas de connexion. Réessayez une fois connecté.",
   "images maximum.": "images maximum.",
   "is larger than 5 MB.": "dépasse 5 Mo.",
   "Images too large in total (15 MB max).": "Images trop lourdes au total (15 Mo max).",
-  "Offline — your requests can't be loaded right now.": "Hors ligne — vos demandes ne peuvent pas être chargées pour le moment.",
+  "Offline. Your requests can't be loaded right now.": "Hors ligne. Vos demandes ne peuvent pas être chargées pour le moment.",
   "No requests yet.": "Aucune demande pour l'instant.",
   "Support reply": "Réponse du support",
   "Open": "Ouverte",
@@ -1106,7 +1106,7 @@ export const FR: Record<string, string> = {
   "Support replied to your request": "Le support a répondu à votre demande",
   "View": "Voir",
   "Later": "Plus tard",
-  "New reply — click to read": "Nouvelle réponse — cliquez pour lire",
+  "New reply. Click to read": "Nouvelle réponse. Cliquez pour lire",
   "Your request has been reopened.": "Votre demande a été rouverte.",
   "This request is resolved. Replying will reopen it.": "Cette demande est résolue. Répondre la rouvrira.",
   "Reply to support…": "Répondre au support…",
@@ -1119,7 +1119,7 @@ export const FR: Record<string, string> = {
   "Unassigned": "Non assignées",
   "Mine": "Mes tickets",
   "Resolved / closed": "Résolues / fermées",
-  "Nothing here — all caught up.": "Rien ici — tout est à jour.",
+  "Nothing here. All caught up.": "Rien ici. Tout est à jour.",
   "Low": "Basse",
   "Normal": "Normale",
   "High": "Haute",

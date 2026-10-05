@@ -142,7 +142,7 @@ export function resolveRows(
         lineNumber: row.lineNumber,
         kind: "error",
         productName: row.productName,
-        message: "New product — purchase price and sale price are required.",
+        message: "New product. Purchase price and sale price are required.",
       };
     }
     if (purchasePrice < 0 || salePrice < 0) {
@@ -158,7 +158,7 @@ export function resolveRows(
     if (row.categoryName) {
       const match = categoriesByName.get(row.categoryName.trim().toLowerCase());
       if (match) categoryId = match.id;
-      else categoryWarning = `Category "${row.categoryName}" doesn't exist yet — created without a category.`;
+      else categoryWarning = `Category "${row.categoryName}" doesn't exist yet. Created without a category.`;
     }
 
     return {

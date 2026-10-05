@@ -94,7 +94,7 @@ export function SuperAdminUsers() {
                     <div className="font-medium text-text-primary">{u.name}</div>
                     <div className="text-xs text-text-secondary">{u.phone}</div>
                   </td>
-                  <td className="px-4 py-3 text-text-secondary">{u.companyName ?? "—"}</td>
+                  <td className="px-4 py-3 text-text-secondary">{u.companyName ?? "-"}</td>
                   <td className="px-4 py-3 text-text-secondary">{roleLabel(u.role, t)}</td>
                   <td className="px-4 py-3 text-text-secondary">{relativeTime(u.lastActiveAt)}</td>
                   <td className="px-4 py-3">

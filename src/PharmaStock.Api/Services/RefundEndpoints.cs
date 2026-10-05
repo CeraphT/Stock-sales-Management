@@ -97,7 +97,7 @@ public static class RefundEndpoints
                             .FirstOrDefaultAsync();
 
                         if (batch is null)
-                            continue; // no batch ever existed for this product/location — nothing sensible to credit
+                            continue; // no batch ever existed for this product/location. Nothing sensible to credit
 
                         batch.QuantityInBaseUnits += totalConsumed;
 

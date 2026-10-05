@@ -141,7 +141,7 @@ public static class SuperAdminEndpoints
             // A deactivated business is closed to everyone, SuperAdmin included —
             // reactivate it first to look inside.
             if (!company.Active)
-                return Results.Conflict(new { message = "Cette entreprise est désactivée. Réactivez-la d'abord. / This business is deactivated — reactivate it first." });
+                return Results.Conflict(new { message = "Cette entreprise est désactivée. Réactivez-la d'abord. / This business is deactivated. Reactivate it first." });
 
             var superAdminId = http.User.GetUserId();
             if (superAdminId is null)

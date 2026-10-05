@@ -83,7 +83,7 @@ export default function CustomerPickerScreen() {
             <Pressable onPress={() => select(item)} className="rounded-xl bg-surface p-3">
               <Text className="text-sm font-semibold text-text-primary">{item.name}</Text>
               <Text className="text-xs text-text-secondary">
-                {item.phone ?? '—'} · Credit: {formatCurrency(item.creditBalance, currency)}
+                {item.phone ?? '-'} · Credit: {formatCurrency(item.creditBalance, currency)}
               </Text>
             </Pressable>
           )}

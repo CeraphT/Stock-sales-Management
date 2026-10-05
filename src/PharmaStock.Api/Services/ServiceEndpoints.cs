@@ -193,5 +193,5 @@ public static class ServiceEndpoints
 
     private static ServiceResponse ToResponse(Service service) => new(
         service.Id, service.Name, service.FixedPrice, service.Category, service.Active,
-        service.StockLinks.Select(l => new ServiceStockLinkResponse(l.ProductId, l.Product?.Name ?? "—", l.QuantityConsumedInBaseUnits)).ToList());
+        service.StockLinks.Select(l => new ServiceStockLinkResponse(l.ProductId, l.Product?.Name ?? "-", l.QuantityConsumedInBaseUnits)).ToList());
 }

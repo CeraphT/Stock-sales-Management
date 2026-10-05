@@ -150,7 +150,7 @@ export default function ReconciliationScreen() {
                   <View className="flex-1">
                     <Text className="text-sm font-semibold text-text-primary">{b.productName}</Text>
                     <Text className="mt-0.5 text-xs text-text-secondary">
-                      Batch {b.batchNumber || '—'} · {b.locationName} · <Text className="font-semibold text-error">{b.quantityInBaseUnits}</Text>
+                      Batch {b.batchNumber || '-'} · {b.locationName} · <Text className="font-semibold text-error">{b.quantityInBaseUnits}</Text>
                     </Text>
                   </View>
                   <Pressable

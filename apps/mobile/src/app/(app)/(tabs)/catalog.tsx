@@ -182,7 +182,7 @@ export default function CatalogScreen() {
     try {
       const detail = await productsApi.get(companyId, productId);
       if (!detail.supplierId) {
-        toast('This product has no supplier — add one on the product first.', 'error');
+        toast('This product has no supplier. Add one on the product first.', 'error');
         router.push({ pathname: '/product-detail', params: { id: productId } });
         return;
       }
@@ -196,7 +196,7 @@ export default function CatalogScreen() {
         const po = await purchaseOrdersApi.create(companyId, {
           locationId,
           supplierId: detail.supplierId,
-          notes: 'Reorder — out of stock',
+          notes: 'Reorder. Out of stock',
           lines: [line],
         });
         router.push({ pathname: '/purchase-order-detail', params: { id: po.id } });
@@ -290,7 +290,7 @@ export default function CatalogScreen() {
                   </View>
                   {categoryName ? <Text className="mt-0.5 text-xs text-text-secondary">{categoryName}</Text> : null}
                   {item.barcode ? <Text className="text-xs text-text-secondary">Barcode: {item.barcode}</Text> : null}
-                  <Text className={`text-xs ${expTone}`}>Expiry: {expiry ? expiry.slice(0, 10) : '—'}</Text>
+                  <Text className={`text-xs ${expTone}`}>Expiry: {expiry ? expiry.slice(0, 10) : '-'}</Text>
                 </View>
                 <View className="items-end">
                   <Text className="text-base font-bold text-primary">{formatCurrency(item.salePrice, currency)}</Text>

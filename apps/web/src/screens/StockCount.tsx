@@ -52,7 +52,7 @@ export function StockCount() {
       await refetch();
       setCounts({});
       const applied = result.filter((r) => r.delta !== 0).length;
-      toast(`${t("Count posted —")} ${applied} ${t("batch(es) adjusted.")}`, "success");
+      toast(`${t("Count posted:")} ${applied} ${t("batch(es) adjusted.")}`, "success");
     } catch (e) {
       toast(e instanceof ApiError ? e.message : t("Could not post the count."), "error");
     } finally {
@@ -105,12 +105,12 @@ export function StockCount() {
                       value={raw ?? ""}
                       onChange={(e) => setCounts((c) => ({ ...c, [b.batchId]: e.target.value }))}
                       type="number"
-                      placeholder="—"
+                      placeholder="-"
                       className="h-9 w-24 rounded-lg border border-border bg-background px-2 text-right text-sm text-text-primary outline-none focus:border-primary"
                     />
                   </td>
                   <td className={`px-3 py-2 text-right tabular-nums font-semibold ${delta == null || delta === 0 ? "text-text-secondary" : delta > 0 ? "text-success" : "text-error"}`}>
-                    {delta == null ? "—" : delta > 0 ? `+${delta}` : delta}
+                    {delta == null ? "-" : delta > 0 ? `+${delta}` : delta}
                   </td>
                 </tr>
               );

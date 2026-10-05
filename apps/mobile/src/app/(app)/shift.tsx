@@ -98,8 +98,8 @@ export default function ShiftScreen() {
       const d = closed.discrepancy ?? 0;
       toast(
         d === 0
-          ? 'Register closed — cash balanced.'
-          : `Register closed — ${d > 0 ? 'over' : 'short'} by ${formatCurrency(Math.abs(d), currency)}.`,
+          ? 'Register closed. Cash balanced.'
+          : `Register closed - ${d > 0 ? 'over' : 'short'} by ${formatCurrency(Math.abs(d), currency)}.`,
         d === 0 ? 'success' : 'info',
       );
       await refresh();
@@ -206,7 +206,7 @@ export default function ShiftScreen() {
               {/* Close */}
               <View className="mt-4 border-t border-border pt-4">
                 <Text className="text-sm font-bold text-text-primary">Close register</Text>
-                <Text className="mb-2 text-xs text-text-secondary">Count the physical cash in the drawer — mobile money is not counted here.</Text>
+                <Text className="mb-2 text-xs text-text-secondary">Count the physical cash in the drawer. Mobile money is not counted here.</Text>
                 <View className="gap-1.5">
                   <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Cash counted</Text>
                   <TextInput

@@ -135,7 +135,7 @@ export function TaxDeclaration() {
         title: t("Purchases journal"),
         meta: [{ label: t("Receipts"), value: String(rows.length) }, { label: t("VAT deductible"), value: fmt(tVat) }],
         columns: [{ header: t("When") }, { header: t("Product") }, { header: t("Batch") }, { header: t("Supplier") }, { header: t("Base (excl. VAT)"), align: "right" }, { header: t("VAT / TVA"), align: "right" }, { header: t("Total"), align: "right" }],
-        rows: rows.map((r) => [new Date(r.timestamp).toLocaleDateString(), r.productName, r.batchNumber, r.supplierName ?? "—", fmt(r.ht), fmt(r.vat), fmt(r.ttc)]),
+        rows: rows.map((r) => [new Date(r.timestamp).toLocaleDateString(), r.productName, r.batchNumber, r.supplierName ?? "-", fmt(r.ht), fmt(r.vat), fmt(r.ttc)]),
         totals: [t("Total"), null, null, null, fmt(tHt), fmt(tVat), fmt(tTtc)],
       });
     } catch {
@@ -156,7 +156,7 @@ export function TaxDeclaration() {
         title: t("Cash book"),
         meta: [{ label: t("Shifts"), value: String(rows.length) }],
         columns: [{ header: t("Opened") }, { header: t("Cashier") }, { header: t("Opening"), align: "right" }, { header: t("Cash sales"), align: "right" }, { header: t("Expected"), align: "right" }, { header: t("Counted"), align: "right" }, { header: t("Diff"), align: "right" }],
-        rows: rows.map((r) => [new Date(r.openedAt).toLocaleString(), r.cashierName, fmt(r.openingCash), fmt(r.cashSales), r.expectedCash != null ? fmt(r.expectedCash) : "—", r.closingCash != null ? fmt(r.closingCash) : "—", r.discrepancy != null ? fmt(r.discrepancy) : "—"]),
+        rows: rows.map((r) => [new Date(r.openedAt).toLocaleString(), r.cashierName, fmt(r.openingCash), fmt(r.cashSales), r.expectedCash != null ? fmt(r.expectedCash) : "-", r.closingCash != null ? fmt(r.closingCash) : "-", r.discrepancy != null ? fmt(r.discrepancy) : "-"]),
       });
     } catch {
       toast(t("Could not export the report."), "error");
@@ -211,7 +211,7 @@ export function TaxDeclaration() {
             {fmt(company?.flatTaxAmount ?? 0)} <span className="text-base font-medium text-text-secondary">/ {flatPeriodLabel}</span>
           </div>
           <p className="mt-1 text-xs text-text-secondary">
-            {t("Your business is on the flat-tax regime — no VAT is collected on sales. This lump sum, set by your commune, is what you owe per period.")}
+            {t("Your business is on the flat-tax regime. No VAT is collected on sales. This lump sum, set by your commune, is what you owe per period.")}
           </p>
         </div>
       ) : null}
@@ -278,8 +278,8 @@ export function TaxDeclaration() {
         <p className="font-semibold text-text-primary">{t("Notes")}</p>
         <p className="mt-1">
           {showCodes
-            ? t("Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate, as purchase records don't store a per-line rate — have your accountant confirm against actual supplier invoices. This report follows the SYSCOHADA VAT accounts and is a working document, not an official filing.")
-            : t("Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate, as purchase records don't store a per-line rate — have your accountant confirm against actual supplier invoices. This is a working document, not an official filing.")}
+            ? t("Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate, as purchase records don't store a per-line rate. Have your accountant confirm against actual supplier invoices. This report follows the SYSCOHADA VAT accounts and is a working document, not an official filing.")
+            : t("Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate, as purchase records don't store a per-line rate. Have your accountant confirm against actual supplier invoices. This is a working document, not an official filing.")}
         </p>
       </div>
       </>

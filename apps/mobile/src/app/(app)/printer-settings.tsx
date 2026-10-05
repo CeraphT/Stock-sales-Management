@@ -54,7 +54,7 @@ export default function PrinterSettingsScreen() {
     } else {
       showAlert(
         'Printer selected',
-        `"${device.name}" is saved as the default printer, but access wasn't granted — it will be requested again at the first print.`,
+        `"${device.name}" is saved as the default printer, but access wasn't granted. It will be requested again at the first print.`,
       );
     }
   };

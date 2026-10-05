@@ -29,7 +29,7 @@ export function Archived() {
       const name = data.find((p) => p.id === productId)?.name;
       await runSync(); // pull the reactivated product back into the local mirror
       await queryClient.invalidateQueries();
-      toast(`${name ?? t("Product")} — ${t("restored.")}`, "success");
+      toast(`${name ?? t("Product")} - ${t("restored.")}`, "success");
     },
     onError: (e) => toast(e instanceof ApiError ? e.message : t("Could not restore the product."), "error"),
   });
@@ -62,7 +62,7 @@ export function Archived() {
               data.map((p) => (
                 <tr key={p.id} className="border-b border-border/60 last:border-0">
                   <td className="px-4 py-3 font-medium text-text-primary">{p.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">{p.barcode ?? "—"}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">{p.barcode ?? "-"}</td>
                   <td className="px-4 py-3 text-right text-text-primary">{formatCurrency(p.salePrice, currency)}</td>
                   <td className="px-4 py-3 text-right text-text-primary">{p.stock}</td>
                   <td className="px-4 py-3 text-right">

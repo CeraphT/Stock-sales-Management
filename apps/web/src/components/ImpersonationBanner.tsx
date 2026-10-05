@@ -27,7 +27,7 @@ export function ImpersonationBanner() {
     >
       <span className="truncate font-medium">
         <span aria-hidden>👁️ </span>
-        {t("Super-admin view — you are managing")} <strong>{companyName}</strong>
+        {t("Super-admin view: you are managing")} <strong>{companyName}</strong>
       </span>
       <button
         onClick={onExit}

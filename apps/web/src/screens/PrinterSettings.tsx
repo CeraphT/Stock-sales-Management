@@ -154,7 +154,7 @@ export function PrinterSettings() {
           <span>
             <span className="block text-sm font-semibold text-text-primary">🖨️ {t("Print receipts directly to a thermal printer")}</span>
             <span className="block text-xs text-text-secondary">
-              {t("Receipts only — they print straight to the printer with no dialog. Reports and PDFs still use the normal print dialog.")}
+              {t("Receipts only. They print straight to the printer with no dialog. Reports and PDFs still use the normal print dialog.")}
             </span>
           </span>
         </label>
@@ -171,7 +171,7 @@ export function PrinterSettings() {
               <div className="rounded-xl border border-success/40 bg-success/5 p-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="text-sm font-semibold text-text-primary">
-                    {verify === "fail" ? "⚠️" : "✓"} {t("Connected")} — {thermalLabel || thermalTarget}
+                    {verify === "fail" ? "⚠️" : "✓"} {t("Connected")} - {thermalLabel || thermalTarget}
                   </div>
                   <button onClick={disconnect} className="text-xs font-semibold text-error hover:underline">
                     {t("Disconnect")}
@@ -179,7 +179,7 @@ export function PrinterSettings() {
                 </div>
                 {verify === "fail" ? (
                   <p className="mt-1 text-xs text-accent-amber">
-                    {t("Saved, but the printer didn't answer — check it's on and connected, then print a test.")}
+                    {t("Saved, but the printer didn't answer. Check it's on and connected, then print a test.")}
                   </p>
                 ) : (
                   <p className="mt-1 text-xs text-text-secondary">{t("Receipts print here automatically. It reconnects on each print.")}</p>
@@ -193,7 +193,7 @@ export function PrinterSettings() {
             ) : (
               <div className="space-y-3">
                 <p className="text-xs text-text-secondary">
-                  {t("Plug your printer in over USB or USB-C, or pair it over Bluetooth in Windows settings — then detect it. No ports or settings to configure.")}
+                  {t("Plug your printer in over USB or USB-C, or pair it over Bluetooth in Windows settings. Then detect it. No ports or settings to configure.")}
                 </p>
                 <Button onClick={detect} loading={detecting}>
                   🔍 {t("Detect my printer")}
@@ -201,7 +201,7 @@ export function PrinterSettings() {
 
                 {found.length > 1 ? (
                   <div className="space-y-1.5">
-                    <div className="text-xs font-semibold text-text-primary">{t("Found several — pick your printer:")}</div>
+                    <div className="text-xs font-semibold text-text-primary">{t("Found several. Pick your printer:")}</div>
                     {found.map((p) => (
                       <button
                         key={p.target}

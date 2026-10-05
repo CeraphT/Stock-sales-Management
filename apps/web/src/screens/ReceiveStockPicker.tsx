@@ -92,7 +92,7 @@ export function ReceiveStockPicker() {
                   className="cursor-pointer border-b border-border/60 transition-colors last:border-0 hover:bg-background/60"
                 >
                   <td className="px-4 py-3 font-medium text-text-primary">{p.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">{p.barcode ?? "—"}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">{p.barcode ?? "-"}</td>
                   <td className="px-4 py-3 text-right text-text-primary">{p.stock}</td>
                   <td className="px-4 py-3">
                     <StockBadge status={p.status} />

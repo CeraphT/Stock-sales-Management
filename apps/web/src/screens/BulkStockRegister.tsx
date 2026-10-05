@@ -165,7 +165,7 @@ export function BulkStockRegister() {
           {t("Name, Barcode, Category, Purchase price, Sale price, Low-stock threshold, Batch number, Expiry (YYYY-MM-DD), Quantity")}
         </p>
         <p className="text-xs text-text-secondary">
-          {t("Barcode matches an existing product first, then the exact name. For an existing product, prices/threshold can be left blank — its stock is just topped up. Example:")}
+          {t("Barcode matches an existing product first, then the exact name. For an existing product, prices/threshold can be left blank. Its stock is just topped up. Example:")}
         </p>
         <p className="rounded-lg bg-background p-2 font-mono text-[11px] text-text-secondary">{EXAMPLE_ROW}</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -212,15 +212,15 @@ export function BulkStockRegister() {
           <div className="rounded-xl border border-border bg-surface p-4">
             <div className="text-sm font-bold text-text-primary">{t("Check summary")}</div>
             <div className="mt-1 text-sm text-text-secondary">
-              ✅ <span className="font-semibold text-success">{validRows.length}</span> {t("ready")} —{" "}
+              ✅ <span className="font-semibold text-success">{validRows.length}</span> {t("ready")} -{" "}
               {validRows.filter((r) => r.kind === "create").length} {t("new")}, {validRows.filter((r) => r.kind === "update").length} {t("to restock")}
             </div>
             {errorRows.length > 0 ? (
               <div className="mt-1 text-sm font-medium text-error">
-                ❌ {errorRows.length} {t("with errors")} — {t("fix the lines marked ❌ below, then Check rows again.")}
+                ❌ {errorRows.length} {t("with errors")} - {t("fix the lines marked ❌ below, then Check rows again.")}
               </div>
             ) : (
-              <div className="mt-1 text-sm font-medium text-success">✓ {t("All rows are valid — ready to register.")}</div>
+              <div className="mt-1 text-sm font-medium text-success">✓ {t("All rows are valid. Ready to register.")}</div>
             )}
           </div>
           {parsed.map((row) => (

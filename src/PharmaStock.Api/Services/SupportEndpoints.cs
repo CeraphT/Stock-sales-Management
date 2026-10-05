@@ -161,7 +161,7 @@ public static class SupportEndpoints
                 CompanyId = companyId,
                 CompanyName = companyName,
                 UserId = userId.Value,
-                UserName = user?.Name ?? http.User.Identity?.Name ?? "—",
+                UserName = user?.Name ?? http.User.Identity?.Name ?? "-",
                 UserPhone = user?.Phone,
                 Category = request.Category,
                 // Triage default: someone who can't work at all jumps the queue.
@@ -344,7 +344,7 @@ public static class SupportEndpoints
             if (reply.Length > 8000) reply = reply[..8000];
             var (me, myName) = Actor(http);
             db.SupportMessages.Add(new SupportMessage { TicketId = t.Id, AuthorUserId = me, AuthorName = myName, FromSupport = true, Body = reply });
-            t.AdminReply = reply; // latest reply — kept for older app versions
+            t.AdminReply = reply; // latest reply. Kept for older app versions
             t.RepliedAt = DateTime.UtcNow;
             t.UnreadByReporter = true;
             t.AwaitingSupport = false;

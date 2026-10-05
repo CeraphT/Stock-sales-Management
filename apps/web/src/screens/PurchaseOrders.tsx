@@ -177,7 +177,7 @@ export function PurchaseOrders() {
                 {contact.phone ? (
                   <a href={`tel:${contact.phone}`} className="font-semibold text-primary">{contact.phone}</a>
                 ) : (
-                  <span className="text-text-secondary">{t("— not on file —")}</span>
+                  <span className="text-text-secondary">{t("Not on file")}</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -185,7 +185,7 @@ export function PurchaseOrders() {
                 {contact.email ? (
                   <a href={`mailto:${contact.email}`} className="font-semibold text-primary">{contact.email}</a>
                 ) : (
-                  <span className="text-text-secondary">{t("— not on file —")}</span>
+                  <span className="text-text-secondary">{t("Not on file")}</span>
                 )}
               </div>
             </div>

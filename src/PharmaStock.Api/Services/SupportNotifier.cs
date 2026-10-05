@@ -12,7 +12,7 @@ namespace PharmaStock.Api.Services;
 /// No-op when SMTP isn't configured (dev).</summary>
 public static class SupportNotifier
 {
-    private static string E(string? s) => WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(s) ? "—" : s);
+    private static string E(string? s) => WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(s) ? "-" : s);
 
     private static string Row(string label, string value) =>
         $"<tr><td style=\"color:#6B7280;padding:2px 12px 2px 0\">{label}</td><td>{value}</td></tr>";
@@ -45,10 +45,10 @@ public static class SupportNotifier
         var to = SupportInbox(email, config);
         if (string.IsNullOrWhiteSpace(to)) return;
         var category = CategoryLabel(ticket.Category);
-        var subject = $"[Support StockFlow] {category} — {ticket.Title}";
+        var subject = $"[Support StockFlow] {category} - {ticket.Title}";
         var html =
             "<div style=\"font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#1F2937\">" +
-            $"<h2 style=\"color:#0F766E;margin:0 0 8px\">{E(category)} — {E(ticket.Title)}</h2>" +
+            $"<h2 style=\"color:#0F766E;margin:0 0 8px\">{E(category)} - {E(ticket.Title)}</h2>" +
             "<table style=\"border-collapse:collapse;font-size:13px;margin:8px 0 12px\">" +
             Row("Priorité", E(ticket.Priority.ToString())) +
             Row("Entreprise", E(ticket.CompanyName)) +
@@ -70,7 +70,7 @@ public static class SupportNotifier
     {
         var to = SupportInbox(email, config);
         if (string.IsNullOrWhiteSpace(to)) return;
-        var subject = $"[Support StockFlow] {(reopened ? "↩️ Rouverte" : "💬 Réponse")} — {ticket.Title}";
+        var subject = $"[Support StockFlow] {(reopened ? "↩️ Rouverte" : "💬 Réponse")} - {ticket.Title}";
         var html =
             "<div style=\"font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#1F2937\">" +
             $"<h2 style=\"color:#0F766E;margin:0 0 8px\">{E(ticket.UserName)} a répondu{(reopened ? " (demande rouverte)" : "")}</h2>" +
@@ -89,12 +89,12 @@ public static class SupportNotifier
         if (!email.IsConfigured || string.IsNullOrWhiteSpace(reporterEmail)) return;
         var resolved = ticket.Status is SupportTicketStatus.Resolved or SupportTicketStatus.Closed;
         var subject = resolved
-            ? $"✅ Votre demande est résolue — {ticket.Title}"
-            : $"💬 Le support vous a répondu — {ticket.Title}";
+            ? $"✅ Votre demande est résolue - {ticket.Title}"
+            : $"💬 Le support vous a répondu - {ticket.Title}";
         var html =
             "<div style=\"font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#1F2937\">" +
             $"<h2 style=\"color:#0F766E;margin:0 0 8px\">{(resolved ? "Votre demande est résolue" : "Le support vous a répondu")}</h2>" +
-            $"<p>Demande : <b>{E(ticket.Title)}</b> — statut : <b>{SupportEmailActions.StatusFr(ticket.Status)}</b></p>" +
+            $"<p>Demande : <b>{E(ticket.Title)}</b>. Statut : <b>{SupportEmailActions.StatusFr(ticket.Status)}</b></p>" +
             (string.IsNullOrWhiteSpace(message) ? "" : $"<div style=\"white-space:pre-wrap;border:1px solid #E3E7E5;border-radius:8px;padding:12px\">{E(message)}</div>") +
             "<p style=\"color:#6B7280\">Retrouvez la conversation dans l'application : Aide → Support → Mes demandes. " +
             "Si le problème persiste, répondez-y depuis l'application pour rouvrir la demande.</p></div>";

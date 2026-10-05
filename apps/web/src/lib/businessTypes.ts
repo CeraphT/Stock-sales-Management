@@ -2,11 +2,11 @@ import type { InventoryCapabilities } from "@stockflow/core/api/types/auth";
 
 /** Per-capability label + help text, for the settings toggles. */
 export const CAPABILITY_META: { key: keyof InventoryCapabilities; label: string; desc: string }[] = [
-  { key: "expiryTracking", label: "Expiry & batches", desc: "Track batch expiry dates (FEFO) — pharmacies, food, cosmetics." },
-  { key: "sellByMeasure", label: "Weight / measure selling", desc: "Sell by kg, m or L — butchers, delis, fabric, produce." },
-  { key: "serialTracking", label: "Serial / IMEI numbers", desc: "Per-unit serials + warranty — electronics, high-value goods." },
-  { key: "variants", label: "Product variants", desc: "Size / colour variants — fashion, footwear." },
-  { key: "assembly", label: "Assembly / kits", desc: "Build products from components — workshops, manufacturers." },
+  { key: "expiryTracking", label: "Expiry & batches", desc: "Track batch expiry dates (FEFO) - pharmacies, food, cosmetics." },
+  { key: "sellByMeasure", label: "Weight / measure selling", desc: "Sell by kg, m or L. Butchers, delis, fabric, produce." },
+  { key: "serialTracking", label: "Serial / IMEI numbers", desc: "Per-unit serials + warranty. Electronics, high-value goods." },
+  { key: "variants", label: "Product variants", desc: "Size / colour variants. Fashion, footwear." },
+  { key: "assembly", label: "Assembly / kits", desc: "Build products from components. Workshops, manufacturers." },
 ];
 
 /** Measure units for sell-by-weight products, each with how many integer base

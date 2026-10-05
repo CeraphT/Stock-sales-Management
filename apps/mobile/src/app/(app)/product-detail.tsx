@@ -50,7 +50,7 @@ export default function ProductDetailScreen() {
         toast('Added to the existing order for this supplier.', 'success');
         router.push({ pathname: '/purchase-order-detail', params: { id: openPos[0].id } });
       } else {
-        const po = await purchaseOrdersApi.create(companyId, { locationId, supplierId: product.supplierId, notes: 'Reorder — low stock', lines: [line] });
+        const po = await purchaseOrdersApi.create(companyId, { locationId, supplierId: product.supplierId, notes: 'Reorder. Low stock', lines: [line] });
         router.push({ pathname: '/purchase-order-detail', params: { id: po.id } });
       }
     } catch (e) {

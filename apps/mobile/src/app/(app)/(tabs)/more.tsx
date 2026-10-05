@@ -201,7 +201,7 @@ export default function MoreScreen() {
                 <Text className="text-xl font-black text-white">{initial}</Text>
               </View>
               <View>
-                <Text className="text-base font-bold text-white">{user?.name ?? '—'}</Text>
+                <Text className="text-base font-bold text-white">{user?.name ?? '-'}</Text>
                 <View className="mt-1 flex-row items-center gap-2">
                   <View className="rounded-full px-2 py-0.5" style={{ backgroundColor: '#FFFFFF33' }}>
                     <Text className="text-[10px] font-bold text-white">{roleLabel}</Text>

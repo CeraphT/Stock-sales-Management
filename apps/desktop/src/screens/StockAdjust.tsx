@@ -70,7 +70,7 @@ export function StockAdjust() {
         <label className="block">
           <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Batch")}</span>
           <select value={batchId} onChange={(e) => setBatchId(e.target.value)} className={selectCls}>
-            <option value="">{t("— select batch —")}</option>
+            <option value="">{t("Select batch")}</option>
             {batches.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.batchNumber} · {b.quantityInBaseUnits} {t("in stock")}

@@ -81,7 +81,7 @@ export default function TaxDeclarationScreen() {
         title: 'Purchases journal',
         meta: [{ label: 'Receipts', value: String(rows.length) }, { label: 'VAT deductible', value: fmt(tVat) }],
         columns: [{ header: 'When' }, { header: 'Product' }, { header: 'Batch' }, { header: 'Supplier' }, { header: 'Base', align: 'right' }, { header: 'VAT', align: 'right' }, { header: 'Total', align: 'right' }],
-        rows: rows.map((r) => [new Date(r.timestamp).toLocaleDateString(), r.productName, r.batchNumber, r.supplierName ?? '—', fmt(r.ht), fmt(r.vat), fmt(r.ttc)]),
+        rows: rows.map((r) => [new Date(r.timestamp).toLocaleDateString(), r.productName, r.batchNumber, r.supplierName ?? '-', fmt(r.ht), fmt(r.vat), fmt(r.ttc)]),
         totals: ['Total', null, null, null, fmt(tHt), fmt(tVat), fmt(tTtc)],
       });
     });
@@ -95,7 +95,7 @@ export default function TaxDeclarationScreen() {
         title: 'Cash book',
         meta: [{ label: 'Shifts', value: String(rows.length) }],
         columns: [{ header: 'Opened' }, { header: 'Cashier' }, { header: 'Opening', align: 'right' }, { header: 'Cash sales', align: 'right' }, { header: 'Expected', align: 'right' }, { header: 'Counted', align: 'right' }, { header: 'Diff', align: 'right' }],
-        rows: rows.map((r) => [new Date(r.openedAt).toLocaleDateString(), r.cashierName, fmt(r.openingCash), fmt(r.cashSales), r.expectedCash != null ? fmt(r.expectedCash) : '—', r.closingCash != null ? fmt(r.closingCash) : '—', r.discrepancy != null ? fmt(r.discrepancy) : '—']),
+        rows: rows.map((r) => [new Date(r.openedAt).toLocaleDateString(), r.cashierName, fmt(r.openingCash), fmt(r.cashSales), r.expectedCash != null ? fmt(r.expectedCash) : '-', r.closingCash != null ? fmt(r.closingCash) : '-', r.discrepancy != null ? fmt(r.discrepancy) : '-']),
       });
     });
 
@@ -158,7 +158,7 @@ export default function TaxDeclarationScreen() {
               <Text className="text-sm font-medium text-text-secondary">/ {PERIOD_LABEL[company?.flatTaxPeriod ?? 1] ?? 'quarter'}</Text>
             </Text>
             <Text className="mt-1 text-xs text-text-secondary">
-              Your business is on the flat-tax regime — no VAT is collected on sales. This lump sum, set by your commune, is what you owe per period.
+              Your business is on the flat-tax regime. No VAT is collected on sales. This lump sum, set by your commune, is what you owe per period.
             </Text>
           </View>
         ) : null}
@@ -210,7 +210,7 @@ export default function TaxDeclarationScreen() {
         <View className="rounded-xl border border-border bg-surface p-4">
           <Text className="text-xs font-semibold text-text-primary">Notes</Text>
           <Text className="mt-1 text-xs text-text-secondary">
-            Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate, as purchase records don't store a per-line rate — have your accountant confirm against actual supplier invoices. This report follows the SYSCOHADA VAT accounts and is a working document, not an official filing.
+            Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate, as purchase records don't store a per-line rate. Have your accountant confirm against actual supplier invoices. This report follows the SYSCOHADA VAT accounts and is a working document, not an official filing.
           </Text>
         </View>
       </ScrollView>

@@ -94,7 +94,7 @@ export function PurchaseOrderForm() {
         <label className="block">
           <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Supplier")}</span>
           <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} className={selectCls}>
-            <option value="">{t("— select supplier —")}</option>
+            <option value="">{t("Select supplier")}</option>
             {suppliers.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}

@@ -85,7 +85,7 @@ export function DataMaintenance() {
       const p = parseBackup(await file.text());
       const { companyMismatch, recap: rc } = await analyzeBackup(p, companyId);
       if (companyMismatch) {
-        toast(t("This backup belongs to a different business — it can't be restored here."), "error");
+        toast(t("This backup belongs to a different business. It can't be restored here."), "error");
         return;
       }
       if (rc.length === 0) {
@@ -161,7 +161,7 @@ export function DataMaintenance() {
               sr.salesFailed ? "error" : "success",
             );
           } catch (e) {
-            toast(e instanceof Error ? e.message : t("Couldn't reach the server — try Sync later."), "error");
+            toast(e instanceof Error ? e.message : t("Couldn't reach the server. Try Sync later."), "error");
           }
         }
       }
@@ -244,7 +244,7 @@ export function DataMaintenance() {
           <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-bold text-success">{t("On")}</span>
         </div>
         <p className="mt-1 text-xs text-text-secondary">
-          {t("Saved automatically once a day; the last 14 days are kept as separate files — so yesterday's work is always safe, even offline.")}
+          {t("Saved automatically once a day; the last 14 days are kept as separate files. So yesterday's work is always safe, even offline.")}
         </p>
         <div className="mt-3 space-y-1 rounded-xl bg-surface/60 p-3 text-xs">
           <div>
@@ -271,7 +271,7 @@ export function DataMaintenance() {
       <div className="rounded-card border border-border bg-surface p-5">
         <div className="text-sm font-bold text-text-primary">💾 {t("Back up data (to Downloads)")}</div>
         <p className="mt-1 text-xs text-text-secondary">
-          {t("Save everything on this device to one file in Downloads — an extra copy to keep safe.")}
+          {t("Save everything on this device to one file in Downloads. An extra copy to keep safe.")}
         </p>
         <div className="mt-3">
           <Button onClick={onBackup} loading={busy === "backup"} disabled={!!busy}>
@@ -352,7 +352,7 @@ export function DataMaintenance() {
       <div className="rounded-card border border-error/40 bg-error/5 p-5">
         <div className="text-sm font-bold text-error">♻️ {t("Reset app data (complete refresh)")}</div>
         <p className="mt-1 text-xs text-text-secondary">
-          {t("Clears this device and signs you out. Server data is safe and re-downloads on next sign-in — but sync first, as unsynced sales can't be recovered.")}
+          {t("Clears this device and signs you out. Server data is safe and re-downloads on next sign-in. But sync first, as unsynced sales can't be recovered.")}
         </p>
         <div className="mt-3">
           <Button variant="danger" onClick={onReset} loading={busy === "reset"} disabled={!!busy}>

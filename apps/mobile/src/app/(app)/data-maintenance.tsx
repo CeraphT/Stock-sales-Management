@@ -82,7 +82,7 @@ export default function DataMaintenanceScreen() {
       const text = await new File(res.assets[0].uri).text();
       const p = parseBackup(text);
       const { companyMismatch, recap: rc } = await analyzeBackup(p, companyId);
-      if (companyMismatch) return toast("This backup belongs to a different business — it can't be restored here.", 'error');
+      if (companyMismatch) return toast("This backup belongs to a different business. It can't be restored here.", 'error');
       if (rc.length === 0) return toast('This backup has no records to restore.', 'info');
       setParsed(p);
       setRecap(rc);
@@ -125,7 +125,7 @@ export default function DataMaintenanceScreen() {
                 await syncNow();
                 toast('Sent to server.', 'success');
               } catch {
-                toast('Could not reach the server — try Sync later.', 'error');
+                toast('Could not reach the server. Try Sync later.', 'error');
               }
             },
           },
@@ -202,7 +202,7 @@ export default function DataMaintenanceScreen() {
               </View>
             </View>
             <Text className="mt-1 text-xs text-text-secondary">
-              Saved automatically once a day; the last 14 days are kept as separate files — so yesterday's work is always safe, even offline.
+              Saved automatically once a day; the last 14 days are kept as separate files. So yesterday's work is always safe, even offline.
             </Text>
             <View className="mt-3 gap-1 rounded-xl bg-surface/60 p-3">
               <Text className="text-xs">
@@ -275,7 +275,7 @@ export default function DataMaintenanceScreen() {
           {/* Reset */}
           <View className="rounded-card border border-error/40 bg-error/5 p-4">
             <Text className="text-sm font-bold text-error">♻️ Reset app data (complete refresh)</Text>
-            <Text className="mt-1 text-xs text-text-secondary">Clears this device and signs you out. Server data is safe and re-downloads on next sign-in — but sync first, as unsynced sales can't be recovered.</Text>
+            <Text className="mt-1 text-xs text-text-secondary">Clears this device and signs you out. Server data is safe and re-downloads on next sign-in. But sync first, as unsynced sales can't be recovered.</Text>
             <View className="mt-3">
               <Button title="♻️  Reset everything" variant="danger" loading={busy === 'reset'} disabled={!!busy} onPress={onReset} />
             </View>
