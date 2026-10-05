@@ -92,7 +92,14 @@ export function SuperAdminCompanies() {
                   className="cursor-pointer border-b border-border/50 transition last:border-0 hover:bg-primary/5"
                   onClick={() => navigate(`/superadmin/companies/${c.id}`)}
                 >
-                  <td className="px-4 py-3 font-semibold text-text-primary">{c.name}</td>
+                  <td className="px-4 py-3 font-semibold text-text-primary">
+                    {c.name}
+                    {c.active === false ? (
+                      <span className="ml-2 rounded-full bg-error/10 px-2 py-0.5 text-[11px] font-bold text-error">
+                        {t("Deactivated")}
+                      </span>
+                    ) : null}
+                  </td>
                   <td className="px-4 py-3 font-mono text-xs text-text-secondary">{c.uniqueCode}</td>
                   <td className="px-4 py-3 text-right text-text-secondary">{c.userCount}</td>
                   <td className="px-4 py-3 text-right text-text-secondary">{c.productCount}</td>
@@ -101,15 +108,17 @@ export function SuperAdminCompanies() {
                     {c.totalRevenue.toLocaleString()}
                   </td>
                   <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="ghost"
-                      loading={entering === c.id}
-                      disabled={entering !== null}
-                      onClick={() => onEnter(c)}
-                      className="!px-3 !py-1.5 !text-xs"
-                    >
-                      {t("Enter →")}
-                    </Button>
+                    {c.active === false ? null : (
+                      <Button
+                        variant="ghost"
+                        loading={entering === c.id}
+                        disabled={entering !== null}
+                        onClick={() => onEnter(c)}
+                        className="!px-3 !py-1.5 !text-xs"
+                      >
+                        {t("Enter →")}
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}

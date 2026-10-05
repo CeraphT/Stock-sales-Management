@@ -22,6 +22,12 @@ export const superAdminApi = {
   impersonate: (id: string) =>
     api.post<ImpersonateResponse>(`/api/superadmin/companies/${id}/impersonate`, {}),
 
+  /** Deactivate / reactivate a whole business (soft, reversible): blocks its
+   * users and sessions, hides it from the desktop/mobile pickers, refuses
+   * impersonation. */
+  setCompanyActive: (id: string, active: boolean) =>
+    api.post<{ id: string; active: boolean }>(`/api/superadmin/companies/${id}/active`, { active }),
+
   listAdmins: () => api.get<SuperAdminAccount[]>("/api/superadmin/admins"),
 
   createAdmin: (body: CreateSuperAdminRequest) =>

@@ -36,7 +36,12 @@ export function CompanyPicker() {
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = (data ?? []).filter(
-      (c) => !q || c.name.toLowerCase().includes(q) || c.uniqueCode.toLowerCase().includes(q),
+      (c) =>
+        // A deactivated business is closed (the API also refuses to impersonate
+        // it) — manage it from the web console instead. `!== false` keeps the
+        // list working against an older API that doesn't send `active` yet.
+        c.active !== false &&
+        (!q || c.name.toLowerCase().includes(q) || c.uniqueCode.toLowerCase().includes(q)),
     );
     return [...list].sort((a, b) => a.name.localeCompare(b.name));
   }, [data, search]);

@@ -68,7 +68,10 @@ public class DevicePresenceMiddleware
                 var db = scope.ServiceProvider.GetRequiredService<PharmaStockDbContext>();
                 var row = await db.Devices
                     .Where(d => d.Id == deviceId)
-                    .Select(d => new DevState(true, d.IsRevoked || d.RemoteWipeRequested, d.User!.Active))
+                    // "Active" = the user AND their business (a SuperAdmin-deactivated
+                    // company cuts every one of its open sessions within EnforceTtl).
+                    .Select(d => new DevState(true, d.IsRevoked || d.RemoteWipeRequested,
+                        d.User!.Active && (d.User.CompanyId == null || d.User.Company!.Active)))
                     .FirstOrDefaultAsync();
                 return row ?? new DevState(false, false, true);
             }) ?? new DevState(false, false, true);

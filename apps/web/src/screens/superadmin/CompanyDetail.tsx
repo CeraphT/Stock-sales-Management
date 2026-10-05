@@ -1,10 +1,11 @@
 import { UserRole } from "@stockflow/core/api/enums";
 import { superAdminApi } from "@stockflow/core/api/endpoints/superAdmin";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { Button } from "@/components/Button";
+import { confirmDialog } from "@/lib/confirm";
 import { StatCard } from "@/components/StatCard";
 import { useT } from "@/lib/i18n";
 import { useImpersonation } from "@/lib/impersonation";
@@ -21,7 +22,9 @@ export function SuperAdminCompanyDetail() {
   const navigate = useNavigate();
   const { id = "" } = useParams();
   const enter = useImpersonation((s) => s.enter);
+  const queryClient = useQueryClient();
   const [entering, setEntering] = useState(false);
+  const [toggling, setToggling] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["superadmin", "company", id],
@@ -38,6 +41,31 @@ export function SuperAdminCompanyDetail() {
     } catch (e) {
       toast(e instanceof Error ? e.message : t("Could not enter company"), "error");
       setEntering(false);
+    }
+  }
+
+  // Deactivate = full block (users, sessions, sync, impersonation), reversible.
+  async function onToggleActive() {
+    if (!data) return;
+    const deactivating = data.active;
+    const ok = await confirmDialog({
+      title: deactivating ? t("Deactivate this business?") : t("Reactivate this business?"),
+      message: deactivating
+        ? t("Its users will be signed out within seconds and won't be able to log in or sync. It disappears from the desktop and mobile company pickers. No data is deleted — you can reactivate it at any time.")
+        : t("Its users will be able to log in and sync again."),
+      confirmLabel: deactivating ? t("Deactivate") : t("Reactivate"),
+      danger: deactivating,
+    });
+    if (!ok) return;
+    setToggling(true);
+    try {
+      await superAdminApi.setCompanyActive(id, !deactivating);
+      await queryClient.invalidateQueries({ queryKey: ["superadmin"] });
+      toast(deactivating ? t("Business deactivated.") : t("Business reactivated."), "success");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("Something went wrong."), "error");
+    } finally {
+      setToggling(false);
     }
   }
 
@@ -60,12 +88,30 @@ export function SuperAdminCompanyDetail() {
 
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">{data.name}</h1>
+          <h1 className="text-2xl font-bold text-text-primary">
+            {data.name}
+            {data.active === false ? (
+              <span className="ml-3 rounded-full bg-error/10 px-2.5 py-1 align-middle text-xs font-bold text-error">
+                {t("Deactivated")}
+              </span>
+            ) : null}
+          </h1>
           <p className="mt-1 font-mono text-xs text-text-secondary">{data.uniqueCode}</p>
         </div>
-        <Button loading={entering} onClick={onEnter}>
-          {t("Enter company →")}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant={data.active === false ? "secondary" : "danger"}
+            loading={toggling}
+            onClick={onToggleActive}
+          >
+            {data.active === false ? t("Reactivate") : t("Deactivate")}
+          </Button>
+          {data.active === false ? null : (
+            <Button loading={entering} onClick={onEnter}>
+              {t("Enter company →")}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">

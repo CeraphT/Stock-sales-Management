@@ -11,6 +11,8 @@ export interface SuperAdminCompanySummary {
   productCount: number;
   salesCount: number;
   totalRevenue: number;
+  /** False once a SuperAdmin has deactivated the business (fully blocked). */
+  active: boolean;
 }
 
 export interface SuperAdminCompanyUser {

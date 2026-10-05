@@ -23,6 +23,11 @@ public record AuthResponse(string Token, DateTime ExpiresAt, string RefreshToken
 
 public static class AuthEndpoints
 {
+    /// <summary>Shown when a SuperAdmin has deactivated the user's business
+    /// (Company.Active = false). French first: the product's primary market.</summary>
+    public const string CompanyDeactivatedMessage =
+        "Cette entreprise a été désactivée. Contactez le support StockFlow. / This business has been deactivated. Please contact StockFlow support.";
+
     public static void MapAuthEndpoints(this WebApplication app)
     {
         // Section 3.7 — login by phone + password. Phone is only unique per
@@ -34,6 +39,7 @@ public static class AuthEndpoints
             IPasswordHasher<User> hasher, JwtTokenService tokens, HttpContext http) =>
         {
             var candidates = await db.Users
+                .Include(u => u.Company)
                 .Where(u => u.Phone == request.Phone && u.Active)
                 .ToListAsync();
 
@@ -42,6 +48,14 @@ public static class AuthEndpoints
                 if (hasher.VerifyHashedPassword(user, user.PasswordHash, request.Password)
                     == PasswordVerificationResult.Success)
                 {
+                    // Business deactivated by a SuperAdmin: right password, but no
+                    // session. 403 + a clear message (not 401) so the client can say
+                    // why instead of "wrong password".
+                    if (user.Company is { Active: false })
+                        return Results.Json(
+                            new { message = CompanyDeactivatedMessage, code = "company_inactive" },
+                            statusCode: StatusCodes.Status403Forbidden);
+
                     var auth = await IssueAuthResponseAsync(
                         user, request.DeviceId, request.DeviceName, request.Platform, db, tokens, http.GetClientIp());
                     return Results.Ok(auth);
@@ -61,6 +75,7 @@ public static class AuthEndpoints
         {
             var device = await db.Devices
                 .Include(d => d.User)
+                .ThenInclude(u => u!.Company)
                 .FirstOrDefaultAsync(d => d.Id == request.DeviceId);
 
             // A remote wipe was requested for this device: tell it to erase its
@@ -71,6 +86,7 @@ public static class AuthEndpoints
                 return Results.Ok(new { wipeRequested = true });
 
             if (device is null || device.User is null || !device.User.Active
+                || device.User.Company is { Active: false }
                 || device.IsRevoked || device.RemoteWipeRequested
                 || device.RefreshTokenHash is null
                 || device.RefreshTokenExpiresAt is null || device.RefreshTokenExpiresAt < DateTime.UtcNow

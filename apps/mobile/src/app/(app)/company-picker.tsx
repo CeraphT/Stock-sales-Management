@@ -51,7 +51,10 @@ export default function CompanyPickerScreen() {
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const list = q ? companies.filter((c) => c.name.toLowerCase().includes(q) || c.uniqueCode.toLowerCase().includes(q)) : companies;
+    // A deactivated business is closed (the API also refuses to impersonate it) —
+    // manage it from the web console. `!== false` tolerates an older API.
+    const open = companies.filter((c) => c.active !== false);
+    const list = q ? open.filter((c) => c.name.toLowerCase().includes(q) || c.uniqueCode.toLowerCase().includes(q)) : open;
     return [...list].sort((a, b) => a.name.localeCompare(b.name));
   }, [companies, search]);
 

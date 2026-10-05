@@ -1039,6 +1039,16 @@ export const FR: Record<string, string> = {
   "Delete supplier": "Supprimer le fournisseur",
   "Delete this held sale? This cannot be undone.": "Supprimer cette vente en attente ? Action irréversible.",
   "Refund this sale? Stock and payments will be reversed.": "Rembourser cette vente ? Le stock et les paiements seront annulés.",
+
+  // ── Super-admin: company deactivation ──────────────────────────────
+  "Deactivated": "Désactivée",
+  "Reactivate": "Réactiver",
+  "Deactivate this business?": "Désactiver cette entreprise ?",
+  "Reactivate this business?": "Réactiver cette entreprise ?",
+  "Its users will be signed out within seconds and won't be able to log in or sync. It disappears from the desktop and mobile company pickers. No data is deleted — you can reactivate it at any time.": "Ses utilisateurs seront déconnectés en quelques secondes et ne pourront plus se connecter ni synchroniser. Elle disparaît des sélecteurs d'entreprise du desktop et du mobile. Aucune donnée n'est supprimée : vous pouvez la réactiver à tout moment.",
+  "Its users will be able to log in and sync again.": "Ses utilisateurs pourront de nouveau se connecter et synchroniser.",
+  "Business deactivated.": "Entreprise désactivée.",
+  "Business reactivated.": "Entreprise réactivée.",
 };
 
 /** Reactive translator hook. `t(en)` returns the French string when the app

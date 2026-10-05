@@ -133,6 +133,14 @@ public class Company
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    /// <summary>Super-admin kill switch (soft, reversible — no data is deleted).
+    /// When false the business is fully blocked: its users can't log in, refresh,
+    /// join by code or keep using an open session (DevicePresenceMiddleware cuts
+    /// it within seconds), and it's hidden from the desktop/mobile super-admin
+    /// company pickers and refused for impersonation. Toggled via
+    /// POST /api/superadmin/companies/{id}/active.</summary>
+    public bool Active { get; set; } = true;
+
     public ICollection<User> Users { get; set; } = new List<User>();
     public ICollection<Location> Locations { get; set; } = new List<Location>();
     public ICollection<Product> Products { get; set; } = new List<Product>();

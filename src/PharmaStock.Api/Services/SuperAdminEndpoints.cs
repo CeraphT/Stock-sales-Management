@@ -8,14 +8,14 @@ namespace PharmaStock.Api.Services;
 
 public record SuperAdminCompanySummary(
     Guid Id, string Name, string UniqueCode, DateTime CreatedAt,
-    int UserCount, int ProductCount, int SalesCount, decimal TotalRevenue);
+    int UserCount, int ProductCount, int SalesCount, decimal TotalRevenue, bool Active);
 
 public record SuperAdminCompanyUser(Guid Id, string Name, string Phone, UserRole Role, bool Active);
 public record SuperAdminCompanyLocation(Guid Id, string Name, string? Address, bool Active);
 
 public record SuperAdminCompanyDetail(
     Guid Id, string Name, string UniqueCode, DateTime CreatedAt,
-    int UserCount, int ProductCount, int SalesCount, decimal TotalRevenue,
+    int UserCount, int ProductCount, int SalesCount, decimal TotalRevenue, bool Active,
     List<SuperAdminCompanyUser> Users, List<SuperAdminCompanyLocation> Locations);
 
 public record SuperAdminBootstrapRequest(string Name, string Phone, string Password);
@@ -72,7 +72,8 @@ public static class SuperAdminEndpoints
                     db.Users.Count(u => u.CompanyId == c.Id),
                     db.Products.Count(p => p.CompanyId == c.Id),
                     db.Sales.Count(s => s.CompanyId == c.Id),
-                    db.Sales.Where(s => s.CompanyId == c.Id).Sum(s => (decimal?)s.Total) ?? 0m))
+                    db.Sales.Where(s => s.CompanyId == c.Id).Sum(s => (decimal?)s.Total) ?? 0m,
+                    c.Active))
                 .ToListAsync();
 
             return Results.Ok(companies);
@@ -96,7 +97,34 @@ public static class SuperAdminEndpoints
 
             return Results.Ok(new SuperAdminCompanyDetail(
                 company.Id, company.Name, company.UniqueCode, company.CreatedAt,
-                users.Count, productCount, salesCount, totalRevenue, users, locations));
+                users.Count, productCount, salesCount, totalRevenue, company.Active, users, locations));
+        });
+
+        // Deactivate / reactivate a whole business (soft, reversible). Blocks its
+        // users at login, refresh, join-by-code and — via DevicePresenceMiddleware —
+        // on every request of an already-open session; hides it from the
+        // desktop/mobile company pickers; refuses impersonation. Nothing is deleted.
+        group.MapPost("/companies/{id:guid}/active", async (Guid id, SetActiveRequest request, PharmaStockDbContext db, HttpContext http, IMemoryCache cache) =>
+        {
+            var company = await db.Companies.FindAsync(id);
+            if (company is null)
+                return Results.NotFound(new { message = "Entreprise introuvable." });
+
+            company.Active = request.Active;
+            db.AuditLogs.Add(new AuditLog
+            {
+                ActorUserId = http.User.GetUserId(), ActorName = http.User.Identity?.Name ?? "SuperAdmin",
+                Action = request.Active ? "company.reactivate" : "company.deactivate", TargetType = "company",
+                TargetId = id, CompanyId = id, Ip = http.GetClientIp(), Detail = company.Name,
+            });
+            await db.SaveChangesAsync();
+
+            // Drop cached enforcement state for every device of this business so
+            // the change is felt immediately rather than after the 15s TTL.
+            var deviceIds = await db.Devices.Where(d => d.User!.CompanyId == id).Select(d => d.Id).ToListAsync();
+            foreach (var did in deviceIds) cache.Remove($"devstate:{did}");
+
+            return Results.Ok(new { company.Id, company.Active });
         });
 
         // Impersonation — mint a company-scoped session for the calling SuperAdmin
@@ -110,6 +138,10 @@ public static class SuperAdminEndpoints
             var company = await db.Companies.FindAsync(id);
             if (company is null)
                 return Results.NotFound(new { message = "Entreprise introuvable." });
+            // A deactivated business is closed to everyone, SuperAdmin included —
+            // reactivate it first to look inside.
+            if (!company.Active)
+                return Results.Conflict(new { message = "Cette entreprise est désactivée. Réactivez-la d'abord. / This business is deactivated — reactivate it first." });
 
             var superAdminId = http.User.GetUserId();
             if (superAdminId is null)

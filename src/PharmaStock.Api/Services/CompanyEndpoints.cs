@@ -114,6 +114,11 @@ public static class CompanyEndpoints
 
             if (company is null)
                 return Results.NotFound(new { message = "Aucune entreprise trouvée avec ce code." });
+            // A SuperAdmin-deactivated business takes no new devices/staff.
+            if (!company.Active)
+                return Results.Json(
+                    new { message = AuthEndpoints.CompanyDeactivatedMessage, code = "company_inactive" },
+                    statusCode: StatusCodes.Status403Forbidden);
 
             return Results.Ok(ToResponse(company));
         });
