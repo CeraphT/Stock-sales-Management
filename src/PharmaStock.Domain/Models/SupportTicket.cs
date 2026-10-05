@@ -22,6 +22,20 @@ public class SupportTicket
 
     public SupportTicketCategory Category { get; set; } = SupportTicketCategory.Bug;
     public SupportTicketStatus Status { get; set; } = SupportTicketStatus.Open;
+    public SupportTicketPriority Priority { get; set; } = SupportTicketPriority.Normal;
+
+    /// <summary>The SuperAdmin handling it (null = unassigned, in the triage queue).</summary>
+    public Guid? AssignedToUserId { get; set; }
+    public string? AssignedToName { get; set; }
+
+    /// <summary>Support replied and the reporter hasn't opened the request since —
+    /// drives the "new reply" badges in the apps.</summary>
+    public bool UnreadByReporter { get; set; }
+    /// <summary>The reporter wrote (new request or follow-up) and support hasn't
+    /// answered yet — the console's "awaiting support" flag.</summary>
+    public bool AwaitingSupport { get; set; } = true;
+    /// <summary>When the latest support reply was sent / the reporter last wrote.</summary>
+    public DateTime? LastReporterMessageAt { get; set; }
 
     /// <summary>Short summary (first line of the description if not given).</summary>
     public string Title { get; set; } = string.Empty;
@@ -43,4 +57,5 @@ public class SupportTicket
     public DateTime? ResolvedAt { get; set; }
 
     public ICollection<SupportAttachment> Attachments { get; set; } = new List<SupportAttachment>();
+    public ICollection<SupportMessage> Messages { get; set; } = new List<SupportMessage>();
 }

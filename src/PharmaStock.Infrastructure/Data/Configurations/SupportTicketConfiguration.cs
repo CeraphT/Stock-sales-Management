@@ -17,5 +17,8 @@ public class SupportTicketConfiguration : IEntityTypeConfiguration<SupportTicket
         builder.HasIndex(t => new { t.Status, t.CreatedAt });
         builder.HasIndex(t => t.UserId);
         builder.HasMany(t => t.Attachments).WithOne(a => a.Ticket!).HasForeignKey(a => a.TicketId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(t => t.Messages).WithOne(m => m.Ticket!).HasForeignKey(m => m.TicketId).OnDelete(DeleteBehavior.Cascade);
+        builder.Property(t => t.AssignedToName).HasMaxLength(200);
+        builder.HasIndex(t => new { t.Priority, t.CreatedAt });
     }
 }

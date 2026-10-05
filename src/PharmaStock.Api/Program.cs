@@ -122,5 +122,6 @@ app.MapServiceEndpoints();
 app.MapReconciliationEndpoints();
 app.MapAlertsEndpoints();
 app.MapSupportEndpoints();
+app.MapSupportEmailActions();
 
 app.Run();
