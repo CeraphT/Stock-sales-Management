@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OfflineNotice } from '@/components/OfflineNotice';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
@@ -10,16 +11,20 @@ import { Button } from '@/components/Button';
 import { SkeletonDetail } from '@/components/Skeleton';
 import { TextField } from '@/components/TextField';
 import { SaleStatus } from '@/lib/api/enums';
+import { NetworkError } from '@/lib/api/client';
 import { customersApi } from '@/lib/api/endpoints/customers';
+import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
 import type { CustomerCreditEntry, CustomerResponse } from '@/lib/api/types/customers';
 import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { showAlert } from '@/lib/ui/alertStore';
 
 export default function CustomerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const companyId = useAuthStore((s) => s.companyId);
+  const { t } = useTranslation();
   useFeatureGuard(useAuthStore((s) => s.user?.restrictCustomers));
   const currency = useCompanyCurrency();
 
@@ -28,20 +33,42 @@ export default function CustomerDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [points, setPoints] = useState('');
   const [redeeming, setRedeeming] = useState(false);
+  // Offline: the customer card (balance, points) comes from the local mirror;
+  // the credit history is server-only, so it's just flagged as unavailable.
+  const [offline, setOffline] = useState(false);
 
   const load = useCallback(async () => {
-    if (!companyId || !id) return;
-    setLoading(true);
+    if (!companyId || !id) {
+      setLoading(false);
+      return;
+    }
+    let local: CustomerResponse | null = null;
+    try {
+      local = await localMirrorQueries.getCustomer(companyId, id);
+      if (local) {
+        setCustomer(local);
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
+    } catch {
+      setLoading(true);
+    }
     try {
       const [all, creditHistory] = await Promise.all([
         customersApi.list(companyId),
         customersApi.creditHistory(companyId, id),
       ]);
-      setCustomer(all.find((c) => c.id === id) ?? null);
+      setCustomer(all.find((c) => c.id === id) ?? local);
       setHistory(creditHistory.entries);
+      setOffline(false);
     } catch (err) {
-      showAlert('Could not load customer', err instanceof Error ? err.message : 'Something went wrong.');
-      router.back();
+      if (err instanceof NetworkError && local) {
+        setOffline(true);
+      } else {
+        showAlert('Could not load customer', err instanceof Error ? err.message : 'Something went wrong.');
+        if (!local) router.back();
+      }
     } finally {
       setLoading(false);
     }
@@ -96,6 +123,7 @@ export default function CustomerDetailScreen() {
         </View>
       </View>
 
+      <OfflineNotice visible={offline} message={t('offline.creditHistory')} />
       <ScrollView contentContainerClassName="gap-4 p-5">
         <View className="rounded-2xl bg-surface p-4">
           <Text className="text-lg font-bold text-text-primary">{customer.name}</Text>

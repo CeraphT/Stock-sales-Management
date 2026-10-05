@@ -143,6 +143,9 @@ export interface SyncPullCustomer {
   loyaltyPointsBalance: number;
   loyaltyStoreCreditBalance: number;
   updatedAt: string;
+  /** Optional: absent from an older API — treat as false / null. */
+  isBusiness?: boolean;
+  taxId?: string | null;
 }
 
 export interface SyncPullSupplier {
@@ -188,6 +191,8 @@ export interface SyncPullGiftCard {
   initialValue: number;
   remainingValue: number;
   active: boolean;
+  /** Optional: absent from an older API. */
+  createdAt?: string;
 }
 
 /** Minimal cached mirror only — FK-satisfaction + display, never locally-authenticatable. */

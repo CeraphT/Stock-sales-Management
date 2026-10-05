@@ -118,6 +118,12 @@ pub fn run() {
             sql: include_str!("../../src/lib/db/migrations/003_inventory_capabilities.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 4,
+            description: "mirror customer is_business + gift card created_at (offline b2b)",
+            sql: include_str!("../../src/lib/db/migrations/004_customer_b2b_sync.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

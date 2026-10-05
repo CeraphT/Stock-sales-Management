@@ -88,7 +88,7 @@ export const localCatalogQueryService = {
         loyaltyPointsBalance: loyalty?.pointsBalance ?? 0,
         loyaltyStoreCreditBalance: loyalty?.storeCreditBalance ?? 0,
         rewardsGranted: 0,
-        isBusiness: false,
+        isBusiness: customer.isBusiness ?? false,
         taxId: customer.taxId ?? null,
       });
     }

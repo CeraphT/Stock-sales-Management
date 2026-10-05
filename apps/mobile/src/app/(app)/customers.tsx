@@ -1,11 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { router } from 'expo-router';
+import { useState } from 'react';
 import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OfflineNotice } from '@/components/OfflineNotice';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
+import { useLocalFirst } from '@/lib/hooks/useLocalFirst';
+import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
 import { BackButton } from '@/components/BackButton';
 import { customersApi } from '@/lib/api/endpoints/customers';
 import type { CustomerResponse } from '@/lib/api/types/customers';
@@ -22,30 +25,23 @@ export default function CustomersScreen() {
   const colors = useThemeColors();
 
   const [query, setQuery] = useState('');
-  const [customers, setCustomers] = useState<CustomerResponse[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(
-    async (search?: string) => {
-      if (!companyId) return;
-      setLoading(true);
-      try {
-        setCustomers(await customersApi.list(companyId, search?.trim() || undefined));
-      } catch (err) {
-        showAlert('Could not load customers', err instanceof Error ? err.message : 'Something went wrong.');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [companyId],
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      refresh(query);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [companyId]),
-  );
+  // Offline-first: local mirror at once, server answer swapped in when reachable.
+  // Search is applied on submit (like before), not on every keystroke.
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const { data, loading, offline, reload } = useLocalFirst<CustomerResponse[]>({
+    enabled: !!companyId,
+    local: () => localMirrorQueries.listCustomers(companyId!, appliedSearch || undefined),
+    remote: () => customersApi.list(companyId!, appliedSearch || undefined),
+    errorTitle: 'Could not load customers',
+    deps: [companyId, appliedSearch],
+  });
+  const customers = data ?? [];
+  const refresh = async (search?: string) => {
+    const next = search?.trim() ?? '';
+    if (next === appliedSearch) await reload();
+    else setAppliedSearch(next);
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -74,6 +70,7 @@ export default function CustomersScreen() {
         />
       </View>
 
+      <OfflineNotice visible={offline} />
       <FlatList
         data={customers}
         keyExtractor={(item) => item.id}

@@ -1,11 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OfflineNotice } from '@/components/OfflineNotice';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
+import { useLocalFirst } from '@/lib/hooks/useLocalFirst';
+import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
 import { BackButton } from '@/components/BackButton';
 import { ApiError } from '@/lib/api/client';
 import { categoriesApi } from '@/lib/api/endpoints/categories';
@@ -20,31 +22,21 @@ export default function CategoriesScreen() {
   useFeatureGuard(useAuthStore((s) => s.user?.restrictCatalog));
   const colors = useThemeColors();
 
-  const [categories, setCategories] = useState<CategoryResponse[]>([]);
-  const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
 
-  const refresh = useCallback(async () => {
-    if (!companyId) return;
-    setLoading(true);
-    try {
-      setCategories(await categoriesApi.list(companyId));
-    } catch (err) {
-      showAlert('Could not load categories', err instanceof Error ? err.message : 'Something went wrong.');
-    } finally {
-      setLoading(false);
-    }
-  }, [companyId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      refresh();
-    }, [refresh]),
-  );
+  // Offline-first: local mirror at once, server answer swapped in when reachable.
+  const { data, loading, offline, reload: refresh } = useLocalFirst<CategoryResponse[]>({
+    enabled: !!companyId,
+    local: () => localMirrorQueries.listCategories(companyId!),
+    remote: () => categoriesApi.list(companyId!),
+    errorTitle: 'Could not load categories',
+    deps: [companyId],
+  });
+  const categories = data ?? [];
 
   const onCreate = async () => {
     if (!companyId || !newName.trim()) return;
@@ -107,6 +99,8 @@ export default function CategoriesScreen() {
           <View className="w-12" />
         </View>
       </View>
+
+      <OfflineNotice visible={offline} />
 
       <View className="flex-row items-center gap-2 p-4">
         <TextInput

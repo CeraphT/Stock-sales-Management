@@ -33,14 +33,18 @@ public record SyncPullPackagingLevel(Guid Id, Guid ProductId, string UnitName, i
 public record SyncPullProduct(Guid Id, string Name, string? Barcode, Guid? CategoryId, decimal PurchasePrice, decimal SalePrice, Guid? SupplierId, bool IsFavorite, bool IsActive, int LowStockThreshold, decimal? TaxRateOverridePercent, DateTime UpdatedAt, List<SyncPullPackagingLevel> PackagingLevels,
     bool SellByMeasure, string? MeasureUnit, int UnitsPerMeasure, bool SerialTracked, bool HasVariants);
 public record SyncPullCategory(Guid Id, string Name, DateTime UpdatedAt);
-public record SyncPullCustomer(Guid Id, string Name, string? Phone, decimal CreditBalance, int LoyaltyPointsBalance, decimal LoyaltyStoreCreditBalance, DateTime UpdatedAt);
+// IsBusiness/TaxId appended (not inserted) so older clients, which bind by
+// name and ignore unknown fields, keep working. Needed offline: a B2B customer
+// gets VAT added on top at checkout.
+public record SyncPullCustomer(Guid Id, string Name, string? Phone, decimal CreditBalance, int LoyaltyPointsBalance, decimal LoyaltyStoreCreditBalance, DateTime UpdatedAt,
+    bool IsBusiness, string? TaxId);
 public record SyncPullSupplier(Guid Id, string Name, string? ContactPhone, string? ContactEmail, DateTime UpdatedAt);
 public record SyncPullBatch(Guid Id, Guid ProductId, Guid LocationId, string BatchNumber, DateTime? ExpiryDate, int QuantityInBaseUnits, decimal PurchasePricePerBaseUnit, DateTime UpdatedAt);
 public record SyncPullLocation(Guid Id, string Name, string? Address, bool Active);
 public record SyncPullCompanyInfo(
     Guid Id, string Name, string UniqueCode, string Currency, decimal DefaultTaxRatePercent,
     bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue);
-public record SyncPullGiftCard(Guid Id, string Code, decimal InitialValue, decimal RemainingValue, bool Active);
+public record SyncPullGiftCard(Guid Id, string Code, decimal InitialValue, decimal RemainingValue, bool Active, DateTime CreatedAt);
 
 // A pulled StockMovement/Sale/CashRegisterShift always carries a real
 // UserId FK (e.g. "who rang up this sale") — without a matching local User
@@ -165,7 +169,7 @@ public static class SyncEndpoints
                     c.Id, c.Name, c.Phone, c.CreditBalance,
                     c.LoyaltyAccount != null ? c.LoyaltyAccount.PointsBalance : 0,
                     c.LoyaltyAccount != null ? c.LoyaltyAccount.StoreCreditBalance : 0,
-                    c.UpdatedAt))
+                    c.UpdatedAt, c.IsBusiness, c.TaxId))
                 .ToListAsync();
 
             // Always pulled in full, same reasoning as Users below: gift
@@ -174,7 +178,7 @@ public static class SyncEndpoints
             // incrementally-filtered one.
             var giftCards = await db.GiftCards
                 .Where(g => g.CompanyId == companyId)
-                .Select(g => new SyncPullGiftCard(g.Id, g.Code, g.InitialValue, g.RemainingValue, g.Active))
+                .Select(g => new SyncPullGiftCard(g.Id, g.Code, g.InitialValue, g.RemainingValue, g.Active, g.CreatedAt))
                 .ToListAsync();
 
             var suppliersQuery = db.Suppliers.Where(s => s.CompanyId == companyId);

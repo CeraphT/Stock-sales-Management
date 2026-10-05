@@ -1,11 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { router } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OfflineNotice } from '@/components/OfflineNotice';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
+import { useLocalFirst } from '@/lib/hooks/useLocalFirst';
+import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
 import { BackButton } from '@/components/BackButton';
 import { giftCardsApi } from '@/lib/api/endpoints/giftCards';
 import type { GiftCardResponse } from '@/lib/api/types/customers';
@@ -33,32 +36,25 @@ export default function GiftCardsScreen() {
   }
 
   const [query, setQuery] = useState('');
-  const [cards, setCards] = useState<GiftCardResponse[]>([]);
-  const [loading, setLoading] = useState(true);
   const [issueValue, setIssueValue] = useState('');
   const [issuing, setIssuing] = useState(false);
 
-  const refresh = useCallback(
-    async (search?: string) => {
-      if (!companyId) return;
-      setLoading(true);
-      try {
-        setCards(await giftCardsApi.list(companyId, search?.trim() || undefined));
-      } catch (err) {
-        showAlert('Could not load gift cards', err instanceof Error ? err.message : 'Something went wrong.');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [companyId],
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      refresh(query);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [companyId]),
-  );
+  // Offline-first: local mirror at once, server answer swapped in when reachable.
+  // Search is applied on submit (like before), not on every keystroke.
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const { data, loading, offline, reload } = useLocalFirst<GiftCardResponse[]>({
+    enabled: !!companyId,
+    local: () => localMirrorQueries.listGiftCards(companyId!, appliedSearch || undefined),
+    remote: () => giftCardsApi.list(companyId!, appliedSearch || undefined),
+    errorTitle: 'Could not load gift cards',
+    deps: [companyId, appliedSearch],
+  });
+  const cards = data ?? [];
+  const refresh = async (search?: string) => {
+    const next = search?.trim() ?? '';
+    if (next === appliedSearch) await reload();
+    else setAppliedSearch(next);
+  };
 
   const onIssue = async () => {
     if (!companyId) return;
@@ -156,6 +152,7 @@ export default function GiftCardsScreen() {
         </Pressable>
       </View>
 
+      <OfflineNotice visible={offline} />
       <FlatList
         data={cards}
         keyExtractor={(item) => item.id}

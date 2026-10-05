@@ -20,7 +20,11 @@ import {
 } from "../db/schema";
 import type { SyncPullResponse } from "../api/types/sync";
 
-const SYNC_STATE_KEY = "pull";
+// Bumped ("pull" -> "pull:v2") when the pull started mirroring Customer.IsBusiness/
+// TaxId and GiftCard.CreatedAt: a fresh key has no lastPulledAt, so every
+// device does ONE full pull and backfills those columns on existing rows
+// (customers are pulled incrementally by UpdatedAt and wouldn't be resent).
+const SYNC_STATE_KEY = "pull:v2";
 
 /** Pulls the full SyncPullResponse and upserts it into the local SQLite
  * mirror, in the same dependency order as the MAUI client's SyncService
@@ -82,6 +86,8 @@ export async function pullAll(companyId: string, locationId: string): Promise<nu
       phone: customer.phone,
       creditBalance: customer.creditBalance,
       updatedAt: customer.updatedAt,
+      isBusiness: customer.isBusiness ?? false,
+      taxId: customer.taxId ?? null,
     };
     await db.insert(customers).values(values).onConflictDoUpdate({ target: customers.id, set: values });
 
@@ -107,6 +113,7 @@ export async function pullAll(companyId: string, locationId: string): Promise<nu
       initialValue: card.initialValue,
       remainingValue: card.remainingValue,
       active: card.active,
+      createdAt: card.createdAt ?? null,
     };
     await db.insert(giftCards).values(values).onConflictDoUpdate({ target: giftCards.id, set: values });
     count++;

@@ -124,6 +124,9 @@ export const translations = {
     "sync.initialSyncing": "Syncing your business data…",
     "history.offline": "Offline — showing the sales recorded on this device only.",
     "history.pending": "Not synced yet",
+    "offline.cached": "Offline — showing data from the last sync.",
+    "offline.creditHistory": "Offline — balance from the last sync; credit history needs a connection.",
+    "offline.productDetail": "Offline — product and stock from the last sync; editing needs a connection.",
     "dashboard.reconciliationTitle": "Needs reconciliation",
     "dashboard.negativeBatchesMsg":
       "{count} batch(es) went negative — offline sales likely oversold the same stock on two devices.",
@@ -349,6 +352,9 @@ export const translations = {
     "sync.initialSyncing": "Synchronisation des données…",
     "history.offline": "Hors ligne — seules les ventes enregistrées sur cet appareil sont affichées.",
     "history.pending": "Non synchronisée",
+    "offline.cached": "Hors ligne — données de la dernière synchronisation.",
+    "offline.creditHistory": "Hors ligne — solde de la dernière synchronisation ; l'historique de crédit nécessite une connexion.",
+    "offline.productDetail": "Hors ligne — produit et stock de la dernière synchronisation ; la modification nécessite une connexion.",
     "dashboard.reconciliationTitle": "Réconciliation nécessaire",
     "dashboard.negativeBatchesMsg":
       "{count} lot(s) sont devenus négatifs — des ventes hors ligne ont probablement vendu le même stock sur deux appareils.",

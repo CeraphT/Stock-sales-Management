@@ -53,6 +53,9 @@ export const customers = sqliteTable("customers", {
   creditBalance: real("credit_balance").notNull(),
   taxId: text("tax_id"),
   updatedAt: text("updated_at").notNull(),
+  // B2B customer — VAT is added on top at checkout. Mirrored so an OFFLINE
+  // sale to a business customer is priced right (migration 0003 / 004).
+  isBusiness: integer("is_business", { mode: "boolean" }).notNull().default(false),
 });
 
 // One-to-one with customers, kept separate — same reasoning as the server
@@ -70,6 +73,8 @@ export const giftCards = sqliteTable("gift_cards", {
   initialValue: real("initial_value").notNull(),
   remainingValue: real("remaining_value").notNull(),
   active: integer("active", { mode: "boolean" }).notNull(),
+  // Nullable: rows pulled before this column existed (migration 0003 / 004).
+  createdAt: text("created_at"),
 });
 
 export const products = sqliteTable(

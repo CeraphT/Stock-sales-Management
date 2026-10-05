@@ -1,5 +1,5 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -10,7 +10,11 @@ import { PackagingLevelsEditor, parsePackagingLevels, type DraftPackagingLevel }
 import { SkeletonDetail } from '@/components/Skeleton';
 import { TextField } from '@/components/TextField';
 import { PurchaseOrderStatus } from '@/lib/api/enums';
+import { NetworkError } from '@/lib/api/client';
 import { productsApi } from '@/lib/api/endpoints/products';
+import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
+import { OfflineNotice } from '@/components/OfflineNotice';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { purchaseOrdersApi } from '@/lib/api/endpoints/purchaseOrders';
 import type { BatchResponse, ProductDetailResponse } from '@/lib/api/types/catalog';
 import { useAuthStore } from '@/lib/auth/store';
@@ -23,6 +27,7 @@ import { toast } from '@/lib/ui/toastStore';
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const companyId = useAuthStore((s) => s.companyId);
+  const { t } = useTranslation();
   const locationId = useAuthStore((s) => s.locationId);
   const currency = useCompanyCurrency();
   const [reordering, setReordering] = useState(false);
@@ -68,34 +73,69 @@ export default function ProductDetailScreen() {
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
 
+  // Offline-first: the product + its batches are in the local mirror, shown at
+  // once; the server answer then replaces them. The edit form is only refilled
+  // from the server if the user hasn't started typing (snapshot comparison).
+  const [offline, setOffline] = useState(false);
+  const formSnapshot = useRef<string | null>(null);
+  // Current form values, refreshed every render (load() is memoized, so it must
+  // read them through a ref, not its stale closure).
+  const formNow = useRef('');
+  formNow.current = JSON.stringify([name, barcode, purchasePrice, salePrice, lowStockThreshold, packagingLevels]);
+
+  const fillForm = (p: ProductDetailResponse) => {
+    const levels = p.packagingLevels.map((l) => ({
+      unitName: l.unitName,
+      quantityInBaseUnits: String(l.quantityInBaseUnits),
+      salePriceOverride: l.salePriceOverride != null ? String(l.salePriceOverride) : '',
+    }));
+    setName(p.name);
+    setBarcode(p.barcode ?? '');
+    setPurchasePrice(String(p.purchasePrice));
+    setSalePrice(String(p.salePrice));
+    setLowStockThreshold(String(p.lowStockThreshold));
+    setPackagingLevels(levels);
+    formSnapshot.current = JSON.stringify([p.name, p.barcode ?? '', String(p.purchasePrice), String(p.salePrice), String(p.lowStockThreshold), levels]);
+  };
+  const sortBatches = (rows: BatchResponse[]) => rows.sort((a, b) => (a.expiryDate ?? '9999').localeCompare(b.expiryDate ?? '9999'));
+
   const load = useCallback(async () => {
-    if (!companyId || !id) return;
-    setLoading(true);
+    if (!companyId || !id) {
+      setLoading(false);
+      return;
+    }
+    let hadLocal = false;
+    try {
+      const [p, b] = await Promise.all([localMirrorQueries.getProductDetail(companyId, id), localMirrorQueries.listProductBatches(companyId, id)]);
+      setProduct(p);
+      fillForm(p);
+      setBatches(sortBatches(b));
+      hadLocal = true;
+      setLoading(false);
+    } catch {
+      setLoading(true);
+    }
     try {
       const [productResult, batchesResult] = await Promise.all([
         productsApi.get(companyId, id),
         productsApi.batches(companyId, id),
       ]);
       setProduct(productResult);
-      setName(productResult.name);
-      setBarcode(productResult.barcode ?? '');
-      setPurchasePrice(String(productResult.purchasePrice));
-      setSalePrice(String(productResult.salePrice));
-      setLowStockThreshold(String(productResult.lowStockThreshold));
-      setPackagingLevels(
-        productResult.packagingLevels.map((l) => ({
-          unitName: l.unitName,
-          quantityInBaseUnits: String(l.quantityInBaseUnits),
-          salePriceOverride: l.salePriceOverride != null ? String(l.salePriceOverride) : '',
-        })),
-      );
-      setBatches(batchesResult.sort((a, b) => (a.expiryDate ?? '9999').localeCompare(b.expiryDate ?? '9999')));
+      // Don't clobber edits made while the server answer was in flight.
+      if (!hadLocal || formNow.current === formSnapshot.current) fillForm(productResult);
+      setBatches(sortBatches(batchesResult));
+      setOffline(false);
     } catch (err) {
-      showAlert('Could not load product', err instanceof Error ? err.message : 'Something went wrong.');
-      router.back();
+      if (err instanceof NetworkError && hadLocal) {
+        setOffline(true);
+      } else {
+        showAlert('Could not load product', err instanceof Error ? err.message : 'Something went wrong.');
+        if (!hadLocal) router.back();
+      }
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId, id]);
 
   useFocusEffect(
@@ -179,6 +219,7 @@ export default function ProductDetailScreen() {
         </View>
       </View>
 
+      <OfflineNotice visible={offline} message={t('offline.productDetail')} />
       <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         {!product.isActive ? (
           <View className="rounded-xl bg-error/10 px-4 py-3">

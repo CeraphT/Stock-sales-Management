@@ -1,11 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { router } from 'expo-router';
+import { useState } from 'react';
 import { FlatList, Linking, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OfflineNotice } from '@/components/OfflineNotice';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
+import { useLocalFirst } from '@/lib/hooks/useLocalFirst';
+import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
 import { BackButton } from '@/components/BackButton';
 import { ApiError } from '@/lib/api/client';
 import { suppliersApi } from '@/lib/api/endpoints/suppliers';
@@ -20,30 +23,23 @@ export default function SuppliersScreen() {
   const colors = useThemeColors();
 
   const [query, setQuery] = useState('');
-  const [suppliers, setSuppliers] = useState<SupplierResponse[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(
-    async (search?: string) => {
-      if (!companyId) return;
-      setLoading(true);
-      try {
-        setSuppliers(await suppliersApi.list(companyId, search?.trim() || undefined));
-      } catch (err) {
-        showAlert('Could not load suppliers', err instanceof Error ? err.message : 'Something went wrong.');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [companyId],
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      refresh(query);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [companyId]),
-  );
+  // Offline-first: local mirror at once, server answer swapped in when reachable.
+  // Search is applied on submit (like before), not on every keystroke.
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const { data, loading, offline, reload } = useLocalFirst<SupplierResponse[]>({
+    enabled: !!companyId,
+    local: () => localMirrorQueries.listSuppliers(companyId!, appliedSearch || undefined),
+    remote: () => suppliersApi.list(companyId!, appliedSearch || undefined),
+    errorTitle: 'Could not load suppliers',
+    deps: [companyId, appliedSearch],
+  });
+  const suppliers = data ?? [];
+  const refresh = async (search?: string) => {
+    const next = search?.trim() ?? '';
+    if (next === appliedSearch) await reload();
+    else setAppliedSearch(next);
+  };
 
   // Tap-to-call / email a supplier — the mobile form of desktop's contact
   // popup. Uses the native dialer / mail app via Linking.
@@ -107,6 +103,7 @@ export default function SuppliersScreen() {
         </Text>
       </View>
 
+      <OfflineNotice visible={offline} />
       <FlatList
         data={suppliers}
         keyExtractor={(item) => item.id}

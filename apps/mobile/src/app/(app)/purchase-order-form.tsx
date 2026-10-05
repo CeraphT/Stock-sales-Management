@@ -12,6 +12,7 @@ import { TextField } from '@/components/TextField';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { purchaseOrdersApi } from '@/lib/api/endpoints/purchaseOrders';
 import { suppliersApi } from '@/lib/api/endpoints/suppliers';
+import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
 import type { RestockSuggestionItem, SupplierResponse } from '@/lib/api/types/catalog';
 import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency } from '@/lib/format';
@@ -50,7 +51,11 @@ export default function PurchaseOrderFormScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (companyId) suppliersApi.list(companyId).then(setSuppliers).catch(() => {});
+      if (!companyId) return;
+      // Offline-first: local suppliers at once, then the server list if reachable.
+      let gotRemote = false;
+      localMirrorQueries.listSuppliers(companyId).then((rows) => { if (!gotRemote) setSuppliers(rows); }).catch(() => {});
+      suppliersApi.list(companyId).then((rows) => { gotRemote = true; setSuppliers(rows); }).catch(() => {});
     }, [companyId]),
   );
 

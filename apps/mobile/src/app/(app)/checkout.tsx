@@ -1,4 +1,5 @@
 import { customersApi } from '@stockflow/core/api/endpoints/customers';
+import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
 import { rewardsApi } from '@stockflow/core/api/endpoints/rewards';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
@@ -90,7 +91,18 @@ export default function CheckoutScreen() {
     enabled: !!companyId && !!customerId,
     retry: false,
   });
-  const selectedCustomer = useMemo(() => customers.find((c) => c.id === customerId) ?? null, [customers, customerId]);
+  // Offline-first: the picked customer is in the local mirror (picked via the
+  // local customer search), so credit balance / B2B status are known with no
+  // network; the server answer, when it arrives, wins (fresher balance).
+  const { data: localCustomer = null } = useQuery({
+    queryKey: ['local-customer', companyId, customerId],
+    queryFn: () => localMirrorQueries.getCustomer(companyId!, customerId!),
+    enabled: !!companyId && !!customerId,
+  });
+  const selectedCustomer = useMemo(
+    () => customers.find((c) => c.id === customerId) ?? (localCustomer?.id === customerId ? localCustomer : null),
+    [customers, customerId, localCustomer],
+  );
 
   const total = cartTotal(lines, serviceLines);
   const hasServices = serviceLines.length > 0;

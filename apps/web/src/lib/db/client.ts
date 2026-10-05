@@ -4,6 +4,7 @@ import { drizzle as drizzleProxy } from "drizzle-orm/sqlite-proxy";
 
 import migration002 from "./migrations/002_b2b.sql?raw";
 import migration003 from "./migrations/003_capabilities.sql?raw";
+import migration004 from "./migrations/004_customer_b2b_sync.sql?raw";
 import schemaSql from "./schema.sql?raw";
 
 /** Tauri exposes this global inside the native webview; absent in a plain
@@ -68,6 +69,7 @@ async function initBrowserDb(): Promise<void> {
   // browser DB is recreated each load, so apply them right after the base schema.
   sqlDb.run(migration002);
   sqlDb.run(migration003);
+  sqlDb.run(migration004);
 
   const db = drizzleProxy(
     async (sql, params, method) => {
