@@ -13,6 +13,10 @@ import { authApi } from '@/lib/api/endpoints/auth';
 import type { SetUserPermissionsRequest, UserResponse } from '@/lib/api/types/auth';
 import { UserRole } from '@/lib/api/enums';
 import { useAuthStore } from '@/lib/auth/store';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { toast } from '@/lib/ui/toastStore';
+import { membershipsApi } from '@stockflow/core/api/endpoints/memberships';
+import type { JoinRequestResponse } from '@stockflow/core/api/types/membership';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
 
@@ -41,8 +45,13 @@ export default function StaffScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   const currentUserId = useAuthStore((s) => s.user?.id);
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [staff, setStaff] = useState<UserResponse[]>([]);
+  // Join-by-code requests waiting for this shop (accepted with a role here).
+  const [requests, setRequests] = useState<JoinRequestResponse[]>([]);
+  const [requestRole, setRequestRole] = useState<Record<string, UserRole>>({});
+  const [deciding, setDeciding] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -69,7 +78,12 @@ export default function StaffScreen() {
     if (!companyId) return;
     setLoading(true);
     try {
-      setStaff(await authApi.listStaffUsers(companyId));
+      const [list, pending] = await Promise.all([
+        authApi.listStaffUsers(companyId),
+        membershipsApi.joinRequests(companyId).catch(() => [] as JoinRequestResponse[]),
+      ]);
+      setStaff(list);
+      setRequests(pending);
     } finally {
       setLoading(false);
     }
@@ -87,7 +101,7 @@ export default function StaffScreen() {
       showAlert('Missing details', 'Enter a name and phone number.');
       return;
     }
-    if (password.length < 6) {
+    if (password.length > 0 && password.length < 6) {
       showAlert('Weak password', 'Password must be at least 6 characters.');
       return;
     }
@@ -100,7 +114,7 @@ export default function StaffScreen() {
       setRole(UserRole.Cashier);
       setShowAddForm(false);
       await refresh();
-      showAlert('Account created', `${name.trim()} can now log in with this phone and password.`);
+      toast(`${name.trim()}: OK`, 'success');
     } catch (err) {
       showAlert('Could not create account', err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
@@ -212,7 +226,8 @@ export default function StaffScreen() {
         <View className="gap-3 border-b border-border bg-surface p-4">
           <TextField label="Name" value={name} onChangeText={setName} />
           <TextField label="Phone" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
-          <TextField label="Password" secureTextEntry value={password} onChangeText={setPassword} />
+          <TextField label="Password" secureTextEntry value={password} onChangeText={setPassword} placeholder={t('staff.passwordNewOnly')} />
+          <Text className="text-xs text-text-secondary">{t('staff.existingHint')}</Text>
           <View className="gap-1.5">
             <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Role</Text>
             <View className="flex-row gap-2">
@@ -242,6 +257,63 @@ export default function StaffScreen() {
           contentContainerClassName="gap-2 p-4"
           refreshing={false}
           onRefresh={refresh}
+          ListHeaderComponent={
+            requests.length > 0 ? (
+              <View className="mb-2 gap-2 rounded-2xl border border-accent-amber/40 bg-accent-amber/5 p-3.5">
+                <Text className="text-sm font-bold text-text-primary">
+                  🔑 {t('staff.requests')} ({requests.length})
+                </Text>
+                <Text className="text-xs text-text-secondary">{t('staff.requestsHint')}</Text>
+                {requests.map((r) => {
+                  const chosen = requestRole[r.membershipId] ?? UserRole.Cashier;
+                  const decide = async (accept: boolean) => {
+                    if (!companyId) return;
+                    setDeciding(r.membershipId);
+                    try {
+                      if (accept) await membershipsApi.approve(companyId, r.membershipId, { role: chosen });
+                      else await membershipsApi.reject(companyId, r.membershipId);
+                      toast(accept ? t('staff.accepted') : t('staff.declined'), 'success');
+                      await refresh();
+                    } catch (err) {
+                      showAlert(t('staff.requests'), err instanceof Error ? err.message : '');
+                    } finally {
+                      setDeciding(null);
+                    }
+                  };
+                  return (
+                    <View key={r.membershipId} className="gap-2 rounded-xl bg-surface p-3">
+                      <View>
+                        <Text className="text-sm font-semibold text-text-primary">{r.name}</Text>
+                        <Text className="text-xs text-text-secondary">
+                          {r.phone} · {new Date(r.createdAt).toLocaleDateString()}
+                        </Text>
+                      </View>
+                      <View className="flex-row gap-2">
+                        {([UserRole.Cashier, UserRole.CompanyAdmin] as const).map((v) => (
+                          <Pressable
+                            key={v}
+                            onPress={() => setRequestRole((m) => ({ ...m, [r.membershipId]: v }))}
+                            className={`rounded-full border px-3 py-1.5 ${chosen === v ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
+                            <Text className={`text-xs font-semibold ${chosen === v ? 'text-primary' : 'text-text-secondary'}`}>
+                              {v === UserRole.Cashier ? t('staff.roleCashier') : t('staff.roleAdmin')}
+                            </Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                      <View className="flex-row gap-2">
+                        <View className="flex-1">
+                          <Button title={t('staff.decline')} variant="ghost" disabled={deciding === r.membershipId} onPress={() => void decide(false)} />
+                        </View>
+                        <View className="flex-1">
+                          <Button title={t('staff.accept')} loading={deciding === r.membershipId} onPress={() => void decide(true)} />
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : null
+          }
           renderItem={({ item }) => {
             const isAdmin = item.role === UserRole.CompanyAdmin || item.role === UserRole.SuperAdmin;
             return (

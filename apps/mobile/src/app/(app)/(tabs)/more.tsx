@@ -2,13 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import { useMemo, useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { UserRole } from '@/lib/api/enums';
 import { useAuthStore } from '@/lib/auth/store';
 import { useImpersonation } from '@/lib/auth/impersonation';
+import { leaveShop } from '@/lib/auth/session';
 import { isCompanyRoute, useCompanyLocked } from '@/lib/companyGate';
 import type { Language } from '@/lib/i18n/store';
 import { useLanguageStore } from '@/lib/i18n/store';
@@ -164,6 +165,18 @@ export default function MoreScreen() {
     useImpersonation.getState().reset();
     router.replace('/');
   };
+  // Back to "My shops": pending work is sent first when online; nothing is erased
+  // here (opening a different shop is what guards unsent work).
+  const [leaving, setLeaving] = useState(false);
+  const onMyShops = async () => {
+    setLeaving(true);
+    try {
+      await leaveShop();
+      router.replace("/shops" as never);
+    } finally {
+      setLeaving(false);
+    }
+  };
   const isActive = (route?: string) => !!route && pathname === route;
 
   const row = (entry: { item: MenuLeaf; tint: Tint }, last: boolean) => {
@@ -271,6 +284,22 @@ export default function MoreScreen() {
                     <Text className="mt-0.5 text-xs" style={{ color: colors.textSecondary }}>{t('noCompany.lockedHint')}</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+                </Pressable>
+              ) : null}
+
+              {/* Back to "My shops": switch shop, create or join one (not while impersonating). */}
+              {user?.role !== UserRole.SuperAdmin ? (
+                <Pressable
+                  onPress={() => void onMyShops()}
+                  disabled={leaving}
+                  className="mb-5 flex-row items-center gap-3 rounded-2xl border p-4 active:opacity-80"
+                  style={{ borderColor: colors.primary, backgroundColor: colors.primary + "10" }}>
+                  <Text className="text-lg">🏪</Text>
+                  <View className="flex-1">
+                    <Text className="text-sm font-bold" style={{ color: colors.primary }}>{t("shops.mine")}</Text>
+                    <Text className="mt-0.5 text-xs" style={{ color: colors.textSecondary }}>{t("shops.mineSub")}</Text>
+                  </View>
+                  {leaving ? <ActivityIndicator color={colors.primary} /> : <Ionicons name="chevron-forward" size={16} color={colors.primary} />}
                 </Pressable>
               ) : null}
 

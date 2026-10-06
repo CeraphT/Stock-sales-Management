@@ -37,6 +37,7 @@ export default function AppLayout() {
   const companyId = useAuthStore((s) => s.companyId);
   const locationId = useAuthStore((s) => s.locationId);
   const isCashier = useAuthStore((s) => s.user?.role) === UserRole.Cashier;
+  const isSuperAdmin = useAuthStore((s) => s.user?.role) === UserRole.SuperAdmin;
   const isTablet = useIsTablet();
   const pathname = usePathname();
   // Remember where the user was, for the Support request's context.
@@ -146,6 +147,11 @@ export default function AppLayout() {
   }
   if (!token) {
     return <Redirect href="/" />;
+  }
+  // A signed-in account with no shop open picks, creates or joins one first.
+  // (A SuperAdmin keeps the dashboard + company picker flow.)
+  if (!companyId && !isSuperAdmin) {
+    return <Redirect href={'/shops' as never} />;
   }
   if (gate === 'checking') {
     return null;
