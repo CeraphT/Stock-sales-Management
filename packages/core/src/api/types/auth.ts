@@ -6,6 +6,25 @@ export interface LoginRequest {
   deviceId: string;
   deviceName: string;
   platform: DevicePlatform;
+  /** New apps: sign in to the account only; the person then picks a shop
+   * (select-company). Omitted = older behaviour, a shop session straight away. */
+  accountOnly?: boolean;
+}
+
+export interface RegisterRequest {
+  name: string;
+  phone: string;
+  password: string;
+  deviceId: string;
+  deviceName: string;
+  platform: DevicePlatform;
+}
+
+export interface SelectCompanyRequest {
+  companyId: string;
+  deviceId: string;
+  deviceName?: string;
+  platform?: DevicePlatform;
 }
 
 export interface RefreshRequest {
@@ -47,14 +66,17 @@ export interface CreateCompanyRequest {
   name: string;
   description: string | null;
   currency: string;
-  adminName: string;
-  adminPhone: string;
-  adminPassword: string;
+  /** Only for the anonymous (older) flow; a signed-in account becomes the admin. */
+  adminName?: string;
+  adminPhone?: string;
+  adminPassword?: string;
   deviceId: string;
   deviceName: string;
   platform: DevicePlatform;
   /** Inventory features to enable, from the business-type preset at setup. */
   capabilities?: InventoryCapabilities;
+  /** Every field of the creation wizard (the "My business" fields), saved on the company. */
+  settings?: UpdateCompanyRequest;
 }
 
 export interface JoinCompanyRequest {

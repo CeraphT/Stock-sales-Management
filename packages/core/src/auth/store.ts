@@ -25,6 +25,9 @@ export interface AuthState {
     companyId: string | null;
   }) => void;
   setLocation: (location: { locationId: string; locationName: string }) => void;
+  /** Back to the "My shops" screen: forget the open shop (and its branch) but
+   * keep the account signed in. */
+  leaveCompany: () => void;
   clear: () => void;
   setHasHydrated: (value: boolean) => void;
 }
@@ -71,6 +74,7 @@ export function createAuthStore(storage: StateStorage, generateDeviceId: () => s
         setSession: ({ token, refreshToken, expiresAt, user, companyId }) =>
           set({ token, refreshToken, expiresAt, user, companyId }),
         setLocation: ({ locationId, locationName }) => set({ locationId, locationName }),
+        leaveCompany: () => set({ companyId: null, locationId: null, locationName: null }),
         clear: () =>
           set({
             token: null,

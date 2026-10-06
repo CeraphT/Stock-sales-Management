@@ -42,7 +42,7 @@ export function SuperAdminShell() {
 
   function onLogout() {
     logout();
-    navigate("/onboarding", { replace: true });
+    navigate("/login", { replace: true });
   }
 
   return (

@@ -54,10 +54,8 @@ import { DeadStock } from "@/screens/DeadStock";
 import { Suppliers } from "@/screens/Suppliers";
 import { SalesHistory } from "@/screens/SalesHistory";
 import { Shell } from "@/screens/Shell";
-import { CreateCompany } from "@/screens/auth/CreateCompany";
-import { JoinCompany } from "@/screens/auth/JoinCompany";
 import { Login } from "@/screens/auth/Login";
-import { Onboarding } from "@/screens/auth/Onboarding";
+import { MyShops } from "@/screens/MyShops";
 import { SuperAdminAdmins } from "@/screens/superadmin/Admins";
 import { SuperAdminAudit } from "@/screens/superadmin/Audit";
 import { SuperAdminSupport } from "@/screens/superadmin/Support";
@@ -73,11 +71,14 @@ function RootRedirect() {
   const token = useAuthStore((s) => s.token);
   const role = useAuthStore((s) => s.user?.role);
   const impersonating = useImpersonation((s) => s.active);
+  const companyId = useAuthStore((s) => s.companyId);
   if (!hasHydrated) return null;
-  if (!token) return <Navigate to="/onboarding" replace />;
+  if (!token) return <Navigate to="/login" replace />;
   // A SuperAdmin with no company of their own lands on the console; once they
   // enter a company (impersonating), they belong in the scoped app.
   if (role === UserRole.SuperAdmin && !impersonating) return <Navigate to="/superadmin" replace />;
+  // Signed in but no shop open: pick, create or join one.
+  if (!companyId) return <Navigate to="/shops" replace />;
   return <Navigate to="/dashboard" replace />;
 }
 
@@ -88,16 +89,31 @@ function AuthGuard() {
   const token = useAuthStore((s) => s.token);
   const role = useAuthStore((s) => s.user?.role);
   const impersonating = useImpersonation((s) => s.active);
+  const companyId = useAuthStore((s) => s.companyId);
   const dbReady = useDbReady((s) => s.ready);
   const dbError = useDbReady((s) => s.error);
   if (!hasHydrated) return null;
-  if (!token) return <Navigate to="/onboarding" replace />;
+  if (!token) return <Navigate to="/login" replace />;
   // A non-impersonating SuperAdmin has no company context — keep them out of
   // the scoped app and on the console.
   if (role === UserRole.SuperAdmin && !impersonating) return <Navigate to="/superadmin" replace />;
+  if (!companyId) return <Navigate to="/shops" replace />;
   if (dbError) return <FullScreenMessage title="Local database error" body={dbError} />;
   if (!dbReady) return <FullScreenMessage title="Preparing local database…" />;
   return <Shell />;
+}
+
+/** "My shops": a signed-in account (not a SuperAdmin) choosing its business. */
+function ShopsGuard() {
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const token = useAuthStore((s) => s.token);
+  const role = useAuthStore((s) => s.user?.role);
+  const impersonating = useImpersonation((s) => s.active);
+  if (!hasHydrated) return null;
+  if (!token) return <Navigate to="/login" replace />;
+  if (role === UserRole.SuperAdmin && !impersonating) return <Navigate to="/superadmin" replace />;
+  if (impersonating) return <Navigate to="/dashboard" replace />;
+  return <MyShops />;
 }
 
 /** Layout route for the cross-tenant super-admin console. */
@@ -107,8 +123,8 @@ function SuperAdminGuard() {
   const role = useAuthStore((s) => s.user?.role);
   const impersonating = useImpersonation((s) => s.active);
   if (!hasHydrated) return null;
-  if (!token) return <Navigate to="/onboarding" replace />;
-  if (role !== UserRole.SuperAdmin) return <Navigate to="/dashboard" replace />;
+  if (!token) return <Navigate to="/login" replace />;
+  if (role !== UserRole.SuperAdmin) return <Navigate to="/" replace />;
   // While impersonating, the console is off-limits — they're inside a company.
   if (impersonating) return <Navigate to="/dashboard" replace />;
   return <SuperAdminShell />;
@@ -121,10 +137,12 @@ export const router = createBrowserRouter([
     errorElement: <RootErrorFallback />,
     children: [
   { path: "/", element: <RootRedirect /> },
-  { path: "/onboarding", element: <Onboarding /> },
   { path: "/login", element: <Login /> },
-  { path: "/create-company", element: <CreateCompany /> },
-  { path: "/join-company", element: <JoinCompany /> },
+  { path: "/shops", element: <ShopsGuard /> },
+  // Older entry points: everything now starts at login, then "My shops".
+  { path: "/onboarding", element: <Navigate to="/login" replace /> },
+  { path: "/create-company", element: <Navigate to="/shops" replace /> },
+  { path: "/join-company", element: <Navigate to="/shops" replace /> },
   {
     element: <SuperAdminGuard />,
     children: [

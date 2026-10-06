@@ -1,3 +1,4 @@
+import { ne } from "drizzle-orm";
 import { db } from "./client";
 import * as schema from "./schema";
 
@@ -49,4 +50,24 @@ export async function isolateCompany(companyId: string): Promise<boolean> {
     return true;
   }
   return false;
+}
+
+/** The business whose data the local mirror currently holds (null when empty). */
+export async function localCompanyId(): Promise<string | null> {
+  const companies = await db.query.companies.findMany();
+  return companies[0]?.id ?? null;
+}
+
+/** Work done on this device that the server hasn't accepted yet: sales and
+ * cash-register shifts still PendingPush, plus queued offline writes. Switching
+ * to another business wipes the mirror, so this must be 0 (or the user must
+ * agree to lose it) before opening a different business. */
+export async function countUnsynced(): Promise<number> {
+  const pendingSales = await db.select({ id: schema.sales.id }).from(schema.sales).where(ne(schema.sales.syncStatus, 0));
+  const pendingShifts = await db
+    .select({ id: schema.cashRegisterShifts.id })
+    .from(schema.cashRegisterShifts)
+    .where(ne(schema.cashRegisterShifts.syncStatus, 0));
+  const ops = await db.select({ id: schema.pendingOps.id }).from(schema.pendingOps);
+  return pendingSales.length + pendingShifts.length + ops.length;
 }

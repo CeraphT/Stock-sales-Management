@@ -20,6 +20,9 @@ export interface ConvertCurrencyResponse {
 export const companiesApi = {
   create: (body: CreateCompanyRequest) =>
     api.post<CreateCompanyResponse>("/api/companies", body, { skipAuth: true }),
+  /** From the "My shops" screen: the signed-in account becomes the admin, and
+   * body.settings (the wizard fields) is saved on the company. */
+  createForAccount: (body: CreateCompanyRequest) => api.post<CreateCompanyResponse>("/api/companies", body),
   join: (body: JoinCompanyRequest) =>
     api.post<CompanyResponse>("/api/companies/join", body, { skipAuth: true }),
   get: (id: string) => api.get<CompanyResponse>(`/api/companies/${id}`),

@@ -61,7 +61,7 @@ export function RegisterGate({ onOpened }: { onOpened: () => void }) {
       <button
         onClick={() => {
           logout();
-          navigate("/onboarding", { replace: true });
+          navigate("/login", { replace: true });
         }}
         className="mt-3 w-full text-center text-xs font-medium text-text-secondary transition hover:text-text-primary"
       >

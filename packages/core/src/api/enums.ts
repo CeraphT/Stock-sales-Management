@@ -21,6 +21,14 @@ export enum AccountingSystem {
   None = 2,
 }
 
+/** Where a person stands in a business (CompanyMembership.Status). */
+export enum MembershipStatus {
+  Active = 0,
+  Pending = 1,
+  Rejected = 2,
+  Disabled = 3,
+}
+
 export enum UserRole {
   Cashier = 0,
   CompanyAdmin = 1,

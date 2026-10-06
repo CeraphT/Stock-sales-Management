@@ -19,7 +19,7 @@ export function useIdleLogout(): void {
       timer.current = window.setTimeout(() => {
         logout();
         toast("Signed out after 20 minutes of inactivity.", "info");
-        navigate("/onboarding", { replace: true });
+        navigate("/login", { replace: true });
       }, IDLE_MS);
     };
 
