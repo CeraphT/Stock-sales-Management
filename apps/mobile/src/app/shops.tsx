@@ -157,9 +157,9 @@ export default function ShopsScreen() {
         <ScrollView contentContainerClassName="gap-4 px-4 pb-10" keyboardShouldPersistTaps="handled">
           {isTablet ? (
             <View className="flex-row items-start gap-4">
-              {/* The forms get more room than the shop list (3 : 2). */}
-              <View style={{ flex: 3 }}>{actionsCard}</View>
-              <View style={{ flex: 2 }}>{shopsCard}</View>
+              {/* The forms get twice the room of the shop list (2 : 1). */}
+              <View style={{ flex: 2 }}>{actionsCard}</View>
+              <View style={{ flex: 1 }}>{shopsCard}</View>
             </View>
           ) : (
             <>

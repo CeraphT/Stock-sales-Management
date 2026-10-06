@@ -114,7 +114,7 @@ export function MyShops() {
         </Button>
       </header>
 
-      <div className="mx-auto grid max-w-6xl items-start gap-6 lg:grid-cols-[3fr_2fr]">
+      <div className="mx-auto grid max-w-6xl items-start gap-6 lg:grid-cols-[2fr_1fr]">
         {/* Left: create / join (below the list on narrow screens, where your shops come first) */}
         <section className="card-in order-2 rounded-card lg:order-1 border border-white/50 bg-surface/85 p-5 shadow-2xl backdrop-blur-xl sm:p-6">
           <div className="mb-5 grid grid-cols-2 rounded-full border border-border bg-background p-1 text-sm font-semibold" role="tablist">
