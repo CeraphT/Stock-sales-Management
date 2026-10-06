@@ -1,6 +1,7 @@
 import { authApi } from "@stockflow/core/api/endpoints/auth";
 import { membershipsApi } from "@stockflow/core/api/endpoints/memberships";
 import { ApiError } from "@stockflow/core/api/client";
+import type { AuthResponse } from "@stockflow/core/api/types/auth";
 import { DevicePlatform, UserRole } from "@stockflow/core/api/enums";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +17,8 @@ import { useAuthStore } from "@/lib/stores";
 
 type Mode = "login" | "register";
 
+const PLATFORM = DevicePlatform.Web;
+
 /** Simplified sign-in: phone + password, or create an account. Either way the
  * person lands on "My shops" to open, create or join a business. */
 export function Login() {
@@ -27,6 +30,8 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Same phone + password opens a SuperAdmin account AND a shop account: ask where to go.
+  const [choice, setChoice] = useState<AuthResponse | null>(null);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,6 +46,10 @@ export function Login() {
           : await membershipsApi.register({ name: name.trim(), phone: phone.trim(), password, ...device });
       // A fresh sign-in never inherits an old super-admin "inside a company" state.
       useImpersonation.getState().reset();
+      if (auth.user.role === UserRole.SuperAdmin && auth.hasShopAccount) {
+        setChoice(auth);
+        return;
+      }
       storeSession(auth);
       // SuperAdmins have no shop of their own: they land on the cross-tenant console.
       navigate(auth.user.role === UserRole.SuperAdmin ? "/superadmin" : "/shops", { replace: true });
@@ -50,6 +59,64 @@ export function Login() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function goConsole() {
+    if (!choice) return;
+    storeSession(choice);
+    navigate("C:/Program Files/Git/superadmin", { replace: true });
+  }
+
+  async function goShops() {
+    setError(null);
+    setLoading(true);
+    try {
+      const { deviceId } = useAuthStore.getState();
+      const auth = await authApi.login({ phone: phone.trim(), password, accountOnly: true, preferShopAccount: true, deviceId, deviceName, platform: PLATFORM });
+      storeSession(auth);
+      navigate("/shops", { replace: true });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t("Could not log in. Check your internet connection."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (choice) {
+    return (
+      <AuthLayout title={`${t("Hello")}, ${choice.user.name.split(" ")[0]} 👋`} subtitle={t("Where do you want to go?")}>
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={() => void goShops()}
+            disabled={loading}
+            className="flex items-center gap-3 rounded-xl border border-primary bg-primary/10 p-4 text-left transition hover:bg-primary/15 disabled:opacity-60"
+          >
+            <span className="text-2xl" aria-hidden>🏪</span>
+            <span>
+              <span className="block text-sm font-bold text-text-primary">{t("My shops")}</span>
+              <span className="block text-xs text-text-secondary">{t("Open, create or join a shop with your shop account.")}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={goConsole}
+            disabled={loading}
+            className="flex items-center gap-3 rounded-xl border border-border p-4 text-left transition hover:bg-background disabled:opacity-60"
+          >
+            <span className="text-2xl" aria-hidden>🛡️</span>
+            <span>
+              <span className="block text-sm font-bold text-text-primary">{t("Super-admin console")}</span>
+              <span className="block text-xs text-text-secondary">{t("Manage every business on the platform.")}</span>
+            </span>
+          </button>
+          {error ? <p className="text-sm font-medium text-error">{error}</p> : null}
+          <Button type="button" variant="ghost" onClick={() => setChoice(null)} disabled={loading}>
+            {t("Back")}
+          </Button>
+        </div>
+      </AuthLayout>
+    );
   }
 
   const canSubmit = phone.trim().length >= 6 && password.length >= (mode === "register" ? 6 : 1) && (mode === "login" || name.trim());

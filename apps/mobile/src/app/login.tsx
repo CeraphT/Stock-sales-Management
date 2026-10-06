@@ -8,6 +8,7 @@ import { TextField } from '@/components/TextField';
 import { ApiError } from '@/lib/api/client';
 import { authApi } from '@/lib/api/endpoints/auth';
 import { UserRole } from '@/lib/api/enums';
+import type { AuthResponse } from '@/lib/api/types/auth';
 import { storeSession } from '@/lib/auth/session';
 import { useAuthStore } from '@/lib/auth/store';
 import { deviceName, devicePlatform } from '@/lib/device';
@@ -27,6 +28,8 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const deviceId = useAuthStore((s) => s.deviceId);
+  // Same phone + password opens a SuperAdmin account AND a shop account: ask where to go.
+  const [choice, setChoice] = useState<AuthResponse | null>(null);
 
   const canSubmit = phone.trim().length >= 6 && (mode === 'login' ? password.length > 0 : password.length >= 6 && !!name.trim());
 
@@ -42,6 +45,10 @@ export default function LoginScreen() {
         mode === 'login'
           ? await authApi.login({ phone: phone.trim(), password, accountOnly: true, ...device })
           : await membershipsApi.register({ name: name.trim(), phone: phone.trim(), password, ...device });
+      if (auth.user.role === UserRole.SuperAdmin && auth.hasShopAccount) {
+        setChoice(auth);
+        return;
+      }
       storeSession(auth);
       router.replace(auth.user.role === UserRole.SuperAdmin ? ('/company-picker' as never) : ('/shops' as never));
     } catch (err) {
@@ -52,6 +59,46 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
+
+  const goShops = async () => {
+    setLoading(true);
+    try {
+      const auth = await authApi.login({
+        phone: phone.trim(),
+        password,
+        accountOnly: true,
+        preferShopAccount: true,
+        deviceId,
+        deviceName,
+        platform: devicePlatform,
+      });
+      storeSession(auth);
+      router.replace('/shops' as never);
+    } catch (err) {
+      showAlert(t('login.title'), err instanceof ApiError ? err.message : t('auth.network'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (choice) {
+    return (
+      <AuthLayout title={`${t('shops.hello')}, ${choice.user.name.split(' ')[0]} 👋`} subtitle={t('auth.chooseTitle')}>
+        <ChoiceCard icon="🏪" title={t('shops.mine')} desc={t('auth.chooseShopsSub')} primary disabled={loading} onPress={() => void goShops()} />
+        <ChoiceCard
+          icon="🛡️"
+          title={t('auth.chooseConsole')}
+          desc={t('auth.chooseConsoleSub')}
+          disabled={loading}
+          onPress={() => {
+            storeSession(choice);
+            router.replace('/company-picker' as never);
+          }}
+        />
+        <Button title={t('common.back')} variant="ghost" onPress={() => setChoice(null)} disabled={loading} />
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout
@@ -99,5 +146,20 @@ export default function LoginScreen() {
         disabled={!canSubmit}
       />
     </AuthLayout>
+  );
+}
+
+function ChoiceCard({ icon, title, desc, primary, disabled, onPress }: { icon: string; title: string; desc: string; primary?: boolean; disabled?: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      className={`flex-row items-center gap-3 rounded-xl border p-4 active:opacity-80 ${primary ? 'border-primary bg-primary/10' : 'border-border'} ${disabled ? 'opacity-60' : ''}`}>
+      <Text className="text-2xl">{icon}</Text>
+      <View className="flex-1">
+        <Text className="text-sm font-bold text-text-primary">{title}</Text>
+        <Text className="text-xs text-text-secondary">{desc}</Text>
+      </View>
+    </Pressable>
   );
 }

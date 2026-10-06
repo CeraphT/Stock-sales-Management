@@ -1182,6 +1182,13 @@ export const FR: Record<string, string> = {
   "items updated": "éléments mis à jour",
   "sent": "envoyé(s)",
   "Sync failed": "Échec de la synchronisation",
+
+  // ── Login chooser ──
+  "Where do you want to go?": "Où voulez-vous aller ?",
+  "Open, create or join a shop with your shop account.": "Ouvrez, créez ou rejoignez une boutique avec votre compte boutique.",
+  "Super-admin console": "Console super-admin",
+  "Super-admin space": "Espace super-admin",
+  "Manage every business on the platform.": "Gérez toutes les entreprises de la plateforme.",
 };
 
 /** Reactive translator hook. `t(en)` returns the French string when the app

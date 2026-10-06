@@ -9,7 +9,9 @@ namespace PharmaStock.Api.Services;
 /// <summary>AccountOnly = true (new apps): sign in to the account and let the person
 /// pick a business on the "My shops" screen. Omitted (older app versions): open a
 /// business straight away, as before memberships existed.</summary>
-public record LoginRequest(string Phone, string Password, Guid DeviceId, string DeviceName, DevicePlatform Platform, bool AccountOnly = false);
+/// <summary>PreferShopAccount: the same phone can hold a SuperAdmin account and a shop
+/// account; true skips the SuperAdmin one (the "My shops" choice after login).</summary>
+public record LoginRequest(string Phone, string Password, Guid DeviceId, string DeviceName, DevicePlatform Platform, bool AccountOnly = false, bool PreferShopAccount = false);
 public record RegisterRequest(string Name, string Phone, string Password, Guid DeviceId, string DeviceName, DevicePlatform Platform);
 public record SelectCompanyRequest(Guid CompanyId, Guid DeviceId, string? DeviceName = null, DevicePlatform? Platform = null);
 public record RefreshRequest(Guid DeviceId, string RefreshToken);
@@ -24,7 +26,9 @@ public record UserResponse(
     Guid Id, string Name, string Phone, UserRole Role, bool Active,
     bool RestrictCatalog, bool RestrictPurchasing, bool RestrictCustomers, bool RestrictReportsAndFullSales,
     bool RestrictCashRegister, bool RestrictGiftCards);
-public record AuthResponse(string Token, DateTime ExpiresAt, string RefreshToken, Guid DeviceId, UserResponse User, Guid? CompanyId);
+/// <summary>HasShopAccount (SuperAdmin logins only): the same phone + password also opens a
+/// shop account, so the app offers "Super-admin console" or "My shops".</summary>
+public record AuthResponse(string Token, DateTime ExpiresAt, string RefreshToken, Guid DeviceId, UserResponse User, Guid? CompanyId, bool HasShopAccount = false);
 
 public static class AuthEndpoints
 {
@@ -61,6 +65,7 @@ public static class AuthEndpoints
             var phone = NormalizePhone(request.Phone);
             var candidates = await db.Users
                 .Where(u => (u.Phone == phone || u.Phone == request.Phone) && u.Active)
+                .Where(u => !request.PreferShopAccount || u.Role != UserRole.SuperAdmin)
                 .OrderByDescending(u => u.Role == UserRole.SuperAdmin)
                 .ToListAsync();
 
@@ -71,8 +76,15 @@ public static class AuthEndpoints
                     continue;
 
                 if (user.Role == UserRole.SuperAdmin || request.AccountOnly)
-                    return Results.Ok(await IssueAuthResponseAsync(
-                        user, null, request.DeviceId, request.DeviceName, request.Platform, db, tokens, http.GetClientIp()));
+                {
+                    var auth = await IssueAuthResponseAsync(
+                        user, null, request.DeviceId, request.DeviceName, request.Platform, db, tokens, http.GetClientIp());
+                    // Same phone + same password also opens a shop account: let the app ask.
+                    var hasShopAccount = user.Role == UserRole.SuperAdmin && candidates.Any(o =>
+                        o.Role != UserRole.SuperAdmin
+                        && hasher.VerifyHashedPassword(o, o.PasswordHash, request.Password) == PasswordVerificationResult.Success);
+                    return Results.Ok(auth with { HasShopAccount = hasShopAccount });
+                }
 
                 // Older apps expect a business session from login: reopen the one this
                 // device last used, else the first active business of the account.

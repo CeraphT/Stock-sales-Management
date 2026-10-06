@@ -9,6 +9,9 @@ export interface LoginRequest {
   /** New apps: sign in to the account only; the person then picks a shop
    * (select-company). Omitted = older behaviour, a shop session straight away. */
   accountOnly?: boolean;
+  /** The same phone can hold a SuperAdmin account and a shop account: true skips
+   * the SuperAdmin one (the "My shops" choice after login). */
+  preferShopAccount?: boolean;
 }
 
 export interface RegisterRequest {
@@ -60,6 +63,9 @@ export interface AuthResponse {
   deviceId: string;
   user: UserResponse;
   companyId: string | null;
+  /** SuperAdmin logins only: the same phone + password also opens a shop account,
+   * so the app offers "Super-admin console" or "My shops". */
+  hasShopAccount?: boolean;
 }
 
 export interface CreateCompanyRequest {

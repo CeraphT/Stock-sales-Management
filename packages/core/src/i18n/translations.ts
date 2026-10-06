@@ -492,6 +492,12 @@ export const translations = {
     "staff.perm.restrictGiftCards.desc": "Issue / manage gift cards",
     "staff.perm.restrictReportsAndFullSales": "Reports & full sales",
     "staff.perm.restrictReportsAndFullSales.desc": "Reports, and other cashiers' sales",
+
+    // Login chooser (super-admin + shop account)
+    "auth.chooseTitle": "Where do you want to go?",
+    "auth.chooseShopsSub": "Open, create or join a shop with your shop account.",
+    "auth.chooseConsole": "Super-admin space",
+    "auth.chooseConsoleSub": "Manage every business on the platform.",
   },
   fr: {
     // Drawer
@@ -980,6 +986,12 @@ export const translations = {
     "staff.perm.restrictGiftCards.desc": "Émettre / gérer les cartes cadeaux",
     "staff.perm.restrictReportsAndFullSales": "Rapports et ventes complètes",
     "staff.perm.restrictReportsAndFullSales.desc": "Rapports, et les ventes des autres caissiers",
+
+    // Login chooser (super-admin + shop account)
+    "auth.chooseTitle": "Où voulez-vous aller ?",
+    "auth.chooseShopsSub": "Ouvrez, créez ou rejoignez une boutique avec votre compte boutique.",
+    "auth.chooseConsole": "Espace super-admin",
+    "auth.chooseConsoleSub": "Gérez toutes les entreprises de la plateforme.",
   },
 } as const;
 
