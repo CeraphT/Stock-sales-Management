@@ -23,6 +23,7 @@ public class PharmaStockDbContext : DbContext
 
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<CompanyMembership> CompanyMemberships => Set<CompanyMembership>();
     public DbSet<Device> Devices => Set<Device>();
     public DbSet<Location> Locations => Set<Location>();
 

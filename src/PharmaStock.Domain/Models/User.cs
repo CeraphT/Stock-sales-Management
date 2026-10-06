@@ -1,12 +1,16 @@
 namespace PharmaStock.Domain.Models;
 
-/// <summary>A staff account, scoped to a single company (Section 3.7), except for
-/// the SuperAdmin role which sits outside any one company's data (Section 22.6).</summary>
+/// <summary>A person's account: phone + password, globally unique phone (SuperAdmin
+/// accounts aside). Which businesses they work in, and with which role and
+/// restrictions, lives in <see cref="CompanyMembership"/>. Role here only marks a
+/// platform SuperAdmin (Section 22.6); for everyone else it is a legacy value.</summary>
 public class User
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    /// <summary>Null only for SuperAdmin accounts, which are not owned by any single company.</summary>
+    /// <summary>Legacy: the business this account was first created in (accounts
+    /// predating memberships). Null for SuperAdmins and for accounts created through
+    /// self sign-up. Not used for access: memberships are the source of truth.</summary>
     public Guid? CompanyId { get; set; }
     public Company? Company { get; set; }
 
@@ -29,7 +33,8 @@ public class User
 
     public bool Active { get; set; } = true;
 
-    /// <summary>Per-user feature restrictions, Cashier accounts only — all default
+    /// <summary>Legacy, superseded by CompanyMembership.Restrict* (kept so old rows
+    /// still read). Per-user feature restrictions, Cashier accounts only — all default
     /// false (unrestricted) so a new/existing cashier keeps full access unless a
     /// CompanyAdmin explicitly locks a feature down. Meaningless for Admin/SuperAdmin
     /// callers, who always pass every check regardless of these values.</summary>
@@ -41,4 +46,5 @@ public class User
     public bool RestrictGiftCards { get; set; } = false;
 
     public ICollection<Device> Devices { get; set; } = new List<Device>();
+    public ICollection<CompanyMembership> Memberships { get; set; } = new List<CompanyMembership>();
 }

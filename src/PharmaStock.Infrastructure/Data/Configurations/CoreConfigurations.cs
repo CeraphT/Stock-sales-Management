@@ -193,16 +193,28 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
     }
 }
 
-/// <summary>Phone is the login identifier (Section 3.7). Unique per company
-/// rather than globally, since the same person could legitimately hold a
-/// staff account at two different companies in this multi-tenant system.
-/// SuperAdmin accounts (CompanyId null) are exempt — Postgres treats each
-/// NULL as distinct, so multiple SuperAdmins never collide here.</summary>
+/// <summary>Phone is the login identifier (Section 3.7) and identifies ONE account
+/// across every business (memberships link it to each business). SuperAdmin
+/// accounts (Role = 2) are exempt so a platform admin can share a phone with
+/// their own shop account.</summary>
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.HasIndex(u => new { u.CompanyId, u.Phone }).IsUnique();
+        builder.HasIndex(u => u.Phone).IsUnique().HasFilter("\"Role\" <> 2");
+    }
+}
+
+/// <summary>One membership per (account, business); a rejected or disabled row is
+/// reused when the person asks again rather than duplicated.</summary>
+public class CompanyMembershipConfiguration : IEntityTypeConfiguration<CompanyMembership>
+{
+    public void Configure(EntityTypeBuilder<CompanyMembership> builder)
+    {
+        builder.HasIndex(m => new { m.UserId, m.CompanyId }).IsUnique();
+        builder.HasIndex(m => new { m.CompanyId, m.Status });
+        builder.HasOne(m => m.User).WithMany(u => u.Memberships).HasForeignKey(m => m.UserId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(m => m.Company).WithMany().HasForeignKey(m => m.CompanyId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 

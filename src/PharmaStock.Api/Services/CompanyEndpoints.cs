@@ -10,11 +10,16 @@ namespace PharmaStock.Api.Services;
 public record InventoryCapabilities(
     bool ExpiryTracking, bool SellByMeasure, bool SerialTracking, bool Variants, bool Assembly);
 
+/// <summary>From the "My shops" screen (signed-in account): Admin* are omitted and the
+/// caller becomes the admin; Settings carries every field of the creation wizard
+/// (the same fields as "My business"). From older apps (anonymous): Admin* create the
+/// admin account as before.</summary>
 public record CreateCompanyRequest(
     string Name, string? Description, string Currency,
-    string AdminName, string AdminPhone, string AdminPassword,
+    string? AdminName, string? AdminPhone, string? AdminPassword,
     Guid DeviceId, string DeviceName, DevicePlatform Platform,
-    InventoryCapabilities? Capabilities = null);
+    InventoryCapabilities? Capabilities = null,
+    UpdateCompanyRequest? Settings = null);
 public record JoinCompanyRequest(string UniqueCode);
 public record CompanyResponse(
     Guid Id, string Name, string UniqueCode, string Currency, bool ServicesModuleEnabled, string? Description, decimal DefaultTaxRatePercent,
@@ -47,18 +52,49 @@ public static class CompanyEndpoints
         // log into it, so the two are never split across separate requests.
         group.MapPost("/", async (
             CreateCompanyRequest request, PharmaStockDbContext db,
-            IPasswordHasher<User> hasher, JwtTokenService tokens) =>
+            IPasswordHasher<User> hasher, JwtTokenService tokens, HttpContext http) =>
         {
-            if (string.IsNullOrWhiteSpace(request.AdminPassword) || request.AdminPassword.Length < 6)
-                return Results.BadRequest(new { message = "Le mot de passe administrateur doit contenir au moins 6 caractères." });
+            if (string.IsNullOrWhiteSpace(request.Name))
+                return Results.BadRequest(new { message = "Le nom de l'entreprise est requis." });
+
+            // Signed-in account (new apps): it becomes the admin. Otherwise (older
+            // apps) the request carries the admin account to create.
+            User? admin = null;
+            if (http.User.GetUserId() is Guid callerId && !http.User.IsInRole(nameof(UserRole.SuperAdmin)))
+            {
+                admin = await db.Users.FirstOrDefaultAsync(u => u.Id == callerId && u.Active);
+                if (admin is null) return Results.Unauthorized();
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(request.AdminPassword) || request.AdminPassword.Length < 6)
+                    return Results.BadRequest(new { message = "Le mot de passe administrateur doit contenir au moins 6 caractères." });
+                var adminPhone = AuthEndpoints.NormalizePhone(request.AdminPhone);
+                if (await db.Users.AnyAsync(u => u.Phone == adminPhone && u.Role != UserRole.SuperAdmin))
+                    return Results.Conflict(new
+                    {
+                        message = "Ce numéro a déjà un compte : connectez-vous, puis créez la boutique depuis « Mes boutiques ».",
+                        code = "phone_taken",
+                    });
+                admin = new User { Name = (request.AdminName ?? "").Trim(), Phone = adminPhone, Role = UserRole.Cashier };
+                admin.PasswordHash = hasher.HashPassword(admin, request.AdminPassword);
+                db.Users.Add(admin);
+            }
 
             var company = new Company
             {
-                Name = request.Name,
+                Name = request.Name.Trim(),
                 Description = request.Description,
                 Currency = string.IsNullOrWhiteSpace(request.Currency) ? "XAF" : request.Currency,
                 UniqueCode = GenerateUniqueCode()
             };
+            // Everything filled in the creation wizard lands on the company itself, so
+            // "My business" shows it afterwards (name and code stay as above).
+            if (request.Settings is { } settings)
+            {
+                ApplySettings(company, settings);
+                company.Name = request.Name.Trim();
+            }
             // Inventory capabilities chosen at setup (the business-type preset).
             // Omitted → keep the model defaults (expiry on, everything else off).
             if (request.Capabilities is { } caps)
@@ -71,15 +107,14 @@ public static class CompanyEndpoints
             }
             db.Companies.Add(company);
 
-            var admin = new User
+            var membership = new CompanyMembership
             {
+                UserId = admin.Id,
                 CompanyId = company.Id,
-                Name = request.AdminName,
-                Phone = request.AdminPhone,
                 Role = UserRole.CompanyAdmin,
+                Status = MembershipStatus.Active,
             };
-            admin.PasswordHash = hasher.HashPassword(admin, request.AdminPassword);
-            db.Users.Add(admin);
+            db.CompanyMemberships.Add(membership);
 
             // Section 16.6 — every company starts with one Location so
             // single-shop usage (the common case) needs no extra setup before
@@ -95,7 +130,7 @@ public static class CompanyEndpoints
             await db.SaveChangesAsync();
 
             var auth = await AuthEndpoints.IssueAuthResponseAsync(
-                admin, request.DeviceId, request.DeviceName, request.Platform, db, tokens);
+                admin, membership, request.DeviceId, request.DeviceName, request.Platform, db, tokens, http.GetClientIp());
 
             return Results.Created($"/api/companies/{company.Id}", new CreateCompanyResponse(
                 ToResponse(company),
@@ -153,6 +188,17 @@ public static class CompanyEndpoints
             if (company is null)
                 return Results.NotFound(new { message = "Entreprise introuvable." });
 
+            ApplySettings(company, request);
+            await db.SaveChangesAsync();
+
+            return Results.Ok(ToResponse(company));
+        }).RequireAuthorization(policy => policy.RequireRole(nameof(UserRole.CompanyAdmin), nameof(UserRole.SuperAdmin)));
+    }
+
+    /// <summary>The "My business" fields, shared by the settings screen (PUT) and the
+    /// creation wizard (POST with Settings) so both always save the same way.</summary>
+    private static void ApplySettings(Company company, UpdateCompanyRequest request)
+    {
             company.Name = request.Name.Trim();
             company.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
             company.Currency = string.IsNullOrWhiteSpace(request.Currency) ? company.Currency : request.Currency.Trim();
@@ -185,11 +231,6 @@ public static class CompanyEndpoints
                 company.VariantsEnabled = caps.Variants;
                 company.AssemblyEnabled = caps.Assembly;
             }
-
-            await db.SaveChangesAsync();
-
-            return Results.Ok(ToResponse(company));
-        }).RequireAuthorization(policy => policy.RequireRole(nameof(UserRole.CompanyAdmin), nameof(UserRole.SuperAdmin)));
     }
 
     private static CompanyResponse ToResponse(Company company) => new(

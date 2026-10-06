@@ -71,7 +71,7 @@ public class DevicePresenceMiddleware
                     // "Active" = the user AND their business (a SuperAdmin-deactivated
                     // company cuts every one of its open sessions within EnforceTtl).
                     .Select(d => new DevState(true, d.IsRevoked || d.RemoteWipeRequested,
-                        d.User!.Active && (d.User.CompanyId == null || d.User.Company!.Active)))
+                        d.User!.Active && (d.CompanyId == null || db.Companies.Any(c => c.Id == d.CompanyId && c.Active))))
                     .FirstOrDefaultAsync();
                 return row ?? new DevState(false, false, true);
             }) ?? new DevState(false, false, true);

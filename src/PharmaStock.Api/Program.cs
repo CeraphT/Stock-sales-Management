@@ -97,6 +97,7 @@ app.UseMiddleware<DevicePresenceMiddleware>();
 app.MapGet("/health", () => Results.Ok(new { status = "ok", timestamp = DateTime.UtcNow }));
 
 app.MapAuthEndpoints();
+app.MapMembershipEndpoints();
 app.MapDeviceEndpoints();
 app.MapCompanyEndpoints();
 app.MapCurrencyEndpoints();

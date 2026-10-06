@@ -139,8 +139,12 @@ public static class SyncEndpoints
             // Sale/StockMovement/CashRegisterShift needs its UserId FK
             // satisfied locally, so a stale cached name is a smaller risk
             // than a missing row breaking a later pull's SaveChanges.
+            // Members of the business, plus legacy accounts first created in it
+            // (their past sales/shifts still point at them).
             var users = await db.Users
-                .Where(u => u.CompanyId == companyId)
+                .Where(u => u.CompanyId == companyId
+                    || db.CompanyMemberships.Any(m => m.UserId == u.Id && m.CompanyId == companyId
+                        && (m.Status == MembershipStatus.Active || m.Status == MembershipStatus.Disabled)))
                 .Select(u => new SyncPullUser(u.Id, u.Name, u.Phone))
                 .ToListAsync();
 

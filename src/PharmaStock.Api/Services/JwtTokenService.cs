@@ -16,13 +16,21 @@ public class JwtTokenService
 
     public const string CompanyIdClaimType = "company_id";
     public const string DeviceIdClaimType = "device_id";
+    /// <summary>Role of a signed-in person who has not opened a business yet: enough
+    /// for the account endpoints (my shops, create, join), refused by every
+    /// business endpoint since those require Cashier/CompanyAdmin/SuperAdmin.</summary>
+    public const string AccountRole = "Account";
 
     public JwtTokenService(IConfiguration configuration)
     {
         _configuration = configuration;
     }
 
-    public (string Token, DateTime ExpiresAt) IssueToken(User user, Guid? deviceId = null)
+    /// <summary>Token for <paramref name="user"/>. With a membership it is scoped to that
+    /// business (company_id + the membership's role, same claims as before memberships
+    /// existed). Without one: a SuperAdmin keeps their platform role, anyone else gets
+    /// an account-only token.</summary>
+    public (string Token, DateTime ExpiresAt) IssueToken(User user, CompanyMembership? membership, Guid? deviceId = null)
     {
         var secret = _configuration["Jwt:Secret"]
             ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
@@ -34,11 +42,17 @@ public class JwtTokenService
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.Name),
-            new(ClaimTypes.Role, user.Role.ToString()),
         };
 
-        if (user.CompanyId.HasValue)
-            claims.Add(new Claim(CompanyIdClaimType, user.CompanyId.Value.ToString()));
+        if (membership is not null)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, membership.Role.ToString()));
+            claims.Add(new Claim(CompanyIdClaimType, membership.CompanyId.ToString()));
+        }
+        else
+        {
+            claims.Add(new Claim(ClaimTypes.Role, user.Role == UserRole.SuperAdmin ? nameof(UserRole.SuperAdmin) : AccountRole));
+        }
 
         // device_id lets every authenticated request be attributed to a device
         // (presence/usage tracing) and lets a mid-session device block take

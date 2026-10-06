@@ -69,7 +69,7 @@ public static class SuperAdminEndpoints
                 .OrderByDescending(c => c.CreatedAt)
                 .Select(c => new SuperAdminCompanySummary(
                     c.Id, c.Name, c.UniqueCode, c.CreatedAt,
-                    db.Users.Count(u => u.CompanyId == c.Id),
+                    db.CompanyMemberships.Count(m => m.CompanyId == c.Id && (m.Status == MembershipStatus.Active || m.Status == MembershipStatus.Disabled)),
                     db.Products.Count(p => p.CompanyId == c.Id),
                     db.Sales.Count(s => s.CompanyId == c.Id),
                     db.Sales.Where(s => s.CompanyId == c.Id).Sum(s => (decimal?)s.Total) ?? 0m,
@@ -85,8 +85,9 @@ public static class SuperAdminEndpoints
             if (company is null)
                 return Results.NotFound(new { message = "Entreprise introuvable." });
 
-            var users = await db.Users.Where(u => u.CompanyId == id)
-                .Select(u => new SuperAdminCompanyUser(u.Id, u.Name, u.Phone, u.Role, u.Active))
+            var users = await db.CompanyMemberships.Where(m => m.CompanyId == id && (m.Status == MembershipStatus.Active || m.Status == MembershipStatus.Disabled))
+                .Select(m => new SuperAdminCompanyUser(m.UserId, m.User!.Name, m.User.Phone, m.Role,
+                    m.User.Active && m.Status == MembershipStatus.Active))
                 .ToListAsync();
             var locations = await db.Locations.Where(l => l.CompanyId == id)
                 .Select(l => new SuperAdminCompanyLocation(l.Id, l.Name, l.Address, l.Active))
@@ -121,7 +122,7 @@ public static class SuperAdminEndpoints
 
             // Drop cached enforcement state for every device of this business so
             // the change is felt immediately rather than after the 15s TTL.
-            var deviceIds = await db.Devices.Where(d => d.User!.CompanyId == id).Select(d => d.Id).ToListAsync();
+            var deviceIds = await db.Devices.Where(d => d.CompanyId == id).Select(d => d.Id).ToListAsync();
             foreach (var did in deviceIds) cache.Remove($"devstate:{did}");
 
             return Results.Ok(new { company.Id, company.Active });
@@ -230,14 +231,21 @@ public static class SuperAdminEndpoints
         group.MapGet("/users", async (PharmaStockDbContext db, Guid? companyId) =>
         {
             var q = db.Users.Where(u => u.Role != UserRole.SuperAdmin);
-            if (companyId is Guid cid) q = q.Where(u => u.CompanyId == cid);
+            if (companyId is Guid cid) q = q.Where(u => db.CompanyMemberships.Any(m => m.UserId == u.Id && m.CompanyId == cid));
+            // An account can work in several businesses: show the first one it joined.
             var rows = await q
                 .OrderBy(u => u.Name)
-                .Select(u => new SuperAdminUserRow(
-                    u.Id, u.CompanyId,
-                    db.Companies.Where(c => c.Id == u.CompanyId).Select(c => c.Name).FirstOrDefault(),
-                    u.Name, u.Phone, u.Role, u.Active,
-                    db.Devices.Where(d => d.UserId == u.Id).Max(d => (DateTime?)d.LastActiveAt)))
+                .Select(u => new
+                {
+                    User = u,
+                    First = db.CompanyMemberships.Where(m => m.UserId == u.Id && m.Status != MembershipStatus.Rejected)
+                        .OrderBy(m => m.CreatedAt).Select(m => new { m.CompanyId, m.Company!.Name, m.Role }).FirstOrDefault(),
+                })
+                .Select(x => new SuperAdminUserRow(
+                    x.User.Id, x.First != null ? x.First.CompanyId : x.User.CompanyId,
+                    x.First != null ? x.First.Name : null,
+                    x.User.Name, x.User.Phone, x.First != null ? x.First.Role : x.User.Role, x.User.Active,
+                    db.Devices.Where(d => d.UserId == x.User.Id).Max(d => (DateTime?)d.LastActiveAt)))
                 .ToListAsync();
             return Results.Ok(rows);
         });
@@ -364,7 +372,7 @@ public static class SuperAdminEndpoints
             await db.SaveChangesAsync();
 
             var auth = await AuthEndpoints.IssueAuthResponseAsync(
-                user, Guid.NewGuid(), "Bootstrap", DevicePlatform.Web, db, tokens);
+                user, null, Guid.NewGuid(), "Bootstrap", DevicePlatform.Web, db, tokens);
             return Results.Created($"/api/superadmin/companies", auth);
         });
     }
