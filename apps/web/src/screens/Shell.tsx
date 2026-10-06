@@ -29,6 +29,7 @@ import { runSync } from "@/lib/sync/runSync";
 import { toast } from "@/lib/toast";
 import { useThemeStore } from "@/lib/theme";
 import { useCompany } from "@/lib/useCompany";
+import { AppVersion } from "@/components/AppVersion";
 
 export function Shell() {
   const navigate = useNavigate();
@@ -382,10 +383,11 @@ export function Shell() {
             <IconButton icon="⏻" label={t("Log out")} tone="danger" onClick={onLogout} className="rounded-full" />
           </div>
         </header>
-        <main className="flex-1 overflow-auto p-6">
-          <div key={location.pathname} className="page-enter">
+        <main className="flex flex-1 flex-col overflow-auto p-6">
+          <div key={location.pathname} className="page-enter flex-1">
             <Outlet />
           </div>
+          <AppVersion className="mt-6 pb-0" />
         </main>
       </div>
       {showWizard && company ? <SetupWizard company={company} onDone={() => setWizardDismissed(true)} /> : null}

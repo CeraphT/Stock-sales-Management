@@ -12,6 +12,7 @@ import { useImpersonation } from "@/lib/impersonation";
 import { logout } from "@/lib/session";
 import { useAuthStore, useLanguageStore } from "@/lib/stores";
 import { toast } from "@/lib/toast";
+import { AppVersion } from "@/components/AppVersion";
 
 /** SuperAdmin company picker — the desktop's landing screen for a SuperAdmin
  * (who has no company of their own). Entering a business swaps to its
@@ -137,6 +138,7 @@ export function CompanyPicker() {
             )}
           </div>
         </div>
+        <AppVersion className="mt-4" />
       </div>
     </div>
   );

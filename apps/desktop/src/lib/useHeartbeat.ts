@@ -3,7 +3,7 @@ import { useEffect } from "react";
 
 import { useAuthStore } from "@/lib/stores";
 
-const APP_VERSION = "desktop-0.1.0";
+const APP_VERSION = `desktop-${__APP_BUILD__.version}${__APP_BUILD__.commit ? `+${__APP_BUILD__.commit}` : ""}`;
 const INTERVAL_MS = 120_000; // 2 min
 
 /** Pings the server so the fleet monitoring view sees this session as "live"

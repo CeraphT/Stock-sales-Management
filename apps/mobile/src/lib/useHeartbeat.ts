@@ -1,9 +1,10 @@
+import Constants from 'expo-constants';
 import { useEffect } from 'react';
 
 import { devicesApi } from '@/lib/api/endpoints/devices';
 import { useAuthStore } from '@/lib/auth/store';
 
-const APP_VERSION = 'mobile-0.1.0';
+const APP_VERSION = `mobile-${Constants.expoConfig?.version ?? '?'}${(Constants.expoConfig?.extra as { buildCommit?: string } | undefined)?.buildCommit ? `+${(Constants.expoConfig?.extra as { buildCommit?: string }).buildCommit}` : ''}`;
 const INTERVAL_MS = 120_000; // 2 min
 
 /** Pings the server so the fleet monitoring view sees this device as "live"

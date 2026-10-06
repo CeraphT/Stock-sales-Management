@@ -28,6 +28,7 @@ import { chooseLocation, logout, openShop } from "@/lib/session";
 import { useAuthStore, useLanguageStore } from "@/lib/stores";
 import { toast } from "@/lib/toast";
 import { deviceName } from "@/platform";
+import { AppVersion } from "@/components/AppVersion";
 
 type Panel = "create" | "join";
 type Step = 0 | 1 | 2;
@@ -158,6 +159,8 @@ export function MyShops() {
           )}
         </section>
       </div>
+
+      <AppVersion className="mt-4" />
 
       {branches ? (
         <BranchPicker

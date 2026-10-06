@@ -10,6 +10,7 @@ import { logout } from "@/lib/session";
 import { useAuthStore, useLanguageStore } from "@/lib/stores";
 import { useHeartbeat } from "@/lib/useHeartbeat";
 import { useThemeStore } from "@/lib/theme";
+import { AppVersion } from "@/components/AppVersion";
 
 const NAV: { to: string; label: string; icon: string; end?: boolean }[] = [
   { to: "/superadmin", label: "Overview", icon: "📊", end: true },
@@ -107,10 +108,13 @@ export function SuperAdminShell() {
           <div className="mx-1 h-6 w-px bg-border" />
           <IconButton icon="⏻" label={t("Log out")} tone="danger" onClick={onLogout} className="rounded-full" />
         </header>
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex flex-1 flex-col overflow-auto p-6">
+          <div className="flex-1">
           <div key={routeLocation.pathname} className="page-enter mx-auto max-w-6xl">
             <Outlet />
           </div>
+          </div>
+          <AppVersion className="mt-6 pb-0" />
         </main>
       </div>
     </div>

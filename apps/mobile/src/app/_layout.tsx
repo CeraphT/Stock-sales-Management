@@ -9,6 +9,7 @@ import { useColorScheme } from 'nativewind';
 import { Text, View } from 'react-native';
 
 import { AppAlertHost } from '@/components/AppAlertHost';
+import { AppVersionFooter } from '@/components/AppVersionFooter';
 import { ToastHost } from '@/components/ToastHost';
 import { db } from '@/lib/db/client';
 import { installGlobalErrorHandlers } from '@/lib/globalErrors';
@@ -85,7 +86,11 @@ export default function RootLayout() {
     <View className={rootClassName}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack screenOptions={{ headerShown: false }} />
+          {/* Every screen above, the build + sponsor strip below (never overlaps). */}
+          <View style={{ flex: 1 }}>
+            <Stack screenOptions={{ headerShown: false }} />
+          </View>
+          <AppVersionFooter />
           <AppAlertHost />
           <ToastHost />
         </ThemeProvider>

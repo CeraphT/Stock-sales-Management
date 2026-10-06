@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { BrandLogo } from "@/components/BrandLogo";
 import { useLanguageStore } from "@/lib/stores";
+import { AppVersion } from "@/components/AppVersion";
 
 /**
  * Shared shell for the pre-login screens. Sits on the app's own mesh background
@@ -36,6 +37,7 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
           {subtitle ? <p className="mt-1 text-sm text-text-secondary">{subtitle}</p> : null}
           <div className="mt-5">{children}</div>
         </div>
+        <AppVersion />
       </div>
     </div>
   );
