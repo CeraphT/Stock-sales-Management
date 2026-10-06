@@ -4,7 +4,7 @@ import { RootErrorFallback, ScreenErrorFallback } from "@/components/Errors";
 import { UserRole } from "@stockflow/core/api/enums";
 
 import { useDbReady } from "@/lib/db/ready";
-import { useImpersonation } from "@/lib/impersonation";
+import { useInsideCompany } from "@/lib/impersonation";
 import { ALL_NAV_ITEMS } from "@/lib/nav";
 import { useAuthStore } from "@/lib/stores";
 
@@ -63,7 +63,7 @@ function RootRedirect() {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const token = useAuthStore((s) => s.token);
   const role = useAuthStore((s) => s.user?.role);
-  const impersonating = useImpersonation((s) => s.active);
+  const impersonating = useInsideCompany();
   const companyId = useAuthStore((s) => s.companyId);
   if (!hasHydrated) return null;
   if (!token) return <Navigate to="/login" replace />;
@@ -81,7 +81,7 @@ function CompanyPickerGuard() {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const token = useAuthStore((s) => s.token);
   const role = useAuthStore((s) => s.user?.role);
-  const impersonating = useImpersonation((s) => s.active);
+  const impersonating = useInsideCompany();
   if (!hasHydrated) return null;
   if (!token) return <Navigate to="/login" replace />;
   if (role !== UserRole.SuperAdmin || impersonating) return <Navigate to="/" replace />;
@@ -93,7 +93,7 @@ function ShopsGuard() {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const token = useAuthStore((s) => s.token);
   const role = useAuthStore((s) => s.user?.role);
-  const impersonating = useImpersonation((s) => s.active);
+  const impersonating = useInsideCompany();
   const dbReady = useDbReady((s) => s.ready);
   if (!hasHydrated) return null;
   if (!token) return <Navigate to="/login" replace />;
@@ -109,7 +109,7 @@ function AuthGuard() {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const token = useAuthStore((s) => s.token);
   const role = useAuthStore((s) => s.user?.role);
-  const impersonating = useImpersonation((s) => s.active);
+  const impersonating = useInsideCompany();
   const dbReady = useDbReady((s) => s.ready);
   const dbError = useDbReady((s) => s.error);
   const companyId = useAuthStore((s) => s.companyId);

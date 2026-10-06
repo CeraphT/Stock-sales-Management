@@ -26,6 +26,8 @@ interface ImpersonationState {
   enter: (resp: ImpersonateResponse) => void;
   /** Leave the company and restore the super-admin session. */
   exit: () => void;
+  /** Forget any impersonation without restoring a session (logout, new login). */
+  reset: () => void;
 }
 
 export const useImpersonation = create<ImpersonationState>()(
@@ -81,6 +83,8 @@ export const useImpersonation = create<ImpersonationState>()(
         auth.setLocation({ locationId: "", locationName: "" });
         set({ active: false, companyId: null, companyName: null, expiresAt: null, snapshot: null });
       },
+
+      reset: () => set({ active: false, companyId: null, companyName: null, expiresAt: null, snapshot: null }),
     }),
     {
       name: "pharmastock-impersonation",
@@ -88,3 +92,12 @@ export const useImpersonation = create<ImpersonationState>()(
     },
   ),
 );
+
+/** A SuperAdmin is really inside a company only when the flag is set AND a
+ * company is open. A stale flag (old session, logout that did not clear it)
+ * must never count: it made the guards bounce between /shops and /dashboard. */
+export function useInsideCompany(): boolean {
+  const active = useImpersonation((s) => s.active);
+  const companyId = useAuthStore((s) => s.companyId);
+  return active && !!companyId;
+}

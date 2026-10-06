@@ -5,6 +5,7 @@ import { clearLocalData, countUnsynced, localCompanyId } from "@stockflow/core/d
 import { localDbWriteLock } from "@stockflow/core/db/writeLock";
 
 import { initLocalDb } from "@/lib/db/client";
+import { useImpersonation } from "@/lib/impersonation";
 import { queryClient } from "@/lib/queryClient";
 import { useAuthStore } from "@/lib/stores";
 import { runSync } from "@/lib/sync/runSync";
@@ -106,6 +107,9 @@ export async function leaveShop(): Promise<void> {
 }
 
 export function logout(): void {
+  // Logging out while inside a company must not leave the impersonation
+  // "active" for the next login (stale flag → guard redirect loop).
+  useImpersonation.getState().reset();
   queryClient.clear();
   useAuthStore.getState().clear();
 }

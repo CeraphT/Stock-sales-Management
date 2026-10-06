@@ -136,3 +136,11 @@ export async function exitCompany({ force = false }: { force?: boolean } = {}): 
   useImpersonation.getState().exit();
   return true;
 }
+
+/** A SuperAdmin is really inside a company only when the flag is set AND a
+ * company is open. A stale flag must never count (guard redirect loops). */
+export function useInsideCompany(): boolean {
+  const active = useImpersonation((s) => s.active);
+  const companyId = useAuthStore((s) => s.companyId);
+  return active && !!companyId;
+}

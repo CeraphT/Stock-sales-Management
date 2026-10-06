@@ -10,6 +10,7 @@ import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
 import { deviceName } from "@/platform";
 import { useT } from "@/lib/i18n";
+import { useImpersonation } from "@/lib/impersonation";
 import { storeSession } from "@/lib/session";
 import { useAuthStore } from "@/lib/stores";
 
@@ -38,6 +39,8 @@ export function Login() {
         mode === "login"
           ? await authApi.login({ phone: phone.trim(), password, accountOnly: true, ...device })
           : await membershipsApi.register({ name: name.trim(), phone: phone.trim(), password, ...device });
+      // A fresh sign-in never inherits an old super-admin "inside a company" state.
+      useImpersonation.getState().reset();
       storeSession(auth);
       // SuperAdmins have no shop of their own: they pick a company to manage.
       navigate(auth.user.role === UserRole.SuperAdmin ? "/companies" : "/shops", { replace: true });
