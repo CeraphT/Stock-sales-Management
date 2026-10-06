@@ -13,6 +13,7 @@ import { authApi } from '@/lib/api/endpoints/auth';
 import type { SetUserPermissionsRequest, UserResponse } from '@/lib/api/types/auth';
 import { UserRole } from '@/lib/api/enums';
 import { useAuthStore } from '@/lib/auth/store';
+import type { TranslationKey } from '@/lib/i18n/translations';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { toast } from '@/lib/ui/toastStore';
 import { membershipsApi } from '@stockflow/core/api/endpoints/memberships';
@@ -20,25 +21,25 @@ import type { JoinRequestResponse } from '@stockflow/core/api/types/membership';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
 
-const ROLES: { value: UserRole; label: string }[] = [
-  { value: UserRole.Cashier, label: 'Cashier' },
-  { value: UserRole.CompanyAdmin, label: 'Admin' },
+const ROLES: { value: UserRole; label: TranslationKey }[] = [
+  { value: UserRole.Cashier, label: 'staff.roleCashier' },
+  { value: UserRole.CompanyAdmin, label: 'staff.roleAdmin' },
 ];
 
 // Each switch reads/writes as "has access" — inverted from the stored
 // restrictXxx booleans, since "Access to Purchasing: ON" reads far more
 // naturally to an admin than "Restrict Purchasing: ON".
-const PERMISSION_FIELDS: { key: keyof SetUserPermissionsRequest; label: string; description: string }[] = [
-  { key: 'restrictCatalog', label: 'Catalog & services', description: 'Categories, archive, bulk stock, services' },
-  { key: 'restrictPurchasing', label: 'Purchasing', description: 'Suppliers, purchase orders' },
-  { key: 'restrictCashRegister', label: 'Cash register', description: 'Open / close shifts, takings' },
-  { key: 'restrictCustomers', label: 'Customers', description: 'Customer records & credit' },
-  { key: 'restrictGiftCards', label: 'Gift cards', description: 'Issue / manage gift cards' },
-  { key: 'restrictReportsAndFullSales', label: 'Reports & full sales', description: "Reports, and other cashiers' sales" },
+const PERMISSION_FIELDS: (keyof SetUserPermissionsRequest)[] = [
+  'restrictCatalog',
+  'restrictPurchasing',
+  'restrictCashRegister',
+  'restrictCustomers',
+  'restrictGiftCards',
+  'restrictReportsAndFullSales',
 ];
 
-function roleLabel(role: UserRole): string {
-  return role === UserRole.SuperAdmin ? 'Super admin' : role === UserRole.CompanyAdmin ? 'Admin' : 'Cashier';
+function roleKey(role: UserRole): TranslationKey {
+  return role === UserRole.SuperAdmin ? 'staff.roleSuperAdmin' : role === UserRole.CompanyAdmin ? 'staff.roleAdmin' : 'staff.roleCashier';
 }
 
 export default function StaffScreen() {
@@ -98,11 +99,11 @@ export default function StaffScreen() {
   const onCreate = async () => {
     if (!companyId) return;
     if (!name.trim() || !phone.trim()) {
-      showAlert('Missing details', 'Enter a name and phone number.');
+      showAlert(t('staff.missingTitle'), t('staff.missingBody'));
       return;
     }
     if (password.length > 0 && password.length < 6) {
-      showAlert('Weak password', 'Password must be at least 6 characters.');
+      showAlert(t('staff.weakTitle'), t('staff.weakBody'));
       return;
     }
     setCreating(true);
@@ -114,9 +115,9 @@ export default function StaffScreen() {
       setRole(UserRole.Cashier);
       setShowAddForm(false);
       await refresh();
-      toast(`${name.trim()}: OK`, 'success');
+      toast(t('staff.added'), 'success');
     } catch (err) {
-      showAlert('Could not create account', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('staff.createFailed'), err instanceof Error ? err.message : '');
     } finally {
       setCreating(false);
     }
@@ -125,25 +126,23 @@ export default function StaffScreen() {
   const onToggleActive = (user: UserResponse) => {
     if (!companyId) return;
     if (user.id === currentUserId && user.active) {
-      showAlert('Cannot deactivate', 'You cannot deactivate your own account.');
+      showAlert(t('staff.cannotDeactivateTitle'), t('staff.cannotDeactivateBody'));
       return;
     }
     showAlert(
-      user.active ? 'Deactivate account?' : 'Reactivate account?',
-      user.active
-        ? `${user.name} will no longer be able to log in.`
-        : `${user.name} will be able to log in again.`,
+      user.active ? t('staff.deactivateTitle') : t('staff.reactivateTitle'),
+      `${user.name} ${user.active ? t('staff.deactivateBody') : t('staff.reactivateBody')}`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: user.active ? 'Deactivate' : 'Reactivate',
+          text: user.active ? t('staff.deactivate') : t('staff.reactivate'),
           style: user.active ? 'destructive' : 'default',
           onPress: async () => {
             try {
               await authApi.setStaffUserActive(companyId, user.id, { active: !user.active });
               await refresh();
             } catch (err) {
-              showAlert('Could not update account', err instanceof Error ? err.message : 'Something went wrong.');
+              showAlert(t('staff.updateFailed'), err instanceof Error ? err.message : '');
             }
           },
         },
@@ -154,7 +153,7 @@ export default function StaffScreen() {
   const onSubmitReset = async (userId: string) => {
     if (!companyId) return;
     if (resetPassword.length < 6) {
-      showAlert('Weak password', 'Password must be at least 6 characters.');
+      showAlert(t('staff.weakTitle'), t('staff.weakBody'));
       return;
     }
     setResetting(true);
@@ -162,9 +161,9 @@ export default function StaffScreen() {
       await authApi.resetStaffUserPassword(companyId, userId, { newPassword: resetPassword });
       setResettingUserId(null);
       setResetPassword('');
-      showAlert('Password reset', 'They can log in with the new password now.');
+      showAlert(t('staff.resetDone'), t('staff.resetDoneBody'));
     } catch (err) {
-      showAlert('Could not reset password', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('staff.resetFailed'), err instanceof Error ? err.message : '');
     } finally {
       setResetting(false);
     }
@@ -185,7 +184,7 @@ export default function StaffScreen() {
       });
       setStaff((prev) => prev.map((u) => (u.id === user.id ? updated : u)));
     } catch (err) {
-      showAlert('Could not update permissions', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('staff.permissionsFailed'), err instanceof Error ? err.message : '');
     } finally {
       setSavingPermissionKey(null);
     }
@@ -197,39 +196,39 @@ export default function StaffScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Staff accounts</Text>
-          <Pressable onPress={() => setShowAddForm((v) => !v)} hitSlop={8} accessibilityLabel="Add staff account">
+          <Text className="text-lg font-bold text-text-primary">{t('staff.title')}</Text>
+          <Pressable onPress={() => setShowAddForm((v) => !v)} hitSlop={8} accessibilityLabel={t('staff.add')}>
             <Ionicons name={showAddForm ? 'close' : 'add'} size={24} color={colors.primary} />
           </Pressable>
         </View>
         <TextInput
           className="mt-3 rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm text-text-primary"
-          placeholder="Search staff"
+          placeholder={t('staff.search')}
           placeholderTextColor={colors.placeholder}
           value={search}
           onChangeText={setSearch}
           autoCapitalize="none"
         />
         <View className="mt-2 flex-row items-center justify-between">
-          <Text className="text-xs text-text-secondary">{staff.length} {staff.length === 1 ? 'staff member' : 'staff members'}</Text>
+          <Text className="text-xs text-text-secondary">{staff.length} {staff.length === 1 ? t('staff.countOne') : t('staff.countMany')}</Text>
           <Pressable
             onPress={() => router.push('/change-password' as never)}
             hitSlop={6}
             className="flex-row items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 active:opacity-80">
             <Ionicons name="key-outline" size={14} color={colors.primary} />
-            <Text className="text-xs font-semibold text-primary">Change my password</Text>
+            <Text className="text-xs font-semibold text-primary">{t('staff.changeMyPassword')}</Text>
           </Pressable>
         </View>
       </View>
 
       {showAddForm ? (
         <View className="gap-3 border-b border-border bg-surface p-4">
-          <TextField label="Name" value={name} onChangeText={setName} />
-          <TextField label="Phone" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
-          <TextField label="Password" secureTextEntry value={password} onChangeText={setPassword} placeholder={t('staff.passwordNewOnly')} />
+          <TextField label={t('staff.name')} value={name} onChangeText={setName} />
+          <TextField label={t('staff.phone')} keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
+          <TextField label={t('staff.password')} secureTextEntry value={password} onChangeText={setPassword} placeholder={t('staff.passwordNewOnly')} />
           <Text className="text-xs text-text-secondary">{t('staff.existingHint')}</Text>
           <View className="gap-1.5">
-            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Role</Text>
+            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('staff.role')}</Text>
             <View className="flex-row gap-2">
               {ROLES.map((r) => {
                 const active = role === r.value;
@@ -238,13 +237,13 @@ export default function StaffScreen() {
                     key={r.value}
                     onPress={() => setRole(r.value)}
                     className={`rounded-full border px-4 py-2 ${active ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
-                    <Text className={`text-xs font-semibold ${active ? 'text-primary' : 'text-text-secondary'}`}>{r.label}</Text>
+                    <Text className={`text-xs font-semibold ${active ? 'text-primary' : 'text-text-secondary'}`}>{t(r.label)}</Text>
                   </Pressable>
                 );
               })}
             </View>
           </View>
-          <Button title={creating ? 'Creating…' : 'Create account'} loading={creating} onPress={onCreate} />
+          <Button title={creating ? t('staff.creating') : t('staff.create')} loading={creating} onPress={onCreate} />
         </View>
       ) : null}
 
@@ -328,10 +327,10 @@ export default function StaffScreen() {
                   <View className="flex-row items-center gap-2">
                     <Text className="text-sm font-semibold text-text-primary">
                       {item.name}
-                      {item.id === currentUserId ? ' (you)' : ''}
+                      {item.id === currentUserId ? ` ${t('staff.you')}` : ''}
                     </Text>
                     <View className={`rounded-md px-1.5 py-0.5 ${isAdmin ? 'bg-accent-blue/15' : 'bg-text-secondary/15'}`}>
-                      <Text className={`text-[10px] font-bold ${isAdmin ? 'text-accent-blue' : 'text-text-secondary'}`}>{roleLabel(item.role)}</Text>
+                      <Text className={`text-[10px] font-bold ${isAdmin ? 'text-accent-blue' : 'text-text-secondary'}`}>{t(roleKey(item.role))}</Text>
                     </View>
                   </View>
                   <Text className="text-xs text-text-secondary">{item.phone}</Text>
@@ -340,7 +339,7 @@ export default function StaffScreen() {
                   onPress={() => onToggleActive(item)}
                   className={`rounded-full border px-3 py-1.5 ${item.active ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
                   <Text className={`text-xs font-semibold ${item.active ? 'text-primary' : 'text-text-secondary'}`}>
-                    {item.active ? 'Active' : 'Inactive'}
+                    {item.active ? t('staff.active') : t('staff.inactive')}
                   </Text>
                 </Pressable>
               </View>
@@ -349,7 +348,7 @@ export default function StaffScreen() {
                 <View className="mt-3 gap-2 border-t border-border pt-3">
                   <TextInput
                     className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-primary"
-                    placeholder="New password (min 6 characters)"
+                    placeholder={t('staff.newPassword')}
                     placeholderTextColor={colors.placeholder}
                     secureTextEntry
                     value={resetPassword}
@@ -362,13 +361,13 @@ export default function StaffScreen() {
                         setResetPassword('');
                       }}
                       className="flex-1 items-center rounded-lg border border-border py-2">
-                      <Text className="text-xs font-semibold text-text-secondary">Cancel</Text>
+                      <Text className="text-xs font-semibold text-text-secondary">{t('common.cancel')}</Text>
                     </Pressable>
                     <Pressable
                       onPress={() => onSubmitReset(item.id)}
                       disabled={resetting}
                       className="flex-1 items-center rounded-lg bg-primary py-2 disabled:opacity-50">
-                      <Text className="text-xs font-semibold text-white">{resetting ? 'Saving…' : 'Save'}</Text>
+                      <Text className="text-xs font-semibold text-white">{resetting ? t('common.saving') : t('common.save')}</Text>
                     </Pressable>
                   </View>
                 </View>
@@ -381,14 +380,14 @@ export default function StaffScreen() {
                     }}
                     className="flex-row items-center gap-1.5">
                     <Ionicons name="key-outline" size={14} color={colors.iconMuted} />
-                    <Text className="text-xs font-semibold text-text-secondary">Reset password</Text>
+                    <Text className="text-xs font-semibold text-text-secondary">{t('staff.resetPassword')}</Text>
                   </Pressable>
                   {item.role === UserRole.Cashier ? (
                     <Pressable
                       onPress={() => setPermissionsUserId((prev) => (prev === item.id ? null : item.id))}
                       className="flex-row items-center gap-1.5">
                       <Ionicons name="shield-checkmark-outline" size={14} color={colors.iconMuted} />
-                      <Text className="text-xs font-semibold text-text-secondary">Permissions</Text>
+                      <Text className="text-xs font-semibold text-text-secondary">{t('staff.permissions')}</Text>
                     </Pressable>
                   ) : null}
                 </View>
@@ -396,18 +395,18 @@ export default function StaffScreen() {
 
               {permissionsUserId === item.id ? (
                 <View className="mt-3 gap-3 border-t border-border pt-3">
-                  {PERMISSION_FIELDS.map((field) => {
-                    const hasAccess = !item[field.key];
+                  {PERMISSION_FIELDS.map((key) => {
+                    const hasAccess = !item[key];
                     return (
-                      <View key={field.key} className="flex-row items-center justify-between gap-3">
+                      <View key={key} className="flex-row items-center justify-between gap-3">
                         <View className="flex-1 pr-2">
-                          <Text className="text-xs font-semibold text-text-primary">{field.label}</Text>
-                          <Text className="text-[11px] text-text-secondary">{field.description}</Text>
+                          <Text className="text-xs font-semibold text-text-primary">{t(`staff.perm.${key}` as TranslationKey)}</Text>
+                          <Text className="text-[11px] text-text-secondary">{t(`staff.perm.${key}.desc` as TranslationKey)}</Text>
                         </View>
                         <Switch
                           value={hasAccess}
-                          disabled={savingPermissionKey === field.key}
-                          onValueChange={() => onTogglePermission(item, field.key, hasAccess)}
+                          disabled={savingPermissionKey === key}
+                          onValueChange={() => onTogglePermission(item, key, hasAccess)}
                           trackColor={{ true: colors.primary }}
                         />
                       </View>
@@ -419,7 +418,7 @@ export default function StaffScreen() {
             );
           }}
           ListEmptyComponent={
-            !loading ? <Text className="p-4 text-center text-sm text-text-secondary">No staff accounts yet.</Text> : null
+            !loading ? <Text className="p-4 text-center text-sm text-text-secondary">{t('staff.empty')}</Text> : null
           }
         />
       )}
