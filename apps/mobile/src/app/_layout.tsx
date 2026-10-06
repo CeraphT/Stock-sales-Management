@@ -10,6 +10,7 @@ import { Text, View } from 'react-native';
 
 import { AppAlertHost } from '@/components/AppAlertHost';
 import { AppVersionFooter } from '@/components/AppVersionFooter';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastHost } from '@/components/ToastHost';
 import { db } from '@/lib/db/client';
 import { installGlobalErrorHandlers } from '@/lib/globalErrors';
@@ -87,9 +88,12 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           {/* Every screen above, the build + sponsor strip below (never overlaps). */}
-          <View style={{ flex: 1 }}>
+          {/* Own safe-area provider for the screens: measured above the footer, so
+              its bottom inset is 0 and screens don't add a second bottom gap (the
+              footer below absorbs the system bar inset). */}
+          <SafeAreaProvider style={{ flex: 1 }}>
             <Stack screenOptions={{ headerShown: false }} />
-          </View>
+          </SafeAreaProvider>
           <AppVersionFooter />
           <AppAlertHost />
           <ToastHost />
