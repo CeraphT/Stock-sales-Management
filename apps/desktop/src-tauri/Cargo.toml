@@ -1,6 +1,6 @@
 [package]
 name = "pharmastock-desktop"
-version = "0.1.8"
+version = "0.1.9"
 description = "PharmaStock desktop client"
 authors = ["PharmaStock"]
 edition = "2021"
