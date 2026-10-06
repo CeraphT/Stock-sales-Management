@@ -42,10 +42,11 @@ function Hint({ children }: { children: string }) {
 }
 
 function Choice({ active, label, hint, onPress }: { active: boolean; label: string; hint?: string; onPress: () => void }) {
+  const isTablet = useIsTablet();
   return (
     <Pressable
       onPress={onPress}
-      className={`flex-1 rounded-xl border px-3 py-2.5 active:opacity-80 ${active ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
+      className={`flex-1 rounded-xl border px-3 ${isTablet ? 'py-2' : 'py-2.5'} active:opacity-80 ${active ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
       <Text className={`text-sm font-semibold ${active ? 'text-primary' : 'text-text-primary'}`}>{label}</Text>
       {hint ? <Text className="text-[11px] text-text-secondary">{hint}</Text> : null}
     </Pressable>
@@ -116,7 +117,7 @@ export function IdentitySection({ f, nameLabel }: { f: CompanyForm; nameLabel?: 
 }
 
 /** Description, address, phone, receipt footer, NIU. */
-export function ContactSection({ f }: { f: CompanyForm }) {
+export function ContactSection({ f, withDescription = true }: { f: CompanyForm; withDescription?: boolean }) {
   const { t } = useTranslation();
   return (
     <>
@@ -128,7 +129,7 @@ export function ContactSection({ f }: { f: CompanyForm }) {
         <TextField label={t('biz.niu')} placeholder={t('biz.niuHint')} value={f.taxId} onChangeText={f.setTaxId} />
         <TextField label={t('biz.footer')} placeholder={t('biz.footerHint')} value={f.receiptFooter} onChangeText={f.setReceiptFooter} />
       </Row>
-      <TextField label={t('biz.description')} value={f.description} onChangeText={f.setDescription} />
+      {withDescription ? <TextField label={t('biz.description')} value={f.description} onChangeText={f.setDescription} /> : null}
     </>
   );
 }

@@ -319,12 +319,13 @@ function CreateShopWizard({ onCreated }: { onCreated: (companyId: string) => voi
         <>
           <BusinessTypeSection f={f} selected={preset} onSelect={setPreset} />
           <IdentitySection f={f} nameLabel={t('biz.shopName')} />
+          <TextField label={t('biz.description')} value={f.description} onChangeText={f.setDescription} />
           <CountrySection f={f} />
         </>
       ) : null}
       {step === 1 ? (
         <>
-          <ContactSection f={f} />
+          <ContactSection f={f} withDescription={false} />
           <TaxSection f={f} />
         </>
       ) : null}
