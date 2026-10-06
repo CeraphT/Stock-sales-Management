@@ -1,5 +1,6 @@
 import { ApiError } from "@stockflow/core/api/client";
 import { authApi } from "@stockflow/core/api/endpoints/auth";
+import { membershipsApi } from "@stockflow/core/api/endpoints/memberships";
 import { UserRole } from "@stockflow/core/api/enums";
 import type { UserResponse } from "@stockflow/core/api/types/auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -46,6 +47,27 @@ export function Staff() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["staff", companyId] });
   const onError = (e: unknown) => toast(e instanceof ApiError ? e.message : "Something went wrong.", "error");
 
+  // Join-by-code requests waiting for this business (accepted with a role here).
+  const { data: requests = [] } = useQuery({
+    queryKey: ["join-requests", companyId],
+    queryFn: () => membershipsApi.joinRequests(companyId),
+    refetchInterval: 60_000,
+  });
+  const [requestRole, setRequestRole] = useState<Record<string, UserRole>>({});
+  const decideM = useMutation({
+    mutationFn: async (v: { id: string; accept: boolean }): Promise<void> => {
+      await (v.accept
+        ? membershipsApi.approve(companyId, v.id, { role: requestRole[v.id] ?? UserRole.Cashier })
+        : membershipsApi.reject(companyId, v.id));
+    },
+    onSuccess: (_r, v) => {
+      toast(v.accept ? t("Request accepted. The person can now open the shop.") : t("Request declined."), "success");
+      void queryClient.invalidateQueries({ queryKey: ["join-requests", companyId] });
+      invalidate();
+    },
+    onError,
+  });
+
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
     return q ? data.filter((u) => u.name.toLowerCase().includes(q) || u.phone.includes(q)) : data;
@@ -54,7 +76,7 @@ export function Staff() {
   const createM = useMutation({
     mutationFn: (v: NonNullable<typeof adding>) =>
       authApi.createStaffUser(companyId, { name: v.name.trim(), phone: v.phone.trim(), password: v.password, role: v.role }),
-    onSuccess: () => { setAdding(null); toast("Staff member added.", "success"); invalidate(); },
+    onSuccess: () => { setAdding(null); toast(t("Staff member added."), "success"); invalidate(); },
     onError,
   });
   const activeM = useMutation({
@@ -119,7 +141,7 @@ export function Staff() {
             <TextField label={t("Phone")} value={adding.phone} onChange={(e) => setAdding({ ...adding, phone: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <TextField label={t("Password")} type="password" value={adding.password} onChange={(e) => setAdding({ ...adding, password: e.target.value })} />
+            <TextField label={t("Password")} type="password" value={adding.password} onChange={(e) => setAdding({ ...adding, password: e.target.value })} placeholder={t("Only for a new account")} />
             <label className="block">
               <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("Role")}</span>
               <select
@@ -132,13 +154,48 @@ export function Staff() {
               </select>
             </label>
           </div>
+          <p className="text-xs text-text-secondary">{t("If this number already has a StockFlow account, the person is simply added to your shop and keeps their own password. Otherwise an account is created with this password.")}</p>
           <p className="text-xs text-text-secondary">{t("A Cashier's access can be limited below after you create the account. An Admin has full access.")}</p>
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setAdding(null)}>{t("Cancel")}</Button>
-            <Button onClick={() => createM.mutate(adding)} loading={createM.isPending} disabled={!adding.name.trim() || !adding.phone.trim() || adding.password.length < 6}>
+            <Button onClick={() => createM.mutate(adding)} loading={createM.isPending} disabled={!adding.name.trim() || !adding.phone.trim() || (adding.password.length > 0 && adding.password.length < 6)}>
               {t("Save")}
             </Button>
           </div>
+        </div>
+      ) : null}
+
+      {requests.length > 0 ? (
+        <div className="space-y-2 rounded-card border border-accent-amber/40 bg-accent-amber/5 p-4">
+          <div className="text-sm font-bold text-text-primary">
+            🔑 {t("Join requests")} ({requests.length})
+          </div>
+          <p className="text-xs text-text-secondary">{t("These people used your invite code. Choose their role, then accept or decline.")}</p>
+          {requests.map((r) => (
+            <div key={r.membershipId} className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5">
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold text-text-primary">{r.name}</div>
+                <div className="text-xs text-text-secondary">
+                  {r.phone} · {new Date(r.createdAt).toLocaleDateString()}
+                </div>
+              </div>
+              <select
+                value={requestRole[r.membershipId] ?? UserRole.Cashier}
+                onChange={(e) => setRequestRole((m) => ({ ...m, [r.membershipId]: Number(e.target.value) as UserRole }))}
+                className="h-9 rounded-lg border border-border bg-surface px-2 text-sm text-text-primary outline-none focus:border-primary"
+                aria-label={t("Role")}
+              >
+                <option value={UserRole.Cashier}>{t("Cashier")}</option>
+                <option value={UserRole.CompanyAdmin}>{t("Admin")}</option>
+              </select>
+              <Button variant="ghost" onClick={() => decideM.mutate({ id: r.membershipId, accept: false })} disabled={decideM.isPending}>
+                {t("Decline")}
+              </Button>
+              <Button onClick={() => decideM.mutate({ id: r.membershipId, accept: true })} loading={decideM.isPending}>
+                {t("Accept")}
+              </Button>
+            </div>
+          ))}
         </div>
       ) : null}
 
@@ -161,7 +218,7 @@ export function Staff() {
                       <span className="truncate font-semibold text-text-primary">{u.name}</span>
                       {u.id === selfId ? <span className="text-xs text-text-secondary">({t("you")})</span> : null}
                       <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${isAdmin ? "bg-accent-blue/15 text-accent-blue" : "bg-text-secondary/15 text-text-secondary"}`}>
-                        {roleLabel(u.role)}
+                        {t(roleLabel(u.role))}
                       </span>
                     </div>
                     <div className="text-xs text-text-secondary">{u.phone}</div>

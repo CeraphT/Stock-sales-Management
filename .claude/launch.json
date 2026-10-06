@@ -51,6 +51,24 @@
       "env": {
         "VITE_API_BASE_URL": "http://localhost:5091"
       }
+    },
+    {
+      "name": "desktop-testapi",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "-w",
+        "pharmastock-desktop",
+        "--",
+        "--port",
+        "5176",
+        "--strictPort"
+      ],
+      "port": 5176,
+      "env": {
+        "VITE_API_BASE_URL": "http://localhost:5091"
+      }
     }
   ]
 }

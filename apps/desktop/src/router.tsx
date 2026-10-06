@@ -56,20 +56,22 @@ import { DeadStock } from "@/screens/DeadStock";
 import { Suppliers } from "@/screens/Suppliers";
 import { SalesHistory } from "@/screens/SalesHistory";
 import { Shell } from "@/screens/Shell";
-import { CreateCompany } from "@/screens/auth/CreateCompany";
-import { JoinCompany } from "@/screens/auth/JoinCompany";
 import { Login } from "@/screens/auth/Login";
-import { Onboarding } from "@/screens/auth/Onboarding";
+import { MyShops } from "@/screens/MyShops";
 
 function RootRedirect() {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const token = useAuthStore((s) => s.token);
   const role = useAuthStore((s) => s.user?.role);
   const impersonating = useImpersonation((s) => s.active);
+  const companyId = useAuthStore((s) => s.companyId);
   if (!hasHydrated) return null;
-  if (!token) return <Navigate to="/onboarding" replace />;
+  if (!token) return <Navigate to="/login" replace />;
   // A SuperAdmin has no company of their own: they pick one first.
   if (role === UserRole.SuperAdmin && !impersonating) return <Navigate to="/companies" replace />;
+  // Signed in but no shop open: pick, create or join one. (A shop left open
+  // reopens straight away, even offline: the session is kept on the device.)
+  if (!companyId) return <Navigate to="/shops" replace />;
   return <Navigate to="/dashboard" replace />;
 }
 
@@ -81,9 +83,24 @@ function CompanyPickerGuard() {
   const role = useAuthStore((s) => s.user?.role);
   const impersonating = useImpersonation((s) => s.active);
   if (!hasHydrated) return null;
-  if (!token) return <Navigate to="/onboarding" replace />;
-  if (role !== UserRole.SuperAdmin || impersonating) return <Navigate to="/dashboard" replace />;
+  if (!token) return <Navigate to="/login" replace />;
+  if (role !== UserRole.SuperAdmin || impersonating) return <Navigate to="/" replace />;
   return <CompanyPicker />;
+}
+
+/** "My shops": a signed-in account (not a SuperAdmin) choosing its business. */
+function ShopsGuard() {
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const token = useAuthStore((s) => s.token);
+  const role = useAuthStore((s) => s.user?.role);
+  const impersonating = useImpersonation((s) => s.active);
+  const dbReady = useDbReady((s) => s.ready);
+  if (!hasHydrated) return null;
+  if (!token) return <Navigate to="/login" replace />;
+  if (role === UserRole.SuperAdmin) return <Navigate to={impersonating ? "/dashboard" : "/companies"} replace />;
+  // Opening a shop checks the local database for unsent work first.
+  if (!dbReady) return <FullScreenMessage title="Preparing local database…" />;
+  return <MyShops />;
 }
 
 /** Layout route for the authenticated app — renders the Shell (which hosts the
@@ -95,10 +112,12 @@ function AuthGuard() {
   const impersonating = useImpersonation((s) => s.active);
   const dbReady = useDbReady((s) => s.ready);
   const dbError = useDbReady((s) => s.error);
+  const companyId = useAuthStore((s) => s.companyId);
   if (!hasHydrated) return null;
-  if (!token) return <Navigate to="/onboarding" replace />;
+  if (!token) return <Navigate to="/login" replace />;
   // A SuperAdmin outside any company has no data to show here — pick one first.
   if (role === UserRole.SuperAdmin && !impersonating) return <Navigate to="/companies" replace />;
+  if (!companyId) return <Navigate to="/shops" replace />;
   if (dbError) return <FullScreenMessage title="Local database error" body={dbError} />;
   if (!dbReady) return <FullScreenMessage title="Preparing local database…" />;
   return <Shell />;
@@ -111,11 +130,13 @@ export const router = createHashRouter([
     errorElement: <RootErrorFallback />,
     children: [
   { path: "/", element: <RootRedirect /> },
-  { path: "/onboarding", element: <Onboarding /> },
   { path: "/companies", element: <CompanyPickerGuard /> },
   { path: "/login", element: <Login /> },
-  { path: "/create-company", element: <CreateCompany /> },
-  { path: "/join-company", element: <JoinCompany /> },
+  { path: "/shops", element: <ShopsGuard /> },
+  // Older entry points: everything now starts at login, then "My shops".
+  { path: "/onboarding", element: <Navigate to="/login" replace /> },
+  { path: "/create-company", element: <Navigate to="/shops" replace /> },
+  { path: "/join-company", element: <Navigate to="/shops" replace /> },
   {
     element: <AuthGuard />,
     children: [

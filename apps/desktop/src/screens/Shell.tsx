@@ -6,6 +6,7 @@ import { isolateCompany } from "@stockflow/core/db/isolation";
 import { localShiftService } from "@stockflow/core/local/shiftService";
 
 import { ImpersonationBanner } from "@/components/ImpersonationBanner";
+import { useImpersonation } from "@/lib/impersonation";
 import { IconButton } from "@/components/IconButton";
 import { RegisterGate } from "@/components/RegisterGate";
 import { ScreenBackground } from "@/components/ScreenBackground";
@@ -13,7 +14,10 @@ import { SetupWizard } from "@/components/SetupWizard";
 import { useBreadcrumb, type Crumb } from "@/lib/breadcrumb";
 import { useT } from "@/lib/i18n";
 import { NAV } from "@/lib/nav";
-import { logout } from "@/lib/session";
+import { chooseLocation, leaveShop, logout } from "@/lib/session";
+import { BranchPicker } from "@/screens/MyShops";
+import { locationsApi } from "@stockflow/core/api/endpoints/locations";
+import type { LocationResponse } from "@stockflow/core/api/types/auth";
 import { setLastScreen } from "@/lib/lastScreen";
 import { confirmDialog } from "@/lib/confirm";
 import { pendingSupportUpdates } from "@stockflow/core/support/replyNotifications";
@@ -137,11 +141,11 @@ export function Shell() {
     try {
       const r = await runSync();
       toast(
-        `Synced · ${r.rowsPulled} items updated${r.salesPushed ? ` · ${r.salesPushed} sent` : ""}${r.salesFailed ? ` · ${r.salesFailed} failed` : ""}`,
+        `${t("Synced")} · ${r.rowsPulled} ${t("items updated")}${r.salesPushed ? ` · ${r.salesPushed} ${t("sent")}` : ""}${r.salesFailed ? ` · ${r.salesFailed} ${t("failed")}` : ""}`,
         r.salesFailed ? "error" : "success",
       );
     } catch (e) {
-      toast(e instanceof Error ? `Sync failed: ${e.message}` : "Sync failed", "error");
+      toast(e instanceof Error ? `${t("Sync failed")}: ${e.message}` : t("Sync failed"), "error");
     } finally {
       setSyncing(false);
     }
@@ -198,7 +202,33 @@ export function Shell() {
 
   function onLogout() {
     logout();
-    navigate("/onboarding", { replace: true });
+    navigate("/login", { replace: true });
+  }
+
+  // Back to "My shops": sends pending work first when online (nothing is erased
+  // here; opening a different shop is what guards unsent work, see openShop).
+  const impersonating = useImpersonation((s) => s.active);
+  const [leaving, setLeaving] = useState(false);
+  async function onMyShops() {
+    setLeaving(true);
+    try {
+      await leaveShop();
+      navigate("/shops", { replace: true });
+    } finally {
+      setLeaving(false);
+    }
+  }
+
+  const [branchChoices, setBranchChoices] = useState<LocationResponse[] | null>(null);
+  async function pickBranch() {
+    if (!companyId) return;
+    try {
+      const all = (await locationsApi.list(companyId)).filter((l) => l.active);
+      if (all.length > 1) setBranchChoices(all);
+      else toast(t("This shop has a single branch."), "info");
+    } catch {
+      toast(t("Could not load the branches. Check your internet connection."), "error");
+    }
   }
 
   // Cashier freeze — the register gate is the ONLY thing rendered until a shift
@@ -311,7 +341,13 @@ export function Shell() {
               })}
             </nav>
             {locationName ? (
-              <span className="rounded-full border border-border/70 bg-surface/60 px-2.5 py-0.5 text-xs font-medium text-text-secondary">📍 {locationName}</span>
+              <button
+                onClick={() => void pickBranch()}
+                title={t("Change branch")}
+                className="whitespace-nowrap rounded-full border border-border/70 bg-surface/60 px-2.5 py-0.5 text-xs font-medium text-text-secondary transition hover:border-primary hover:text-text-primary"
+              >
+                📍 {locationName}
+              </button>
             ) : null}
           </div>
           <div className="flex items-center gap-2">
@@ -338,6 +374,16 @@ export function Shell() {
               {mode === "dark" ? "☀️" : "🌙"}
             </button>
             <div className="mx-1 h-6 w-px bg-border" />
+            {!impersonating ? (
+              <button
+                onClick={() => void onMyShops()}
+                disabled={leaving}
+                title={t("Switch shop")}
+                className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border px-3 py-1.5 text-xs font-bold text-text-secondary transition hover:border-primary hover:text-text-primary disabled:opacity-50"
+              >
+                🏪 <span className="hidden xl:inline">{t("My shops")}</span>
+              </button>
+            ) : null}
             <IconButton icon="⏻" label={t("Log out")} tone="danger" onClick={onLogout} className="rounded-full" />
           </div>
         </header>
@@ -348,6 +394,17 @@ export function Shell() {
         </main>
       </div>
       {showWizard && company ? <SetupWizard company={company} onDone={() => setWizardDismissed(true)} /> : null}
+      {branchChoices && companyId ? (
+        <BranchPicker
+          locations={branchChoices}
+          onPick={(l) => {
+            chooseLocation(companyId, l);
+            // Shift, stock and sales are all per branch: restart cleanly on it.
+            window.location.reload();
+          }}
+          onClose={() => setBranchChoices(null)}
+        />
+      ) : null}
     </div>
   );
 }

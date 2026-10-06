@@ -218,7 +218,7 @@ export function Staff() {
                       <span className="truncate font-semibold text-text-primary">{u.name}</span>
                       {u.id === selfId ? <span className="text-xs text-text-secondary">({t("you")})</span> : null}
                       <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${isAdmin ? "bg-accent-blue/15 text-accent-blue" : "bg-text-secondary/15 text-text-secondary"}`}>
-                        {roleLabel(u.role)}
+                        {t(roleLabel(u.role))}
                       </span>
                     </div>
                     <div className="text-xs text-text-secondary">{u.phone}</div>

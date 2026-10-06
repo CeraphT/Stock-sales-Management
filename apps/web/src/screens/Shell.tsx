@@ -141,11 +141,11 @@ export function Shell() {
     try {
       const r = await runSync();
       toast(
-        `Synced · ${r.rowsPulled} items updated${r.salesPushed ? ` · ${r.salesPushed} sent` : ""}${r.salesFailed ? ` · ${r.salesFailed} failed` : ""}`,
+        `${t("Synced")} · ${r.rowsPulled} ${t("items updated")}${r.salesPushed ? ` · ${r.salesPushed} ${t("sent")}` : ""}${r.salesFailed ? ` · ${r.salesFailed} ${t("failed")}` : ""}`,
         r.salesFailed ? "error" : "success",
       );
     } catch (e) {
-      toast(e instanceof Error ? `Sync failed: ${e.message}` : "Sync failed", "error");
+      toast(e instanceof Error ? `${t("Sync failed")}: ${e.message}` : t("Sync failed"), "error");
     } finally {
       setSyncing(false);
     }
@@ -339,7 +339,7 @@ export function Shell() {
               <button
                 onClick={() => void pickBranch()}
                 title={t("Change branch")}
-                className="rounded-full border border-border/70 bg-surface/60 px-2.5 py-0.5 text-xs font-medium text-text-secondary transition hover:border-primary hover:text-text-primary"
+                className="whitespace-nowrap rounded-full border border-border/70 bg-surface/60 px-2.5 py-0.5 text-xs font-medium text-text-secondary transition hover:border-primary hover:text-text-primary"
               >
                 📍 {locationName}
               </button>
@@ -374,9 +374,9 @@ export function Shell() {
                 onClick={() => void onMyShops()}
                 disabled={leaving}
                 title={t("Switch shop")}
-                className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-text-secondary transition hover:border-primary hover:text-text-primary disabled:opacity-50"
+                className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border px-3 py-1.5 text-xs font-bold text-text-secondary transition hover:border-primary hover:text-text-primary disabled:opacity-50"
               >
-                🏪 <span className="hidden sm:inline">{t("My shops")}</span>
+                🏪 <span className="hidden xl:inline">{t("My shops")}</span>
               </button>
             ) : null}
             <IconButton icon="⏻" label={t("Log out")} tone="danger" onClick={onLogout} className="rounded-full" />

@@ -1209,6 +1209,16 @@ export const FR: Record<string, string> = {
   "Generic VAT": "TVA générique",
   "No sales tax": "Pas de taxe sur les ventes",
   "Sets which tax declaration the business produces. OHADA uses SYSCOHADA account codes; Generic VAT drops them; No sales tax hides the declaration.": "Détermine la déclaration fiscale produite par l'entreprise. OHADA utilise les comptes SYSCOHADA ; la TVA générique s'en passe ; sans taxe, la déclaration est masquée.",
+
+  // ── Staff labels & sync toast ──
+  "Super admin": "Super-admin",
+  "Open / close shifts, takings": "Ouvrir / fermer la caisse, recettes",
+  "Customer records & credit": "Fiches clients et crédit",
+  "Issue / manage gift cards": "Émettre / gérer les cartes cadeaux",
+  "Synced": "Synchronisé",
+  "items updated": "éléments mis à jour",
+  "sent": "envoyé(s)",
+  "Sync failed": "Échec de la synchronisation",
 };
 
 /** Reactive translator hook. `t(en)` returns the French string when the app
