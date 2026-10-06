@@ -94,8 +94,8 @@ export function MyShops() {
   const firstName = (user?.name ?? "").split(" ")[0];
 
   return (
-    <div className="relative min-h-screen p-4 sm:p-8">
-      <header className="mx-auto mb-6 flex max-w-6xl items-center gap-3">
+    <div className="relative min-h-screen p-4 sm:px-8 sm:py-5">
+      <header className="mx-auto mb-4 flex max-w-6xl items-center gap-3">
         <BrandLogo size={44} />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-xl font-extrabold tracking-tight text-text-primary sm:text-2xl">
@@ -114,10 +114,10 @@ export function MyShops() {
         </Button>
       </header>
 
-      <div className="mx-auto grid max-w-6xl items-start gap-6 lg:grid-cols-[2fr_1fr]">
+      <div className="mx-auto grid max-w-6xl items-start gap-6 lg:grid-cols-[3fr_1fr]">
         {/* Left: create / join (below the list on narrow screens, where your shops come first) */}
-        <section className="card-in order-2 rounded-card lg:order-1 border border-white/50 bg-surface/85 p-5 shadow-2xl backdrop-blur-xl sm:p-6">
-          <div className="mb-5 grid grid-cols-2 rounded-full border border-border bg-background p-1 text-sm font-semibold" role="tablist">
+        <section className="card-in order-2 rounded-card lg:order-1 border border-white/50 bg-surface/85 p-5 shadow-2xl backdrop-blur-xl sm:p-5">
+          <div className="mb-4 grid grid-cols-2 rounded-full border border-border bg-background p-1 text-sm font-semibold" role="tablist">
             {(["create", "join"] as const).map((p) => (
               <button
                 key={p}
@@ -134,7 +134,7 @@ export function MyShops() {
         </section>
 
         {/* Right: my shops */}
-        <section className="card-in order-1 rounded-card lg:order-2 border border-white/50 bg-surface/85 p-5 shadow-2xl backdrop-blur-xl sm:p-6">
+        <section className="card-in order-1 rounded-card lg:order-2 border border-white/50 bg-surface/85 p-5 shadow-2xl backdrop-blur-xl sm:p-5">
           <h2 className="mb-4 text-base font-bold text-text-primary">
             {t("Your shops")} {shops ? `(${shops.length})` : ""}
           </h2>
@@ -278,7 +278,7 @@ function CreateShopWizard({ onCreated }: { onCreated: (companyId: string) => voi
 
   return (
     <form onSubmit={submit}>
-      <div className="mb-5 flex flex-wrap gap-1.5">
+      <div className="mb-4 flex flex-wrap gap-1.5">
         {STEPS.map((s, i) => (
           <button
             key={s.label}
@@ -293,7 +293,7 @@ function CreateShopWizard({ onCreated }: { onCreated: (companyId: string) => voi
         ))}
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {step === 0 ? (
           <>
             <BusinessTypeSection f={f} selected={preset} onSelect={setPreset} />
@@ -310,15 +310,19 @@ function CreateShopWizard({ onCreated }: { onCreated: (companyId: string) => voi
         {step === 2 ? (
           <>
             <CapabilitiesSection f={f} />
-            <RewardsSection f={f} />
-            <RulesSection f={f} />
+            <div className="grid items-start gap-4 lg:grid-cols-2">
+              <RewardsSection f={f} />
+              <div className="space-y-4">
+                <RulesSection f={f} />
+              </div>
+            </div>
           </>
         ) : null}
       </div>
 
       {error ? <p className="mt-4 text-sm font-medium text-error">{error}</p> : null}
 
-      <div className="mt-6 flex items-center gap-2 border-t border-border pt-4">
+      <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
         {step > 0 ? (
           <Button type="button" variant="ghost" onClick={() => setStep((s) => (s - 1) as Step)}>
             ← {t("Back")}

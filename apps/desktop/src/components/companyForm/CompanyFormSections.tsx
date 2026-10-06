@@ -91,11 +91,13 @@ export function ContactSection({ f }: { f: CompanyForm }) {
   const t = useT();
   return (
     <>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <TextField label={t("Address")} value={f.address} onChange={(e) => f.setAddress(e.target.value)} placeholder={t("Shown on receipts & purchase orders")} />
+        <TextField label={t("Phone")} value={f.phone} onChange={(e) => f.setPhone(e.target.value)} />
+        <TextField label={t("Taxpayer number (NIU)")} value={f.taxId} onChange={(e) => f.setTaxId(e.target.value)} placeholder={t("Your NIU. Shown on tax invoices")} />
+        <TextField label={t("Receipt footer message")} value={f.receiptFooter} onChange={(e) => f.setReceiptFooter(e.target.value)} placeholder={t("e.g. Thank you for your business!")} />
+      </div>
       <TextField label={t("Description")} value={f.description} onChange={(e) => f.setDescription(e.target.value)} />
-      <TextField label={t("Address")} value={f.address} onChange={(e) => f.setAddress(e.target.value)} placeholder={t("Shown on receipts & purchase orders")} />
-      <TextField label={t("Phone")} value={f.phone} onChange={(e) => f.setPhone(e.target.value)} />
-      <TextField label={t("Receipt footer message")} value={f.receiptFooter} onChange={(e) => f.setReceiptFooter(e.target.value)} placeholder={t("e.g. Thank you for your business!")} />
-      <TextField label={t("Taxpayer number (NIU)")} value={f.taxId} onChange={(e) => f.setTaxId(e.target.value)} placeholder={t("Your NIU. Shown on tax invoices")} />
     </>
   );
 }
@@ -104,7 +106,7 @@ export function ContactSection({ f }: { f: CompanyForm }) {
 export function CountrySection({ f }: { f: CompanyForm }) {
   const t = useT();
   return (
-    <>
+    <div className="grid gap-4 sm:grid-cols-2">
       <label className="block">
         <FieldLabel>{t("Country")}</FieldLabel>
         <SearchableSelect value={f.country} options={COUNTRY_OPTIONS} onChange={f.setCountry} placeholder={t("Select your country…")} />
@@ -116,7 +118,7 @@ export function CountrySection({ f }: { f: CompanyForm }) {
           {f.currencyLabel || "-"}
         </div>
       </label>
-    </>
+    </div>
   );
 }
 
@@ -124,77 +126,87 @@ export function CountrySection({ f }: { f: CompanyForm }) {
 export function TaxSection({ f }: { f: CompanyForm }) {
   const t = useT();
   return (
-    <>
-      <label className="block">
-        <FieldLabel>{t("Accounting system")}</FieldLabel>
-        <select value={f.accountingSystem} onChange={(e) => f.setAccountingSystem(Number(e.target.value))} className={selectCls}>
-          <option value={0}>{t("OHADA / SYSCOHADA (Central & West Africa)")}</option>
-          <option value={1}>{t("Generic VAT")}</option>
-          <option value={2}>{t("No sales tax")}</option>
-        </select>
-        <p className="mt-1 text-xs text-text-secondary">
-          {t("Sets which tax declaration the business produces. OHADA uses SYSCOHADA account codes; Generic VAT drops them; No sales tax hides the declaration.")}
-        </p>
-      </label>
+    <div className="space-y-4">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <label className="block">
+          <FieldLabel>{t("Accounting system")}</FieldLabel>
+          <select value={f.accountingSystem} onChange={(e) => f.setAccountingSystem(Number(e.target.value))} className={selectCls}>
+            <option value={0}>{t("OHADA / SYSCOHADA (Central & West Africa)")}</option>
+            <option value={1}>{t("Generic VAT")}</option>
+            <option value={2}>{t("No sales tax")}</option>
+          </select>
+          <p className="mt-1 text-xs text-text-secondary">
+            {t("Sets which tax declaration the business produces. OHADA uses SYSCOHADA account codes; Generic VAT drops them; No sales tax hides the declaration.")}
+          </p>
+        </label>
 
-      <div className="rounded-xl border border-border p-4">
-        <div className="mb-1 text-sm font-semibold text-text-primary">{t("Tax regime")}</div>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          {[
-            { v: 0, label: t("Standard (collects VAT)"), hint: t("Régime du réel/simplifié") },
-            { v: 1, label: t("Flat tax (impôt libératoire)"), hint: t("Very small business. No VAT") },
-          ].map((r) => (
-            <button
-              key={r.v}
-              type="button"
-              onClick={() => {
-                f.setTaxRegime(r.v);
-                if (r.v === 1) f.setTax("0");
-                else if (Number(f.tax) <= 0) f.toggleTax(true);
-              }}
-              className={`rounded-xl border px-3 py-2 text-left text-sm transition ${f.taxRegime === r.v ? "border-primary bg-primary/10" : "border-border hover:bg-background"}`}
-            >
-              <div className="font-semibold text-text-primary">{r.label}</div>
-              <div className="text-[11px] text-text-secondary">{r.hint}</div>
-            </button>
-          ))}
+        <div>
+          <FieldLabel>{t("Tax regime")}</FieldLabel>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { v: 0, label: t("Standard (collects VAT)"), hint: t("Régime du réel/simplifié") },
+              { v: 1, label: t("Flat tax (impôt libératoire)"), hint: t("Very small business. No VAT") },
+            ].map((r) => (
+              <button
+                key={r.v}
+                type="button"
+                onClick={() => {
+                  f.setTaxRegime(r.v);
+                  if (r.v === 1) f.setTax("0");
+                  else if (Number(f.tax) <= 0) f.toggleTax(true);
+                }}
+                className={`rounded-xl border px-3 py-2 text-left text-sm transition ${f.taxRegime === r.v ? "border-primary bg-primary/10" : "border-border hover:bg-background"}`}
+              >
+                <div className="font-semibold text-text-primary">{r.label}</div>
+                <div className="text-[11px] text-text-secondary">{r.hint}</div>
+              </button>
+            ))}
+          </div>
         </div>
+      </div>
 
-        {f.taxRegime === 0 ? (
-          <div className="mt-4 border-t border-border pt-3">
+      {f.taxRegime === 0 ? (
+        <div className="rounded-xl border border-border p-4">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={f.taxOn} onChange={(e) => f.toggleTax(e.target.checked)} className="h-4 w-4" />
               <span className="text-sm font-semibold text-text-primary">🧾 {t("Apply VAT (TVA) on sales")}</span>
             </label>
-            <p className="mt-1 text-xs text-text-secondary">
-              {t("When on, every sale extracts the VAT portion (prices are VAT-inclusive) and it shows on receipts, reports and the tax declaration. Turn off if your business doesn't charge VAT.")}
-            </p>
             {f.taxOn ? (
-              <div className="mt-3 max-w-[12rem]">
-                <TextField label={t("VAT rate %")} type="number" value={f.tax} onChange={(e) => f.setTax(e.target.value)} />
-              </div>
+              <label className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-text-secondary">{t("VAT rate %")}</span>
+                <input
+                  type="number"
+                  value={f.tax}
+                  onChange={(e) => f.setTax(e.target.value)}
+                  className="h-9 w-24 rounded-lg border border-border bg-surface px-2.5 text-sm text-text-primary outline-none focus:border-primary"
+                />
+              </label>
             ) : null}
           </div>
-        ) : (
-          <div className="mt-4 border-t border-border pt-3">
-            <p className="mb-3 text-xs text-text-secondary">
-              {t("Under impôt libératoire you charge no VAT; instead you pay a flat lump-sum tax set by your commune. Enter it below. It appears in the tax declaration.")}
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <TextField label={`${t("Flat tax amount")} (${f.currencyLabel})`} type="number" value={f.flatTaxAmount} onChange={(e) => f.setFlatTaxAmount(e.target.value)} />
-              <label className="block">
-                <FieldLabel>{t("Period")}</FieldLabel>
-                <select value={f.flatTaxPeriod} onChange={(e) => f.setFlatTaxPeriod(Number(e.target.value))} className={selectCls}>
-                  <option value={0}>{t("Monthly")}</option>
-                  <option value={1}>{t("Quarterly")}</option>
-                  <option value={2}>{t("Yearly")}</option>
-                </select>
-              </label>
-            </div>
+          <p className="mt-1.5 text-xs text-text-secondary">
+            {t("When on, every sale extracts the VAT portion (prices are VAT-inclusive) and it shows on receipts, reports and the tax declaration. Turn off if your business doesn't charge VAT.")}
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border p-4">
+          <p className="mb-3 text-xs text-text-secondary">
+            {t("Under impôt libératoire you charge no VAT; instead you pay a flat lump-sum tax set by your commune. Enter it below. It appears in the tax declaration.")}
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <TextField label={`${t("Flat tax amount")} (${f.currencyLabel})`} type="number" value={f.flatTaxAmount} onChange={(e) => f.setFlatTaxAmount(e.target.value)} />
+            <label className="block">
+              <FieldLabel>{t("Period")}</FieldLabel>
+              <select value={f.flatTaxPeriod} onChange={(e) => f.setFlatTaxPeriod(Number(e.target.value))} className={selectCls}>
+                <option value={0}>{t("Monthly")}</option>
+                <option value={1}>{t("Quarterly")}</option>
+                <option value={2}>{t("Yearly")}</option>
+              </select>
+            </label>
           </div>
-        )}
-      </div>
-    </>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -228,6 +240,7 @@ export function CapabilitiesSection({ f }: { f: CompanyForm }) {
       <p className="text-sm text-text-secondary">
         {t("Turn on only the inventory features this business needs. The rest stay hidden so the app stays simple.")}
       </p>
+      <div className="grid gap-2 sm:grid-cols-2">
       {CAPABILITY_META.map((c) => (
         <label key={c.key} className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-background">
           <input
@@ -242,6 +255,7 @@ export function CapabilitiesSection({ f }: { f: CompanyForm }) {
           </span>
         </label>
       ))}
+      </div>
     </div>
   );
 }

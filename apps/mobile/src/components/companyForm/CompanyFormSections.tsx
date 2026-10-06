@@ -9,12 +9,29 @@ import { COUNTRY_OPTIONS } from '@/lib/countries';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useThemeColors } from '@/lib/theme/colors';
+import { useIsTablet } from '@/lib/useIsTablet';
 
 import type { CompanyForm } from './useCompanyForm';
 
 /* The "My business" fields as React Native blocks, shared by the My business tabs
  * and the shop-creation wizard steps (same form state, see useCompanyForm). Mobile
  * twin of apps/web/src/components/companyForm/CompanyFormSections.tsx. */
+
+/** Side by side on a tablet (each child gets an equal share), stacked on a phone,
+ * so a wizard step fits a tablet screen without scrolling. */
+function Row({ children }: { children: React.ReactNode }) {
+  const isTablet = useIsTablet();
+  if (!isTablet) return <>{children}</>;
+  return (
+    <View className="flex-row gap-3">
+      {(Array.isArray(children) ? children : [children]).filter(Boolean).map((c, i) => (
+        <View key={i} className="flex-1">
+          {c}
+        </View>
+      ))}
+    </View>
+  );
+}
 
 function Label({ children }: { children: string }) {
   return <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{children}</Text>;
@@ -51,6 +68,7 @@ function SwitchRow({ title, hint, value, onChange }: { title: string; hint?: str
 /** Business type: pre-selects the inventory features that type of business needs. */
 export function BusinessTypeSection({ f, selected, onSelect }: { f: CompanyForm; selected: string | null; onSelect: (id: string) => void }) {
   const { t } = useTranslation();
+  const isTablet = useIsTablet();
   return (
     <View className="gap-2">
       <Label>{t('biz.type')}</Label>
@@ -64,8 +82,8 @@ export function BusinessTypeSection({ f, selected, onSelect }: { f: CompanyForm;
                 onSelect(p.id);
                 f.setCapabilities(p.caps);
               }}
-              className={`flex-row items-center gap-2 rounded-xl border px-3 py-2.5 active:opacity-80 ${active ? 'border-primary bg-primary/10' : 'border-border bg-surface'}`}
-              style={{ minWidth: '47%', flexGrow: 1 }}>
+              className={`flex-row items-center gap-2 rounded-xl border px-3 ${isTablet ? 'py-2' : 'py-2.5'} active:opacity-80 ${active ? 'border-primary bg-primary/10' : 'border-border bg-surface'}`}
+              style={{ minWidth: isTablet ? '31%' : '47%', flexGrow: 1 }}>
               <Text className="text-lg">{p.icon}</Text>
               <Text className={`flex-1 text-sm ${active ? 'font-bold text-primary' : 'text-text-primary'}`} numberOfLines={2}>
                 {t(`biz.preset.${p.id}` as TranslationKey)}
@@ -102,11 +120,15 @@ export function ContactSection({ f }: { f: CompanyForm }) {
   const { t } = useTranslation();
   return (
     <>
+      <Row>
+        <TextField label={t('biz.address')} placeholder={t('biz.addressHint')} value={f.address} onChangeText={f.setAddress} />
+        <TextField label={t('biz.phone')} keyboardType="phone-pad" value={f.phone} onChangeText={f.setPhone} />
+      </Row>
+      <Row>
+        <TextField label={t('biz.niu')} placeholder={t('biz.niuHint')} value={f.taxId} onChangeText={f.setTaxId} />
+        <TextField label={t('biz.footer')} placeholder={t('biz.footerHint')} value={f.receiptFooter} onChangeText={f.setReceiptFooter} />
+      </Row>
       <TextField label={t('biz.description')} value={f.description} onChangeText={f.setDescription} />
-      <TextField label={t('biz.address')} placeholder={t('biz.addressHint')} value={f.address} onChangeText={f.setAddress} />
-      <TextField label={t('biz.phone')} keyboardType="phone-pad" value={f.phone} onChangeText={f.setPhone} />
-      <TextField label={t('biz.footer')} placeholder={t('biz.footerHint')} value={f.receiptFooter} onChangeText={f.setReceiptFooter} />
-      <TextField label={t('biz.niu')} placeholder={t('biz.niuHint')} value={f.taxId} onChangeText={f.setTaxId} />
     </>
   );
 }
@@ -125,6 +147,7 @@ export function CountrySection({ f }: { f: CompanyForm }) {
 
   return (
     <>
+      <Row>
       <View className="gap-1.5">
         <Label>{t('biz.country')}</Label>
         <Pressable
@@ -140,9 +163,10 @@ export function CountrySection({ f }: { f: CompanyForm }) {
       <View className="gap-1.5">
         <Label>{t('biz.currency')}</Label>
         <View className="rounded-xl border border-border bg-background/60 px-3.5 py-3">
-          <Text className="text-base text-text-secondary">{f.currencyLabel || '-'}</Text>
+          <Text className="text-base text-text-secondary" numberOfLines={1}>{f.currencyLabel || '-'}</Text>
         </View>
       </View>
+      </Row>
 
       <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
         <SafeAreaView className="flex-1 bg-background">
@@ -185,73 +209,90 @@ export function CountrySection({ f }: { f: CompanyForm }) {
 export function TaxSection({ f }: { f: CompanyForm }) {
   const { t } = useTranslation();
   const colors = useThemeColors();
+  const isTablet = useIsTablet();
   return (
     <>
-      <View className="gap-2">
-        <Label>{t('biz.accounting')}</Label>
+      <Row>
         <View className="gap-2">
-          {([0, 1, 2] as const).map((v) => (
+          <Label>{t('biz.accounting')}</Label>
+          <View className="gap-2">
+            {([0, 1, 2] as const).map((v) => (
+              <Choice
+                key={v}
+                active={f.accountingSystem === v}
+                label={t(v === 0 ? 'biz.acc.ohada' : v === 1 ? 'biz.acc.generic' : 'biz.acc.none')}
+                onPress={() => f.setAccountingSystem(v)}
+              />
+            ))}
+          </View>
+          {isTablet ? null : <Hint>{t('biz.accHint')}</Hint>}
+        </View>
+        <View className="gap-2">
+          <Label>{t('biz.regime')}</Label>
+          <View className={isTablet ? 'gap-2' : 'flex-row gap-2'}>
             <Choice
-              key={v}
-              active={f.accountingSystem === v}
-              label={t(v === 0 ? 'biz.acc.ohada' : v === 1 ? 'biz.acc.generic' : 'biz.acc.none')}
-              onPress={() => f.setAccountingSystem(v)}
+              active={f.taxRegime === 0}
+              label={t('biz.regime.standard')}
+              hint={t('biz.regime.standardHint')}
+              onPress={() => {
+                f.setTaxRegime(0);
+                if (Number(f.tax) <= 0) f.toggleTax(true);
+              }}
             />
-          ))}
-        </View>
-        <Hint>{t('biz.accHint')}</Hint>
-      </View>
-
-      <View className="gap-3 rounded-xl border border-border bg-surface p-3.5">
-        <Label>{t('biz.regime')}</Label>
-        <View className="flex-row gap-2">
-          <Choice
-            active={f.taxRegime === 0}
-            label={t('biz.regime.standard')}
-            hint={t('biz.regime.standardHint')}
-            onPress={() => {
-              f.setTaxRegime(0);
-              if (Number(f.tax) <= 0) f.toggleTax(true);
-            }}
-          />
-          <Choice
-            active={f.taxRegime === 1}
-            label={t('biz.regime.flat')}
-            hint={t('biz.regime.flatHint')}
-            onPress={() => {
-              f.setTaxRegime(1);
-              f.setTax('0');
-            }}
-          />
-        </View>
-
-        {f.taxRegime === 0 ? (
-          <View className="gap-2 border-t border-border/60 pt-3">
-            <View className="flex-row items-center justify-between gap-2">
-              <Text className="flex-1 text-sm font-semibold text-text-primary">🧾 {t('biz.vatApply')}</Text>
-              <Switch value={f.taxOn} onValueChange={f.toggleTax} trackColor={{ true: colors.primary }} />
-            </View>
-            <Hint>{t('biz.vatHint')}</Hint>
-            {f.taxOn ? <TextField label={t('biz.vatRate')} keyboardType="numeric" value={f.tax} onChangeText={f.setTax} /> : null}
+            <Choice
+              active={f.taxRegime === 1}
+              label={t('biz.regime.flat')}
+              hint={t('biz.regime.flatHint')}
+              onPress={() => {
+                f.setTaxRegime(1);
+                f.setTax('0');
+              }}
+            />
           </View>
-        ) : (
-          <View className="gap-2 border-t border-border/60 pt-3">
-            <Hint>{t('biz.flatHint')}</Hint>
-            <TextField label={`${t('biz.flatAmount')} (${f.currency || 'XAF'})`} keyboardType="numeric" value={f.flatTaxAmount} onChangeText={f.setFlatTaxAmount} />
-            <Label>{t('biz.period')}</Label>
-            <View className="flex-row gap-2">
-              {([0, 1, 2] as const).map((v) => (
-                <Choice
-                  key={v}
-                  active={f.flatTaxPeriod === v}
-                  label={t(v === 0 ? 'biz.monthly' : v === 1 ? 'biz.quarterly' : 'biz.yearly')}
-                  onPress={() => f.setFlatTaxPeriod(v)}
+        </View>
+      </Row>
+      {isTablet ? <Hint>{t('biz.accHint')}</Hint> : null}
+
+      {f.taxRegime === 0 ? (
+        <View className="gap-2 rounded-xl border border-border bg-surface p-3.5">
+          <View className="flex-row items-center gap-3">
+            <Text className="flex-1 text-sm font-semibold text-text-primary">🧾 {t('biz.vatApply')}</Text>
+            {f.taxOn ? (
+              <View className="flex-row items-center gap-2">
+                <Text className="text-xs font-bold uppercase text-text-secondary">{t('biz.vatRate')}</Text>
+                <TextInput
+                  value={f.tax}
+                  onChangeText={f.setTax}
+                  keyboardType="numeric"
+                  className="w-20 rounded-lg border border-border bg-background px-2.5 py-1.5 text-base text-text-primary"
                 />
-              ))}
-            </View>
+              </View>
+            ) : null}
+            <Switch value={f.taxOn} onValueChange={f.toggleTax} trackColor={{ true: colors.primary }} />
           </View>
-        )}
-      </View>
+          <Hint>{t('biz.vatHint')}</Hint>
+        </View>
+      ) : (
+        <View className="gap-2 rounded-xl border border-border bg-surface p-3.5">
+          <Hint>{t('biz.flatHint')}</Hint>
+          <Row>
+            <TextField label={`${t('biz.flatAmount')} (${f.currency || 'XAF'})`} keyboardType="numeric" value={f.flatTaxAmount} onChangeText={f.setFlatTaxAmount} />
+            <View className="gap-1.5">
+              <Label>{t('biz.period')}</Label>
+              <View className="flex-row gap-2">
+                {([0, 1, 2] as const).map((v) => (
+                  <Choice
+                    key={v}
+                    active={f.flatTaxPeriod === v}
+                    label={t(v === 0 ? 'biz.monthly' : v === 1 ? 'biz.quarterly' : 'biz.yearly')}
+                    onPress={() => f.setFlatTaxPeriod(v)}
+                  />
+                ))}
+              </View>
+            </View>
+          </Row>
+        </View>
+      )}
     </>
   );
 }
@@ -264,8 +305,10 @@ export function RewardsSection({ f }: { f: CompanyForm }) {
       <SwitchRow title={`🎁 ${t('biz.rewards')}`} hint={t('biz.rewardsHint')} value={f.rewardEnabled} onChange={f.setRewardEnabled} />
       {f.rewardEnabled ? (
         <>
-          <TextField label={t('biz.rewardEvery')} keyboardType="numeric" value={f.rewardCount} onChangeText={f.setRewardCount} />
-          <TextField label={`${t('biz.rewardValue')} (${f.currency || 'XAF'})`} keyboardType="numeric" value={f.rewardValue} onChangeText={f.setRewardValue} />
+          <Row>
+            <TextField label={t('biz.rewardEvery')} keyboardType="numeric" value={f.rewardCount} onChangeText={f.setRewardCount} />
+            <TextField label={`${t('biz.rewardValue')} (${f.currency || 'XAF'})`} keyboardType="numeric" value={f.rewardValue} onChangeText={f.setRewardValue} />
+          </Row>
         </>
       ) : null}
     </View>
@@ -275,18 +318,22 @@ export function RewardsSection({ f }: { f: CompanyForm }) {
 /** Inventory features (capabilities). */
 export function CapabilitiesSection({ f }: { f: CompanyForm }) {
   const { t } = useTranslation();
+  const isTablet = useIsTablet();
   return (
     <View className="gap-2">
       <Hint>{t('biz.capsHint')}</Hint>
-      {CAPABILITY_META.map((c) => (
-        <SwitchRow
-          key={c.key}
-          title={t(`biz.cap.${c.key}` as TranslationKey)}
-          hint={t(`biz.cap.${c.key}.desc` as TranslationKey)}
-          value={f.capabilities[c.key]}
-          onChange={(v) => f.setCapabilities((prev) => ({ ...prev, [c.key]: v }))}
-        />
-      ))}
+      <View className={isTablet ? 'flex-row flex-wrap gap-2' : 'gap-2'}>
+        {CAPABILITY_META.map((c) => (
+          <View key={c.key} style={isTablet ? { width: '32%', flexGrow: 1 } : undefined}>
+            <SwitchRow
+              title={t(`biz.cap.${c.key}` as TranslationKey)}
+              hint={t(`biz.cap.${c.key}.desc` as TranslationKey)}
+              value={f.capabilities[c.key]}
+              onChange={(v) => f.setCapabilities((prev) => ({ ...prev, [c.key]: v }))}
+            />
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -296,8 +343,10 @@ export function RulesSection({ f, services, onServices }: { f: CompanyForm; serv
   const { t } = useTranslation();
   return (
     <>
-      <TextField label={t('biz.lowStock')} placeholder={t('biz.lowStockHint')} keyboardType="numeric" value={f.lowStock} onChangeText={f.setLowStock} />
-      <SwitchRow title={t('biz.services')} hint={t('biz.servicesHint')} value={services} onChange={onServices} />
+      <Row>
+        <TextField label={t('biz.lowStock')} placeholder={t('biz.lowStockHint')} keyboardType="numeric" value={f.lowStock} onChangeText={f.setLowStock} />
+        <SwitchRow title={t('biz.services')} hint={t('biz.servicesHint')} value={services} onChange={onServices} />
+      </Row>
     </>
   );
 }

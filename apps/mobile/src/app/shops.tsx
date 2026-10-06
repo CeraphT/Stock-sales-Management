@@ -111,7 +111,7 @@ export default function ShopsScreen() {
   );
 
   const actionsCard = (
-    <View className="gap-4 rounded-card border border-border bg-surface p-4" style={cardStyle}>
+    <View className="gap-3 rounded-card border border-border bg-surface p-4" style={cardStyle}>
       <View className="flex-row rounded-full border border-border bg-background p-1">
         {(['create', 'join'] as const).map((p) => (
           <Pressable
@@ -154,11 +154,11 @@ export default function ShopsScreen() {
           </Pressable>
         </View>
 
-        <ScrollView contentContainerClassName="gap-4 px-4 pb-10" keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerClassName="gap-3 px-4 pb-6" keyboardShouldPersistTaps="handled">
           {isTablet ? (
             <View className="flex-row items-start gap-4">
-              {/* The forms get twice the room of the shop list (2 : 1). */}
-              <View style={{ flex: 2 }}>{actionsCard}</View>
+              {/* The forms get three times the room of the shop list (3 : 1). */}
+              <View style={{ flex: 3 }}>{actionsCard}</View>
               <View style={{ flex: 1 }}>{shopsCard}</View>
             </View>
           ) : (
@@ -252,6 +252,7 @@ function ShopRow({ shop, busy, onOpen }: { shop: MyCompanyResponse; busy: boolea
 /** General → The shop → Equipment, with Next / Next / Create (step pills tappable too). */
 function CreateShopWizard({ onCreated }: { onCreated: (companyId: string) => void }) {
   const { t } = useTranslation();
+  const isTablet = useIsTablet();
   const f = useCompanyForm();
   const deviceId = useAuthStore((s) => s.deviceId);
   const [step, setStep] = useState<Step>(0);
@@ -300,7 +301,7 @@ function CreateShopWizard({ onCreated }: { onCreated: (companyId: string) => voi
   };
 
   return (
-    <View className="gap-4">
+    <View className="gap-3">
       <View className="flex-row flex-wrap gap-2">
         {STEPS.map((s, i) => (
           <Pressable
@@ -330,8 +331,21 @@ function CreateShopWizard({ onCreated }: { onCreated: (companyId: string) => voi
       {step === 2 ? (
         <>
           <CapabilitiesSection f={f} />
-          <RewardsSection f={f} />
-          <RulesSection f={f} services={services} onServices={setServices} />
+          {isTablet ? (
+            <View className="flex-row items-start gap-3">
+              <View className="flex-1">
+                <RewardsSection f={f} />
+              </View>
+              <View className="flex-1 gap-3">
+                <RulesSection f={f} services={services} onServices={setServices} />
+              </View>
+            </View>
+          ) : (
+            <>
+              <RewardsSection f={f} />
+              <RulesSection f={f} services={services} onServices={setServices} />
+            </>
+          )}
         </>
       ) : null}
 
