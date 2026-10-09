@@ -1,0 +1,127 @@
+<button class="menutoggle" onclick="document.getElementById('side').classList.toggle('open')" aria-label="Menu">☰</button>
+<div class="wrap">
+  <aside class="side" id="side">
+    <nav class="apptabs" aria-label="Guides">
+      <a href="/">🏠 HouseBudget</a>
+      <a href="/stockflow/" class="on">📦 StockFlow</a>
+    </nav>
+    <div class="brand"><span class="logo svg"><img src="{{LOGO}}" alt="" /></span><b>StockFlow</b></div>
+    <div style="display:flex;align-items:center;margin:4px 0 14px">
+      <span class="langbtn">
+        <button id="fr" class="on" onclick="setLang('fr')">FR</button>
+        <button id="en" onclick="setLang('en')">EN</button>
+      </span>
+      <button class="themebtn" onclick="toggleTheme()" id="themebtn">◐</button>
+    </div>
+    <nav>
+      <ul class="toc" id="toc">
+        <li><a href="#top"><span class="n">◆</span><span class="fr">Introduction</span><span class="en">Introduction</span></a></li>
+        <li class="grp"><span class="fr">Prise en main</span><span class="en">Getting started</span></li>
+        <li><a href="#login"><span class="n">1</span><span class="fr">Connexion & compte</span><span class="en">Sign in & account</span></a></li>
+        <li><a href="#shops"><span class="n">2</span><span class="fr">Mes boutiques</span><span class="en">My shops</span></a></li>
+        <li><a href="#nav"><span class="n">3</span><span class="fr">Se repérer</span><span class="en">Finding your way</span></a></li>
+        <li class="grp"><span class="fr">Ventes</span><span class="en">Sales</span></li>
+        <li><a href="#dashboard"><span class="n">4</span><span class="fr">Tableau de bord & alertes</span><span class="en">Dashboard & alerts</span></a></li>
+        <li><a href="#pos"><span class="n">5</span><span class="fr">Point de vente</span><span class="en">Point of sale</span></a></li>
+        <li><a href="#register"><span class="n">6</span><span class="fr">Caisse</span><span class="en">Cash register</span></a></li>
+        <li><a href="#sales"><span class="n">7</span><span class="fr">Historique & remboursements</span><span class="en">History & refunds</span></a></li>
+        <li class="grp"><span class="fr">Catalogue & stock</span><span class="en">Catalog & stock</span></li>
+        <li><a href="#products"><span class="n">8</span><span class="fr">Produits</span><span class="en">Products</span></a></li>
+        <li><a href="#stock"><span class="n">9</span><span class="fr">Mouvements de stock</span><span class="en">Stock movements</span></a></li>
+        <li><a href="#count"><span class="n">10</span><span class="fr">Inventaire & étiquettes</span><span class="en">Stock count & labels</span></a></li>
+        <li class="grp"><span class="fr">Achats & clients</span><span class="en">Purchasing & clients</span></li>
+        <li><a href="#purchasing"><span class="n">11</span><span class="fr">Fournisseurs & commandes</span><span class="en">Suppliers & orders</span></a></li>
+        <li><a href="#customers"><span class="n">12</span><span class="fr">Clients, crédit & cartes cadeaux</span><span class="en">Customers, credit & gift cards</span></a></li>
+        <li class="grp"><span class="fr">Gestion</span><span class="en">Management</span></li>
+        <li><a href="#reports"><span class="n">13</span><span class="fr">Rapports & analyses</span><span class="en">Reports & analysis</span></a></li>
+        <li><a href="#tax"><span class="n">14</span><span class="fr">Déclaration fiscale</span><span class="en">Tax declaration</span></a></li>
+        <li><a href="#staff"><span class="n">15</span><span class="fr">Personnel & accès</span><span class="en">Staff & access</span></a></li>
+        <li><a href="#settings"><span class="n">16</span><span class="fr">Mon entreprise</span><span class="en">My business</span></a></li>
+        <li><a href="#printer"><span class="n">17</span><span class="fr">Imprimante & reçus</span><span class="en">Printer & receipts</span></a></li>
+        <li class="grp"><span class="fr">Fiabilité & aide</span><span class="en">Reliability & help</span></li>
+        <li><a href="#offline"><span class="n">18</span><span class="fr">Hors ligne & synchronisation</span><span class="en">Offline & sync</span></a></li>
+        <li><a href="#data"><span class="n">19</span><span class="fr">Données & maintenance</span><span class="en">Data & maintenance</span></a></li>
+        <li><a href="#support"><span class="n">20</span><span class="fr">Support</span><span class="en">Support</span></a></li>
+        <li><a href="#superadmin"><span class="n">21</span><span class="fr">Super-admin</span><span class="en">Super-admin</span></a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ============================ CONTENT ============================ -->
+  <main id="main">
+    <div class="hero" id="top">
+      <div class="kicker"><span class="fr">Guide d'utilisation · Web · Bureau · Mobile</span><span class="en">User guide · Web · Desktop · Mobile</span></div>
+      <h1>StockFlow</h1>
+      <p class="sub">
+        <span class="fr">Le manuel illustré, écran par écran, pour gérer le stock et les ventes de votre commerce : caisse, produits, réceptions, inventaires, clients, rapports et déclaration fiscale. Sur le web, l'application bureau (Windows) et la tablette/le téléphone Android. L'application continue de fonctionner sans internet.</span>
+        <span class="en">The illustrated, screen-by-screen manual for running your shop's stock and sales: checkout, products, receiving, stock counts, customers, reports and tax declaration. On the web, the desktop app (Windows) and Android tablet/phone. The app keeps working without internet.</span>
+      </p>
+      <div class="chips">
+        <span class="chip">🧾 <span class="fr">Point de vente</span><span class="en">Point of sale</span></span>
+        <span class="chip">📦 <span class="fr">Stock & lots</span><span class="en">Stock & batches</span></span>
+        <span class="chip">🚚 <span class="fr">Achats</span><span class="en">Purchasing</span></span>
+        <span class="chip">📇 <span class="fr">Clients & crédit</span><span class="en">Customers & credit</span></span>
+        <span class="chip">📊 <span class="fr">Rapports & TVA</span><span class="en">Reports & VAT</span></span>
+        <span class="chip">📶 <span class="fr">Hors ligne</span><span class="en">Offline</span></span>
+      </div>
+      <div class="note tip" style="margin-top:22px">
+        <span class="ic">💡</span>
+        <div><span class="fr"><b>Astuce :</b> le bouton <b>FR / EN</b> en haut à gauche change la langue de tout le guide, et <b>◐</b> bascule le thème clair/sombre. Les onglets <b>HouseBudget / StockFlow</b> passent d'un guide à l'autre. Le guide s'imprime aussi en PDF (<span class="kbd">Ctrl</span> + <span class="kbd">P</span>).</span>
+        <span class="en"><b>Tip:</b> the <b>FR / EN</b> button at the top-left switches the whole guide's language, and <b>◐</b> toggles light/dark. The <b>HouseBudget / StockFlow</b> tabs switch between guides. The guide also prints to PDF (<span class="kbd">Ctrl</span> + <span class="kbd">P</span>).</span></div>
+      </div>
+    </div>
+
+    <div id="sections">
+
+    <!-- ==================== 1. LOGIN ==================== -->
+    <section id="login">
+      <div class="kicker">01 · <span class="fr">Prise en main</span><span class="en">Getting started</span></div>
+      <h2 class="title"><span class="fr">Connexion & création de compte</span><span class="en">Sign in & create an account</span></h2>
+      <p class="lead"><span class="fr">Un seul compte par numéro de téléphone, pour toutes vos boutiques. L'écran est le même sur le web, l'application bureau et le mobile.</span>
+      <span class="en">One account per phone number, for all your shops. The screen is the same on web, desktop and mobile.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Écran de connexion · Web & Bureau</span><span class="en">Sign-in screen · Web & Desktop</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/login</div></div>
+            <div class="bwin"><div class="bmain" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--ui-bg)">
+              <div class="urow" style="width:300px;margin-bottom:8px"><div class="ulogo sf" style="width:38px;height:38px"><img src="{{LOGO}}" alt="" /></div><div><div style="font:800 17px 'Bricolage Grotesque';color:var(--ui-primary)">StockFlow</div><div class="umuted" style="font-size:9.5px">Business management</div></div></div>
+              <div class="ucard" style="width:300px;margin-top:0">
+                <div style="font:700 15px 'Bricolage Grotesque'"><span class="fr">Bon retour</span><span class="en">Welcome back</span></div>
+                <div class="umuted" style="margin-bottom:8px"><span class="fr">Saisissez votre numéro de téléphone et votre mot de passe.</span><span class="en">Enter your phone number and password.</span></div>
+                <div class="useg" style="width:100%;margin-bottom:4px"><span class="on" style="flex:1;text-align:center" data-pin="1" data-pin-at="top"><span class="fr">Se connecter</span><span class="en">Log in</span></span><span style="flex:1;text-align:center" data-pin="2" data-pin-at="top"><span class="fr">Créer un compte</span><span class="en">Create an account</span></span></div>
+                <div class="ufield" data-pin="3"><span class="lab"><span class="fr">Téléphone</span><span class="en">Phone</span></span>6 90 12 34 56</div>
+                <div class="ufield" data-pin="4"><span class="lab"><span class="fr">Mot de passe</span><span class="en">Password</span></span>•••••••• &nbsp;👁️</div>
+                <div class="ubtn" style="width:100%;justify-content:center;margin-top:9px" data-pin="5"><span class="fr">Se connecter</span><span class="en">Log in</span></div>
+              </div>
+              <div class="umuted" style="font-size:9px;margin-top:8px" data-pin="6">StockFlow Web v0.2.2 · © mfSPACE.lu</div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Se connecter</span><span class="en">Log in</span></b> · <span class="d"><span class="fr">l'onglet par défaut : téléphone + mot de passe.</span><span class="en">the default tab: phone + password.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Créer un compte</span><span class="en">Create an account</span></b> · <span class="d"><span class="fr">ajoute un champ « Votre nom ». Un seul compte sert pour toutes vos boutiques.</span><span class="en">adds a "Your name" field. One account works for all your shops.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Téléphone</span><span class="en">Phone</span></b> · <span class="d"><span class="fr">votre identifiant. Les espaces et tirets sont ignorés (6 90 12 34 56 = 690123456).</span><span class="en">your login. Spaces and dashes are ignored (6 90 12 34 56 = 690123456).</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Mot de passe</span><span class="en">Password</span></b> · <span class="d"><span class="fr">au moins 6 caractères ; 👁️ affiche ou masque la saisie.</span><span class="en">at least 6 characters; 👁️ shows or hides it.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Se connecter / Créer mon compte</span><span class="en">Log in / Create my account</span></b> · <span class="d"><span class="fr">valide et ouvre « Mes boutiques ».</span><span class="en">submits and opens "My shops".</span></span></div></li>
+          <li><span class="pn">6</span><div><b><span class="fr">Version</span><span class="en">Version</span></b> · <span class="d"><span class="fr">en bas de chaque page : utile pour le support (« quelle version avez-vous ? »).</span><span class="en">at the bottom of every page: useful for support ("which version do you have?").</span></span></div></li>
+        </ol>
+      </figure>
+
+      <h3 class="subhead"><span class="fr">Pas à pas</span><span class="en">Step by step</span></h3>
+      <ol class="steps">
+        <li><span class="fr"><b>Créer un compte :</b> onglet <span class="btnref">Créer un compte</span> → votre nom, votre téléphone, un mot de passe (6 caractères minimum) → <span class="btnref">Créer mon compte</span>. Si le numéro a déjà un compte, connectez-vous plutôt.</span><span class="en"><b>Create an account:</b> <span class="btnref">Create an account</span> tab → your name, phone and a password (6+ characters) → <span class="btnref">Create my account</span>. If the number already has an account, log in instead.</span></li>
+        <li><span class="fr"><b>Se connecter :</b> téléphone + mot de passe → <span class="btnref">Se connecter</span>. Vous arrivez sur « Mes boutiques ».</span><span class="en"><b>Log in:</b> phone + password → <span class="btnref">Log in</span>. You land on "My shops".</span></li>
+        <li><span class="fr"><b>Une boutique reste ouverte :</b> à la réouverture de l'application, la dernière boutique utilisée se rouvre directement, même sans internet.</span><span class="en"><b>Your shop stays open:</b> when you reopen the app, the last shop you used opens directly, even offline.</span></li>
+      </ol>
+      <div class="note"><span class="ic">🛡️</span><div><span class="fr"><b>Super-admin :</b> si votre numéro ouvre aussi un compte super-admin avec le même mot de passe, l'application vous demande où aller : <b>Mes boutiques</b> ou <b>Console super-admin</b>.</span><span class="en"><b>Super-admin:</b> if your number also opens a super-admin account with the same password, the app asks where to go: <b>My shops</b> or <b>Super-admin console</b>.</span></div></div>
+      <div class="note"><span class="ic">📱</span><div><span class="fr"><b>Sur mobile :</b> même écran, avec les onglets Se connecter / Créer un compte en haut de la carte.</span><span class="en"><b>On mobile:</b> same screen, with the Log in / Create an account tabs at the top of the card.</span></div></div>
+    </section>
+
+<!-- MORE SECTIONS -->
+
+    </div>
+    <div class="footerline">StockFlow · © mfSPACE.lu · <span class="fr">Guide d'utilisation</span><span class="en">User guide</span></div>
+  </main>
+</div>

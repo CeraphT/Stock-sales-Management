@@ -1,0 +1,1215 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Guide StockFlow</title>
+<meta name="description" content="Guide d'utilisation illustré, bilingue FR/EN, de StockFlow : gestion de stock et de ventes (web, bureau et mobile)." />
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDI0IDEwMjQiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzJERDRCRiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzBGNzY2RSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDI0IiBoZWlnaHQ9IjEwMjQiIHJ4PSIyMzAiIGZpbGw9InVybCgjZykiLz48cG9seWdvbiBwb2ludHM9IjUxMi4wLDIyNC43IDY4MC41LDMyMi4wIDUxMi4wLDQxOS4zIDM0My41LDMyMi4wIiBmaWxsPSIjRkZGRkZGIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iNDAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cG9seWdvbiBwb2ludHM9IjMwNi41LDM4Ni4xIDQ3NS4wLDQ4My40IDQ3NS4wLDY3Ny45IDMwNi41LDU4MC42IiBmaWxsPSIjRTZGRkZCIiBzdHJva2U9IiNFNkZGRkIiIHN0cm9rZS13aWR0aD0iNDAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cG9seWdvbiBwb2ludHM9IjU0OS4wLDQ4My40IDcxNy41LDM4Ni4xIDcxNy41LDU4MC42IDU0OS4wLDY3Ny45IiBmaWxsPSIjOTlGNkU0IiBzdHJva2U9IiM5OUY2RTQiIHN0cm9rZS13aWR0aD0iNDAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNMTgzLjUgNjM2LjYgQTM3MiAzNzIgMCAwIDAgODY1LjggNTc3LjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZCQkYyNCIgc3Ryb2tlLXdpZHRoPSI0Ni41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cG9seWdvbiBwb2ludHM9Ijg4OC40LDUwNy4zIDkyNi44LDYyMi40IDc4OS43LDU3Ny45IiBmaWxsPSIjRkJCRjI0IiBzdHJva2U9IiNGQkJGMjQiIHN0cm9rZS13aWR0aD0iMTYuMyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPgo=" />
+<style>
+  /* ============================ FONTS ============================ */
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  /* ============================ TOKENS ============================ */
+  :root{
+    --paper:#FAF9F7; --paper-2:#F1EFEA; --card:#FFFFFF; --ink:#1C1E2B; --ink-2:#565B72;
+    --line:#E4E0D8; --line-2:#D3CEC3;
+    --indigo:#0F766E; --indigo-2:#14B8A6; --indigo-soft:#E6F4F1;
+    --coral:#F59E0B; --coral-soft:#FEF3DC;
+    --green:#12A150; --amber:#E19008; --red:#E23D50;
+    --shadow:0 1px 2px rgba(28,30,43,.06),0 8px 24px rgba(28,30,43,.06);
+    --ui-bg:#F3F7F6; --ui-card:#FFFFFF; --ui-line:#E7E8F0; --ui-ink:#1C1E2B; --ui-ink2:#6B7191;
+    --ui-primary:#0F766E; --ui-primary-soft:#E2F3EF; --ui-surface2:#F1F2F8;
+    --ui-green:#12A150; --ui-greensoft:#E4F6EC; --ui-red:#E23D50; --ui-redsoft:#FCE7EA;
+    --ui-amber:#E19008; --ui-ambersoft:#FBF0DA;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --paper:#0E1018; --paper-2:#151826; --card:#171A28; --ink:#ECEDF5; --ink-2:#A0A5C0;
+    --line:#252A3D; --line-2:#333853; --indigo:#2DD4BF; --indigo-2:#5EEAD4; --indigo-soft:#123330;
+    --coral:#FBBF24; --coral-soft:#3A2E14; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }}
+  :root[data-theme="dark"]{
+    --paper:#0E1018; --paper-2:#151826; --card:#171A28; --ink:#ECEDF5; --ink-2:#A0A5C0;
+    --line:#252A3D; --line-2:#333853; --indigo:#2DD4BF; --indigo-2:#5EEAD4; --indigo-soft:#123330;
+    --coral:#FBBF24; --coral-soft:#3A2E14; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }
+
+  /* ============================ BASE ============================ */
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{font-family:"Bricolage Grotesque","IBM Plex Sans",sans-serif;font-weight:700;
+    line-height:1.12;letter-spacing:-.01em;text-wrap:balance;margin:0}
+  a{color:var(--indigo);text-decoration:none}
+  code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+
+  /* language toggle: default FR shown, EN hidden; .show-en flips it */
+  .en{display:none}
+  .show-en .fr{display:none!important}
+  .show-en .en{display:revert!important}
+
+  /* ============================ LAYOUT ============================ */
+  .wrap{display:grid;grid-template-columns:264px minmax(0,1fr);gap:0;max-width:1280px;margin:0 auto}
+  /* Sidebar */
+  .side{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;padding:22px 18px;
+    border-right:1px solid var(--line);background:var(--paper)}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .brand .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--indigo),var(--indigo-2));
+    display:grid;place-items:center;color:#fff;font-size:19px;box-shadow:var(--shadow)}
+  .brand b{font-family:"Bricolage Grotesque",sans-serif;font-size:18px}
+  .side .tag{font-size:11.5px;color:var(--ink-2);margin:0 0 16px 44px;margin-left:0}
+  .toc{list-style:none;margin:10px 0 0;padding:0;font-size:14px}
+  .toc li{margin:1px 0}
+  .toc .grp{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-2);margin:16px 0 6px;padding-left:10px}
+  .toc a{display:flex;gap:9px;align-items:center;color:var(--ink);padding:6px 10px;border-radius:8px}
+  .toc a:hover{background:var(--paper-2)}
+  .toc a .n{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-2);width:20px}
+  .toc a.active{background:var(--indigo-soft);color:var(--indigo);font-weight:600}
+
+  .langbtn{display:inline-flex;border:1px solid var(--line-2);border-radius:9px;overflow:hidden;margin-bottom:6px}
+  .langbtn button{border:0;background:transparent;color:var(--ink-2);font:600 12.5px "IBM Plex Sans";
+    padding:6px 12px;cursor:pointer}
+  .langbtn button.on{background:var(--indigo);color:#fff}
+  .themebtn{border:1px solid var(--line-2);background:transparent;color:var(--ink-2);border-radius:9px;
+    padding:6px 10px;font:600 12.5px "IBM Plex Sans";cursor:pointer;margin-left:6px}
+
+  /* Main column */
+  main{padding:40px 46px 120px;min-width:0}
+  section{scroll-margin-top:24px;padding:34px 0;border-top:1px solid var(--line)}
+  section:first-of-type{border-top:0}
+  .kicker{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--coral);font-weight:600;margin-bottom:8px}
+  h2.title{font-size:30px;margin-bottom:4px}
+  .lead{color:var(--ink-2);font-size:16.5px;max-width:64ch;margin:8px 0 0}
+  .platform{display:inline-flex;gap:6px;align-items:center;font:600 11px "IBM Plex Mono";
+    color:var(--ink-2);border:1px solid var(--line-2);border-radius:999px;padding:3px 9px;margin-left:8px;vertical-align:middle}
+
+  /* ============================ HERO ============================ */
+  .hero{padding:8px 0 20px}
+  .hero h1{font-size:44px;font-weight:800;margin-bottom:10px}
+  .hero .sub{font-size:18px;color:var(--ink-2);max-width:62ch}
+  .hero .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{font:600 12.5px "IBM Plex Sans";background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:6px 13px;box-shadow:var(--shadow);display:inline-flex;gap:7px;align-items:center}
+
+  /* ============================ ANNOTATED FIGURE ============================ */
+  .figure{margin:22px 0 6px;background:var(--card);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);overflow:hidden}
+  .figure figcaption{display:flex;gap:8px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--line);
+    font:600 13px "IBM Plex Sans";color:var(--ink-2);background:var(--paper-2)}
+  .figure figcaption .dot{width:9px;height:9px;border-radius:50%}
+  .figure svg{display:block;width:100%;height:auto;background:var(--card)}
+
+  /* callout legend */
+  .legend{list-style:none;margin:0;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px 22px}
+  @media(max-width:760px){.legend{grid-template-columns:1fr}}
+  .legend li{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+  .legend .pin{flex:none;width:22px;height:22px;border-radius:50%;background:var(--coral);color:#fff;
+    font:700 12px "IBM Plex Mono";display:grid;place-items:center;margin-top:1px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .legend b{font-weight:700}
+  .legend .d{color:var(--ink-2)}
+
+  /* ============================ STEPS ============================ */
+  .steps{counter-reset:s;list-style:none;margin:18px 0 0;padding:0;display:grid;gap:10px}
+  .steps li{position:relative;padding:12px 14px 12px 52px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;box-shadow:var(--shadow)}
+  .steps li::before{counter-increment:s;content:counter(s);position:absolute;left:12px;top:11px;
+    width:28px;height:28px;border-radius:8px;background:var(--indigo);color:#fff;
+    font:700 14px "IBM Plex Mono";display:grid;place-items:center}
+  .steps b{font-weight:700}
+  .btnref{display:inline-block;font:600 12.5px "IBM Plex Mono";background:var(--indigo-soft);color:var(--indigo);
+    border:1px solid color-mix(in srgb,var(--indigo) 25%,transparent);border-radius:7px;padding:1px 7px;white-space:nowrap}
+
+  .note{display:flex;gap:11px;padding:13px 15px;border-radius:12px;margin:16px 0;font-size:14.5px;
+    background:var(--paper-2);border:1px solid var(--line)}
+  .note .ic{flex:none;font-size:18px}
+  .note.tip{background:var(--indigo-soft);border-color:color-mix(in srgb,var(--indigo) 22%,transparent)}
+  .note.warn{background:var(--coral-soft);border-color:color-mix(in srgb,var(--coral) 30%,transparent)}
+
+  .subhead{font-size:20px;margin:28px 0 4px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .mini{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+  .mini h4{font-size:15px;margin-bottom:5px}
+  .mini p{margin:0;color:var(--ink-2);font-size:14px}
+
+  /* mobile menu button */
+  .menutoggle{display:none;position:fixed;top:12px;right:12px;z-index:50;background:var(--indigo);color:#fff;
+    border:0;border-radius:10px;width:44px;height:44px;font-size:20px;box-shadow:var(--shadow);cursor:pointer}
+  @media(max-width:900px){
+    .wrap{grid-template-columns:1fr}
+    .side{position:fixed;left:0;top:0;z-index:40;width:280px;transform:translateX(-102%);transition:transform .25s;box-shadow:var(--shadow)}
+    .side.open{transform:none}
+    .menutoggle{display:block}
+    main{padding:64px 20px 100px}
+    .hero h1{font-size:34px}
+  }
+
+  /* ============================ PRINT ============================ */
+  @media print{
+    .side,.menutoggle{display:none}
+    .wrap{display:block;max-width:none}
+    main{padding:0}
+    section{break-inside:avoid-page;border-top:1px solid #ccc}
+    .figure,.steps li,.mini{box-shadow:none}
+    a{color:inherit}
+  }
+</style>
+<style>
+  /* ============================ MOCKUP SYSTEM ============================ */
+  .mockwrap{padding:18px 16px 6px;overflow-x:auto;display:flex;justify-content:center;background:
+    repeating-linear-gradient(45deg,transparent,transparent 11px,color-mix(in srgb,var(--ink) 3%,transparent) 11px,color-mix(in srgb,var(--ink) 3%,transparent) 12px),var(--paper-2)}
+  .frame{position:relative;flex:none}
+
+  /* browser frame */
+  .browser{width:840px;border-radius:12px;overflow:hidden;border:1px solid var(--ui-line);
+    background:var(--ui-bg);box-shadow:0 10px 34px rgba(28,30,43,.14);font-family:"IBM Plex Sans",sans-serif}
+  .chrome{display:flex;align-items:center;gap:7px;padding:9px 12px;background:var(--ui-card);border-bottom:1px solid var(--ui-line)}
+  .chrome i{width:11px;height:11px;border-radius:50%;background:#E0655B;display:inline-block}
+  .chrome i:nth-child(2){background:#E9B84A}.chrome i:nth-child(3){background:#57C05B}
+  .chrome .url{flex:1;margin-left:8px;height:22px;border-radius:6px;background:var(--ui-surface2);
+    display:flex;align-items:center;padding:0 10px;font:500 11px "IBM Plex Mono";color:var(--ui-ink2)}
+  .bwin{display:flex;min-height:430px}
+  .bside{width:172px;flex:none;background:var(--ui-card);border-right:1px solid var(--ui-line);padding:12px 10px}
+  .bmain{flex:1;padding:16px 18px;color:var(--ui-ink);min-width:0}
+
+  /* phone frame */
+  .phone{width:290px;border-radius:30px;border:9px solid #10121C;background:var(--ui-bg);overflow:hidden;
+    box-shadow:0 14px 40px rgba(28,30,43,.22);font-family:"IBM Plex Sans",sans-serif}
+  :root[data-theme="dark"] .phone,:root:not([data-theme="light"]) .phone{border-color:#000}
+  .pscreen{height:560px;display:flex;flex-direction:column;color:var(--ui-ink)}
+  .pbody{flex:1;overflow:hidden;padding:14px 13px;background:var(--ui-bg)}
+  .ptop{background:var(--ui-card);padding:12px 14px 10px;border-bottom:1px solid var(--ui-line)}
+  .tabbar{display:flex;align-items:flex-end;justify-content:space-around;background:var(--ui-card);
+    border-top:1px solid var(--ui-line);padding:7px 6px 9px;position:relative}
+  .tabbar .tb{display:flex;flex-direction:column;align-items:center;gap:3px;font:600 8.5px "IBM Plex Sans";color:var(--ui-ink2);flex:1}
+  .tabbar .tb .ic{font-size:16px;line-height:1}
+  .tabbar .tb.on{color:var(--ui-primary)}
+  .tabbar .fab{position:relative;width:44px;height:44px;border-radius:15px;margin-top:-24px;color:#fff;font-size:24px;
+    background:linear-gradient(135deg,#2DD4BF,#0F766E);display:grid;place-items:center;box-shadow:0 6px 16px rgba(15,118,110,.45)}
+  /* tablet rail */
+  .rail{width:70px;flex:none;background:var(--ui-card);border-right:1px solid var(--ui-line);
+    display:flex;flex-direction:column;align-items:center;gap:9px;padding:12px 4px}
+  .rail .ri{display:flex;flex-direction:column;align-items:center;gap:2px;font:600 7.5px "IBM Plex Sans";
+    color:var(--ui-ink2);width:100%;padding:5px 0;border-radius:8px}
+  .rail .ri .ic{font-size:15px}
+  .rail .ri.on{background:var(--ui-primary-soft);color:var(--ui-primary)}
+
+  /* UI atoms (shared) */
+  .ulogo{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#2DD4BF,#0F766E);
+    display:grid;place-items:center;color:#fff;font-size:14px}
+  .ubrand{display:flex;align-items:center;gap:8px;font:700 14px "Bricolage Grotesque";color:var(--ui-ink);margin-bottom:12px}
+  .unav{list-style:none;margin:0;padding:0;font-size:11.5px;color:var(--ui-ink2)}
+  .unav li{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;margin:1px 0}
+  .unav li.on{background:var(--ui-primary-soft);color:var(--ui-primary);font-weight:700}
+  .unav .g{font:600 8.5px "IBM Plex Mono";letter-spacing:.12em;text-transform:uppercase;color:var(--ui-ink2);
+    padding:9px 8px 3px;display:block}
+  .utitle{font:700 17px "Bricolage Grotesque";color:var(--ui-ink);margin:0 0 2px}
+  .usub{font-size:11px;color:var(--ui-ink2);margin:0 0 12px}
+  .urow{display:flex;align-items:center;gap:8px}
+  .uspace{flex:1}
+  .ubtn{font:600 11px "IBM Plex Sans";background:var(--ui-primary);color:#fff;border-radius:8px;padding:6px 11px;display:inline-flex;gap:5px;align-items:center;white-space:nowrap}
+  .ubtn.g{background:var(--ui-surface2);color:var(--ui-ink)}
+  .ucard{background:var(--ui-card);border:1px solid var(--ui-line);border-radius:11px;padding:12px 13px;margin-top:10px}
+  .ucard.tight{padding:10px 12px}
+  .ucard h5{margin:0 0 8px;font:700 12px "IBM Plex Sans";color:var(--ui-ink)}
+  .ustatgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:2px}
+  .ustat{background:var(--ui-card);border:1px solid var(--ui-line);border-radius:10px;padding:9px 10px}
+  .ustat .k{font:600 8.5px "IBM Plex Mono";text-transform:uppercase;letter-spacing:.05em;color:var(--ui-ink2)}
+  .ustat .v{font:700 15px "Bricolage Grotesque";color:var(--ui-ink);margin-top:3px}
+  .upill{font:700 8.5px "IBM Plex Sans";border-radius:999px;padding:2px 8px;display:inline-block}
+  .upill.ok{background:var(--ui-greensoft);color:var(--ui-green)}
+  .upill.warn{background:var(--ui-ambersoft);color:var(--ui-amber)}
+  .upill.bad{background:var(--ui-redsoft);color:var(--ui-red)}
+  .upill.mut{background:var(--ui-surface2);color:var(--ui-ink2)}
+  .uchip{font:600 10px "IBM Plex Sans";border:1px solid var(--ui-line);border-radius:999px;padding:4px 9px;color:var(--ui-ink2);background:var(--ui-card)}
+  .uchip.on{border-color:var(--ui-primary);color:var(--ui-primary);background:var(--ui-primary-soft)}
+  .useg{display:inline-flex;background:var(--ui-surface2);border-radius:9px;padding:3px;gap:2px}
+  .useg span{font:600 10.5px "IBM Plex Sans";padding:4px 12px;border-radius:6px;color:var(--ui-ink2)}
+  .useg span.on{background:var(--ui-card);color:var(--ui-primary);box-shadow:var(--shadow)}
+  .ufield{border:1px solid var(--ui-line);border-radius:8px;background:var(--ui-card);padding:8px 10px;font-size:11px;color:var(--ui-ink2);margin-top:7px}
+  .ufield .lab{font:600 8px "IBM Plex Mono";text-transform:uppercase;letter-spacing:.06em;color:var(--ui-ink2);display:block;margin-bottom:3px}
+  .uline{height:1px;background:var(--ui-line);margin:10px 0}
+  .ubars{display:flex;align-items:flex-end;gap:7px;height:74px;margin-top:8px}
+  .ubars .b{flex:1;border-radius:4px 4px 0 0;background:var(--ui-primary);opacity:.85}
+  .ubars .b.e{background:var(--ui-red);opacity:.55}
+  .uslide{position:absolute;top:0;right:0;bottom:0;width:300px;background:var(--ui-card);border-left:1px solid var(--ui-line);
+    box-shadow:-14px 0 34px rgba(28,30,43,.16);padding:14px 15px}
+  .usheet{position:absolute;left:0;right:0;bottom:0;background:var(--ui-card);border-top:1px solid var(--ui-line);
+    border-radius:16px 16px 0 0;box-shadow:0 -12px 30px rgba(28,30,43,.16);padding:14px 14px 10px}
+  .umuted{color:var(--ui-ink2);font-size:11px}
+  .ustatus{font:700 8px "IBM Plex Mono";text-transform:uppercase;letter-spacing:.08em}
+
+  /* callout pins */
+  .pin{position:absolute;transform:translate(-50%,-50%);width:23px;height:23px;border-radius:50%;
+    background:var(--coral);color:#fff;font:700 12px "IBM Plex Mono";display:grid;place-items:center;z-index:5;
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--coral) 28%,transparent),0 2px 5px rgba(0,0,0,.28)}
+  .legend{list-style:none;margin:0;padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:11px 26px;
+    border-top:1px solid var(--line)}
+  @media(max-width:760px){.legend{grid-template-columns:1fr}}
+  .legend li{display:flex;gap:11px;align-items:flex-start;font-size:14px}
+  .legend .pn{flex:none;width:23px;height:23px;border-radius:50%;background:var(--coral);color:#fff;
+    font:700 12px "IBM Plex Mono";display:grid;place-items:center;margin-top:1px}
+  .legend .d{color:var(--ink-2)}
+</style>
+<style>
+  .apptabs{display:flex;gap:4px;padding:3px;border:1px solid var(--line-2);border-radius:11px;margin:0 0 14px;background:var(--paper-2)}
+  .apptabs a{flex:1;text-align:center;font:600 12px "IBM Plex Sans";color:var(--ink-2);padding:6px 4px;border-radius:8px;white-space:nowrap}
+  .apptabs a.on{background:var(--card);color:var(--indigo);box-shadow:var(--shadow)}
+  .brand .logo.svg{background:none;box-shadow:none;padding:0}
+  .brand .logo.svg img{width:34px;height:34px;display:block}
+  .ulogo.sf{background:none}
+  .ulogo.sf img{width:100%;height:100%;display:block}
+  .kbd{font:600 11.5px "IBM Plex Mono";border:1px solid var(--line-2);border-bottom-width:2px;border-radius:6px;padding:0 6px;background:var(--card)}
+  .footerline{margin-top:46px;padding-top:18px;border-top:1px solid var(--line);color:var(--ink-2);font-size:13px;text-align:center}
+  @media print{.apptabs{display:none}}
+</style>
+</head>
+<body>
+<button class="menutoggle" onclick="document.getElementById('side').classList.toggle('open')" aria-label="Menu">☰</button>
+<div class="wrap">
+  <aside class="side" id="side">
+    <nav class="apptabs" aria-label="Guides">
+      <a href="/">🏠 HouseBudget</a>
+      <a href="/stockflow/" class="on">📦 StockFlow</a>
+    </nav>
+    <div class="brand"><span class="logo svg"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDI0IDEwMjQiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzJERDRCRiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzBGNzY2RSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDI0IiBoZWlnaHQ9IjEwMjQiIHJ4PSIyMzAiIGZpbGw9InVybCgjZykiLz48cG9seWdvbiBwb2ludHM9IjUxMi4wLDIyNC43IDY4MC41LDMyMi4wIDUxMi4wLDQxOS4zIDM0My41LDMyMi4wIiBmaWxsPSIjRkZGRkZGIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iNDAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cG9seWdvbiBwb2ludHM9IjMwNi41LDM4Ni4xIDQ3NS4wLDQ4My40IDQ3NS4wLDY3Ny45IDMwNi41LDU4MC42IiBmaWxsPSIjRTZGRkZCIiBzdHJva2U9IiNFNkZGRkIiIHN0cm9rZS13aWR0aD0iNDAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cG9seWdvbiBwb2ludHM9IjU0OS4wLDQ4My40IDcxNy41LDM4Ni4xIDcxNy41LDU4MC42IDU0OS4wLDY3Ny45IiBmaWxsPSIjOTlGNkU0IiBzdHJva2U9IiM5OUY2RTQiIHN0cm9rZS13aWR0aD0iNDAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNMTgzLjUgNjM2LjYgQTM3MiAzNzIgMCAwIDAgODY1LjggNTc3LjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZCQkYyNCIgc3Ryb2tlLXdpZHRoPSI0Ni41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cG9seWdvbiBwb2ludHM9Ijg4OC40LDUwNy4zIDkyNi44LDYyMi40IDc4OS43LDU3Ny45IiBmaWxsPSIjRkJCRjI0IiBzdHJva2U9IiNGQkJGMjQiIHN0cm9rZS13aWR0aD0iMTYuMyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPgo=" alt="" /></span><b>StockFlow</b></div>
+    <div style="display:flex;align-items:center;margin:4px 0 14px">
+      <span class="langbtn">
+        <button id="fr" class="on" onclick="setLang('fr')">FR</button>
+        <button id="en" onclick="setLang('en')">EN</button>
+      </span>
+      <button class="themebtn" onclick="toggleTheme()" id="themebtn">◐</button>
+    </div>
+    <nav>
+      <ul class="toc" id="toc">
+        <li><a href="#top"><span class="n">◆</span><span class="fr">Introduction</span><span class="en">Introduction</span></a></li>
+        <li class="grp"><span class="fr">Prise en main</span><span class="en">Getting started</span></li>
+        <li><a href="#login"><span class="n">1</span><span class="fr">Connexion & compte</span><span class="en">Sign in & account</span></a></li>
+        <li><a href="#shops"><span class="n">2</span><span class="fr">Mes boutiques</span><span class="en">My shops</span></a></li>
+        <li><a href="#nav"><span class="n">3</span><span class="fr">Se repérer</span><span class="en">Finding your way</span></a></li>
+        <li class="grp"><span class="fr">Ventes</span><span class="en">Sales</span></li>
+        <li><a href="#dashboard"><span class="n">4</span><span class="fr">Tableau de bord & alertes</span><span class="en">Dashboard & alerts</span></a></li>
+        <li><a href="#pos"><span class="n">5</span><span class="fr">Point de vente</span><span class="en">Point of sale</span></a></li>
+        <li><a href="#register"><span class="n">6</span><span class="fr">Caisse</span><span class="en">Cash register</span></a></li>
+        <li><a href="#sales"><span class="n">7</span><span class="fr">Historique & remboursements</span><span class="en">History & refunds</span></a></li>
+        <li class="grp"><span class="fr">Catalogue & stock</span><span class="en">Catalog & stock</span></li>
+        <li><a href="#products"><span class="n">8</span><span class="fr">Produits</span><span class="en">Products</span></a></li>
+        <li><a href="#stock"><span class="n">9</span><span class="fr">Mouvements de stock</span><span class="en">Stock movements</span></a></li>
+        <li><a href="#count"><span class="n">10</span><span class="fr">Inventaire & étiquettes</span><span class="en">Stock count & labels</span></a></li>
+        <li class="grp"><span class="fr">Achats & clients</span><span class="en">Purchasing & clients</span></li>
+        <li><a href="#purchasing"><span class="n">11</span><span class="fr">Fournisseurs & commandes</span><span class="en">Suppliers & orders</span></a></li>
+        <li><a href="#customers"><span class="n">12</span><span class="fr">Clients, crédit & cartes cadeaux</span><span class="en">Customers, credit & gift cards</span></a></li>
+        <li class="grp"><span class="fr">Gestion</span><span class="en">Management</span></li>
+        <li><a href="#reports"><span class="n">13</span><span class="fr">Rapports & analyses</span><span class="en">Reports & analysis</span></a></li>
+        <li><a href="#tax"><span class="n">14</span><span class="fr">Déclaration fiscale</span><span class="en">Tax declaration</span></a></li>
+        <li><a href="#staff"><span class="n">15</span><span class="fr">Personnel & accès</span><span class="en">Staff & access</span></a></li>
+        <li><a href="#settings"><span class="n">16</span><span class="fr">Mon entreprise</span><span class="en">My business</span></a></li>
+        <li><a href="#printer"><span class="n">17</span><span class="fr">Imprimante & reçus</span><span class="en">Printer & receipts</span></a></li>
+        <li class="grp"><span class="fr">Fiabilité & aide</span><span class="en">Reliability & help</span></li>
+        <li><a href="#offline"><span class="n">18</span><span class="fr">Hors ligne & synchronisation</span><span class="en">Offline & sync</span></a></li>
+        <li><a href="#data"><span class="n">19</span><span class="fr">Données & maintenance</span><span class="en">Data & maintenance</span></a></li>
+        <li><a href="#support"><span class="n">20</span><span class="fr">Support</span><span class="en">Support</span></a></li>
+        <li><a href="#superadmin"><span class="n">21</span><span class="fr">Super-admin</span><span class="en">Super-admin</span></a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ============================ CONTENT ============================ -->
+  <main id="main">
+    <div class="hero" id="top">
+      <div class="kicker"><span class="fr">Guide d'utilisation · Web · Bureau · Mobile</span><span class="en">User guide · Web · Desktop · Mobile</span></div>
+      <h1>StockFlow</h1>
+      <p class="sub">
+        <span class="fr">Le manuel illustré, écran par écran, pour gérer le stock et les ventes de votre commerce : caisse, produits, réceptions, inventaires, clients, rapports et déclaration fiscale. Sur le web, l'application bureau (Windows) et la tablette/le téléphone Android. L'application continue de fonctionner sans internet.</span>
+        <span class="en">The illustrated, screen-by-screen manual for running your shop's stock and sales: checkout, products, receiving, stock counts, customers, reports and tax declaration. On the web, the desktop app (Windows) and Android tablet/phone. The app keeps working without internet.</span>
+      </p>
+      <div class="chips">
+        <span class="chip">🧾 <span class="fr">Point de vente</span><span class="en">Point of sale</span></span>
+        <span class="chip">📦 <span class="fr">Stock & lots</span><span class="en">Stock & batches</span></span>
+        <span class="chip">🚚 <span class="fr">Achats</span><span class="en">Purchasing</span></span>
+        <span class="chip">📇 <span class="fr">Clients & crédit</span><span class="en">Customers & credit</span></span>
+        <span class="chip">📊 <span class="fr">Rapports & TVA</span><span class="en">Reports & VAT</span></span>
+        <span class="chip">📶 <span class="fr">Hors ligne</span><span class="en">Offline</span></span>
+      </div>
+      <div class="note tip" style="margin-top:22px">
+        <span class="ic">💡</span>
+        <div><span class="fr"><b>Astuce :</b> le bouton <b>FR / EN</b> en haut à gauche change la langue de tout le guide, et <b>◐</b> bascule le thème clair/sombre. Les onglets <b>HouseBudget / StockFlow</b> passent d'un guide à l'autre. Le guide s'imprime aussi en PDF (<span class="kbd">Ctrl</span> + <span class="kbd">P</span>).</span>
+        <span class="en"><b>Tip:</b> the <b>FR / EN</b> button at the top-left switches the whole guide's language, and <b>◐</b> toggles light/dark. The <b>HouseBudget / StockFlow</b> tabs switch between guides. The guide also prints to PDF (<span class="kbd">Ctrl</span> + <span class="kbd">P</span>).</span></div>
+      </div>
+    </div>
+
+    <div id="sections">
+
+    <!-- ==================== 1. LOGIN ==================== -->
+    <section id="login">
+      <div class="kicker">01 · <span class="fr">Prise en main</span><span class="en">Getting started</span></div>
+      <h2 class="title"><span class="fr">Connexion & création de compte</span><span class="en">Sign in & create an account</span></h2>
+      <p class="lead"><span class="fr">Un seul compte par numéro de téléphone, pour toutes vos boutiques. L'écran est le même sur le web, l'application bureau et le mobile.</span>
+      <span class="en">One account per phone number, for all your shops. The screen is the same on web, desktop and mobile.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Écran de connexion · Web & Bureau</span><span class="en">Sign-in screen · Web & Desktop</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/login</div></div>
+            <div class="bwin"><div class="bmain" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--ui-bg)">
+              <div class="urow" style="width:300px;margin-bottom:8px"><div class="ulogo sf" style="width:38px;height:38px"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDI0IDEwMjQiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzJERDRCRiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzBGNzY2RSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDI0IiBoZWlnaHQ9IjEwMjQiIHJ4PSIyMzAiIGZpbGw9InVybCgjZykiLz48cG9seWdvbiBwb2ludHM9IjUxMi4wLDIyNC43IDY4MC41LDMyMi4wIDUxMi4wLDQxOS4zIDM0My41LDMyMi4wIiBmaWxsPSIjRkZGRkZGIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iNDAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cG9seWdvbiBwb2ludHM9IjMwNi41LDM4Ni4xIDQ3NS4wLDQ4My40IDQ3NS4wLDY3Ny45IDMwNi41LDU4MC42IiBmaWxsPSIjRTZGRkZCIiBzdHJva2U9IiNFNkZGRkIiIHN0cm9rZS13aWR0aD0iNDAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cG9seWdvbiBwb2ludHM9IjU0OS4wLDQ4My40IDcxNy41LDM4Ni4xIDcxNy41LDU4MC42IDU0OS4wLDY3Ny45IiBmaWxsPSIjOTlGNkU0IiBzdHJva2U9IiM5OUY2RTQiIHN0cm9rZS13aWR0aD0iNDAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNMTgzLjUgNjM2LjYgQTM3MiAzNzIgMCAwIDAgODY1LjggNTc3LjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZCQkYyNCIgc3Ryb2tlLXdpZHRoPSI0Ni41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cG9seWdvbiBwb2ludHM9Ijg4OC40LDUwNy4zIDkyNi44LDYyMi40IDc4OS43LDU3Ny45IiBmaWxsPSIjRkJCRjI0IiBzdHJva2U9IiNGQkJGMjQiIHN0cm9rZS13aWR0aD0iMTYuMyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPgo=" alt="" /></div><div><div style="font:800 17px 'Bricolage Grotesque';color:var(--ui-primary)">StockFlow</div><div class="umuted" style="font-size:9.5px">Business management</div></div></div>
+              <div class="ucard" style="width:300px;margin-top:0">
+                <div style="font:700 15px 'Bricolage Grotesque'"><span class="fr">Bon retour</span><span class="en">Welcome back</span></div>
+                <div class="umuted" style="margin-bottom:8px"><span class="fr">Saisissez votre numéro de téléphone et votre mot de passe.</span><span class="en">Enter your phone number and password.</span></div>
+                <div class="useg" style="width:100%;margin-bottom:4px"><span class="on" style="flex:1;text-align:center" data-pin="1" data-pin-at="top"><span class="fr">Se connecter</span><span class="en">Log in</span></span><span style="flex:1;text-align:center" data-pin="2" data-pin-at="top"><span class="fr">Créer un compte</span><span class="en">Create an account</span></span></div>
+                <div class="ufield" data-pin="3"><span class="lab"><span class="fr">Téléphone</span><span class="en">Phone</span></span>6 90 12 34 56</div>
+                <div class="ufield" data-pin="4"><span class="lab"><span class="fr">Mot de passe</span><span class="en">Password</span></span>•••••••• &nbsp;👁️</div>
+                <div class="ubtn" style="width:100%;justify-content:center;margin-top:9px" data-pin="5"><span class="fr">Se connecter</span><span class="en">Log in</span></div>
+              </div>
+              <div class="umuted" style="font-size:9px;margin-top:8px" data-pin="6">StockFlow Web v0.2.2 · © mfSPACE.lu</div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Se connecter</span><span class="en">Log in</span></b> · <span class="d"><span class="fr">l'onglet par défaut : téléphone + mot de passe.</span><span class="en">the default tab: phone + password.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Créer un compte</span><span class="en">Create an account</span></b> · <span class="d"><span class="fr">ajoute un champ « Votre nom ». Un seul compte sert pour toutes vos boutiques.</span><span class="en">adds a "Your name" field. One account works for all your shops.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Téléphone</span><span class="en">Phone</span></b> · <span class="d"><span class="fr">votre identifiant. Les espaces et tirets sont ignorés (6 90 12 34 56 = 690123456).</span><span class="en">your login. Spaces and dashes are ignored (6 90 12 34 56 = 690123456).</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Mot de passe</span><span class="en">Password</span></b> · <span class="d"><span class="fr">au moins 6 caractères ; 👁️ affiche ou masque la saisie.</span><span class="en">at least 6 characters; 👁️ shows or hides it.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Se connecter / Créer mon compte</span><span class="en">Log in / Create my account</span></b> · <span class="d"><span class="fr">valide et ouvre « Mes boutiques ».</span><span class="en">submits and opens "My shops".</span></span></div></li>
+          <li><span class="pn">6</span><div><b><span class="fr">Version</span><span class="en">Version</span></b> · <span class="d"><span class="fr">en bas de chaque page : utile pour le support (« quelle version avez-vous ? »).</span><span class="en">at the bottom of every page: useful for support ("which version do you have?").</span></span></div></li>
+        </ol>
+      </figure>
+
+      <h3 class="subhead"><span class="fr">Pas à pas</span><span class="en">Step by step</span></h3>
+      <ol class="steps">
+        <li><span class="fr"><b>Créer un compte :</b> onglet <span class="btnref">Créer un compte</span> → votre nom, votre téléphone, un mot de passe (6 caractères minimum) → <span class="btnref">Créer mon compte</span>. Si le numéro a déjà un compte, connectez-vous plutôt.</span><span class="en"><b>Create an account:</b> <span class="btnref">Create an account</span> tab → your name, phone and a password (6+ characters) → <span class="btnref">Create my account</span>. If the number already has an account, log in instead.</span></li>
+        <li><span class="fr"><b>Se connecter :</b> téléphone + mot de passe → <span class="btnref">Se connecter</span>. Vous arrivez sur « Mes boutiques ».</span><span class="en"><b>Log in:</b> phone + password → <span class="btnref">Log in</span>. You land on "My shops".</span></li>
+        <li><span class="fr"><b>Une boutique reste ouverte :</b> à la réouverture de l'application, la dernière boutique utilisée se rouvre directement, même sans internet.</span><span class="en"><b>Your shop stays open:</b> when you reopen the app, the last shop you used opens directly, even offline.</span></li>
+      </ol>
+      <div class="note"><span class="ic">🛡️</span><div><span class="fr"><b>Super-admin :</b> si votre numéro ouvre aussi un compte super-admin avec le même mot de passe, l'application vous demande où aller : <b>Mes boutiques</b> ou <b>Console super-admin</b>.</span><span class="en"><b>Super-admin:</b> if your number also opens a super-admin account with the same password, the app asks where to go: <b>My shops</b> or <b>Super-admin console</b>.</span></div></div>
+      <div class="note"><span class="ic">📱</span><div><span class="fr"><b>Sur mobile :</b> même écran, avec les onglets Se connecter / Créer un compte en haut de la carte.</span><span class="en"><b>On mobile:</b> same screen, with the Log in / Create an account tabs at the top of the card.</span></div></div>
+    </section>
+
+    <!-- ==================== 2. MY SHOPS ==================== -->
+    <section id="shops">
+      <div class="kicker">02 · <span class="fr">Prise en main</span><span class="en">Getting started</span></div>
+      <h2 class="title"><span class="fr">Mes boutiques</span><span class="en">My shops</span></h2>
+      <p class="lead"><span class="fr">Juste après la connexion. Ouvrez une boutique en un clic, créez-en une nouvelle avec un assistant en 3 étapes, ou demandez à rejoindre l'équipe d'une boutique avec son code. Toute la suite de l'application concerne la boutique ouverte.</span>
+      <span class="en">Right after signing in. Open a shop in one click, create a new one with a 3-step wizard, or ask to join a shop's team with its code. Everything else in the app is about the open shop.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Mes boutiques · Web, Bureau & tablette</span><span class="en">My shops · Web, Desktop & tablet</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/shops</div></div>
+            <div class="bwin" style="flex-direction:column;padding:14px 16px;gap:8px;background:var(--ui-bg)">
+              <div class="urow"><div class="ulogo sf"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDI0IDEwMjQiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzJERDRCRiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzBGNzY2RSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDI0IiBoZWlnaHQ9IjEwMjQiIHJ4PSIyMzAiIGZpbGw9InVybCgjZykiLz48cG9seWdvbiBwb2ludHM9IjUxMi4wLDIyNC43IDY4MC41LDMyMi4wIDUxMi4wLDQxOS4zIDM0My41LDMyMi4wIiBmaWxsPSIjRkZGRkZGIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iNDAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cG9seWdvbiBwb2ludHM9IjMwNi41LDM4Ni4xIDQ3NS4wLDQ4My40IDQ3NS4wLDY3Ny45IDMwNi41LDU4MC42IiBmaWxsPSIjRTZGRkZCIiBzdHJva2U9IiNFNkZGRkIiIHN0cm9rZS13aWR0aD0iNDAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cG9seWdvbiBwb2ludHM9IjU0OS4wLDQ4My40IDcxNy41LDM4Ni4xIDcxNy41LDU4MC42IDU0OS4wLDY3Ny45IiBmaWxsPSIjOTlGNkU0IiBzdHJva2U9IiM5OUY2RTQiIHN0cm9rZS13aWR0aD0iNDAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNMTgzLjUgNjM2LjYgQTM3MiAzNzIgMCAwIDAgODY1LjggNTc3LjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZCQkYyNCIgc3Ryb2tlLXdpZHRoPSI0Ni41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cG9seWdvbiBwb2ludHM9Ijg4OC40LDUwNy4zIDkyNi44LDYyMi40IDc4OS43LDU3Ny45IiBmaWxsPSIjRkJCRjI0IiBzdHJva2U9IiNGQkJGMjQiIHN0cm9rZS13aWR0aD0iMTYuMyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPgo=" alt="" /></div><div style="font:700 15px 'Bricolage Grotesque'"><span class="fr">Bonjour, Awa 👋</span><span class="en">Hello, Awa 👋</span></div><div class="uspace"></div><span class="uchip">FR</span><span class="ubtn g"><span class="fr">Déconnexion</span><span class="en">Log out</span></span></div>
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div class="ucard" style="flex:3;margin-top:0">
+                  <div class="useg" style="width:100%"><span class="on" style="flex:1;text-align:center" data-pin="1" data-pin-at="top">➕ <span class="fr">Créer une boutique</span><span class="en">Create a shop</span></span><span style="flex:1;text-align:center" data-pin="2" data-pin-at="top">🔑 <span class="fr">Rejoindre avec un code</span><span class="en">Join with a code</span></span></div>
+                  <div class="urow" style="margin-top:8px;gap:5px"><span class="uchip on">🏷️ 1. <span class="fr">Général</span><span class="en">General</span></span><span class="uchip">🏪 2. <span class="fr">La boutique</span><span class="en">The shop</span></span><span class="uchip" data-pin="3">🧰 3. <span class="fr">Équipement</span><span class="en">Equipment</span></span></div>
+                  <div class="ufield" data-pin="4"><span class="lab"><span class="fr">Type de commerce</span><span class="en">Type of business</span></span>🏪 <span class="fr">Commerce</span><span class="en">Retail</span> · <b style="color:var(--ui-primary)">💊 <span class="fr">Pharmacie</span><span class="en">Pharmacy</span></b> · 🛒 <span class="fr">Épicerie</span><span class="en">Grocery</span> · 📱 · 👕 · ⚖️ · 🛠️</div>
+                  <div class="ufield"><span class="lab"><span class="fr">Nom de la boutique</span><span class="en">Shop name</span></span>Pharmacie Akwa</div>
+                  <div style="display:flex;gap:6px"><div class="ufield" style="flex:1"><span class="lab"><span class="fr">Pays</span><span class="en">Country</span></span>Cameroun · XAF · 19.25%</div><div class="ufield" style="flex:1"><span class="lab"><span class="fr">Devise</span><span class="en">Currency</span></span>XAF</div></div>
+                  <div class="urow" style="margin-top:9px"><div class="uspace"></div><span class="ubtn" data-pin="5" data-pin-at="left"><span class="fr">Suivant</span><span class="en">Next</span> →</span></div>
+                </div>
+                <div class="ucard" style="flex:1;margin-top:0">
+                  <h5><span class="fr">Vos boutiques (2)</span><span class="en">Your shops (2)</span></h5>
+                  <div class="ucard tight" style="margin-top:6px" data-pin="6"><div style="font:700 11px 'IBM Plex Sans'">Pharmacie Akwa</div><div class="umuted" style="font-size:9px"><span class="fr">Gérant</span><span class="en">Manager</span> · XAF · PHRM-UWM8V</div><span class="upill warn" style="margin-top:4px">1 <span class="fr">demande</span><span class="en">request</span></span></div>
+                  <div class="ucard tight" style="margin-top:6px"><div style="font:700 11px 'IBM Plex Sans'">Boutique Deido</div><div class="umuted" style="font-size:9px"><span class="fr">Caissier</span><span class="en">Cashier</span> · XAF</div><span class="upill mut" style="margin-top:4px" data-pin="7"><span class="fr">En attente de validation</span><span class="en">Waiting for approval</span></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Créer une boutique</span><span class="en">Create a shop</span></b> · <span class="d"><span class="fr">l'assistant de création (à gauche, la plus grande colonne).</span><span class="en">the creation wizard (left, the wider column).</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Rejoindre avec un code</span><span class="en">Join with a code</span></b> · <span class="d"><span class="fr">demander l'accès à une boutique existante.</span><span class="en">ask for access to an existing shop.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Étapes</span><span class="en">Steps</span></b> · <span class="d"><span class="fr">Général, La boutique, Équipement. Touchez une étape pour y aller directement.</span><span class="en">General, The shop, Equipment. Tap a step to jump to it.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Type de commerce & pays</span><span class="en">Business type & country</span></b> · <span class="d"><span class="fr">le type pré-coche ce que vous gérez (péremption, poids…), le pays règle la devise et la TVA.</span><span class="en">the type pre-selects what you manage (expiry, weight…), the country sets currency and VAT.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Suivant / Créer la boutique</span><span class="en">Next / Create the shop</span></b> · <span class="d"><span class="fr">Entrée passe aussi à l'étape suivante.</span><span class="en">Enter also moves to the next step.</span></span></div></li>
+          <li><span class="pn">6</span><div><b><span class="fr">Vos boutiques</span><span class="en">Your shops</span></b> · <span class="d"><span class="fr">un clic ouvre la boutique. Rôle, devise et code d'invitation (gérants) sous le nom ; badge orange = demandes d'accès à traiter.</span><span class="en">one click opens the shop. Role, currency and invite code (managers) under the name; orange badge = join requests to handle.</span></span></div></li>
+          <li><span class="pn">7</span><div><b><span class="fr">En attente de validation</span><span class="en">Waiting for approval</span></b> · <span class="d"><span class="fr">votre demande n'est pas encore acceptée par le gérant ; la boutique s'ouvrira dès qu'elle le sera.</span><span class="en">your request isn't accepted by the manager yet; the shop opens as soon as it is.</span></span></div></li>
+        </ol>
+      </figure>
+
+      <h3 class="subhead"><span class="fr">Pas à pas</span><span class="en">Step by step</span></h3>
+      <ol class="steps">
+        <li><span class="fr"><b>Étape 1 · Général :</b> choisissez le type de commerce, le nom de la boutique, une description (facultative) et le pays : la devise et le taux de TVA se remplissent tout seuls.</span><span class="en"><b>Step 1 · General:</b> pick the business type, the shop name, an optional description and the country: currency and VAT rate fill in by themselves.</span></li>
+        <li><span class="fr"><b>Étape 2 · La boutique :</b> adresse, téléphone, NIU, message en bas du reçu, système comptable (OHADA, TVA générique ou sans taxe), régime fiscal (standard avec TVA, ou impôt libératoire) et taux de TVA.</span><span class="en"><b>Step 2 · The shop:</b> address, phone, taxpayer number (NIU), receipt footer, accounting system (OHADA, generic VAT or no tax), tax regime (standard with VAT, or flat tax) and VAT rate.</span></li>
+        <li><span class="fr"><b>Étape 3 · Équipement :</b> ce que vous gérez (péremption & lots, vente au poids, numéros de série, variantes, assemblage), cartes cadeaux de récompense, seuil de stock bas par défaut → <span class="btnref">Créer la boutique</span>.</span><span class="en"><b>Step 3 · Equipment:</b> what you manage (expiry & batches, sale by weight, serial numbers, variants, assembly), reward gift cards, default low-stock threshold → <span class="btnref">Create the shop</span>.</span></li>
+        <li><span class="fr"><b>Rejoindre :</b> onglet <span class="btnref">Rejoindre avec un code</span> → code donné par le gérant (format PHRM-XXXXX, majuscules et espaces sans importance) → <span class="btnref">Envoyer la demande</span>. Le gérant l'accepte dans Personnel.</span><span class="en"><b>Join:</b> <span class="btnref">Join with a code</span> tab → code from the manager (PHRM-XXXXX format, case and spaces don't matter) → <span class="btnref">Send the request</span>. The manager accepts it in Staff.</span></li>
+        <li><span class="fr"><b>Succursale :</b> si la boutique a plusieurs succursales, l'application demande où vous travaillez et s'en souvient sur cet appareil.</span><span class="en"><b>Branch:</b> if the shop has several branches, the app asks where you work and remembers it on this device.</span></li>
+      </ol>
+      <div class="note tip"><span class="ic">✅</span><div><span class="fr">Tout ce que vous saisissez dans l'assistant est enregistré sur la boutique : vous le retrouvez et le modifiez ensuite dans <b>Mon entreprise</b> (section 16).</span><span class="en">Everything you enter in the wizard is saved on the shop: you find and edit it later in <b>My business</b> (section 16).</span></div></div>
+      <div class="note warn"><span class="ic">📶</span><div><span class="fr"><b>Changer de boutique en sécurité :</b> avant d'ouvrir une autre boutique, l'application envoie d'abord au serveur les ventes et opérations faites hors ligne. Si elle n'y arrive pas (pas d'internet), elle vous prévient et ne les efface qu'avec votre accord (<span class="btnref">Effacer et ouvrir</span>).</span><span class="en"><b>Safe shop switch:</b> before opening another shop, the app first sends the sales and operations made offline. If it can't (no internet), it warns you and only erases them with your OK (<span class="btnref">Erase and open</span>).</span></div></div>
+      <div class="note"><span class="ic">📱</span><div><span class="fr"><b>Sur tablette :</b> même disposition en deux colonnes. <b>Sur téléphone :</b> une seule colonne, vos boutiques en premier, puis Créer / Rejoindre.</span><span class="en"><b>On tablet:</b> same two-column layout. <b>On phone:</b> a single column, your shops first, then Create / Join.</span></div></div>
+    </section>
+
+    <!-- ==================== 3. NAVIGATION ==================== -->
+    <section id="nav">
+      <div class="kicker">03 · <span class="fr">Prise en main</span><span class="en">Getting started</span></div>
+      <h2 class="title"><span class="fr">Se repérer dans l'application</span><span class="en">Finding your way around</span></h2>
+      <p class="lead"><span class="fr">Un menu latéral sur le web et le bureau, une barre d'onglets en bas sur téléphone et un rail à gauche sur tablette. Les fonctionnalités sont les mêmes partout.</span>
+      <span class="en">A side menu on web and desktop, a bottom tab bar on phone and a left rail on tablet. The features are the same everywhere.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Web & Bureau · menu et en-tête</span><span class="en">Web & Desktop · menu and header</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/dashboard</div></div>
+            <div class="bwin">
+              <div class="bside">
+                <div class="ubrand" data-pin="1"><div class="ulogo" style="font:800 13px 'Bricolage Grotesque'">P</div>Pharmacie Akwa</div>
+                <ul class="unav">
+                  <li class="on">🏠 <span class="fr">Tableau de bord</span><span class="en">Dashboard</span></li>
+                  <li>🔔 <span class="fr">Alertes</span><span class="en">Alerts</span></li>
+                  <span class="g" data-pin="2"><span class="fr">Ventes ▾</span><span class="en">Sales ▾</span></span>
+                  <li>🧾 <span class="fr">Point de vente</span><span class="en">Point of sale</span></li>
+                  <li>💵 <span class="fr">Caisse</span><span class="en">Cash register</span></li>
+                  <li>🕘 <span class="fr">Historique</span><span class="en">Sales history</span></li>
+                  <span class="g"><span class="fr">Catalogue ▸</span><span class="en">Catalog ▸</span></span>
+                  <span class="g"><span class="fr">Achats ▸</span><span class="en">Purchasing ▸</span></span>
+                  <span class="g"><span class="fr">Clients ▸</span><span class="en">Clients ▸</span></span>
+                  <span class="g"><span class="fr">Gestion ▸</span><span class="en">Management ▸</span></span>
+                  <span class="g"><span class="fr">Aide ▸</span><span class="en">Help ▸</span></span>
+                </ul>
+              </div>
+              <div class="bmain">
+                <div class="urow" style="margin-bottom:10px"><span>☰</span><b style="font-size:12px"><span class="fr">Tableau de bord</span><span class="en">Dashboard</span></b><span class="uchip" data-pin="3" data-pin-at="top">📍 Main</span><div class="uspace"></div><span class="uchip">EN</span><span data-pin="4" data-pin-at="top">🔄</span><span>🌙</span><span class="uchip" data-pin="5" data-pin-at="top">🏪 <span class="fr">Mes boutiques</span><span class="en">My shops</span></span><span style="color:var(--ui-red)">⏻</span></div>
+                <div class="utitle"><span class="fr">Bienvenue, Awa 👋</span><span class="en">Welcome, Awa 👋</span></div>
+                <div class="usub"><span class="fr">Voici l'activité de votre entreprise aujourd'hui.</span><span class="en">Here's your business activity today.</span></div>
+                <div class="ustatgrid"><div class="ustat"><div class="k"><span class="fr">Recettes</span><span class="en">Revenue</span></div><div class="v">184 500</div></div><div class="ustat"><div class="k"><span class="fr">Ventes</span><span class="en">Sales</span></div><div class="v">37</div></div><div class="ustat"><div class="k"><span class="fr">Stock faible</span><span class="en">Low stock</span></div><div class="v" style="color:var(--ui-amber)">6</div></div><div class="ustat"><div class="k"><span class="fr">Expire bientôt</span><span class="en">Expiring</span></div><div class="v" style="color:var(--ui-red)">3</div></div></div>
+                <div class="umuted" style="text-align:center;margin-top:70px;font-size:9px" data-pin="6" data-pin-at="top">StockFlow Web v0.2.2 · © mfSPACE.lu</div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Boutique ouverte</span><span class="en">Open shop</span></b> · <span class="d"><span class="fr">son logo et son nom en haut du menu.</span><span class="en">its logo and name at the top of the menu.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Menu groupé</span><span class="en">Grouped menu</span></b> · <span class="d"><span class="fr">Ventes, Catalogue, Achats, Clients, Gestion, Aide. Un clic ouvre ou ferme le groupe ; la page active est surlignée.</span><span class="en">Sales, Catalog, Purchasing, Clients, Management, Help. A click opens or closes the group; the active page is highlighted.</span></span></div></li>
+          <li><span class="pn">3</span><div><b>📍 <span class="fr">Succursale</span><span class="en">Branch</span></b> · <span class="d"><span class="fr">la succursale où vous travaillez ; cliquez pour en changer.</span><span class="en">the branch you work at; click to change it.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Langue · 🔄 · 🌙</span><span class="en">Language · 🔄 · 🌙</span></b> · <span class="d"><span class="fr">FR/EN, synchroniser maintenant, thème clair/sombre.</span><span class="en">FR/EN, sync now, light/dark theme.</span></span></div></li>
+          <li><span class="pn">5</span><div><b>🏪 <span class="fr">Mes boutiques · ⏻</span><span class="en">My shops · ⏻</span></b> · <span class="d"><span class="fr">revenir à la liste des boutiques ; ⏻ se déconnecter.</span><span class="en">back to the list of shops; ⏻ logs out.</span></span></div></li>
+          <li><span class="pn">6</span><div><b><span class="fr">Pied de page</span><span class="en">Footer</span></b> · <span class="d"><span class="fr">version de l'application et © mfSPACE.lu, en bas de chaque page.</span><span class="en">app version and © mfSPACE.lu, at the bottom of every page.</span></span></div></li>
+        </ol>
+      </figure>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--coral)"></span><span class="fr">Mobile · barre d'onglets (téléphone) et rail (tablette)</span><span class="en">Mobile · tab bar (phone) and rail (tablet)</span></figcaption>
+        <div class="mockwrap" style="gap:26px"><div class="frame">
+          <div class="phone"><div class="pscreen">
+            <div class="ptop"><div style="font:700 15px 'Bricolage Grotesque'"><span class="fr">Bonjour, Awa</span><span class="en">Hello, Awa</span></div><div class="umuted">Main</div></div>
+            <div class="pbody">
+              <div class="ustatgrid" style="grid-template-columns:1fr 1fr"><div class="ustat"><div class="k"><span class="fr">Recettes</span><span class="en">Revenue</span></div><div class="v">184 500</div></div><div class="ustat"><div class="k"><span class="fr">Ventes</span><span class="en">Sales</span></div><div class="v">37</div></div></div>
+              <div class="ucard"><h5><span class="fr">Évolution des recettes</span><span class="en">Revenue trend</span></h5><div class="ubars"><div class="b" style="height:40%"></div><div class="b" style="height:65%"></div><div class="b" style="height:52%"></div><div class="b" style="height:80%"></div><div class="b" style="height:70%"></div></div></div>
+            </div>
+            <div class="tabbar" data-pin="1" data-pin-at="left"><div class="tb on"><span class="ic">🏠</span><span class="fr">Accueil</span><span class="en">Home</span></div><div class="tb"><span class="ic">➕</span><span class="fr">Nouvelle vente</span><span class="en">New sale</span></div><div class="tb"><span class="ic">📦</span><span class="fr">Produits</span><span class="en">Products</span></div><div class="tb"><span class="ic">🕘</span><span class="fr">Historique</span><span class="en">History</span></div><div class="tb" data-pin="2" data-pin-at="top"><span class="ic">⋯</span><span class="fr">Plus</span><span class="en">More</span></div></div>
+            <div style="text-align:center;font-size:7.5px;color:var(--ui-ink2);padding:2px 0 4px;background:var(--ui-card)">StockFlow Android v0.2.2 · © mfSPACE.lu</div>
+          </div></div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Barre d'onglets (téléphone)</span><span class="en">Tab bar (phone)</span></b> · <span class="d"><span class="fr">Accueil, Nouvelle vente (point de vente), Produits, Historique et Plus. Sur tablette, ces mêmes onglets forment un rail à gauche.</span><span class="en">Home, New sale (point of sale), Products, History and More. On tablet, the same tabs form a rail on the left.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Plus</span><span class="en">More</span></b> · <span class="d"><span class="fr">tous les autres écrans (catalogue, achats, clients, gestion, aide), la recherche dans le menu, la langue, le thème, « Mes boutiques » et la déconnexion.</span><span class="en">every other screen (catalog, purchasing, clients, management, help), menu search, language, theme, "My shops" and log out.</span></span></div></li>
+        </ol>
+      </figure>
+    </section>
+
+
+    <!-- ==================== 4. DASHBOARD & ALERTS ==================== -->
+    <section id="dashboard">
+      <div class="kicker">04 · <span class="fr">Ventes</span><span class="en">Sales</span></div>
+      <h2 class="title"><span class="fr">Tableau de bord & alertes</span><span class="en">Dashboard & alerts</span></h2>
+      <p class="lead"><span class="fr">La vue d'ensemble de la journée : recettes, ventes, état du stock. Chaque tuile est cliquable et ouvre la liste correspondante. Les alertes regroupent tout ce qui demande une action.</span>
+      <span class="en">Today at a glance: revenue, sales, stock health. Every tile is clickable and opens the matching list. Alerts gather everything that needs action.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Tableau de bord · Web & Bureau</span><span class="en">Dashboard · Web & Desktop</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/dashboard</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="utitle"><span class="fr">Bienvenue, Awa 👋</span><span class="en">Welcome, Awa 👋</span></div>
+              <div class="usub"><span class="fr">Voici l'activité de votre entreprise aujourd'hui.</span><span class="en">Here's how your business is doing today.</span></div>
+              <div class="ucard tight" style="margin:0 0 10px;border-color:var(--ui-red);background:var(--ui-redsoft)" data-pin="1"><div class="urow"><b style="color:var(--ui-red);font-size:11px">⚠️ <span class="fr">Réconciliation requise</span><span class="en">Needs reconciliation</span></b><div class="uspace"></div><span class="ubtn" style="background:var(--ui-red)"><span class="fr">Examiner</span><span class="en">Review</span></span></div></div>
+              <div class="ustatgrid" style="grid-template-columns:repeat(6,1fr)" data-pin="2" data-pin-at="top">
+                <div class="ustat"><div class="k"><span class="fr">Recettes du jour</span><span class="en">Revenue today</span></div><div class="v">184 500</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Ventes du jour</span><span class="en">Sales today</span></div><div class="v">37</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Produits</span><span class="en">Products</span></div><div class="v">412</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Stock faible</span><span class="en">Low stock</span></div><div class="v" style="color:var(--ui-amber)">6</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Rupture</span><span class="en">Out of stock</span></div><div class="v" style="color:var(--ui-red)">2</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Expire bientôt</span><span class="en">Expiring</span></div><div class="v" style="color:var(--ui-red)">3</div></div>
+              </div>
+              <div style="display:flex;gap:10px">
+                <div class="ucard" style="flex:2"><div class="urow"><h5 style="margin:0"><span class="fr">Évolution des recettes</span><span class="en">Revenue trend</span></h5><div class="uspace"></div><div class="useg" data-pin="3"><span class="on">7J</span><span>30J</span><span>90J</span></div></div><div class="ubars"><div class="b" style="height:45%"></div><div class="b" style="height:62%"></div><div class="b" style="height:38%"></div><div class="b" style="height:80%"></div><div class="b" style="height:70%"></div><div class="b" style="height:92%"></div><div class="b" style="height:66%"></div></div></div>
+                <div class="ucard" style="flex:1" data-pin="4"><h5><span class="fr">État du stock</span><span class="en">Stock health</span></h5><div class="urow" style="justify-content:space-around;margin-top:24px;font:700 15px 'Bricolage Grotesque'"><span style="color:var(--ui-green)">398</span><span style="color:var(--ui-amber)">6</span><span style="color:var(--ui-red)">2</span></div></div>
+              </div>
+              <div class="ucard" data-pin="5"><h5><span class="fr">Ventes récentes</span><span class="en">Recent sales</span></h5><div class="urow umuted"><span>10:42 · <span class="fr">Client de passage</span><span class="en">Walk-in</span></span><div class="uspace"></div><b style="color:var(--ui-ink)">4 500 XAF</b></div></div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Réconciliation requise</span><span class="en">Needs reconciliation</span></b> · <span class="d"><span class="fr">apparaît si un lot est passé en négatif après des ventes hors ligne, ou si deux appareils ont ouvert la même caisse. Le gérant clique Examiner, corrige le stock puis « Marquer examiné ».</span><span class="en">appears if a batch went negative after offline sales, or two devices opened the same register. The manager clicks Review, fixes the stock then "Mark reviewed".</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Six tuiles</span><span class="en">Six tiles</span></b> · <span class="d"><span class="fr">recettes et ventes du jour, produits, stock faible, rupture, expire bientôt. Un clic ouvre la liste filtrée.</span><span class="en">today's revenue and sales, products, low stock, out of stock, expiring soon. A click opens the filtered list.</span></span></div></li>
+          <li><span class="pn">3</span><div><b>7J · 30J · 90J</b> · <span class="d"><span class="fr">période du graphique des recettes.</span><span class="en">period of the revenue chart.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">État du stock</span><span class="en">Stock health</span></b> · <span class="d"><span class="fr">produits en stock, en stock faible et en rupture.</span><span class="en">products in stock, low and out of stock.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Ventes récentes</span><span class="en">Recent sales</span></b> · <span class="d"><span class="fr">les 8 dernières ventes.</span><span class="en">the last 8 sales.</span></span></div></li>
+        </ol>
+      </figure>
+
+      <h3 class="subhead">🔔 <span class="fr">Alertes</span><span class="en">Alerts</span></h3>
+      <div class="grid2">
+        <div class="mini"><h4>⛔ <span class="fr">Rupture de stock</span><span class="en">Out of stock</span></h4><p><span class="fr">Produits à zéro, avec un bouton Réceptionner. « En commande » si un bon de commande est déjà ouvert : un clic l'ouvre.</span><span class="en">Products at zero, with a Receive button. "On order" if a purchase order is already open: a click opens it.</span></p></div>
+        <div class="mini"><h4>⚠️ <span class="fr">Stock faible</span><span class="en">Low stock</span></h4><p><span class="fr">Stock actuel / seuil, avec Réceptionner.</span><span class="en">Current stock / threshold, with Receive.</span></p></div>
+        <div class="mini"><h4>⏰ <span class="fr">Expiré</span><span class="en">Expired</span></h4><p><span class="fr">Lot, date de péremption, unités, et depuis combien de jours. Un clic ouvre l'inventaire du produit.</span><span class="en">Batch, expiry date, units and how many days ago. A click opens the product's inventory.</span></p></div>
+        <div class="mini"><h4>⏳ <span class="fr">Expire bientôt</span><span class="en">Expiring soon</span></h4><p><span class="fr">Lots qui expirent dans les 30 jours : à vendre en priorité.</span><span class="en">Batches expiring within 30 days: sell them first.</span></p></div>
+      </div>
+      <div class="note"><span class="ic">📱</span><div><span class="fr"><b>Sur mobile :</b> l'onglet Accueil montre les mêmes chiffres en une colonne ; les Alertes sont dans Plus → Gestion.</span><span class="en"><b>On mobile:</b> the Home tab shows the same figures in one column; Alerts are under More → Management.</span></div></div>
+    </section>
+
+    <!-- ==================== 5. POINT OF SALE ==================== -->
+    <section id="pos">
+      <div class="kicker">05 · <span class="fr">Ventes</span><span class="en">Sales</span></div>
+      <h2 class="title"><span class="fr">Point de vente</span> <span class="en">Point of sale</span><span class="platform">🖥️ 📱</span></h2>
+      <p class="lead"><span class="fr">Scannez ou cherchez les produits, choisissez le client et le moyen de paiement, encaissez, imprimez le reçu. Le stock est déduit automatiquement, lot par lot, en commençant par celui qui expire le plus tôt (FEFO).</span>
+      <span class="en">Scan or search products, pick the customer and payment method, charge, print the receipt. Stock is deducted automatically, batch by batch, starting with the one that expires first (FEFO).</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Point de vente · Web & Bureau</span><span class="en">Point of sale · Web & Desktop</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/pos</div></div>
+            <div class="bwin"><div class="bmain" style="display:flex;gap:10px">
+              <div style="flex:1.4;min-width:0">
+                <div class="ufield" style="margin-top:0" data-pin="1">🔎 <span class="fr">Scannez un code-barres ou recherchez un produit…</span><span class="en">Scan a barcode or search products…</span></div>
+                <div class="ucard tight"><div class="urow"><b style="font-size:11px">Paracétamol 500 mg</b><span class="upill ok">120</span><div class="uspace"></div><span style="font-size:11px">500 XAF</span></div><div class="umuted" style="font-size:9.5px">📦 <span class="fr">Boîte de 10</span><span class="en">Box of 10</span> · 4 500</div></div>
+                <div class="ucard" data-pin="2"><h5><span class="fr">Panier</span><span class="en">Cart</span></h5>
+                  <div class="urow" style="font-size:11px">Paracétamol 500 mg<div class="uspace"></div><span class="uchip">−</span><b>2</b><span class="uchip">+</span><b style="width:52px;text-align:right">1 000</b><span style="color:var(--ui-red)">✕</span></div>
+                  <div class="uline"></div>
+                  <div class="urow" style="font-size:11px">Amoxicilline 1 g · <span class="fr">Boîte</span><span class="en">Box</span><div class="uspace"></div><span class="uchip">−</span><b>1</b><span class="uchip">+</span><b style="width:52px;text-align:right">3 500</b><span style="color:var(--ui-red)">✕</span></div>
+                </div>
+              </div>
+              <div class="ucard" style="flex:1;margin-top:0">
+                <div class="umuted">TOTAL</div><div style="font:800 22px 'Bricolage Grotesque'" data-pin="3">4 500 XAF</div>
+                <div class="ufield" data-pin="4"><span class="lab"><span class="fr">Client (facultatif)</span><span class="en">Customer (optional)</span></span><span class="fr">Client de passage</span><span class="en">Walk-in customer</span> ▾ &nbsp;➕</div>
+                <div class="umuted" style="margin-top:8px"><span class="fr">PAIEMENT</span><span class="en">PAYMENT</span></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:4px" data-pin="5">
+                  <span class="uchip on" style="text-align:center"><span class="fr">Espèces</span><span class="en">Cash</span></span><span class="uchip" style="text-align:center">Mobile money</span>
+                  <span class="uchip" style="text-align:center"><span class="fr">Crédit</span><span class="en">Credit</span></span><span class="uchip" style="text-align:center"><span class="fr">Avoir</span><span class="en">Store credit</span></span>
+                  <span class="uchip" style="text-align:center"><span class="fr">Carte cadeau</span><span class="en">Gift card</span></span>
+                </div>
+                <div class="ufield"><span class="lab"><span class="fr">Montant remis</span><span class="en">Amount tendered</span></span>5 000 · <span class="fr">Monnaie : 500</span><span class="en">Change: 500</span></div>
+                <div class="ubtn" style="width:100%;justify-content:center;margin-top:9px;padding:9px" data-pin="6"><span class="fr">Encaisser 4 500 XAF</span><span class="en">Charge 4,500 XAF</span></div>
+                <div class="urow" style="margin-top:6px" data-pin="7"><span class="ubtn g" style="flex:1;justify-content:center">⏸ <span class="fr">En attente</span><span class="en">Hold</span></span><span class="ubtn g" style="flex:1;justify-content:center">🗑 <span class="fr">Vider</span><span class="en">Clear</span></span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Recherche / scan</span><span class="en">Search / scan</span></b> · <span class="d"><span class="fr">tapez un nom ou un code-barres ; une douchette USB/Bluetooth fonctionne partout sur l'écran. Entrée ajoute le premier résultat.</span><span class="en">type a name or barcode; a USB/Bluetooth scan gun works anywhere on the screen. Enter adds the first result.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Panier</span><span class="en">Cart</span></b> · <span class="d"><span class="fr">− / + pour la quantité, ✕ pour retirer une ligne.</span><span class="en">− / + for quantity, ✕ removes a line.</span></span></div></li>
+          <li><span class="pn">3</span><div><b>Total</b> · <span class="d"><span class="fr">TVA comprise. Pour un client professionnel (🏢 Pro), la TVA est ajoutée en sus.</span><span class="en">VAT included. For a business customer (🏢 Pro), VAT is added on top.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Client</span><span class="en">Customer</span></b> · <span class="d"><span class="fr">facultatif ; ➕ crée un client sur place. Ses puces montrent son avoir, ce qu'il doit et ses récompenses.</span><span class="en">optional; ➕ creates a customer on the spot. Chips show their store credit, what they owe and rewards.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Moyen de paiement</span><span class="en">Payment method</span></b> · <span class="d"><span class="fr">Espèces, Mobile money, Crédit (payer plus tard), Avoir (prépayé), Carte cadeau.</span><span class="en">Cash, Mobile money, Credit (pay later), Store credit (prepaid), Gift card.</span></span></div></li>
+          <li><span class="pn">6</span><div><b><span class="fr">Encaisser</span><span class="en">Charge</span></b> · <span class="d"><span class="fr">valide la vente, déduit le stock et propose d'imprimer le reçu (ou l'imprime automatiquement si c'est réglé).</span><span class="en">completes the sale, deducts stock and offers to print the receipt (or prints it automatically if set).</span></span></div></li>
+          <li><span class="pn">7</span><div><b><span class="fr">Mettre en attente / Vider</span><span class="en">Hold / Clear</span></b> · <span class="d"><span class="fr">mettre la vente de côté (Ventes en attente) ou vider le panier.</span><span class="en">set the sale aside (Held sales) or empty the cart.</span></span></div></li>
+        </ol>
+      </figure>
+
+      <h3 class="subhead"><span class="fr">Pas à pas</span><span class="en">Step by step</span></h3>
+      <ol class="steps">
+        <li><span class="fr"><b>Ouvrir la caisse</b> (section 6) : un caissier ne peut pas vendre tant que la caisse du jour n'est pas ouverte.</span><span class="en"><b>Open the register</b> (section 6): a cashier can't sell until the day's register is open.</span></li>
+        <li><span class="fr"><b>Ajouter les produits :</b> scannez ou cherchez. Selon le produit, l'application demande l'unité de vente (Unité, Boîte…), le poids ou la quantité, ou le numéro de série / IMEI.</span><span class="en"><b>Add products:</b> scan or search. Depending on the product, the app asks for the sale unit (Unit, Box…), the weight or quantity, or the serial / IMEI number.</span></li>
+        <li><span class="fr"><b>Client & paiement :</b> choisissez un client si besoin, puis le moyen de paiement. En espèces, saisissez le montant remis pour voir la monnaie à rendre.</span><span class="en"><b>Customer & payment:</b> pick a customer if needed, then the payment method. For cash, enter the amount tendered to see the change due.</span></li>
+        <li><span class="fr"><b>Encaisser</b>, puis <span class="btnref">🖨 Imprimer / enregistrer le reçu</span>.</span><span class="en"><b>Charge</b>, then <span class="btnref">🖨 Print / save receipt</span>.</span></li>
+        <li><span class="fr"><b>Récompense :</b> si le client a droit à une carte cadeau de récompense, un bandeau 🎁 propose de l'émettre et de l'imprimer.</span><span class="en"><b>Reward:</b> if the customer earned a reward gift card, a 🎁 banner offers to issue and print it.</span></li>
+      </ol>
+      <div class="note warn"><span class="ic">⚠️</span><div><span class="fr"><b>Règles :</b> un produit en rupture ne peut pas être vendu (réceptionnez d'abord du stock). Un produit expiré peut être vendu avec un avertissement. Crédit et Avoir exigent un client. L'avoir et la carte cadeau doivent couvrir tout le montant (pas de paiement partagé).</span><span class="en"><b>Rules:</b> an out-of-stock product can't be sold (receive stock first). An expired product can be sold with a warning. Credit and Store credit require a customer. Store credit and gift card must cover the whole amount (no split payment).</span></div></div>
+      <div class="note"><span class="ic">📶</span><div><span class="fr"><b>Sans internet :</b> sur l'application bureau et sur mobile, la vente est enregistrée sur l'appareil et envoyée au serveur au retour de la connexion. La version web dans le navigateur a besoin d'internet pour encaisser.</span><span class="en"><b>Without internet:</b> in the desktop app and on mobile, the sale is saved on the device and sent to the server when the connection returns. The web version in the browser needs internet to charge.</span></div></div>
+      <div class="note"><span class="ic">📱</span><div><span class="fr"><b>Sur mobile :</b> onglet <b>Nouvelle vente</b>. Le bouton caméra scanne les codes-barres (tenez le code immobile un instant). Le paiement s'ouvre sur un écran à part : moyen de paiement, montant reçu, <span class="btnref">Encaisser</span>, puis Imprimer ou Voir le reçu.</span><span class="en"><b>On mobile:</b> <b>New sale</b> tab. The camera button scans barcodes (hold the code still for a moment). Payment opens on its own screen: method, amount received, <span class="btnref">Charge</span>, then Print or View the receipt.</span></div></div>
+
+      <h3 class="subhead">⏸️ <span class="fr">Ventes en attente</span><span class="en">Held sales</span></h3>
+      <p class="lead" style="font-size:15px"><span class="fr">Un client revient plus tard ? Mettez la vente en attente. Dans Ventes → Ventes en attente, <span class="btnref">▶️ Reprendre la vente</span> la remet dans le panier (le panier doit être vide), ou 🗑️ la supprime.</span><span class="en">A customer will be back later? Hold the sale. In Sales → Held sales, <span class="btnref">▶️ Resume sale</span> puts it back in the cart (the cart must be empty), or 🗑️ deletes it.</span></p>
+    </section>
+
+    <!-- ==================== 6. CASH REGISTER ==================== -->
+    <section id="register">
+      <div class="kicker">06 · <span class="fr">Ventes</span><span class="en">Sales</span></div>
+      <h2 class="title"><span class="fr">Caisse</span><span class="en">Cash register</span></h2>
+      <p class="lead"><span class="fr">Chaque journée commence par l'ouverture de la caisse (fonds de caisse) et se termine par sa fermeture (comptage des espèces). L'application calcule l'écart.</span>
+      <span class="en">Each day starts by opening the register (cash float) and ends by closing it (cash count). The app calculates the difference.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Caisse ouverte · fermeture</span><span class="en">Open register · closing</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/cash-register</div></div>
+            <div class="bwin"><div class="bmain" style="display:flex;gap:10px">
+              <div style="flex:1">
+                <div class="ucard" style="margin-top:0" data-pin="1"><div class="urow"><span class="upill ok"><span class="fr">Caisse ouverte</span><span class="en">Register open</span></span><div class="uspace"></div><span class="umuted">Awa · 08:02</span></div><div class="umuted" style="margin-top:6px"><span class="fr">Fonds de caisse</span><span class="en">Opening float</span> : 20 000</div></div>
+                <div class="ucard" data-pin="2"><div class="urow" style="font-size:11px">💵 <span class="fr">Ventes en espèces</span><span class="en">Cash sales</span><div class="uspace"></div><b>142 000</b></div><div class="umuted"><span class="fr">Attendu dans le tiroir</span><span class="en">Expected in drawer</span> : <b>162 000</b></div><div class="uline"></div><div class="urow" style="font-size:11px">📱 Mobile money<div class="uspace"></div><b>42 500</b></div><div class="umuted"><span class="fr">Pas dans le tiroir</span><span class="en">Not in the cash drawer</span></div></div>
+              </div>
+              <div class="ucard" style="flex:1;margin-top:0">
+                <h5><span class="fr">Fermer la caisse</span><span class="en">Close register</span></h5>
+                <div class="ufield" data-pin="3"><span class="lab"><span class="fr">Espèces comptées</span><span class="en">Cash counted</span></span>160 500</div>
+                <div class="ufield"><span class="lab">Notes</span>-</div>
+                <div class="ucard tight" style="background:var(--ui-redsoft);border-color:var(--ui-red)" data-pin="4"><b style="color:var(--ui-red);font-size:11px"><span class="fr">Manque de 1 500</span><span class="en">Short by 1,500</span></b></div>
+                <div class="ubtn" style="width:100%;justify-content:center;margin-top:9px" data-pin="5"><span class="fr">Fermer la caisse</span><span class="en">Close register</span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">État de la caisse</span><span class="en">Register status</span></b> · <span class="d"><span class="fr">qui l'a ouverte, quand, et le fonds de caisse.</span><span class="en">who opened it, when, and the opening float.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Attendu dans le tiroir</span><span class="en">Expected in drawer</span></b> · <span class="d"><span class="fr">fonds + ventes en espèces. Le mobile money n'est pas compté dans le tiroir.</span><span class="en">float + cash sales. Mobile money isn't counted in the drawer.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Espèces comptées</span><span class="en">Cash counted</span></b> · <span class="d"><span class="fr">comptez seulement les billets et pièces.</span><span class="en">count notes and coins only.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Écart</span><span class="en">Discrepancy</span></b> · <span class="d"><span class="fr">équilibré, excédent ou manque, calculé en direct.</span><span class="en">balanced, over or short, computed live.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Fermer la caisse</span><span class="en">Close register</span></b> · <span class="d"><span class="fr">clôt la journée ; elle apparaît dans l'historique des postes.</span><span class="en">ends the day; it appears in the shift history.</span></span></div></li>
+        </ol>
+      </figure>
+      <ol class="steps">
+        <li><span class="fr"><b>Ouvrir :</b> saisissez le <b>fonds de caisse initial</b> → <span class="btnref">Ouvrir la caisse</span>. Pour un caissier, toute l'application reste verrouillée tant que la caisse n'est pas ouverte (le gérant n'est jamais bloqué).</span><span class="en"><b>Open:</b> enter the <b>opening cash float</b> → <span class="btnref">Open register</span>. For a cashier, the whole app stays locked until the register is open (managers are never locked).</span></li>
+        <li><span class="fr"><b>Fermer :</b> comptez les espèces → <b>Espèces comptées</b> → notes si besoin → <span class="btnref">Fermer la caisse</span>.</span><span class="en"><b>Close:</b> count the cash → <b>Cash counted</b> → notes if needed → <span class="btnref">Close register</span>.</span></li>
+        <li><span class="fr"><b>Suivi :</b> « Recettes journalières » (espèces, mobile money, total par jour, 🖨 Imprimer) et « Historique des postes » avec l'écart de chaque journée.</span><span class="en"><b>Follow-up:</b> "Daily takings" (cash, mobile money, total per day, 🖨 Print) and "Shift history" with each day's discrepancy.</span></li>
+      </ol>
+    </section>
+
+    <!-- ==================== 7. SALES HISTORY ==================== -->
+    <section id="sales">
+      <div class="kicker">07 · <span class="fr">Ventes</span><span class="en">Sales</span></div>
+      <h2 class="title"><span class="fr">Historique des ventes & remboursements</span><span class="en">Sales history & refunds</span></h2>
+      <p class="lead"><span class="fr">Toutes les ventes, filtrables par date. Rouvrez une vente pour réimprimer le reçu ou la rembourser, exportez la période en PDF ou en Excel.</span>
+      <span class="en">Every sale, filterable by date. Open a sale to reprint the receipt or refund it, export the period to PDF or Excel.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Historique des ventes</span><span class="en">Sales history</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/sales</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="urow"><div class="ufield" style="margin:0" data-pin="1"><span class="fr">Du</span><span class="en">From</span> 01/10 · <span class="fr">Au</span><span class="en">To</span> 09/10 · <span class="fr">Effacer</span><span class="en">Clear</span></div><div class="uspace"></div><span class="ubtn g" data-pin="2" data-pin-at="top">🧾 <span class="fr">Exporter en PDF</span><span class="en">Export PDF</span></span><span class="ubtn g">📊 <span class="fr">Exporter en Excel</span><span class="en">Export Excel</span></span></div>
+              <div class="ucard">
+                <div class="urow umuted" style="font:600 8.5px 'IBM Plex Mono';text-transform:uppercase"><span style="width:16px"></span><span style="width:90px"><span class="fr">Date</span><span class="en">When</span></span><span style="width:110px"><span class="fr">Client</span><span class="en">Customer</span></span><span style="width:70px"><span class="fr">Caissier</span><span class="en">Cashier</span></span><span style="width:50px"><span class="fr">Articles</span><span class="en">Items</span></span><span style="width:90px"><span class="fr">Paiement</span><span class="en">Payment</span></span><div class="uspace"></div>Total</div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:16px" data-pin="3" data-pin-at="left">☑</span><span style="width:90px">09/10 10:42</span><span style="width:110px"><span class="fr">Client de passage</span><span class="en">Walk-in</span></span><span style="width:70px">Awa</span><span style="width:50px">3</span><span style="width:90px"><span class="fr">Espèces</span><span class="en">Cash</span></span><div class="uspace"></div><b>4 500</b></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px" data-pin="4"><span style="width:16px">☐</span><span style="width:90px">09/10 10:15</span><span style="width:110px">Ets Mbarga 🏢</span><span style="width:70px">Paul</span><span style="width:50px">12</span><span style="width:90px"><span class="fr">Crédit</span><span class="en">Credit</span></span><div class="uspace"></div><b>58 000</b></div>
+              </div>
+              <div class="urow" style="margin-top:9px"><span class="ubtn" data-pin="5">🧾 <span class="fr">Télécharger 1 reçu</span><span class="en">Download 1 receipt</span></span><div class="uspace"></div><span class="ubtn g"><span class="fr">Charger plus</span><span class="en">Load more</span></span></div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Période</span><span class="en">Date range</span></b> · <span class="d"><span class="fr">Du / Au ; Effacer pour tout voir.</span><span class="en">From / To; Clear to see everything.</span></span></div></li>
+          <li><span class="pn">2</span><div><b>PDF · Excel</b> · <span class="d"><span class="fr">exporte toutes les ventes de la période (pas seulement la page affichée). Sur l'application bureau, le fichier Excel va dans Téléchargements.</span><span class="en">exports every sale in the range (not just the visible page). In the desktop app, the Excel file goes to Downloads.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Cases à cocher</span><span class="en">Checkboxes</span></b> · <span class="d"><span class="fr">sélectionnez des ventes (ou Tout sélectionner) pour imprimer leurs reçus d'un coup.</span><span class="en">select sales (or Select all) to print their receipts at once.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Une vente</span><span class="en">A sale</span></b> · <span class="d"><span class="fr">un clic ouvre le détail : lignes, lot et n° de série, paiement, monnaie.</span><span class="en">a click opens the detail: lines, batch and serial, payment, change.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Télécharger N reçus</span><span class="en">Download N receipts</span></b> · <span class="d"><span class="fr">un seul document avec tous les reçus sélectionnés.</span><span class="en">a single document with all selected receipts.</span></span></div></li>
+        </ol>
+      </figure>
+      <ol class="steps">
+        <li><span class="fr"><b>Réimprimer un reçu :</b> ouvrez la vente → <span class="btnref">🖨 Imprimer le reçu</span>.</span><span class="en"><b>Reprint a receipt:</b> open the sale → <span class="btnref">🖨 Print receipt</span>.</span></li>
+        <li><span class="fr"><b>Rembourser (gérant) :</b> ouvrez la vente terminée → <span class="btnref">Rembourser la vente</span> → confirmez. Le stock revient en rayon et les paiements sont annulés (crédit, avoir, carte cadeau compris). Le statut passe à « Remboursée ».</span><span class="en"><b>Refund (manager):</b> open the completed sale → <span class="btnref">Refund sale</span> → confirm. Stock goes back on the shelf and payments are reversed (credit, store credit, gift card included). Status becomes "Refunded".</span></li>
+      </ol>
+      <div class="note"><span class="ic">📱</span><div><span class="fr"><b>Sur mobile :</b> onglet Historique, avec défilement infini. Hors ligne, il affiche les ventes de cet appareil, marquées « Non synchronisée » jusqu'à leur envoi.</span><span class="en"><b>On mobile:</b> History tab, with infinite scroll. Offline, it shows this device's sales, marked "Not synced" until they're sent.</span></div></div>
+    </section>
+
+    <!-- ==================== 8. PRODUCTS ==================== -->
+    <section id="products">
+      <div class="kicker">08 · <span class="fr">Catalogue & stock</span><span class="en">Catalog & stock</span></div>
+      <h2 class="title"><span class="fr">Produits</span><span class="en">Products</span></h2>
+      <p class="lead"><span class="fr">Le catalogue : prix, codes-barres, conditionnements (boîte, plaquette, unité), seuils de stock bas, et les options propres à votre activité (péremption, poids, numéros de série, variantes, assemblage).</span>
+      <span class="en">The catalog: prices, barcodes, packaging (box, blister, unit), low-stock thresholds, and the options specific to your trade (expiry, weight, serial numbers, variants, assembly).</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Liste des produits</span><span class="en">Product list</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/products</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="urow"><div class="ufield" style="margin:0;flex:1" data-pin="1">🔎 <span class="fr">Rechercher un produit par nom ou code-barres…</span><span class="en">Search products by name or barcode…</span></div><span class="ubtn" data-pin="2" data-pin-at="top">＋ <span class="fr">Nouveau produit</span><span class="en">New product</span></span></div>
+              <div class="ucard">
+                <div class="urow umuted" style="font:600 8.5px 'IBM Plex Mono';text-transform:uppercase"><span style="width:180px"><span class="fr">Produit</span><span class="en">Product</span></span><span style="width:110px"><span class="fr">Code-barres</span><span class="en">Barcode</span></span><span style="width:70px"><span class="fr">Prix</span><span class="en">Price</span></span><span style="width:60px">Stock</span><span style="width:80px"><span class="fr">Péremption</span><span class="en">Expiry</span></span><div class="uspace"></div><span class="fr">Statut</span><span class="en">Status</span></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:180px">★ Paracétamol 500 mg 📦</span><span style="width:110px" class="umuted">6181234567890</span><span style="width:70px">500</span><span style="width:60px" data-pin="3" data-pin-at="left"><u>120</u></span><span style="width:80px;color:var(--ui-amber)">12/11/2026</span><div class="uspace"></div><span class="upill ok"><span class="fr">En stock</span><span class="en">In stock</span></span></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:180px">Sirop toux 125 ml</span><span style="width:110px" class="umuted">6189876543210</span><span style="width:70px">2 500</span><span style="width:60px">0</span><span style="width:80px">-</span><div class="uspace"></div><span class="upill bad"><span class="fr">Rupture</span><span class="en">Out</span></span><span class="ubtn g" style="margin-left:6px" data-pin="4">🛒 <span class="fr">Commander</span><span class="en">Order</span></span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Recherche</span><span class="en">Search</span></b> · <span class="d"><span class="fr">par nom ou code-barres. Scanner un code ouvre directement l'inventaire du produit.</span><span class="en">by name or barcode. Scanning a code opens the product's inventory directly.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Nouveau produit</span><span class="en">New product</span></b> · <span class="d"><span class="fr">ouvre le formulaire (ci-dessous).</span><span class="en">opens the form (below).</span></span></div></li>
+          <li><span class="pn">3</span><div><b>Stock</b> · <span class="d"><span class="fr">un clic ouvre l'inventaire : stock, valeur, lots et dates de péremption (orange à moins de 30 jours, rouge si expiré).</span><span class="en">a click opens the inventory: stock, value, batches and expiry dates (orange under 30 days, red if expired).</span></span></div></li>
+          <li><span class="pn">4</span><div><b>🛒 <span class="fr">Commander</span><span class="en">Order</span></b> · <span class="d"><span class="fr">sur un produit en rupture : prépare un bon de commande chez son fournisseur.</span><span class="en">on an out-of-stock product: drafts a purchase order with its supplier.</span></span></div></li>
+        </ol>
+      </figure>
+
+      <h3 class="subhead"><span class="fr">Le formulaire produit</span><span class="en">The product form</span></h3>
+      <div class="grid2">
+        <div class="mini"><h4><span class="fr">Toujours présent</span><span class="en">Always there</span></h4><p><span class="fr">Nom, code-barres (scanner ou saisir), catégorie (+ pour en créer une), <b>fournisseur</b> (obligatoire sauf réglage contraire), prix d'achat, prix de vente, seuil de stock bas, TVA spécifique (vide = taux de la boutique), Favori (épinglé au point de vente).</span><span class="en">Name, barcode (scan or type), category (+ to create one), <b>supplier</b> (required unless set otherwise), purchase price, sale price, low-stock threshold, VAT override (blank = shop rate), Favorite (pinned at the point of sale).</span></p></div>
+        <div class="mini"><h4>📦 <span class="fr">Niveaux de conditionnement</span><span class="en">Packaging levels</span></h4><p><span class="fr">+ Ajouter un niveau : nom (Boîte), nombre d'unités (10), prix spécifique facultatif. Au point de vente, on choisit « Vendre en » Unité ou Boîte ; le stock est toujours compté en unités.</span><span class="en">+ Add level: name (Box), number of units (10), optional price override. At the point of sale you choose "Sell as" Unit or Box; stock is always counted in units.</span></p></div>
+        <div class="mini"><h4>⚖️ 🔢 <span class="fr">Poids & numéros de série</span><span class="en">Weight & serial numbers</span></h4><p><span class="fr">Vente au poids ou à la mesure (kg, m, L ; prix par unité de mesure). Suivi des numéros de série / IMEI : chaque unité vendue est choisie par son numéro.</span><span class="en">Sell by weight or measure (kg, m, L; price per unit of measure). Serial / IMEI tracking: each unit sold is picked by its number.</span></p></div>
+        <div class="mini"><h4>🎨 🛠️ <span class="fr">Variantes & assemblage</span><span class="en">Variants & assembly</span></h4><p><span class="fr">Variantes (S, M, L…) avec leur propre stock, code-barres et prix. Nomenclature : composants d'un produit fini, puis « Assembler » une quantité.</span><span class="en">Variants (S, M, L…) with their own stock, barcode and price. Bill of materials: components of a finished product, then "Build" a quantity.</span></p></div>
+      </div>
+      <div class="note tip"><span class="ic">💡</span><div><span class="fr">Les options poids, série, variantes et assemblage n'apparaissent que si elles sont activées dans <b>Mon entreprise → Ce que vous gérez</b>. Sur un produit existant, les boutons 📊 Inventaire, 📥 Réceptionner, ✏️ Ajuster, ↩️ Retour fournisseur et 🗄️ Archiver sont en haut du formulaire.</span><span class="en">The weight, serial, variant and assembly options only appear if enabled in <b>My business → What you manage</b>. On an existing product, the 📊 Inventory, 📥 Receive, ✏️ Adjust, ↩️ Return to supplier and 🗄️ Archive buttons are at the top of the form.</span></div></div>
+      <div class="grid2">
+        <div class="mini"><h4>🏷️ <span class="fr">Catégories</span><span class="en">Categories</span></h4><p><span class="fr">Ajouter, ✏️ renommer, 🗑️ supprimer (avec confirmation).</span><span class="en">Add, ✏️ rename, 🗑️ delete (with confirmation).</span></p></div>
+        <div class="mini"><h4>🗄️ <span class="fr">Archives</span><span class="en">Archived</span></h4><p><span class="fr">Les produits archivés disparaissent du catalogue et du point de vente, sans perdre leur historique. ♻️ Restaurer les remet en vente.</span><span class="en">Archived products disappear from the catalog and point of sale without losing their history. ♻️ Restore puts them back on sale.</span></p></div>
+      </div>
+    </section>
+
+    <!-- ==================== 9. STOCK MOVEMENTS ==================== -->
+    <section id="stock">
+      <div class="kicker">09 · <span class="fr">Catalogue & stock</span><span class="en">Catalog & stock</span></div>
+      <h2 class="title"><span class="fr">Mouvements de stock</span><span class="en">Stock movements</span></h2>
+      <p class="lead"><span class="fr">Le stock ne se tape jamais « à la main » : il change par des mouvements tracés. Réception d'une livraison (nouveau lot), ajustement (casse, perte) avec un motif, ou retour au fournisseur.</span>
+      <span class="en">Stock is never typed in "by hand": it changes through tracked movements. Receiving a delivery (new batch), adjustment (breakage, loss) with a reason, or return to the supplier.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Réceptionner du stock</span><span class="en">Receive stock</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/products/…/receive</div></div>
+            <div class="bwin"><div class="bmain" style="display:flex;justify-content:center">
+              <div class="ucard" style="width:430px;margin-top:0">
+                <h5>📥 <span class="fr">Réceptionner du stock</span><span class="en">Receive stock</span> · Paracétamol 500 mg</h5>
+                <div class="ufield" data-pin="1"><span class="lab"><span class="fr">Numéro de lot</span><span class="en">Batch number</span></span>LOT-2026-114</div>
+                <div class="ufield" data-pin="2"><span class="lab"><span class="fr">Date de péremption</span><span class="en">Expiry date</span></span>📅 30/06/2027</div>
+                <div style="display:flex;gap:6px"><div class="ufield" style="flex:1" data-pin="3" data-pin-at="left"><span class="lab"><span class="fr">Réceptionner en</span><span class="en">Receive in</span></span><span class="fr">Boîte</span><span class="en">Box</span> (10)</div><div class="ufield" style="flex:1"><span class="lab"><span class="fr">Quantité</span><span class="en">Quantity</span></span>12 <span class="umuted">= 120 <span class="fr">unités</span><span class="en">units</span></span></div></div>
+                <div class="ufield" data-pin="4"><span class="lab"><span class="fr">Coût unitaire (facultatif)</span><span class="en">Unit cost (optional)</span></span>3 200</div>
+                <div class="ubtn" style="width:100%;justify-content:center;margin-top:9px" data-pin="5"><span class="fr">Réceptionner</span><span class="en">Receive</span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Numéro de lot</span><span class="en">Batch number</span></b> · <span class="d"><span class="fr">obligatoire ; chaque réception crée un lot.</span><span class="en">required; each delivery creates a batch.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Péremption</span><span class="en">Expiry</span></b> · <span class="d"><span class="fr">obligatoire si le suivi des péremptions est actif. Les ventes puisent d'abord dans le lot qui expire le plus tôt.</span><span class="en">required if expiry tracking is on. Sales take from the batch expiring first.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Réceptionner en</span><span class="en">Receive in</span></b> · <span class="d"><span class="fr">Unité ou Boîte : la conversion en unités est affichée. Pour un produit à numéros de série, saisissez un numéro par ligne à la place de la quantité.</span><span class="en">Unit or Box: the conversion to units is shown. For a serial product, enter one number per line instead of a quantity.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Coût unitaire</span><span class="en">Unit cost</span></b> · <span class="d"><span class="fr">sert aux marges, à la valeur du stock et à la TVA déductible.</span><span class="en">used for margins, stock value and deductible VAT.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Réceptionner</span><span class="en">Receive</span></b> · <span class="d"><span class="fr">enregistre le lot ; le stock augmente aussitôt.</span><span class="en">saves the batch; stock goes up immediately.</span></span></div></li>
+        </ol>
+      </figure>
+      <ol class="steps">
+        <li><span class="fr"><b>Réceptionner :</b> Achats → <span class="btnref">Réceptionner du stock</span> → cherchez ou scannez le produit → remplissez le lot → <span class="btnref">Réceptionner</span>. Depuis un bon de commande, utilisez plutôt Réceptionner sur la ligne (section 11).</span><span class="en"><b>Receive:</b> Purchasing → <span class="btnref">Receive stock</span> → search or scan the product → fill the batch → <span class="btnref">Receive</span>. From a purchase order, use Receive on the line instead (section 11).</span></li>
+        <li><span class="fr"><b>Ajuster :</b> fiche produit → ✏️ Ajuster → choisissez le lot → variation (+ ou −, ex. −3 pour de la casse) → <b>motif obligatoire</b> → <span class="btnref">Appliquer l'ajustement</span>. Un lot ne peut pas passer sous zéro.</span><span class="en"><b>Adjust:</b> product → ✏️ Adjust → pick the batch → change (+ or −, e.g. −3 for breakage) → <b>reason required</b> → <span class="btnref">Apply adjustment</span>. A batch can't go below zero.</span></li>
+        <li><span class="fr"><b>Retour fournisseur :</b> fiche produit → ↩️ Retour fournisseur → lot → quantité (au plus le stock du lot) → motif (abîmé, périmé, erreur) → <span class="btnref">Retour fournisseur</span>.</span><span class="en"><b>Return to supplier:</b> product → ↩️ Return to supplier → batch → quantity (at most the batch stock) → reason (damaged, expired, wrong item) → <span class="btnref">Return to supplier</span>.</span></li>
+      </ol>
+      <div class="note"><span class="ic">📶</span><div><span class="fr">Réceptions, ajustements et comptages fonctionnent aussi <b>hors ligne</b> sur l'application bureau et sur mobile : ils sont envoyés au serveur au retour de la connexion.</span><span class="en">Receiving, adjustments and counts also work <b>offline</b> in the desktop app and on mobile: they're sent to the server when the connection returns.</span></div></div>
+    </section>
+
+    <!-- ==================== 10. COUNT, BULK & LABELS ==================== -->
+    <section id="count">
+      <div class="kicker">10 · <span class="fr">Catalogue & stock</span><span class="en">Catalog & stock</span></div>
+      <h2 class="title"><span class="fr">Inventaire, stock en masse & étiquettes</span><span class="en">Stock count, bulk stock & labels</span></h2>
+      <p class="lead"><span class="fr">Comptez le stock réel et corrigez les écarts en une fois, enregistrez tout un stock existant depuis un fichier Excel, et imprimez des étiquettes avec code-barres.</span>
+      <span class="en">Count the real stock and fix the differences in one go, register a whole existing stock from an Excel file, and print barcode labels.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Comptage de stock</span><span class="en">Stock count</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/stock-count</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="ufield" style="margin-top:0" data-pin="1">🔎 <span class="fr">Rechercher un produit ou un lot…</span><span class="en">Search product or batch…</span></div>
+              <div class="ucard">
+                <div class="urow umuted" style="font:600 8.5px 'IBM Plex Mono';text-transform:uppercase"><span style="width:190px"><span class="fr">Produit</span><span class="en">Product</span></span><span style="width:110px"><span class="fr">Lot</span><span class="en">Batch</span></span><span style="width:80px"><span class="fr">Système</span><span class="en">System</span></span><span style="width:90px"><span class="fr">Compté</span><span class="en">Counted</span></span><div class="uspace"></div><span class="fr">Écart</span><span class="en">Variance</span></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:190px">Paracétamol 500 mg</span><span style="width:110px">LOT-114</span><span style="width:80px">120</span><span style="width:90px"><span class="uchip" data-pin="2">117</span></span><div class="uspace"></div><b style="color:var(--ui-red)" data-pin="3" data-pin-at="left">−3</b></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:190px">Sirop toux 125 ml</span><span style="width:110px">LOT-087</span><span style="width:80px">24</span><span style="width:90px"><span class="uchip">24</span></span><div class="uspace"></div><span class="umuted">0</span></div>
+              </div>
+              <div class="urow" style="margin-top:9px"><div class="uspace"></div><span class="ubtn" data-pin="4" data-pin-at="left"><span class="fr">Valider le comptage & ajuster</span><span class="en">Post count & adjust</span></span></div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Recherche</span><span class="en">Search</span></b> · <span class="d"><span class="fr">par produit ou numéro de lot.</span><span class="en">by product or batch number.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Compté</span><span class="en">Counted</span></b> · <span class="d"><span class="fr">saisissez ce que vous avez réellement en rayon.</span><span class="en">enter what you really have on the shelf.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Écart</span><span class="en">Variance</span></b> · <span class="d"><span class="fr">vert si plus, rouge si moins.</span><span class="en">green if more, red if less.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Valider</span><span class="en">Post</span></b> · <span class="d"><span class="fr">seules les lignes avec un écart sont ajustées.</span><span class="en">only lines with a difference are adjusted.</span></span></div></li>
+        </ol>
+      </figure>
+      <div class="grid2">
+        <div class="mini"><h4>📋 <span class="fr">Enregistrement de stock en masse</span><span class="en">Bulk stock registration</span></h4><p><span class="fr">1. ⬇ Télécharger le modèle Excel. 2. Remplissez-le (nom, code-barres, catégorie, prix, seuil, lot, péremption AAAA-MM-JJ, quantité) puis ⬆ envoyez-le ou collez les lignes. 3. <b>Vérifier les lignes</b> : prêtes ✅ ou en erreur ❌. 4. <b>Enregistrer N articles</b>. Un produit existant (même code-barres, sinon même nom) est réapprovisionné ; les autres sont créés.</span><span class="en">1. ⬇ Download the Excel template. 2. Fill it (name, barcode, category, prices, threshold, batch, expiry YYYY-MM-DD, quantity), then ⬆ upload it or paste the rows. 3. <b>Check rows</b>: ready ✅ or error ❌. 4. <b>Register N items</b>. An existing product (same barcode, else same name) is restocked; the others are created.</span></p></div>
+        <div class="mini"><h4>🏷️ <span class="fr">Imprimer des étiquettes</span><span class="en">Print labels</span></h4><p><span class="fr">Cherchez les produits, réglez le nombre de copies, puis 🖨 Imprimer. Étiquettes 50 × 30 mm : nom, prix et code-barres. Un produit sans code-barres est signalé. Passe par la fenêtre d'impression (ou Enregistrer en PDF).</span><span class="en">Search products, set the number of copies, then 🖨 Print. 50 × 30 mm labels: name, price and barcode. A product with no barcode is flagged. Uses the print dialog (or Save as PDF).</span></p></div>
+      </div>
+    </section>
+
+    <!-- ==================== 11. PURCHASING ==================== -->
+    <section id="purchasing">
+      <div class="kicker">11 · <span class="fr">Achats & clients</span><span class="en">Purchasing & clients</span></div>
+      <h2 class="title"><span class="fr">Fournisseurs & bons de commande</span><span class="en">Suppliers & purchase orders</span></h2>
+      <p class="lead"><span class="fr">Gardez vos fournisseurs sous la main, passez commande, puis réceptionnez la livraison ligne par ligne, même en plusieurs fois.</span>
+      <span class="en">Keep your suppliers at hand, place orders, then receive the delivery line by line, even in several goes.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Détail d'un bon de commande</span><span class="en">Purchase order detail</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/purchase-orders/…</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="urow"><span class="umuted">← <span class="fr">Retour</span><span class="en">Back</span></span><div class="uspace"></div><span class="ubtn g" data-pin="1" data-pin-at="top">🖨 <span class="fr">Imprimer / partager le PDF</span><span class="en">Print / share PDF</span></span><span class="ubtn g">📊 Excel</span><span class="upill warn" data-pin="2" data-pin-at="top"><span class="fr">Partiel</span><span class="en">Partial</span></span></div>
+              <div class="ucard"><div class="utitle">Laborex Cameroun</div><div class="umuted">Main · 02/10/2026 · ⏰ 7 <span class="fr">j de retard</span><span class="en">d overdue</span> · 📞 <span class="fr">Contacter</span><span class="en">Contact</span></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px">Paracétamol 500 mg<div class="uspace"></div><span class="umuted">120/120</span><span class="upill ok">✓ <span class="fr">Reçu</span><span class="en">Received</span></span></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px">Amoxicilline 1 g<div class="uspace"></div><span class="umuted" data-pin="3" data-pin-at="left">20/50 · 30 <span class="fr">restant</span><span class="en">outstanding</span></span><span class="ubtn" data-pin="4" data-pin-at="top"><span class="fr">Réceptionner</span><span class="en">Receive</span></span><span class="ubtn g">🚫 <span class="fr">Annuler le reste</span><span class="en">Cancel outstanding</span></span></div>
+                <div class="uline"></div>
+                <div class="urow"><b style="font-size:11px">Total 286 000 XAF</b><div class="uspace"></div><span class="ubtn g" style="color:var(--ui-red)" data-pin="5" data-pin-at="left"><span class="fr">Annuler la commande</span><span class="en">Cancel order</span></span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b>PDF · Excel</b> · <span class="d"><span class="fr">bon de commande à imprimer ou envoyer au fournisseur.</span><span class="en">order document to print or send to the supplier.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Statut</span><span class="en">Status</span></b> · <span class="d"><span class="fr">En attente, Partiel, Réceptionné ou Annulé ; « N j de retard » quand la livraison tarde.</span><span class="en">Pending, Partial, Received or Cancelled; "N d overdue" when the delivery is late.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Reçu / commandé</span><span class="en">Received / ordered</span></b> · <span class="d"><span class="fr">avancement de chaque ligne.</span><span class="en">progress of each line.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Réceptionner</span><span class="en">Receive</span></b> · <span class="d"><span class="fr">quantité reçue, lot, péremption (si suivie), coût réel ou numéros IMEI : crée le lot en stock. « Annuler le reste » arrête d'attendre le solde.</span><span class="en">quantity received, batch, expiry (if tracked), actual cost or IMEI numbers: creates the batch in stock. "Cancel outstanding" stops waiting for the rest.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Annuler la commande</span><span class="en">Cancel order</span></b> · <span class="d"><span class="fr">seulement tant que rien n'est reçu (En attente).</span><span class="en">only while nothing has been received (Pending).</span></span></div></li>
+        </ol>
+      </figure>
+      <ol class="steps">
+        <li><span class="fr"><b>Fournisseur :</b> Achats → Fournisseurs → <span class="btnref">+ Nouveau fournisseur</span> : nom, téléphone, e-mail. 📇 affiche le contact (téléphone et e-mail cliquables).</span><span class="en"><b>Supplier:</b> Purchasing → Suppliers → <span class="btnref">+ New supplier</span>: name, phone, email. 📇 shows the contact (clickable phone and email).</span></li>
+        <li><span class="fr"><b>Commander :</b> Bons de commande → <span class="btnref">+ Nouvelle commande</span> → fournisseur → ajoutez les produits avec quantité et coût unitaire → notes → <span class="btnref">Créer la commande</span>. Astuce : 🛒 Commander sur un produit en rupture prépare la commande pour vous.</span><span class="en"><b>Order:</b> Purchase orders → <span class="btnref">+ New order</span> → supplier → add products with quantity and unit cost → notes → <span class="btnref">Create order</span>. Tip: 🛒 Order on an out-of-stock product drafts it for you.</span></li>
+        <li><span class="fr"><b>Réceptionner la livraison :</b> ouvrez la commande → <span class="btnref">Réceptionner</span> sur chaque ligne livrée. Le stock reçu reste acquis même si vous annulez le reste.</span><span class="en"><b>Receive the delivery:</b> open the order → <span class="btnref">Receive</span> on each delivered line. Received stock is kept even if you cancel the rest.</span></li>
+      </ol>
+    </section>
+
+    <!-- ==================== 12. CUSTOMERS ==================== -->
+    <section id="customers">
+      <div class="kicker">12 · <span class="fr">Achats & clients</span><span class="en">Purchasing & clients</span></div>
+      <h2 class="title"><span class="fr">Clients, crédit & cartes cadeaux</span><span class="en">Customers, credit & gift cards</span></h2>
+      <p class="lead"><span class="fr">Suivez ce que vos clients vous doivent, l'argent qu'ils ont déposé d'avance, et récompensez les fidèles avec des cartes cadeaux.</span>
+      <span class="en">Track what your customers owe, the money they deposited in advance, and reward regulars with gift cards.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Clients</span><span class="en">Customers</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/customers</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="urow"><div class="ufield" style="margin:0;flex:1">🔎 <span class="fr">Rechercher par nom ou téléphone…</span><span class="en">Search by name or phone…</span></div><span class="ubtn">+ <span class="fr">Nouveau client</span><span class="en">New customer</span></span></div>
+              <div class="ucard">
+                <div class="urow umuted" style="font:600 8.5px 'IBM Plex Mono';text-transform:uppercase"><span style="width:200px"><span class="fr">Client</span><span class="en">Customer</span></span><span style="width:110px"><span class="fr">Téléphone</span><span class="en">Phone</span></span><span style="width:110px"><span class="fr">Crédit (doit)</span><span class="en">Credit (owes)</span></span><span style="width:110px"><span class="fr">Avoir</span><span class="en">Store credit</span></span><div class="uspace"></div>🎁</div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:200px">Ets Mbarga <span class="upill mut" data-pin="1">🏢 Pro</span></span><span style="width:110px">677 11 22 33</span><span style="width:110px;color:var(--ui-red)" data-pin="2" data-pin-at="left">58 000</span><span style="width:110px">0</span><div class="uspace"></div>0</div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:200px">Marie Ngo</span><span style="width:110px">690 44 55 66</span><span style="width:110px">0</span><span style="width:110px;color:var(--ui-green)" data-pin="3" data-pin-at="left">15 000</span><div class="uspace"></div><span data-pin="4" data-pin-at="left">2</span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b>🏢 Pro</b> · <span class="d"><span class="fr">client professionnel : la TVA est ajoutée en sus sur ses achats ; son NIU figure sur la facture.</span><span class="en">business customer: VAT is added on top of their purchases; their NIU appears on the invoice.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Crédit</span><span class="en">Credit</span></b> · <span class="d"><span class="fr">ce que le client <b>vous doit</b> (ventes « Crédit, payer plus tard »), en rouge.</span><span class="en">what the customer <b>owes you</b> ("Credit, pay later" sales), in red.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Avoir</span><span class="en">Store credit</span></b> · <span class="d"><span class="fr">argent <b>déposé d'avance</b> par le client, qu'il peut dépenser, en vert.</span><span class="en">money <b>deposited in advance</b> by the customer, to spend, in green.</span></span></div></li>
+          <li><span class="pn">4</span><div><b>🎁 <span class="fr">Récompenses</span><span class="en">Rewards</span></b> · <span class="d"><span class="fr">cartes cadeaux gagnées (une tous les N achats, réglage dans Mon entreprise).</span><span class="en">gift cards earned (one every N purchases, set in My business).</span></span></div></li>
+        </ol>
+      </figure>
+      <div class="grid2">
+        <div class="mini"><h4>🎁 <span class="fr">Cartes cadeaux</span><span class="en">Gift cards</span></h4><p><span class="fr">Clients → Cartes cadeaux : saisissez la valeur → <b>Émettre la carte</b>. Liste avec code, valeur initiale, solde et statut ; 🚫 Désactiver / ✅ Activer ; 🗑 Supprimer seulement une carte jamais utilisée. Une carte n'est liée à personne : quiconque a le code peut l'utiliser.</span><span class="en">Clients → Gift cards: enter the value → <b>Issue card</b>. List with code, initial value, balance and status; 🚫 Deactivate / ✅ Activate; 🗑 Delete only an unused card. A card isn't tied to anyone: whoever has the code can use it.</span></p></div>
+        <div class="mini"><h4>💳 <span class="fr">Crédits clients</span><span class="en">Customer credits</span></h4><p><span class="fr">Gestion → Crédits clients : total dû, avoirs en cours, récompenses. Filtres « Doit de l'argent » / « A un avoir », 🖨 Imprimer. Un clic ouvre le relevé du client, et chaque ligne ouvre la vente.</span><span class="en">Management → Customer credits: total owed, outstanding store credit, rewards. Filters "Owes money" / "Has store credit", 🖨 Print. A click opens the customer statement, and each entry opens the sale.</span></p></div>
+      </div>
+      <div class="note warn"><span class="ic">⚖️</span><div><span class="fr"><b>Crédit ≠ Avoir.</b> Le crédit est une dette du client envers vous ; l'avoir est de l'argent du client que vous détenez. Les deux sont suivis séparément.</span><span class="en"><b>Credit ≠ Store credit.</b> Credit is the customer's debt to you; store credit is the customer's money you hold. Both are tracked separately.</span></div></div>
+    </section>
+
+    <!-- ==================== 13. REPORTS ==================== -->
+    <section id="reports">
+      <div class="kicker">13 · <span class="fr">Gestion</span><span class="en">Management</span></div>
+      <h2 class="title"><span class="fr">Rapports & analyses</span><span class="en">Reports & analysis</span></h2>
+      <p class="lead"><span class="fr">Chiffre d'affaires, marges, meilleurs produits, et des outils pour commander juste : prévision de la demande, stock dormant, rapport d'inventaire.</span>
+      <span class="en">Revenue, margins, top products, and tools to order the right amount: demand forecast, dead stock, inventory report.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Rapports</span><span class="en">Reports</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/reports</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="ufield" style="margin-top:0;width:260px" data-pin="1"><span class="fr">Du</span><span class="en">From</span> 10/09 · <span class="fr">Au</span><span class="en">To</span> 09/10</div>
+              <div class="ustatgrid" style="grid-template-columns:repeat(6,1fr);margin-top:10px" data-pin="2" data-pin-at="top">
+                <div class="ustat"><div class="k"><span class="fr">Recettes</span><span class="en">Revenue</span></div><div class="v">4.8M</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Coût</span><span class="en">Cost</span></div><div class="v">3.1M</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Bénéfice</span><span class="en">Profit</span></div><div class="v" style="color:var(--ui-green)">1.7M</div></div>
+                <div class="ustat"><div class="k"><span class="fr">TVA</span><span class="en">VAT</span></div><div class="v">775k</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Ventes</span><span class="en">Sales</span></div><div class="v">1 106</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Moyenne</span><span class="en">Avg</span></div><div class="v">4 340</div></div>
+              </div>
+              <div style="display:flex;gap:10px">
+                <div class="ucard" style="flex:1" data-pin="3"><h5><span class="fr">Détail par jour</span><span class="en">Daily breakdown</span></h5><div class="ubars"><div class="b" style="height:40%"></div><div class="b" style="height:55%"></div><div class="b" style="height:70%"></div><div class="b" style="height:48%"></div><div class="b" style="height:85%"></div><div class="b" style="height:60%"></div></div></div>
+                <div class="ucard" style="flex:1" data-pin="4"><h5><span class="fr">Meilleurs produits</span><span class="en">Top products</span></h5><div class="umuted">1. Paracétamol 500 mg · 412</div><div class="umuted">2. Amoxicilline 1 g · 180</div><div class="umuted">3. Sirop toux · 96</div></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Période</span><span class="en">Period</span></b> · <span class="d"><span class="fr">30 derniers jours par défaut.</span><span class="en">last 30 days by default.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Indicateurs</span><span class="en">Key figures</span></b> · <span class="d"><span class="fr">recettes, coût, bénéfice, TVA (comprise dans les recettes), nombre de ventes, vente moyenne.</span><span class="en">revenue, cost, profit, VAT (included in revenue), number of sales, average sale.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Détail par jour</span><span class="en">Daily breakdown</span></b> · <span class="d"><span class="fr">l'évolution jour après jour.</span><span class="en">day-by-day evolution.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Meilleurs produits</span><span class="en">Top products</span></b> · <span class="d"><span class="fr">ce qui se vend le plus.</span><span class="en">what sells most.</span></span></div></li>
+        </ol>
+      </figure>
+      <div class="grid2">
+        <div class="mini"><h4>📈 <span class="fr">Prévision de la demande</span><span class="en">Demand forecast</span></h4><p><span class="fr">Sur 30 ou 90 jours : vendu, par jour, stock, <b>couverture</b> (rouge si 7 jours ou moins), quantité à recommander suggérée, tendance ▲▼.</span><span class="en">Over 30 or 90 days: sold, per day, stock, <b>cover</b> (red at 7 days or less), suggested reorder quantity, trend ▲▼.</span></p></div>
+        <div class="mini"><h4>🪦 <span class="fr">Stock dormant</span><span class="en">Dead stock</span></h4><p><span class="fr">Produits non vendus depuis 60, 90 ou 180 jours, avec la valeur immobilisée et la date de dernière vente (« jamais vendu »).</span><span class="en">Products unsold for 60, 90 or 180 days, with the money tied up and the last sale date ("never sold").</span></p></div>
+        <div class="mini"><h4>📦 <span class="fr">Rapport d'inventaire</span><span class="en">Inventory report</span></h4><p><span class="fr">Produits, unités, valeur au coût et au prix de vente, marge potentielle. Filtres par catégorie, fournisseur, stock et péremption ; regroupé par catégorie ; 🖨 Imprimer.</span><span class="en">Products, units, cost and retail value, potential margin. Filters by category, supplier, stock and expiry; grouped by category; 🖨 Print.</span></p></div>
+        <div class="mini"><h4>📤 <span class="fr">Exports</span><span class="en">Exports</span></h4><p><span class="fr">Historique des ventes, cartes cadeaux, bons de commande et rapports fiscaux s'exportent en PDF et en Excel (vrais nombres : sommes et tris fonctionnent).</span><span class="en">Sales history, gift cards, purchase orders and tax reports export to PDF and Excel (real numbers: sums and sorting work).</span></p></div>
+      </div>
+    </section>
+
+    <!-- ==================== 14. TAX ==================== -->
+    <section id="tax">
+      <div class="kicker">14 · <span class="fr">Gestion</span><span class="en">Management</span></div>
+      <h2 class="title"><span class="fr">Déclaration fiscale</span><span class="en">Tax declaration</span></h2>
+      <p class="lead"><span class="fr">La TVA collectée sur les ventes, la TVA déductible sur les achats, et la TVA due, avec les comptes SYSCOHADA (zone OHADA). Plus les journaux comptables, en PDF ou en Excel.</span>
+      <span class="en">VAT collected on sales, deductible VAT on purchases and VAT due, with SYSCOHADA accounts (OHADA zone). Plus the accounting journals, as PDF or Excel.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Déclaration de TVA</span><span class="en">VAT declaration</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/tax-declaration</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="urow" style="flex-wrap:wrap;gap:5px"><b style="font-size:12px">🧾 <span class="fr">Déclaration de TVA</span><span class="en">VAT declaration</span></b><div class="uspace"></div><div class="useg" data-pin="1" data-pin-at="top"><span class="on">PDF</span><span>Excel</span></div><span class="uchip" data-pin="2" data-pin-at="top">📋 <span class="fr">Journal des ventes</span><span class="en">Sales journal</span></span><span class="uchip">📥 <span class="fr">Journal des achats</span><span class="en">Purchases journal</span></span><span class="uchip">💵 <span class="fr">Livre de caisse</span><span class="en">Cash book</span></span><span class="uchip">📈 <span class="fr">Compte de résultat</span><span class="en">Income statement</span></span><span class="uchip">🖨 <span class="fr">Déclaration TVA</span><span class="en">VAT declaration</span></span></div>
+              <div class="ustatgrid" style="margin-top:10px" data-pin="3" data-pin-at="top">
+                <div class="ustat"><div class="k"><span class="fr">CA TTC</span><span class="en">Turnover incl. VAT</span></div><div class="v">4.8M</div></div>
+                <div class="ustat"><div class="k"><span class="fr">TVA collectée</span><span class="en">VAT collected</span> · 4431</div><div class="v">775k</div></div>
+                <div class="ustat"><div class="k"><span class="fr">TVA déductible</span><span class="en">VAT deductible</span> · 4452</div><div class="v">498k</div></div>
+                <div class="ustat"><div class="k"><span class="fr">TVA due</span><span class="en">VAT due</span> · 4441</div><div class="v" style="color:var(--ui-red)">277k</div></div>
+              </div>
+              <div class="ucard" data-pin="4"><div class="urow umuted" style="font:600 8.5px 'IBM Plex Mono';text-transform:uppercase"><span style="width:260px"><span class="fr">Ligne</span><span class="en">Line</span></span><span style="width:110px"><span class="fr">Base HT</span><span class="en">Base excl. VAT</span></span><span style="width:90px">TVA</span><div class="uspace"></div><span class="fr">Compte OHADA</span><span class="en">OHADA acct</span></div><div class="uline"></div><div class="urow" style="font-size:11px"><span style="width:260px"><span class="fr">TVA collectée sur les ventes</span><span class="en">VAT collected on sales</span></span><span style="width:110px">4 025 000</span><span style="width:90px">775 000</span><div class="uspace"></div>4431</div></div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b>PDF | Excel</b> · <span class="d"><span class="fr">le format de tous les boutons de rapport à côté.</span><span class="en">the format of every report button next to it.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Journaux</span><span class="en">Journals</span></b> · <span class="d"><span class="fr">ventes, achats, livre de caisse, compte de résultat et déclaration TVA de la période.</span><span class="en">sales, purchases, cash book, income statement and VAT declaration for the period.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">TVA</span><span class="en">VAT</span></b> · <span class="d"><span class="fr">collectée − déductible = due. Une TVA due négative est un crédit à reporter.</span><span class="en">collected − deductible = due. Negative VAT due is a credit carried forward.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Comptes SYSCOHADA</span><span class="en">SYSCOHADA accounts</span></b> · <span class="d"><span class="fr">affichés seulement si le système comptable est OHADA (Mon entreprise → Taxe et devise).</span><span class="en">shown only if the accounting system is OHADA (My business → Tax & currency).</span></span></div></li>
+        </ol>
+      </figure>
+      <div class="note warn"><span class="ic">ℹ️</span><div><span class="fr">C'est un <b>document de travail</b> pour préparer votre déclaration, pas une déclaration officielle : la TVA déductible est estimée à partir des coûts d'achat saisis. En <b>impôt libératoire</b>, l'écran montre le montant forfaitaire ; avec « Pas de taxe sur les ventes », la déclaration est masquée.</span><span class="en">This is a <b>working document</b> to prepare your return, not an official filing: deductible VAT is estimated from the purchase costs entered. Under <b>flat tax</b>, the screen shows the lump sum; with "No sales tax", the declaration is hidden.</span></div></div>
+    </section>
+
+    <!-- ==================== 15. STAFF ==================== -->
+    <section id="staff">
+      <div class="kicker">15 · <span class="fr">Gestion</span><span class="en">Management</span></div>
+      <h2 class="title"><span class="fr">Personnel & accès</span><span class="en">Staff & access</span></h2>
+      <p class="lead"><span class="fr">Le gérant ajoute son équipe, accepte les demandes d'accès faites avec le code d'invitation, et choisit pour chaque caissier les écrans auxquels il a accès.</span>
+      <span class="en">The manager adds the team, accepts join requests made with the invite code, and picks which screens each cashier can use.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Personnel</span><span class="en">Staff</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/staff</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="urow"><span class="umuted">2 <span class="fr">membres</span><span class="en">members</span></span><div class="uspace"></div><span class="ubtn" data-pin="1" data-pin-at="top">+ <span class="fr">Nouveau membre</span><span class="en">New staff</span></span></div>
+              <div class="ucard" style="border-color:var(--ui-amber);background:var(--ui-ambersoft)" data-pin="2"><h5>🔑 <span class="fr">Demandes d'accès (1)</span><span class="en">Join requests (1)</span></h5><div class="urow" style="font-size:11px"><b>Paul Mvondo</b><span class="umuted">690 33 34 44</span><div class="uspace"></div><span class="uchip"><span class="fr">Caissier</span><span class="en">Cashier</span> ▾</span><span class="ubtn g"><span class="fr">Refuser</span><span class="en">Decline</span></span><span class="ubtn"><span class="fr">Accepter</span><span class="en">Accept</span></span></div></div>
+              <div class="ucard"><div class="urow" style="font-size:11px"><b>Awa Ndiaye</b><span class="upill mut"><span class="fr">Gérant</span><span class="en">Admin</span></span><div class="uspace"></div><span class="upill ok"><span class="fr">Actif</span><span class="en">Active</span></span><span>🔑</span><span>🚫</span></div></div>
+              <div class="ucard"><div class="urow" style="font-size:11px"><b>Joël Essomba</b><span class="upill mut"><span class="fr">Caissier</span><span class="en">Cashier</span></span><div class="uspace"></div><span class="upill ok"><span class="fr">Actif</span><span class="en">Active</span></span><span data-pin="3" data-pin-at="top">🔑</span><span data-pin="4" data-pin-at="top">🚫</span></div>
+                <div class="umuted" style="margin-top:6px"><span class="fr">ACCÈS</span><span class="en">ACCESS</span></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-size:10px;margin-top:4px" data-pin="5"><span>☑ <span class="fr">Catalogue et services</span><span class="en">Catalog & services</span></span><span>☐ <span class="fr">Achats</span><span class="en">Purchasing</span></span><span>☑ <span class="fr">Caisse</span><span class="en">Cash register</span></span><span>☑ <span class="fr">Clients</span><span class="en">Customers</span></span><span>☑ <span class="fr">Cartes cadeaux</span><span class="en">Gift cards</span></span><span>☐ <span class="fr">Rapports et ventes complètes</span><span class="en">Reports & full sales</span></span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Nouveau membre</span><span class="en">New staff</span></b> · <span class="d"><span class="fr">nom, téléphone, rôle (Caissier ou Gérant) et un mot de passe. Si le numéro a déjà un compte StockFlow, la personne est simplement ajoutée et garde son mot de passe.</span><span class="en">name, phone, role (Cashier or Admin) and a password. If the number already has a StockFlow account, the person is simply added and keeps their password.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Demandes d'accès</span><span class="en">Join requests</span></b> · <span class="d"><span class="fr">personnes qui ont utilisé votre code d'invitation : choisissez le rôle, puis Accepter ou Refuser.</span><span class="en">people who used your invite code: pick the role, then Accept or Decline.</span></span></div></li>
+          <li><span class="pn">3</span><div><b>🔑 <span class="fr">Réinitialiser le mot de passe</span><span class="en">Reset password</span></b> · <span class="d"><span class="fr">possible seulement pour un compte qui ne sert que dans votre boutique.</span><span class="en">only possible for an account used in your shop alone.</span></span></div></li>
+          <li><span class="pn">4</span><div><b>🚫 <span class="fr">Désactiver</span><span class="en">Deactivate</span></b> · <span class="d"><span class="fr">retire l'accès à cette boutique uniquement ; la personne garde son compte et ses autres boutiques. Vous ne pouvez pas vous désactiver vous-même.</span><span class="en">removes access to this shop only; the person keeps their account and other shops. You can't deactivate yourself.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Accès du caissier</span><span class="en">Cashier access</span></b> · <span class="d"><span class="fr">cochez les écrans autorisés. Un gérant a toujours accès à tout.</span><span class="en">tick the allowed screens. An admin always has full access.</span></span></div></li>
+        </ol>
+      </figure>
+    </section>
+
+    <!-- ==================== 16. MY BUSINESS ==================== -->
+    <section id="settings">
+      <div class="kicker">16 · <span class="fr">Gestion</span><span class="en">Management</span></div>
+      <h2 class="title"><span class="fr">Mon entreprise</span><span class="en">My business</span></h2>
+      <p class="lead"><span class="fr">Les réglages de la boutique, en 5 onglets. Ce sont les mêmes champs que l'assistant de création : ce que vous y avez saisi s'affiche ici, modifiable, avec un seul bouton Enregistrer.</span>
+      <span class="en">The shop's settings, in 5 tabs. They're the same fields as the creation wizard: what you entered there shows here, editable, with a single Save button.</span></p>
+      <div class="grid2">
+        <div class="mini"><h4>🏢 <span class="fr">Entreprise</span><span class="en">Business</span></h4><p><span class="fr">Code d'invitation (📋 Copier, à donner à un collègue), logo, nom, description, adresse, téléphone, message de pied de reçu, NIU. Sur mobile : aussi la liste des succursales (changer, ajouter).</span><span class="en">Invite code (📋 Copy, to give a colleague), logo, name, description, address, phone, receipt footer, taxpayer number (NIU). On mobile: also the list of branches (switch, add).</span></p></div>
+        <div class="mini"><h4>💱 <span class="fr">Taxe et devise</span><span class="en">Tax & currency</span></h4><p><span class="fr">Pays (règle devise et TVA), système comptable (OHADA, TVA générique, sans taxe), régime (standard ou impôt libératoire), taux de TVA. Changer de devise ne fait que renommer les montants ; « 🔄 Convertir les prix et soldes au taux du jour » les convertit (internet nécessaire).</span><span class="en">Country (sets currency and VAT), accounting system (OHADA, generic VAT, no tax), regime (standard or flat tax), VAT rate. Changing currency only relabels amounts; "🔄 Convert prices & balances at today's rate" converts them (needs internet).</span></p></div>
+        <div class="mini"><h4>🎁 <span class="fr">Fidélité et récompenses</span><span class="en">Loyalty & rewards</span></h4><p><span class="fr">Cartes cadeaux de récompense : une carte de valeur fixe tous les N achats ; le caissier est invité à l'émettre à l'encaissement.</span><span class="en">Reward gift cards: a fixed-value card every N purchases; the cashier is prompted to issue it at checkout.</span></p></div>
+        <div class="mini"><h4>📦 <span class="fr">Ce que vous gérez</span><span class="en">What you manage</span></h4><p><span class="fr">Péremption et lots (FEFO), vente au poids, numéros de série / IMEI, variantes, assemblage. N'activez que ce qui sert : le reste reste masqué.</span><span class="en">Expiry & batches (FEFO), sale by weight, serial / IMEI numbers, variants, assembly. Turn on only what you use: the rest stays hidden.</span></p></div>
+        <div class="mini"><h4>📋 <span class="fr">Règles de saisie</span><span class="en">Data-entry rules</span></h4><p><span class="fr">Seuil de stock bas par défaut (pré-rempli sur les nouveaux produits) ; « Autoriser les produits sans fournisseur » (réglage de cet appareil) ; sur mobile, le module services.</span><span class="en">Default low-stock threshold (prefilled on new products); "Allow products without a supplier" (this device's setting); on mobile, the services module.</span></p></div>
+        <div class="mini"><h4>🔑 <span class="fr">Changer mon mot de passe</span><span class="en">Change my password</span></h4><p><span class="fr">Depuis Personnel (web, bureau) ou Plus (mobile) : mot de passe actuel, puis le nouveau (6 caractères minimum).</span><span class="en">From Staff (web, desktop) or More (mobile): current password, then the new one (6+ characters).</span></p></div>
+      </div>
+    </section>
+
+    <!-- ==================== 17. PRINTER ==================== -->
+    <section id="printer">
+      <div class="kicker">17 · <span class="fr">Gestion</span><span class="en">Management</span></div>
+      <h2 class="title"><span class="fr">Imprimante & reçus</span><span class="en">Printer & receipts</span></h2>
+      <p class="lead"><span class="fr">Reçus sur papier thermique (58 ou 80 mm) ou en page entière (A4, PDF). Impression automatique après chaque vente si vous le souhaitez.</span>
+      <span class="en">Receipts on thermal paper (58 or 80 mm) or full page (A4, PDF). Automatic printing after each sale if you like.</span></p>
+      <div class="grid2">
+        <div class="mini"><h4>🖥️ <span class="fr">Web & bureau</span><span class="en">Web & desktop</span></h4><p><span class="fr">Gestion → Imprimante : largeur du reçu, impression automatique, 🖨 Imprimer un reçu de test. Sur l'application bureau, une imprimante thermique USB ou Bluetooth (appairée dans Windows) imprime directement, sans fenêtre : <b>Détecter mon imprimante</b> → choisir → Connecter ; ou une imprimante réseau (ex. 192.168.1.50:9100). Sinon, l'impression passe par la fenêtre du système (ou Enregistrer en PDF).</span><span class="en">Management → Printer: receipt width, auto-print, 🖨 Print a test receipt. In the desktop app, a USB or Bluetooth thermal printer (paired in Windows) prints directly, with no dialog: <b>Detect my printer</b> → pick → Connect; or a network printer (e.g. 192.168.1.50:9100). Otherwise printing goes through the system dialog (or Save as PDF).</span></p></div>
+        <div class="mini"><h4>📱 Android</h4><p><span class="fr">Plus → Imprimante : imprimante actuelle et appareils disponibles en Bluetooth ou USB. « Appairer un appareil Bluetooth » ouvre les réglages Android. Touchez un appareil pour le choisir, puis imprimez une page de test.</span><span class="en">More → Printer: current printer and available Bluetooth or USB devices. "Pair a Bluetooth device" opens Android settings. Tap a device to choose it, then print a test page.</span></p></div>
+      </div>
+    </section>
+
+    <!-- ==================== 18. OFFLINE ==================== -->
+    <section id="offline">
+      <div class="kicker">18 · <span class="fr">Fiabilité & aide</span><span class="en">Reliability & help</span></div>
+      <h2 class="title"><span class="fr">Hors ligne & synchronisation</span><span class="en">Offline & sync</span></h2>
+      <p class="lead"><span class="fr">Coupure d'internet ou de courant : la boutique continue. L'application bureau et le mobile gardent une copie des données sur l'appareil, vendent et enregistrent hors ligne, puis envoient tout au serveur dès que la connexion revient.</span>
+      <span class="en">Internet or power outage: the shop keeps going. The desktop app and mobile keep a copy of the data on the device, sell and record offline, then send everything to the server as soon as the connection returns.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--coral)"></span><span class="fr">Mobile · hors ligne</span><span class="en">Mobile · offline</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="phone"><div class="pscreen">
+            <div class="ptop"><div style="font:700 15px 'Bricolage Grotesque'"><span class="fr">Historique</span><span class="en">History</span></div></div>
+            <div style="background:var(--ui-ambersoft);color:var(--ui-amber);font:600 10px 'IBM Plex Sans';padding:7px 12px" data-pin="1" data-pin-at="left">📶 <span class="fr">Hors ligne. Données de la dernière synchronisation.</span><span class="en">Offline. Data from the last sync.</span></div>
+            <div class="pbody">
+              <div class="ucard tight"><div class="urow" style="font-size:11px">10:42 · <span class="fr">Client de passage</span><span class="en">Walk-in</span><div class="uspace"></div><b>4 500</b></div><span class="upill warn" style="margin-top:5px" data-pin="2"><span class="fr">Non synchronisée</span><span class="en">Not synced</span></span></div>
+              <div class="ucard tight"><div class="urow" style="font-size:11px">10:15 · Ets Mbarga<div class="uspace"></div><b>58 000</b></div></div>
+              <div class="ucard tight" style="background:var(--ui-primary-soft)" data-pin="3"><div style="font-size:10px;color:var(--ui-primary)">✓ <span class="fr">Enregistré sur cet appareil. Sera envoyé automatiquement au retour de la connexion.</span><span class="en">Saved on this device. Will be sent automatically when the connection returns.</span></div></div>
+            </div>
+            <div class="tabbar"><div class="tb"><span class="ic">🏠</span><span class="fr">Accueil</span><span class="en">Home</span></div><div class="tb"><span class="ic">➕</span><span class="fr">Vente</span><span class="en">Sale</span></div><div class="tb"><span class="ic">📦</span><span class="fr">Produits</span><span class="en">Products</span></div><div class="tb on"><span class="ic">🕘</span><span class="fr">Historique</span><span class="en">History</span></div><div class="tb"><span class="ic">⋯</span><span class="fr">Plus</span><span class="en">More</span></div></div>
+          </div></div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Bandeau hors ligne</span><span class="en">Offline strip</span></b> · <span class="d"><span class="fr">vous travaillez sur la copie de l'appareil.</span><span class="en">you're working on the device's copy.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Non synchronisée</span><span class="en">Not synced</span></b> · <span class="d"><span class="fr">vente faite sur cet appareil, pas encore envoyée.</span><span class="en">sale made on this device, not sent yet.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Enregistré sur cet appareil</span><span class="en">Saved on this device</span></b> · <span class="d"><span class="fr">les réceptions, ajustements, comptages, nouveaux clients, fournisseurs et catégories partent eux aussi au retour du réseau.</span><span class="en">receiving, adjustments, counts, new customers, suppliers and categories are also sent when the network is back.</span></span></div></li>
+        </ol>
+      </figure>
+      <ol class="steps">
+        <li><span class="fr"><b>Synchroniser à la main :</b> 🔄 dans l'en-tête (web, bureau) ou depuis l'Accueil (mobile). L'application envoie d'abord vos ventes et opérations, puis télécharge les nouveautés. Un message indique le résultat : « Synchronisé · N éléments mis à jour · N envoyé(s) ».</span><span class="en"><b>Sync by hand:</b> 🔄 in the header (web, desktop) or from Home (mobile). The app first sends your sales and operations, then downloads updates. A message shows the result: "Synced · N items updated · N sent".</span></li>
+        <li><span class="fr"><b>Si deux appareils hors ligne vendent le même dernier article :</b> le stock d'un lot peut passer en négatif. Le tableau de bord affiche alors « Réconciliation requise » ; le gérant corrige le stock (section 4).</span><span class="en"><b>If two offline devices sell the same last item:</b> a batch can go negative. The dashboard then shows "Needs reconciliation"; the manager fixes the stock (section 4).</span></li>
+        <li><span class="fr"><b>Une modification refusée par le serveur</b> (ex. donnée déjà modifiée ailleurs) est annulée sur l'appareil et signalée.</span><span class="en"><b>A change refused by the server</b> (e.g. data already changed elsewhere) is undone on the device and reported.</span></li>
+      </ol>
+      <div class="note warn"><span class="ic">⚠️</span><div><span class="fr"><b>Le web dans le navigateur</b> a besoin d'internet pour encaisser. Pour vendre sans connexion, utilisez l'<b>application bureau</b> ou la <b>tablette / le téléphone</b>.</span><span class="en"><b>The web in the browser</b> needs internet to charge. To sell without a connection, use the <b>desktop app</b> or the <b>tablet / phone</b>.</span></div></div>
+    </section>
+
+    <!-- ==================== 19. DATA & MAINTENANCE ==================== -->
+    <section id="data">
+      <div class="kicker">19 · <span class="fr">Fiabilité & aide</span><span class="en">Reliability & help</span></div>
+      <h2 class="title"><span class="fr">Données & maintenance</span><span class="en">Data & maintenance</span></h2>
+      <p class="lead"><span class="fr">Réservé au gérant. Sauvegardes de l'appareil, restauration, et remise à zéro en cas de problème.</span>
+      <span class="en">Managers only. Device backups, restore, and a full reset if something goes wrong.</span></p>
+      <div class="grid2">
+        <div class="mini"><h4>💾 <span class="fr">Sauvegarde automatique</span><span class="en">Automatic backup</span></h4><p><span class="fr">Chaque jour vers 2 h (ou au premier lancement suivant), 14 jours conservés, sur l'application installée. « Lancer la sauvegarde maintenant » si besoin.</span><span class="en">Every day around 2 AM (or at the next launch), 14 days kept, in the installed app. "Run a daily backup now" if needed.</span></p></div>
+        <div class="mini"><h4>⬇️ <span class="fr">Sauvegarder les données</span><span class="en">Back up data</span></h4><p><span class="fr">Une copie complète de ce qui est sur l'appareil, dans le dossier Téléchargements. Gardez-la en lieu sûr.</span><span class="en">A full copy of what's on the device, in the Downloads folder. Keep it somewhere safe.</span></p></div>
+        <div class="mini"><h4>♻️ <span class="fr">Restaurer</span><span class="en">Restore</span></h4><p><span class="fr">Choisir le fichier → vérifier le contenu par type de données → « Ajouter les nouveautés » ou « Remplacer la sélection » → éventuellement envoyer les ventes restaurées au serveur. Une sauvegarde d'une autre entreprise est refusée.</span><span class="en">Choose the file → review the contents per data type → "Add new only" or "Replace selected" → optionally send the restored sales to the server. A backup from another business is refused.</span></p></div>
+        <div class="mini"><h4>🧹 <span class="fr">Réinitialiser</span><span class="en">Reset</span></h4><p><span class="fr">Efface les données de <b>cet appareil seulement</b> et vous déconnecte ; les données du serveur sont intactes et se rechargent à la connexion. <b>Synchronisez d'abord</b> : une vente non envoyée serait perdue.</span><span class="en">Wipes <b>this device only</b> and signs you out; server data is safe and reloads at sign-in. <b>Sync first</b>: an unsent sale would be lost.</span></p></div>
+      </div>
+    </section>
+
+    <!-- ==================== 20. SUPPORT ==================== -->
+    <section id="support">
+      <div class="kicker">20 · <span class="fr">Fiabilité & aide</span><span class="en">Reliability & help</span></div>
+      <h2 class="title"><span class="fr">Support</span><span class="en">Support</span></h2>
+      <p class="lead"><span class="fr">Un bug, un blocage ou une question ? Écrivez au support depuis l'application, avec des captures d'écran. Vous suivez la réponse dans « Mes demandes ».</span>
+      <span class="en">A bug, a blocker or a question? Write to support from the app, with screenshots. You follow the answer in "My requests".</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Nouvelle demande</span><span class="en">New request</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/support</div></div>
+            <div class="bwin"><div class="bmain" style="display:flex;justify-content:center">
+              <div class="ucard" style="width:470px;margin-top:0">
+                <div class="useg" style="width:100%" data-pin="1" data-pin-at="top"><span class="on" style="flex:1;text-align:center"><span class="fr">Nouvelle demande</span><span class="en">New request</span></span><span style="flex:1;text-align:center"><span class="fr">Mes demandes</span><span class="en">My requests</span></span></div>
+                <div class="umuted" style="margin-top:9px"><span class="fr">Que se passe-t-il ?</span><span class="en">What's happening?</span></div>
+                <div class="urow" style="margin-top:4px" data-pin="2"><span class="uchip on">🐞 Bug</span><span class="uchip">🚨 <span class="fr">Je suis bloqué</span><span class="en">I'm blocked</span></span><span class="uchip">❓ Question</span></div>
+                <div class="ufield" style="height:58px" data-pin="3"><span class="lab"><span class="fr">Décrivez le problème</span><span class="en">Describe the problem</span></span><span class="fr">La caisse affiche un écart alors que…</span><span class="en">The register shows a discrepancy although…</span></div>
+                <div class="ufield" style="text-align:center;border-style:dashed" data-pin="4">🖼️ <span class="fr">Captures d'écran : cliquez ou Ctrl+V (5 max)</span><span class="en">Screenshots: click or Ctrl+V (max 5)</span></div>
+                <div class="ubtn" style="width:100%;justify-content:center;margin-top:9px" data-pin="5"><span class="fr">Envoyer au support</span><span class="en">Send to support</span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Onglets</span><span class="en">Tabs</span></b> · <span class="d"><span class="fr">écrire une nouvelle demande, ou suivre les vôtres.</span><span class="en">write a new request, or follow yours.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Type</span><span class="en">Type</span></b> · <span class="d"><span class="fr">Bug, Je suis bloqué (traité en priorité) ou Question.</span><span class="en">Bug, I'm blocked (handled first) or Question.</span></span></div></li>
+          <li><span class="pn">3</span><div><b>Description</b> · <span class="d"><span class="fr">ce que vous faisiez et ce qui s'est passé.</span><span class="en">what you were doing and what happened.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Captures</span><span class="en">Screenshots</span></b> · <span class="d"><span class="fr">jusqu'à 5 images (5 Mo chacune, 15 Mo au total), ou Ctrl+V pour coller.</span><span class="en">up to 5 images (5 MB each, 15 MB total), or Ctrl+V to paste.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Envoyer</span><span class="en">Send</span></b> · <span class="d"><span class="fr">la version de l'application, l'appareil, la boutique et l'écran précédent sont joints automatiquement. Hors ligne, la demande part au retour de la connexion.</span><span class="en">app version, device, shop and previous screen are attached automatically. Offline, the request is sent when the connection returns.</span></span></div></li>
+        </ol>
+      </figure>
+      <div class="note tip"><span class="ic">💬</span><div><span class="fr">Quand le support répond ou résout votre demande, une fenêtre s'affiche dans l'application (et un e-mail part si votre compte en a un). Si le problème persiste, répondez dans « Mes demandes » : la demande est rouverte.</span><span class="en">When support replies or resolves your request, a pop-up shows in the app (and an email is sent if your account has one). If the problem persists, reply in "My requests": the request reopens.</span></div></div>
+    </section>
+
+    <!-- ==================== 21. SUPER-ADMIN ==================== -->
+    <section id="superadmin">
+      <div class="kicker">21 · <span class="fr">Fiabilité & aide</span><span class="en">Reliability & help</span></div>
+      <h2 class="title"><span class="fr">Super-admin</span><span class="en">Super-admin</span></h2>
+      <p class="lead"><span class="fr">Pour l'équipe mfSPACE.lu qui exploite la plateforme : toutes les entreprises, appareils, utilisateurs et demandes de support.</span>
+      <span class="en">For the mfSPACE.lu team running the platform: every business, device, user and support request.</span></p>
+      <div class="grid2">
+        <div class="mini"><h4>🖥️ <span class="fr">Console (web)</span><span class="en">Console (web)</span></h4><p><span class="fr">Vue d'ensemble, Entreprises (activer / désactiver), Appareils et sessions (bloquer, effacer à distance), Utilisateurs, Support (file des demandes, priorités, délais, réponses), Journal d'audit, Administrateurs.</span><span class="en">Overview, Companies (activate / deactivate), Devices & sessions (block, remote wipe), Users, Support (request queue, priorities, deadlines, replies), Audit log, Administrators.</span></p></div>
+        <div class="mini"><h4>🏪 <span class="fr">Entrer dans une entreprise</span><span class="en">Enter a business</span></h4><p><span class="fr">Depuis la console (web) ou « Choisir une entreprise » (bureau, mobile), le super-admin travaille dans une boutique comme son gérant. Un bandeau orange le rappelle en permanence ; « Quitter » revient au choix des entreprises.</span><span class="en">From the console (web) or "Choose a business" (desktop, mobile), the super-admin works inside a shop like its manager. An orange banner reminds them at all times; "Exit" goes back to the business picker.</span></p></div>
+      </div>
+      <div class="note"><span class="ic">🔀</span><div><span class="fr">Si le même numéro et le même mot de passe ouvrent un compte super-admin et un compte boutique, la connexion demande : <b>Mes boutiques</b> ou <b>Console super-admin</b> (« Espace super-admin » sur bureau et mobile).</span><span class="en">If the same number and password open a super-admin account and a shop account, sign-in asks: <b>My shops</b> or <b>Super-admin console</b> ("Super-admin space" on desktop and mobile).</span></div></div>
+    </section>
+
+
+    </div>
+    <div class="footerline">StockFlow · © mfSPACE.lu · <span class="fr">Guide d'utilisation</span><span class="en">User guide</span></div>
+  </main>
+</div>
+
+<script>
+  function setLang(l){
+    document.documentElement.classList.toggle('show-en', l==='en');
+    document.getElementById('fr').classList.toggle('on', l!=='en');
+    document.getElementById('en').classList.toggle('on', l==='en');
+    try{localStorage.setItem('sf_lang',l)}catch(e){}
+  }
+  function toggleTheme(){
+    const r=document.documentElement;
+    const cur=r.getAttribute('data-theme')|| (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+    const next=cur==='dark'?'light':'dark';
+    r.setAttribute('data-theme',next);
+    try{localStorage.setItem('sf_theme',next)}catch(e){}
+  }
+  try{
+    const l=localStorage.getItem('sf_lang'); if(l) setLang(l);
+    const th=localStorage.getItem('sf_theme'); if(th) document.documentElement.setAttribute('data-theme',th);
+  }catch(e){}
+
+  // Scrollspy for the table of contents (populated after sections render)
+  function initSpy(){
+    const links=[...document.querySelectorAll('.toc a')];
+    const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+    const obs=new IntersectionObserver((es)=>{
+      es.forEach(e=>{ if(e.isIntersecting){ links.forEach(l=>l.classList.remove('active'));
+        const a=map.get(e.target.id); if(a)a.classList.add('active'); }});
+    },{rootMargin:'-10% 0px -80% 0px'});
+    document.querySelectorAll('main section[id]').forEach(s=>obs.observe(s));
+    // close mobile menu on nav
+    links.forEach(a=>a.addEventListener('click',()=>document.getElementById('side').classList.remove('open')));
+  }
+  initSpy();
+</script>
+<script>
+  function placePins(){
+    document.querySelectorAll('.frame').forEach(function(frame){
+      frame.querySelectorAll('.pin.auto').forEach(function(p){p.remove()});
+      var fr=frame.getBoundingClientRect();
+      frame.querySelectorAll('[data-pin]').forEach(function(el){
+        var r=el.getBoundingClientRect(), at=el.getAttribute('data-pin-at')||'right', x, y;
+        if(at==='left'){x=r.left-fr.left;y=r.top-fr.top+r.height/2}
+        else if(at==='top'){x=r.left-fr.left+r.width/2;y=r.top-fr.top}
+        else if(at==='center'){x=r.left-fr.left+r.width/2;y=r.top-fr.top+r.height/2}
+        else {x=r.right-fr.left;y=r.top-fr.top+r.height/2}
+        var p=document.createElement('span');p.className='pin auto';p.textContent=el.getAttribute('data-pin');
+        p.style.left=x+'px';p.style.top=y+'px';frame.appendChild(p);
+      });
+    });
+  }
+  window.addEventListener('load',placePins);window.addEventListener('resize',placePins);
+  document.fonts&&document.fonts.ready.then(placePins);
+  var _setLang=setLang;setLang=function(l){_setLang(l);placePins()};
+</script>
+</body>
+</html>

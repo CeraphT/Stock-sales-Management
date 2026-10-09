@@ -1,0 +1,77 @@
+    <!-- ==================== 11. PURCHASING ==================== -->
+    <section id="purchasing">
+      <div class="kicker">11 · <span class="fr">Achats & clients</span><span class="en">Purchasing & clients</span></div>
+      <h2 class="title"><span class="fr">Fournisseurs & bons de commande</span><span class="en">Suppliers & purchase orders</span></h2>
+      <p class="lead"><span class="fr">Gardez vos fournisseurs sous la main, passez commande, puis réceptionnez la livraison ligne par ligne, même en plusieurs fois.</span>
+      <span class="en">Keep your suppliers at hand, place orders, then receive the delivery line by line, even in several goes.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Détail d'un bon de commande</span><span class="en">Purchase order detail</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/purchase-orders/…</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="urow"><span class="umuted">← <span class="fr">Retour</span><span class="en">Back</span></span><div class="uspace"></div><span class="ubtn g" data-pin="1" data-pin-at="top">🖨 <span class="fr">Imprimer / partager le PDF</span><span class="en">Print / share PDF</span></span><span class="ubtn g">📊 Excel</span><span class="upill warn" data-pin="2" data-pin-at="top"><span class="fr">Partiel</span><span class="en">Partial</span></span></div>
+              <div class="ucard"><div class="utitle">Laborex Cameroun</div><div class="umuted">Main · 02/10/2026 · ⏰ 7 <span class="fr">j de retard</span><span class="en">d overdue</span> · 📞 <span class="fr">Contacter</span><span class="en">Contact</span></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px">Paracétamol 500 mg<div class="uspace"></div><span class="umuted">120/120</span><span class="upill ok">✓ <span class="fr">Reçu</span><span class="en">Received</span></span></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px">Amoxicilline 1 g<div class="uspace"></div><span class="umuted" data-pin="3" data-pin-at="left">20/50 · 30 <span class="fr">restant</span><span class="en">outstanding</span></span><span class="ubtn" data-pin="4" data-pin-at="top"><span class="fr">Réceptionner</span><span class="en">Receive</span></span><span class="ubtn g">🚫 <span class="fr">Annuler le reste</span><span class="en">Cancel outstanding</span></span></div>
+                <div class="uline"></div>
+                <div class="urow"><b style="font-size:11px">Total 286 000 XAF</b><div class="uspace"></div><span class="ubtn g" style="color:var(--ui-red)" data-pin="5" data-pin-at="left"><span class="fr">Annuler la commande</span><span class="en">Cancel order</span></span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b>PDF · Excel</b> · <span class="d"><span class="fr">bon de commande à imprimer ou envoyer au fournisseur.</span><span class="en">order document to print or send to the supplier.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Statut</span><span class="en">Status</span></b> · <span class="d"><span class="fr">En attente, Partiel, Réceptionné ou Annulé ; « N j de retard » quand la livraison tarde.</span><span class="en">Pending, Partial, Received or Cancelled; "N d overdue" when the delivery is late.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Reçu / commandé</span><span class="en">Received / ordered</span></b> · <span class="d"><span class="fr">avancement de chaque ligne.</span><span class="en">progress of each line.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Réceptionner</span><span class="en">Receive</span></b> · <span class="d"><span class="fr">quantité reçue, lot, péremption (si suivie), coût réel ou numéros IMEI : crée le lot en stock. « Annuler le reste » arrête d'attendre le solde.</span><span class="en">quantity received, batch, expiry (if tracked), actual cost or IMEI numbers: creates the batch in stock. "Cancel outstanding" stops waiting for the rest.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Annuler la commande</span><span class="en">Cancel order</span></b> · <span class="d"><span class="fr">seulement tant que rien n'est reçu (En attente).</span><span class="en">only while nothing has been received (Pending).</span></span></div></li>
+        </ol>
+      </figure>
+      <ol class="steps">
+        <li><span class="fr"><b>Fournisseur :</b> Achats → Fournisseurs → <span class="btnref">+ Nouveau fournisseur</span> : nom, téléphone, e-mail. 📇 affiche le contact (téléphone et e-mail cliquables).</span><span class="en"><b>Supplier:</b> Purchasing → Suppliers → <span class="btnref">+ New supplier</span>: name, phone, email. 📇 shows the contact (clickable phone and email).</span></li>
+        <li><span class="fr"><b>Commander :</b> Bons de commande → <span class="btnref">+ Nouvelle commande</span> → fournisseur → ajoutez les produits avec quantité et coût unitaire → notes → <span class="btnref">Créer la commande</span>. Astuce : 🛒 Commander sur un produit en rupture prépare la commande pour vous.</span><span class="en"><b>Order:</b> Purchase orders → <span class="btnref">+ New order</span> → supplier → add products with quantity and unit cost → notes → <span class="btnref">Create order</span>. Tip: 🛒 Order on an out-of-stock product drafts it for you.</span></li>
+        <li><span class="fr"><b>Réceptionner la livraison :</b> ouvrez la commande → <span class="btnref">Réceptionner</span> sur chaque ligne livrée. Le stock reçu reste acquis même si vous annulez le reste.</span><span class="en"><b>Receive the delivery:</b> open the order → <span class="btnref">Receive</span> on each delivered line. Received stock is kept even if you cancel the rest.</span></li>
+      </ol>
+    </section>
+
+    <!-- ==================== 12. CUSTOMERS ==================== -->
+    <section id="customers">
+      <div class="kicker">12 · <span class="fr">Achats & clients</span><span class="en">Purchasing & clients</span></div>
+      <h2 class="title"><span class="fr">Clients, crédit & cartes cadeaux</span><span class="en">Customers, credit & gift cards</span></h2>
+      <p class="lead"><span class="fr">Suivez ce que vos clients vous doivent, l'argent qu'ils ont déposé d'avance, et récompensez les fidèles avec des cartes cadeaux.</span>
+      <span class="en">Track what your customers owe, the money they deposited in advance, and reward regulars with gift cards.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Clients</span><span class="en">Customers</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/customers</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="urow"><div class="ufield" style="margin:0;flex:1">🔎 <span class="fr">Rechercher par nom ou téléphone…</span><span class="en">Search by name or phone…</span></div><span class="ubtn">+ <span class="fr">Nouveau client</span><span class="en">New customer</span></span></div>
+              <div class="ucard">
+                <div class="urow umuted" style="font:600 8.5px 'IBM Plex Mono';text-transform:uppercase"><span style="width:200px"><span class="fr">Client</span><span class="en">Customer</span></span><span style="width:110px"><span class="fr">Téléphone</span><span class="en">Phone</span></span><span style="width:110px"><span class="fr">Crédit (doit)</span><span class="en">Credit (owes)</span></span><span style="width:110px"><span class="fr">Avoir</span><span class="en">Store credit</span></span><div class="uspace"></div>🎁</div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:200px">Ets Mbarga <span class="upill mut" data-pin="1">🏢 Pro</span></span><span style="width:110px">677 11 22 33</span><span style="width:110px;color:var(--ui-red)" data-pin="2" data-pin-at="left">58 000</span><span style="width:110px">0</span><div class="uspace"></div>0</div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:200px">Marie Ngo</span><span style="width:110px">690 44 55 66</span><span style="width:110px">0</span><span style="width:110px;color:var(--ui-green)" data-pin="3" data-pin-at="left">15 000</span><div class="uspace"></div><span data-pin="4" data-pin-at="left">2</span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b>🏢 Pro</b> · <span class="d"><span class="fr">client professionnel : la TVA est ajoutée en sus sur ses achats ; son NIU figure sur la facture.</span><span class="en">business customer: VAT is added on top of their purchases; their NIU appears on the invoice.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Crédit</span><span class="en">Credit</span></b> · <span class="d"><span class="fr">ce que le client <b>vous doit</b> (ventes « Crédit, payer plus tard »), en rouge.</span><span class="en">what the customer <b>owes you</b> ("Credit, pay later" sales), in red.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Avoir</span><span class="en">Store credit</span></b> · <span class="d"><span class="fr">argent <b>déposé d'avance</b> par le client, qu'il peut dépenser, en vert.</span><span class="en">money <b>deposited in advance</b> by the customer, to spend, in green.</span></span></div></li>
+          <li><span class="pn">4</span><div><b>🎁 <span class="fr">Récompenses</span><span class="en">Rewards</span></b> · <span class="d"><span class="fr">cartes cadeaux gagnées (une tous les N achats, réglage dans Mon entreprise).</span><span class="en">gift cards earned (one every N purchases, set in My business).</span></span></div></li>
+        </ol>
+      </figure>
+      <div class="grid2">
+        <div class="mini"><h4>🎁 <span class="fr">Cartes cadeaux</span><span class="en">Gift cards</span></h4><p><span class="fr">Clients → Cartes cadeaux : saisissez la valeur → <b>Émettre la carte</b>. Liste avec code, valeur initiale, solde et statut ; 🚫 Désactiver / ✅ Activer ; 🗑 Supprimer seulement une carte jamais utilisée. Une carte n'est liée à personne : quiconque a le code peut l'utiliser.</span><span class="en">Clients → Gift cards: enter the value → <b>Issue card</b>. List with code, initial value, balance and status; 🚫 Deactivate / ✅ Activate; 🗑 Delete only an unused card. A card isn't tied to anyone: whoever has the code can use it.</span></p></div>
+        <div class="mini"><h4>💳 <span class="fr">Crédits clients</span><span class="en">Customer credits</span></h4><p><span class="fr">Gestion → Crédits clients : total dû, avoirs en cours, récompenses. Filtres « Doit de l'argent » / « A un avoir », 🖨 Imprimer. Un clic ouvre le relevé du client, et chaque ligne ouvre la vente.</span><span class="en">Management → Customer credits: total owed, outstanding store credit, rewards. Filters "Owes money" / "Has store credit", 🖨 Print. A click opens the customer statement, and each entry opens the sale.</span></p></div>
+      </div>
+      <div class="note warn"><span class="ic">⚖️</span><div><span class="fr"><b>Crédit ≠ Avoir.</b> Le crédit est une dette du client envers vous ; l'avoir est de l'argent du client que vous détenez. Les deux sont suivis séparément.</span><span class="en"><b>Credit ≠ Store credit.</b> Credit is the customer's debt to you; store credit is the customer's money you hold. Both are tracked separately.</span></div></div>
+    </section>

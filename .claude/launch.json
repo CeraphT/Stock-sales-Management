@@ -69,6 +69,33 @@
       "env": {
         "VITE_API_BASE_URL": "http://localhost:5091"
       }
+    },
+    {
+      "name": "web-prodpreview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "apps/web",
+        "--outDir",
+        "C:/Users/STEVEF~1/AppData/Local/Temp/claude/C--Dev-PharmaStock/07925398-0dc9-414d-9762-e89780f8e9b2/scratchpad/webprod",
+        "--port",
+        "5177",
+        "--strictPort"
+      ],
+      "port": 5177
+    },
+    {
+      "name": "guide",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "docs/user-guide",
+        "--port",
+        "5178",
+        "--strictPort"
+      ],
+      "port": 5178
     }
   ]
 }

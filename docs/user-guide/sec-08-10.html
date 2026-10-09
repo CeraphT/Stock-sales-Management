@@ -1,0 +1,123 @@
+    <!-- ==================== 8. PRODUCTS ==================== -->
+    <section id="products">
+      <div class="kicker">08 · <span class="fr">Catalogue & stock</span><span class="en">Catalog & stock</span></div>
+      <h2 class="title"><span class="fr">Produits</span><span class="en">Products</span></h2>
+      <p class="lead"><span class="fr">Le catalogue : prix, codes-barres, conditionnements (boîte, plaquette, unité), seuils de stock bas, et les options propres à votre activité (péremption, poids, numéros de série, variantes, assemblage).</span>
+      <span class="en">The catalog: prices, barcodes, packaging (box, blister, unit), low-stock thresholds, and the options specific to your trade (expiry, weight, serial numbers, variants, assembly).</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Liste des produits</span><span class="en">Product list</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/products</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="urow"><div class="ufield" style="margin:0;flex:1" data-pin="1">🔎 <span class="fr">Rechercher un produit par nom ou code-barres…</span><span class="en">Search products by name or barcode…</span></div><span class="ubtn" data-pin="2" data-pin-at="top">＋ <span class="fr">Nouveau produit</span><span class="en">New product</span></span></div>
+              <div class="ucard">
+                <div class="urow umuted" style="font:600 8.5px 'IBM Plex Mono';text-transform:uppercase"><span style="width:180px"><span class="fr">Produit</span><span class="en">Product</span></span><span style="width:110px"><span class="fr">Code-barres</span><span class="en">Barcode</span></span><span style="width:70px"><span class="fr">Prix</span><span class="en">Price</span></span><span style="width:60px">Stock</span><span style="width:80px"><span class="fr">Péremption</span><span class="en">Expiry</span></span><div class="uspace"></div><span class="fr">Statut</span><span class="en">Status</span></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:180px">★ Paracétamol 500 mg 📦</span><span style="width:110px" class="umuted">6181234567890</span><span style="width:70px">500</span><span style="width:60px" data-pin="3" data-pin-at="left"><u>120</u></span><span style="width:80px;color:var(--ui-amber)">12/11/2026</span><div class="uspace"></div><span class="upill ok"><span class="fr">En stock</span><span class="en">In stock</span></span></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:180px">Sirop toux 125 ml</span><span style="width:110px" class="umuted">6189876543210</span><span style="width:70px">2 500</span><span style="width:60px">0</span><span style="width:80px">-</span><div class="uspace"></div><span class="upill bad"><span class="fr">Rupture</span><span class="en">Out</span></span><span class="ubtn g" style="margin-left:6px" data-pin="4">🛒 <span class="fr">Commander</span><span class="en">Order</span></span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Recherche</span><span class="en">Search</span></b> · <span class="d"><span class="fr">par nom ou code-barres. Scanner un code ouvre directement l'inventaire du produit.</span><span class="en">by name or barcode. Scanning a code opens the product's inventory directly.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Nouveau produit</span><span class="en">New product</span></b> · <span class="d"><span class="fr">ouvre le formulaire (ci-dessous).</span><span class="en">opens the form (below).</span></span></div></li>
+          <li><span class="pn">3</span><div><b>Stock</b> · <span class="d"><span class="fr">un clic ouvre l'inventaire : stock, valeur, lots et dates de péremption (orange à moins de 30 jours, rouge si expiré).</span><span class="en">a click opens the inventory: stock, value, batches and expiry dates (orange under 30 days, red if expired).</span></span></div></li>
+          <li><span class="pn">4</span><div><b>🛒 <span class="fr">Commander</span><span class="en">Order</span></b> · <span class="d"><span class="fr">sur un produit en rupture : prépare un bon de commande chez son fournisseur.</span><span class="en">on an out-of-stock product: drafts a purchase order with its supplier.</span></span></div></li>
+        </ol>
+      </figure>
+
+      <h3 class="subhead"><span class="fr">Le formulaire produit</span><span class="en">The product form</span></h3>
+      <div class="grid2">
+        <div class="mini"><h4><span class="fr">Toujours présent</span><span class="en">Always there</span></h4><p><span class="fr">Nom, code-barres (scanner ou saisir), catégorie (+ pour en créer une), <b>fournisseur</b> (obligatoire sauf réglage contraire), prix d'achat, prix de vente, seuil de stock bas, TVA spécifique (vide = taux de la boutique), Favori (épinglé au point de vente).</span><span class="en">Name, barcode (scan or type), category (+ to create one), <b>supplier</b> (required unless set otherwise), purchase price, sale price, low-stock threshold, VAT override (blank = shop rate), Favorite (pinned at the point of sale).</span></p></div>
+        <div class="mini"><h4>📦 <span class="fr">Niveaux de conditionnement</span><span class="en">Packaging levels</span></h4><p><span class="fr">+ Ajouter un niveau : nom (Boîte), nombre d'unités (10), prix spécifique facultatif. Au point de vente, on choisit « Vendre en » Unité ou Boîte ; le stock est toujours compté en unités.</span><span class="en">+ Add level: name (Box), number of units (10), optional price override. At the point of sale you choose "Sell as" Unit or Box; stock is always counted in units.</span></p></div>
+        <div class="mini"><h4>⚖️ 🔢 <span class="fr">Poids & numéros de série</span><span class="en">Weight & serial numbers</span></h4><p><span class="fr">Vente au poids ou à la mesure (kg, m, L ; prix par unité de mesure). Suivi des numéros de série / IMEI : chaque unité vendue est choisie par son numéro.</span><span class="en">Sell by weight or measure (kg, m, L; price per unit of measure). Serial / IMEI tracking: each unit sold is picked by its number.</span></p></div>
+        <div class="mini"><h4>🎨 🛠️ <span class="fr">Variantes & assemblage</span><span class="en">Variants & assembly</span></h4><p><span class="fr">Variantes (S, M, L…) avec leur propre stock, code-barres et prix. Nomenclature : composants d'un produit fini, puis « Assembler » une quantité.</span><span class="en">Variants (S, M, L…) with their own stock, barcode and price. Bill of materials: components of a finished product, then "Build" a quantity.</span></p></div>
+      </div>
+      <div class="note tip"><span class="ic">💡</span><div><span class="fr">Les options poids, série, variantes et assemblage n'apparaissent que si elles sont activées dans <b>Mon entreprise → Ce que vous gérez</b>. Sur un produit existant, les boutons 📊 Inventaire, 📥 Réceptionner, ✏️ Ajuster, ↩️ Retour fournisseur et 🗄️ Archiver sont en haut du formulaire.</span><span class="en">The weight, serial, variant and assembly options only appear if enabled in <b>My business → What you manage</b>. On an existing product, the 📊 Inventory, 📥 Receive, ✏️ Adjust, ↩️ Return to supplier and 🗄️ Archive buttons are at the top of the form.</span></div></div>
+      <div class="grid2">
+        <div class="mini"><h4>🏷️ <span class="fr">Catégories</span><span class="en">Categories</span></h4><p><span class="fr">Ajouter, ✏️ renommer, 🗑️ supprimer (avec confirmation).</span><span class="en">Add, ✏️ rename, 🗑️ delete (with confirmation).</span></p></div>
+        <div class="mini"><h4>🗄️ <span class="fr">Archives</span><span class="en">Archived</span></h4><p><span class="fr">Les produits archivés disparaissent du catalogue et du point de vente, sans perdre leur historique. ♻️ Restaurer les remet en vente.</span><span class="en">Archived products disappear from the catalog and point of sale without losing their history. ♻️ Restore puts them back on sale.</span></p></div>
+      </div>
+    </section>
+
+    <!-- ==================== 9. STOCK MOVEMENTS ==================== -->
+    <section id="stock">
+      <div class="kicker">09 · <span class="fr">Catalogue & stock</span><span class="en">Catalog & stock</span></div>
+      <h2 class="title"><span class="fr">Mouvements de stock</span><span class="en">Stock movements</span></h2>
+      <p class="lead"><span class="fr">Le stock ne se tape jamais « à la main » : il change par des mouvements tracés. Réception d'une livraison (nouveau lot), ajustement (casse, perte) avec un motif, ou retour au fournisseur.</span>
+      <span class="en">Stock is never typed in "by hand": it changes through tracked movements. Receiving a delivery (new batch), adjustment (breakage, loss) with a reason, or return to the supplier.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Réceptionner du stock</span><span class="en">Receive stock</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/products/…/receive</div></div>
+            <div class="bwin"><div class="bmain" style="display:flex;justify-content:center">
+              <div class="ucard" style="width:430px;margin-top:0">
+                <h5>📥 <span class="fr">Réceptionner du stock</span><span class="en">Receive stock</span> · Paracétamol 500 mg</h5>
+                <div class="ufield" data-pin="1"><span class="lab"><span class="fr">Numéro de lot</span><span class="en">Batch number</span></span>LOT-2026-114</div>
+                <div class="ufield" data-pin="2"><span class="lab"><span class="fr">Date de péremption</span><span class="en">Expiry date</span></span>📅 30/06/2027</div>
+                <div style="display:flex;gap:6px"><div class="ufield" style="flex:1" data-pin="3" data-pin-at="left"><span class="lab"><span class="fr">Réceptionner en</span><span class="en">Receive in</span></span><span class="fr">Boîte</span><span class="en">Box</span> (10)</div><div class="ufield" style="flex:1"><span class="lab"><span class="fr">Quantité</span><span class="en">Quantity</span></span>12 <span class="umuted">= 120 <span class="fr">unités</span><span class="en">units</span></span></div></div>
+                <div class="ufield" data-pin="4"><span class="lab"><span class="fr">Coût unitaire (facultatif)</span><span class="en">Unit cost (optional)</span></span>3 200</div>
+                <div class="ubtn" style="width:100%;justify-content:center;margin-top:9px" data-pin="5"><span class="fr">Réceptionner</span><span class="en">Receive</span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Numéro de lot</span><span class="en">Batch number</span></b> · <span class="d"><span class="fr">obligatoire ; chaque réception crée un lot.</span><span class="en">required; each delivery creates a batch.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Péremption</span><span class="en">Expiry</span></b> · <span class="d"><span class="fr">obligatoire si le suivi des péremptions est actif. Les ventes puisent d'abord dans le lot qui expire le plus tôt.</span><span class="en">required if expiry tracking is on. Sales take from the batch expiring first.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Réceptionner en</span><span class="en">Receive in</span></b> · <span class="d"><span class="fr">Unité ou Boîte : la conversion en unités est affichée. Pour un produit à numéros de série, saisissez un numéro par ligne à la place de la quantité.</span><span class="en">Unit or Box: the conversion to units is shown. For a serial product, enter one number per line instead of a quantity.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Coût unitaire</span><span class="en">Unit cost</span></b> · <span class="d"><span class="fr">sert aux marges, à la valeur du stock et à la TVA déductible.</span><span class="en">used for margins, stock value and deductible VAT.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Réceptionner</span><span class="en">Receive</span></b> · <span class="d"><span class="fr">enregistre le lot ; le stock augmente aussitôt.</span><span class="en">saves the batch; stock goes up immediately.</span></span></div></li>
+        </ol>
+      </figure>
+      <ol class="steps">
+        <li><span class="fr"><b>Réceptionner :</b> Achats → <span class="btnref">Réceptionner du stock</span> → cherchez ou scannez le produit → remplissez le lot → <span class="btnref">Réceptionner</span>. Depuis un bon de commande, utilisez plutôt Réceptionner sur la ligne (section 11).</span><span class="en"><b>Receive:</b> Purchasing → <span class="btnref">Receive stock</span> → search or scan the product → fill the batch → <span class="btnref">Receive</span>. From a purchase order, use Receive on the line instead (section 11).</span></li>
+        <li><span class="fr"><b>Ajuster :</b> fiche produit → ✏️ Ajuster → choisissez le lot → variation (+ ou −, ex. −3 pour de la casse) → <b>motif obligatoire</b> → <span class="btnref">Appliquer l'ajustement</span>. Un lot ne peut pas passer sous zéro.</span><span class="en"><b>Adjust:</b> product → ✏️ Adjust → pick the batch → change (+ or −, e.g. −3 for breakage) → <b>reason required</b> → <span class="btnref">Apply adjustment</span>. A batch can't go below zero.</span></li>
+        <li><span class="fr"><b>Retour fournisseur :</b> fiche produit → ↩️ Retour fournisseur → lot → quantité (au plus le stock du lot) → motif (abîmé, périmé, erreur) → <span class="btnref">Retour fournisseur</span>.</span><span class="en"><b>Return to supplier:</b> product → ↩️ Return to supplier → batch → quantity (at most the batch stock) → reason (damaged, expired, wrong item) → <span class="btnref">Return to supplier</span>.</span></li>
+      </ol>
+      <div class="note"><span class="ic">📶</span><div><span class="fr">Réceptions, ajustements et comptages fonctionnent aussi <b>hors ligne</b> sur l'application bureau et sur mobile : ils sont envoyés au serveur au retour de la connexion.</span><span class="en">Receiving, adjustments and counts also work <b>offline</b> in the desktop app and on mobile: they're sent to the server when the connection returns.</span></div></div>
+    </section>
+
+    <!-- ==================== 10. COUNT, BULK & LABELS ==================== -->
+    <section id="count">
+      <div class="kicker">10 · <span class="fr">Catalogue & stock</span><span class="en">Catalog & stock</span></div>
+      <h2 class="title"><span class="fr">Inventaire, stock en masse & étiquettes</span><span class="en">Stock count, bulk stock & labels</span></h2>
+      <p class="lead"><span class="fr">Comptez le stock réel et corrigez les écarts en une fois, enregistrez tout un stock existant depuis un fichier Excel, et imprimez des étiquettes avec code-barres.</span>
+      <span class="en">Count the real stock and fix the differences in one go, register a whole existing stock from an Excel file, and print barcode labels.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Comptage de stock</span><span class="en">Stock count</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/stock-count</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="ufield" style="margin-top:0" data-pin="1">🔎 <span class="fr">Rechercher un produit ou un lot…</span><span class="en">Search product or batch…</span></div>
+              <div class="ucard">
+                <div class="urow umuted" style="font:600 8.5px 'IBM Plex Mono';text-transform:uppercase"><span style="width:190px"><span class="fr">Produit</span><span class="en">Product</span></span><span style="width:110px"><span class="fr">Lot</span><span class="en">Batch</span></span><span style="width:80px"><span class="fr">Système</span><span class="en">System</span></span><span style="width:90px"><span class="fr">Compté</span><span class="en">Counted</span></span><div class="uspace"></div><span class="fr">Écart</span><span class="en">Variance</span></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:190px">Paracétamol 500 mg</span><span style="width:110px">LOT-114</span><span style="width:80px">120</span><span style="width:90px"><span class="uchip" data-pin="2">117</span></span><div class="uspace"></div><b style="color:var(--ui-red)" data-pin="3" data-pin-at="left">−3</b></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:190px">Sirop toux 125 ml</span><span style="width:110px">LOT-087</span><span style="width:80px">24</span><span style="width:90px"><span class="uchip">24</span></span><div class="uspace"></div><span class="umuted">0</span></div>
+              </div>
+              <div class="urow" style="margin-top:9px"><div class="uspace"></div><span class="ubtn" data-pin="4" data-pin-at="left"><span class="fr">Valider le comptage & ajuster</span><span class="en">Post count & adjust</span></span></div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Recherche</span><span class="en">Search</span></b> · <span class="d"><span class="fr">par produit ou numéro de lot.</span><span class="en">by product or batch number.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Compté</span><span class="en">Counted</span></b> · <span class="d"><span class="fr">saisissez ce que vous avez réellement en rayon.</span><span class="en">enter what you really have on the shelf.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Écart</span><span class="en">Variance</span></b> · <span class="d"><span class="fr">vert si plus, rouge si moins.</span><span class="en">green if more, red if less.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Valider</span><span class="en">Post</span></b> · <span class="d"><span class="fr">seules les lignes avec un écart sont ajustées.</span><span class="en">only lines with a difference are adjusted.</span></span></div></li>
+        </ol>
+      </figure>
+      <div class="grid2">
+        <div class="mini"><h4>📋 <span class="fr">Enregistrement de stock en masse</span><span class="en">Bulk stock registration</span></h4><p><span class="fr">1. ⬇ Télécharger le modèle Excel. 2. Remplissez-le (nom, code-barres, catégorie, prix, seuil, lot, péremption AAAA-MM-JJ, quantité) puis ⬆ envoyez-le ou collez les lignes. 3. <b>Vérifier les lignes</b> : prêtes ✅ ou en erreur ❌. 4. <b>Enregistrer N articles</b>. Un produit existant (même code-barres, sinon même nom) est réapprovisionné ; les autres sont créés.</span><span class="en">1. ⬇ Download the Excel template. 2. Fill it (name, barcode, category, prices, threshold, batch, expiry YYYY-MM-DD, quantity), then ⬆ upload it or paste the rows. 3. <b>Check rows</b>: ready ✅ or error ❌. 4. <b>Register N items</b>. An existing product (same barcode, else same name) is restocked; the others are created.</span></p></div>
+        <div class="mini"><h4>🏷️ <span class="fr">Imprimer des étiquettes</span><span class="en">Print labels</span></h4><p><span class="fr">Cherchez les produits, réglez le nombre de copies, puis 🖨 Imprimer. Étiquettes 50 × 30 mm : nom, prix et code-barres. Un produit sans code-barres est signalé. Passe par la fenêtre d'impression (ou Enregistrer en PDF).</span><span class="en">Search products, set the number of copies, then 🖨 Print. 50 × 30 mm labels: name, price and barcode. A product with no barcode is flagged. Uses the print dialog (or Save as PDF).</span></p></div>
+      </div>
+    </section>

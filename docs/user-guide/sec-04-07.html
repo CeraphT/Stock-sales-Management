@@ -1,0 +1,197 @@
+    <!-- ==================== 4. DASHBOARD & ALERTS ==================== -->
+    <section id="dashboard">
+      <div class="kicker">04 · <span class="fr">Ventes</span><span class="en">Sales</span></div>
+      <h2 class="title"><span class="fr">Tableau de bord & alertes</span><span class="en">Dashboard & alerts</span></h2>
+      <p class="lead"><span class="fr">La vue d'ensemble de la journée : recettes, ventes, état du stock. Chaque tuile est cliquable et ouvre la liste correspondante. Les alertes regroupent tout ce qui demande une action.</span>
+      <span class="en">Today at a glance: revenue, sales, stock health. Every tile is clickable and opens the matching list. Alerts gather everything that needs action.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Tableau de bord · Web & Bureau</span><span class="en">Dashboard · Web & Desktop</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/dashboard</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="utitle"><span class="fr">Bienvenue, Awa 👋</span><span class="en">Welcome, Awa 👋</span></div>
+              <div class="usub"><span class="fr">Voici l'activité de votre entreprise aujourd'hui.</span><span class="en">Here's how your business is doing today.</span></div>
+              <div class="ucard tight" style="margin:0 0 10px;border-color:var(--ui-red);background:var(--ui-redsoft)" data-pin="1"><div class="urow"><b style="color:var(--ui-red);font-size:11px">⚠️ <span class="fr">Réconciliation requise</span><span class="en">Needs reconciliation</span></b><div class="uspace"></div><span class="ubtn" style="background:var(--ui-red)"><span class="fr">Examiner</span><span class="en">Review</span></span></div></div>
+              <div class="ustatgrid" style="grid-template-columns:repeat(6,1fr)" data-pin="2" data-pin-at="top">
+                <div class="ustat"><div class="k"><span class="fr">Recettes du jour</span><span class="en">Revenue today</span></div><div class="v">184 500</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Ventes du jour</span><span class="en">Sales today</span></div><div class="v">37</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Produits</span><span class="en">Products</span></div><div class="v">412</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Stock faible</span><span class="en">Low stock</span></div><div class="v" style="color:var(--ui-amber)">6</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Rupture</span><span class="en">Out of stock</span></div><div class="v" style="color:var(--ui-red)">2</div></div>
+                <div class="ustat"><div class="k"><span class="fr">Expire bientôt</span><span class="en">Expiring</span></div><div class="v" style="color:var(--ui-red)">3</div></div>
+              </div>
+              <div style="display:flex;gap:10px">
+                <div class="ucard" style="flex:2"><div class="urow"><h5 style="margin:0"><span class="fr">Évolution des recettes</span><span class="en">Revenue trend</span></h5><div class="uspace"></div><div class="useg" data-pin="3"><span class="on">7J</span><span>30J</span><span>90J</span></div></div><div class="ubars"><div class="b" style="height:45%"></div><div class="b" style="height:62%"></div><div class="b" style="height:38%"></div><div class="b" style="height:80%"></div><div class="b" style="height:70%"></div><div class="b" style="height:92%"></div><div class="b" style="height:66%"></div></div></div>
+                <div class="ucard" style="flex:1" data-pin="4"><h5><span class="fr">État du stock</span><span class="en">Stock health</span></h5><div class="urow" style="justify-content:space-around;margin-top:24px;font:700 15px 'Bricolage Grotesque'"><span style="color:var(--ui-green)">398</span><span style="color:var(--ui-amber)">6</span><span style="color:var(--ui-red)">2</span></div></div>
+              </div>
+              <div class="ucard" data-pin="5"><h5><span class="fr">Ventes récentes</span><span class="en">Recent sales</span></h5><div class="urow umuted"><span>10:42 · <span class="fr">Client de passage</span><span class="en">Walk-in</span></span><div class="uspace"></div><b style="color:var(--ui-ink)">4 500 XAF</b></div></div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Réconciliation requise</span><span class="en">Needs reconciliation</span></b> · <span class="d"><span class="fr">apparaît si un lot est passé en négatif après des ventes hors ligne, ou si deux appareils ont ouvert la même caisse. Le gérant clique Examiner, corrige le stock puis « Marquer examiné ».</span><span class="en">appears if a batch went negative after offline sales, or two devices opened the same register. The manager clicks Review, fixes the stock then "Mark reviewed".</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Six tuiles</span><span class="en">Six tiles</span></b> · <span class="d"><span class="fr">recettes et ventes du jour, produits, stock faible, rupture, expire bientôt. Un clic ouvre la liste filtrée.</span><span class="en">today's revenue and sales, products, low stock, out of stock, expiring soon. A click opens the filtered list.</span></span></div></li>
+          <li><span class="pn">3</span><div><b>7J · 30J · 90J</b> · <span class="d"><span class="fr">période du graphique des recettes.</span><span class="en">period of the revenue chart.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">État du stock</span><span class="en">Stock health</span></b> · <span class="d"><span class="fr">produits en stock, en stock faible et en rupture.</span><span class="en">products in stock, low and out of stock.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Ventes récentes</span><span class="en">Recent sales</span></b> · <span class="d"><span class="fr">les 8 dernières ventes.</span><span class="en">the last 8 sales.</span></span></div></li>
+        </ol>
+      </figure>
+
+      <h3 class="subhead">🔔 <span class="fr">Alertes</span><span class="en">Alerts</span></h3>
+      <div class="grid2">
+        <div class="mini"><h4>⛔ <span class="fr">Rupture de stock</span><span class="en">Out of stock</span></h4><p><span class="fr">Produits à zéro, avec un bouton Réceptionner. « En commande » si un bon de commande est déjà ouvert : un clic l'ouvre.</span><span class="en">Products at zero, with a Receive button. "On order" if a purchase order is already open: a click opens it.</span></p></div>
+        <div class="mini"><h4>⚠️ <span class="fr">Stock faible</span><span class="en">Low stock</span></h4><p><span class="fr">Stock actuel / seuil, avec Réceptionner.</span><span class="en">Current stock / threshold, with Receive.</span></p></div>
+        <div class="mini"><h4>⏰ <span class="fr">Expiré</span><span class="en">Expired</span></h4><p><span class="fr">Lot, date de péremption, unités, et depuis combien de jours. Un clic ouvre l'inventaire du produit.</span><span class="en">Batch, expiry date, units and how many days ago. A click opens the product's inventory.</span></p></div>
+        <div class="mini"><h4>⏳ <span class="fr">Expire bientôt</span><span class="en">Expiring soon</span></h4><p><span class="fr">Lots qui expirent dans les 30 jours : à vendre en priorité.</span><span class="en">Batches expiring within 30 days: sell them first.</span></p></div>
+      </div>
+      <div class="note"><span class="ic">📱</span><div><span class="fr"><b>Sur mobile :</b> l'onglet Accueil montre les mêmes chiffres en une colonne ; les Alertes sont dans Plus → Gestion.</span><span class="en"><b>On mobile:</b> the Home tab shows the same figures in one column; Alerts are under More → Management.</span></div></div>
+    </section>
+
+    <!-- ==================== 5. POINT OF SALE ==================== -->
+    <section id="pos">
+      <div class="kicker">05 · <span class="fr">Ventes</span><span class="en">Sales</span></div>
+      <h2 class="title"><span class="fr">Point de vente</span> <span class="en">Point of sale</span><span class="platform">🖥️ 📱</span></h2>
+      <p class="lead"><span class="fr">Scannez ou cherchez les produits, choisissez le client et le moyen de paiement, encaissez, imprimez le reçu. Le stock est déduit automatiquement, lot par lot, en commençant par celui qui expire le plus tôt (FEFO).</span>
+      <span class="en">Scan or search products, pick the customer and payment method, charge, print the receipt. Stock is deducted automatically, batch by batch, starting with the one that expires first (FEFO).</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Point de vente · Web & Bureau</span><span class="en">Point of sale · Web & Desktop</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/pos</div></div>
+            <div class="bwin"><div class="bmain" style="display:flex;gap:10px">
+              <div style="flex:1.4;min-width:0">
+                <div class="ufield" style="margin-top:0" data-pin="1">🔎 <span class="fr">Scannez un code-barres ou recherchez un produit…</span><span class="en">Scan a barcode or search products…</span></div>
+                <div class="ucard tight"><div class="urow"><b style="font-size:11px">Paracétamol 500 mg</b><span class="upill ok">120</span><div class="uspace"></div><span style="font-size:11px">500 XAF</span></div><div class="umuted" style="font-size:9.5px">📦 <span class="fr">Boîte de 10</span><span class="en">Box of 10</span> · 4 500</div></div>
+                <div class="ucard" data-pin="2"><h5><span class="fr">Panier</span><span class="en">Cart</span></h5>
+                  <div class="urow" style="font-size:11px">Paracétamol 500 mg<div class="uspace"></div><span class="uchip">−</span><b>2</b><span class="uchip">+</span><b style="width:52px;text-align:right">1 000</b><span style="color:var(--ui-red)">✕</span></div>
+                  <div class="uline"></div>
+                  <div class="urow" style="font-size:11px">Amoxicilline 1 g · <span class="fr">Boîte</span><span class="en">Box</span><div class="uspace"></div><span class="uchip">−</span><b>1</b><span class="uchip">+</span><b style="width:52px;text-align:right">3 500</b><span style="color:var(--ui-red)">✕</span></div>
+                </div>
+              </div>
+              <div class="ucard" style="flex:1;margin-top:0">
+                <div class="umuted">TOTAL</div><div style="font:800 22px 'Bricolage Grotesque'" data-pin="3">4 500 XAF</div>
+                <div class="ufield" data-pin="4"><span class="lab"><span class="fr">Client (facultatif)</span><span class="en">Customer (optional)</span></span><span class="fr">Client de passage</span><span class="en">Walk-in customer</span> ▾ &nbsp;➕</div>
+                <div class="umuted" style="margin-top:8px"><span class="fr">PAIEMENT</span><span class="en">PAYMENT</span></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:4px" data-pin="5">
+                  <span class="uchip on" style="text-align:center"><span class="fr">Espèces</span><span class="en">Cash</span></span><span class="uchip" style="text-align:center">Mobile money</span>
+                  <span class="uchip" style="text-align:center"><span class="fr">Crédit</span><span class="en">Credit</span></span><span class="uchip" style="text-align:center"><span class="fr">Avoir</span><span class="en">Store credit</span></span>
+                  <span class="uchip" style="text-align:center"><span class="fr">Carte cadeau</span><span class="en">Gift card</span></span>
+                </div>
+                <div class="ufield"><span class="lab"><span class="fr">Montant remis</span><span class="en">Amount tendered</span></span>5 000 · <span class="fr">Monnaie : 500</span><span class="en">Change: 500</span></div>
+                <div class="ubtn" style="width:100%;justify-content:center;margin-top:9px;padding:9px" data-pin="6"><span class="fr">Encaisser 4 500 XAF</span><span class="en">Charge 4,500 XAF</span></div>
+                <div class="urow" style="margin-top:6px" data-pin="7"><span class="ubtn g" style="flex:1;justify-content:center">⏸ <span class="fr">En attente</span><span class="en">Hold</span></span><span class="ubtn g" style="flex:1;justify-content:center">🗑 <span class="fr">Vider</span><span class="en">Clear</span></span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Recherche / scan</span><span class="en">Search / scan</span></b> · <span class="d"><span class="fr">tapez un nom ou un code-barres ; une douchette USB/Bluetooth fonctionne partout sur l'écran. Entrée ajoute le premier résultat.</span><span class="en">type a name or barcode; a USB/Bluetooth scan gun works anywhere on the screen. Enter adds the first result.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Panier</span><span class="en">Cart</span></b> · <span class="d"><span class="fr">− / + pour la quantité, ✕ pour retirer une ligne.</span><span class="en">− / + for quantity, ✕ removes a line.</span></span></div></li>
+          <li><span class="pn">3</span><div><b>Total</b> · <span class="d"><span class="fr">TVA comprise. Pour un client professionnel (🏢 Pro), la TVA est ajoutée en sus.</span><span class="en">VAT included. For a business customer (🏢 Pro), VAT is added on top.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Client</span><span class="en">Customer</span></b> · <span class="d"><span class="fr">facultatif ; ➕ crée un client sur place. Ses puces montrent son avoir, ce qu'il doit et ses récompenses.</span><span class="en">optional; ➕ creates a customer on the spot. Chips show their store credit, what they owe and rewards.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Moyen de paiement</span><span class="en">Payment method</span></b> · <span class="d"><span class="fr">Espèces, Mobile money, Crédit (payer plus tard), Avoir (prépayé), Carte cadeau.</span><span class="en">Cash, Mobile money, Credit (pay later), Store credit (prepaid), Gift card.</span></span></div></li>
+          <li><span class="pn">6</span><div><b><span class="fr">Encaisser</span><span class="en">Charge</span></b> · <span class="d"><span class="fr">valide la vente, déduit le stock et propose d'imprimer le reçu (ou l'imprime automatiquement si c'est réglé).</span><span class="en">completes the sale, deducts stock and offers to print the receipt (or prints it automatically if set).</span></span></div></li>
+          <li><span class="pn">7</span><div><b><span class="fr">Mettre en attente / Vider</span><span class="en">Hold / Clear</span></b> · <span class="d"><span class="fr">mettre la vente de côté (Ventes en attente) ou vider le panier.</span><span class="en">set the sale aside (Held sales) or empty the cart.</span></span></div></li>
+        </ol>
+      </figure>
+
+      <h3 class="subhead"><span class="fr">Pas à pas</span><span class="en">Step by step</span></h3>
+      <ol class="steps">
+        <li><span class="fr"><b>Ouvrir la caisse</b> (section 6) : un caissier ne peut pas vendre tant que la caisse du jour n'est pas ouverte.</span><span class="en"><b>Open the register</b> (section 6): a cashier can't sell until the day's register is open.</span></li>
+        <li><span class="fr"><b>Ajouter les produits :</b> scannez ou cherchez. Selon le produit, l'application demande l'unité de vente (Unité, Boîte…), le poids ou la quantité, ou le numéro de série / IMEI.</span><span class="en"><b>Add products:</b> scan or search. Depending on the product, the app asks for the sale unit (Unit, Box…), the weight or quantity, or the serial / IMEI number.</span></li>
+        <li><span class="fr"><b>Client & paiement :</b> choisissez un client si besoin, puis le moyen de paiement. En espèces, saisissez le montant remis pour voir la monnaie à rendre.</span><span class="en"><b>Customer & payment:</b> pick a customer if needed, then the payment method. For cash, enter the amount tendered to see the change due.</span></li>
+        <li><span class="fr"><b>Encaisser</b>, puis <span class="btnref">🖨 Imprimer / enregistrer le reçu</span>.</span><span class="en"><b>Charge</b>, then <span class="btnref">🖨 Print / save receipt</span>.</span></li>
+        <li><span class="fr"><b>Récompense :</b> si le client a droit à une carte cadeau de récompense, un bandeau 🎁 propose de l'émettre et de l'imprimer.</span><span class="en"><b>Reward:</b> if the customer earned a reward gift card, a 🎁 banner offers to issue and print it.</span></li>
+      </ol>
+      <div class="note warn"><span class="ic">⚠️</span><div><span class="fr"><b>Règles :</b> un produit en rupture ne peut pas être vendu (réceptionnez d'abord du stock). Un produit expiré peut être vendu avec un avertissement. Crédit et Avoir exigent un client. L'avoir et la carte cadeau doivent couvrir tout le montant (pas de paiement partagé).</span><span class="en"><b>Rules:</b> an out-of-stock product can't be sold (receive stock first). An expired product can be sold with a warning. Credit and Store credit require a customer. Store credit and gift card must cover the whole amount (no split payment).</span></div></div>
+      <div class="note"><span class="ic">📶</span><div><span class="fr"><b>Sans internet :</b> sur l'application bureau et sur mobile, la vente est enregistrée sur l'appareil et envoyée au serveur au retour de la connexion. La version web dans le navigateur a besoin d'internet pour encaisser.</span><span class="en"><b>Without internet:</b> in the desktop app and on mobile, the sale is saved on the device and sent to the server when the connection returns. The web version in the browser needs internet to charge.</span></div></div>
+      <div class="note"><span class="ic">📱</span><div><span class="fr"><b>Sur mobile :</b> onglet <b>Nouvelle vente</b>. Le bouton caméra scanne les codes-barres (tenez le code immobile un instant). Le paiement s'ouvre sur un écran à part : moyen de paiement, montant reçu, <span class="btnref">Encaisser</span>, puis Imprimer ou Voir le reçu.</span><span class="en"><b>On mobile:</b> <b>New sale</b> tab. The camera button scans barcodes (hold the code still for a moment). Payment opens on its own screen: method, amount received, <span class="btnref">Charge</span>, then Print or View the receipt.</span></div></div>
+
+      <h3 class="subhead">⏸️ <span class="fr">Ventes en attente</span><span class="en">Held sales</span></h3>
+      <p class="lead" style="font-size:15px"><span class="fr">Un client revient plus tard ? Mettez la vente en attente. Dans Ventes → Ventes en attente, <span class="btnref">▶️ Reprendre la vente</span> la remet dans le panier (le panier doit être vide), ou 🗑️ la supprime.</span><span class="en">A customer will be back later? Hold the sale. In Sales → Held sales, <span class="btnref">▶️ Resume sale</span> puts it back in the cart (the cart must be empty), or 🗑️ deletes it.</span></p>
+    </section>
+
+    <!-- ==================== 6. CASH REGISTER ==================== -->
+    <section id="register">
+      <div class="kicker">06 · <span class="fr">Ventes</span><span class="en">Sales</span></div>
+      <h2 class="title"><span class="fr">Caisse</span><span class="en">Cash register</span></h2>
+      <p class="lead"><span class="fr">Chaque journée commence par l'ouverture de la caisse (fonds de caisse) et se termine par sa fermeture (comptage des espèces). L'application calcule l'écart.</span>
+      <span class="en">Each day starts by opening the register (cash float) and ends by closing it (cash count). The app calculates the difference.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Caisse ouverte · fermeture</span><span class="en">Open register · closing</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/cash-register</div></div>
+            <div class="bwin"><div class="bmain" style="display:flex;gap:10px">
+              <div style="flex:1">
+                <div class="ucard" style="margin-top:0" data-pin="1"><div class="urow"><span class="upill ok"><span class="fr">Caisse ouverte</span><span class="en">Register open</span></span><div class="uspace"></div><span class="umuted">Awa · 08:02</span></div><div class="umuted" style="margin-top:6px"><span class="fr">Fonds de caisse</span><span class="en">Opening float</span> : 20 000</div></div>
+                <div class="ucard" data-pin="2"><div class="urow" style="font-size:11px">💵 <span class="fr">Ventes en espèces</span><span class="en">Cash sales</span><div class="uspace"></div><b>142 000</b></div><div class="umuted"><span class="fr">Attendu dans le tiroir</span><span class="en">Expected in drawer</span> : <b>162 000</b></div><div class="uline"></div><div class="urow" style="font-size:11px">📱 Mobile money<div class="uspace"></div><b>42 500</b></div><div class="umuted"><span class="fr">Pas dans le tiroir</span><span class="en">Not in the cash drawer</span></div></div>
+              </div>
+              <div class="ucard" style="flex:1;margin-top:0">
+                <h5><span class="fr">Fermer la caisse</span><span class="en">Close register</span></h5>
+                <div class="ufield" data-pin="3"><span class="lab"><span class="fr">Espèces comptées</span><span class="en">Cash counted</span></span>160 500</div>
+                <div class="ufield"><span class="lab">Notes</span>-</div>
+                <div class="ucard tight" style="background:var(--ui-redsoft);border-color:var(--ui-red)" data-pin="4"><b style="color:var(--ui-red);font-size:11px"><span class="fr">Manque de 1 500</span><span class="en">Short by 1,500</span></b></div>
+                <div class="ubtn" style="width:100%;justify-content:center;margin-top:9px" data-pin="5"><span class="fr">Fermer la caisse</span><span class="en">Close register</span></div>
+              </div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">État de la caisse</span><span class="en">Register status</span></b> · <span class="d"><span class="fr">qui l'a ouverte, quand, et le fonds de caisse.</span><span class="en">who opened it, when, and the opening float.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Attendu dans le tiroir</span><span class="en">Expected in drawer</span></b> · <span class="d"><span class="fr">fonds + ventes en espèces. Le mobile money n'est pas compté dans le tiroir.</span><span class="en">float + cash sales. Mobile money isn't counted in the drawer.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Espèces comptées</span><span class="en">Cash counted</span></b> · <span class="d"><span class="fr">comptez seulement les billets et pièces.</span><span class="en">count notes and coins only.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Écart</span><span class="en">Discrepancy</span></b> · <span class="d"><span class="fr">équilibré, excédent ou manque, calculé en direct.</span><span class="en">balanced, over or short, computed live.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Fermer la caisse</span><span class="en">Close register</span></b> · <span class="d"><span class="fr">clôt la journée ; elle apparaît dans l'historique des postes.</span><span class="en">ends the day; it appears in the shift history.</span></span></div></li>
+        </ol>
+      </figure>
+      <ol class="steps">
+        <li><span class="fr"><b>Ouvrir :</b> saisissez le <b>fonds de caisse initial</b> → <span class="btnref">Ouvrir la caisse</span>. Pour un caissier, toute l'application reste verrouillée tant que la caisse n'est pas ouverte (le gérant n'est jamais bloqué).</span><span class="en"><b>Open:</b> enter the <b>opening cash float</b> → <span class="btnref">Open register</span>. For a cashier, the whole app stays locked until the register is open (managers are never locked).</span></li>
+        <li><span class="fr"><b>Fermer :</b> comptez les espèces → <b>Espèces comptées</b> → notes si besoin → <span class="btnref">Fermer la caisse</span>.</span><span class="en"><b>Close:</b> count the cash → <b>Cash counted</b> → notes if needed → <span class="btnref">Close register</span>.</span></li>
+        <li><span class="fr"><b>Suivi :</b> « Recettes journalières » (espèces, mobile money, total par jour, 🖨 Imprimer) et « Historique des postes » avec l'écart de chaque journée.</span><span class="en"><b>Follow-up:</b> "Daily takings" (cash, mobile money, total per day, 🖨 Print) and "Shift history" with each day's discrepancy.</span></li>
+      </ol>
+    </section>
+
+    <!-- ==================== 7. SALES HISTORY ==================== -->
+    <section id="sales">
+      <div class="kicker">07 · <span class="fr">Ventes</span><span class="en">Sales</span></div>
+      <h2 class="title"><span class="fr">Historique des ventes & remboursements</span><span class="en">Sales history & refunds</span></h2>
+      <p class="lead"><span class="fr">Toutes les ventes, filtrables par date. Rouvrez une vente pour réimprimer le reçu ou la rembourser, exportez la période en PDF ou en Excel.</span>
+      <span class="en">Every sale, filterable by date. Open a sale to reprint the receipt or refund it, export the period to PDF or Excel.</span></p>
+
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Historique des ventes</span><span class="en">Sales history</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/sales</div></div>
+            <div class="bwin"><div class="bmain">
+              <div class="urow"><div class="ufield" style="margin:0" data-pin="1"><span class="fr">Du</span><span class="en">From</span> 01/10 · <span class="fr">Au</span><span class="en">To</span> 09/10 · <span class="fr">Effacer</span><span class="en">Clear</span></div><div class="uspace"></div><span class="ubtn g" data-pin="2" data-pin-at="top">🧾 <span class="fr">Exporter en PDF</span><span class="en">Export PDF</span></span><span class="ubtn g">📊 <span class="fr">Exporter en Excel</span><span class="en">Export Excel</span></span></div>
+              <div class="ucard">
+                <div class="urow umuted" style="font:600 8.5px 'IBM Plex Mono';text-transform:uppercase"><span style="width:16px"></span><span style="width:90px"><span class="fr">Date</span><span class="en">When</span></span><span style="width:110px"><span class="fr">Client</span><span class="en">Customer</span></span><span style="width:70px"><span class="fr">Caissier</span><span class="en">Cashier</span></span><span style="width:50px"><span class="fr">Articles</span><span class="en">Items</span></span><span style="width:90px"><span class="fr">Paiement</span><span class="en">Payment</span></span><div class="uspace"></div>Total</div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px"><span style="width:16px" data-pin="3" data-pin-at="left">☑</span><span style="width:90px">09/10 10:42</span><span style="width:110px"><span class="fr">Client de passage</span><span class="en">Walk-in</span></span><span style="width:70px">Awa</span><span style="width:50px">3</span><span style="width:90px"><span class="fr">Espèces</span><span class="en">Cash</span></span><div class="uspace"></div><b>4 500</b></div>
+                <div class="uline"></div>
+                <div class="urow" style="font-size:11px" data-pin="4"><span style="width:16px">☐</span><span style="width:90px">09/10 10:15</span><span style="width:110px">Ets Mbarga 🏢</span><span style="width:70px">Paul</span><span style="width:50px">12</span><span style="width:90px"><span class="fr">Crédit</span><span class="en">Credit</span></span><div class="uspace"></div><b>58 000</b></div>
+              </div>
+              <div class="urow" style="margin-top:9px"><span class="ubtn" data-pin="5">🧾 <span class="fr">Télécharger 1 reçu</span><span class="en">Download 1 receipt</span></span><div class="uspace"></div><span class="ubtn g"><span class="fr">Charger plus</span><span class="en">Load more</span></span></div>
+            </div></div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Période</span><span class="en">Date range</span></b> · <span class="d"><span class="fr">Du / Au ; Effacer pour tout voir.</span><span class="en">From / To; Clear to see everything.</span></span></div></li>
+          <li><span class="pn">2</span><div><b>PDF · Excel</b> · <span class="d"><span class="fr">exporte toutes les ventes de la période (pas seulement la page affichée). Sur l'application bureau, le fichier Excel va dans Téléchargements.</span><span class="en">exports every sale in the range (not just the visible page). In the desktop app, the Excel file goes to Downloads.</span></span></div></li>
+          <li><span class="pn">3</span><div><b><span class="fr">Cases à cocher</span><span class="en">Checkboxes</span></b> · <span class="d"><span class="fr">sélectionnez des ventes (ou Tout sélectionner) pour imprimer leurs reçus d'un coup.</span><span class="en">select sales (or Select all) to print their receipts at once.</span></span></div></li>
+          <li><span class="pn">4</span><div><b><span class="fr">Une vente</span><span class="en">A sale</span></b> · <span class="d"><span class="fr">un clic ouvre le détail : lignes, lot et n° de série, paiement, monnaie.</span><span class="en">a click opens the detail: lines, batch and serial, payment, change.</span></span></div></li>
+          <li><span class="pn">5</span><div><b><span class="fr">Télécharger N reçus</span><span class="en">Download N receipts</span></b> · <span class="d"><span class="fr">un seul document avec tous les reçus sélectionnés.</span><span class="en">a single document with all selected receipts.</span></span></div></li>
+        </ol>
+      </figure>
+      <ol class="steps">
+        <li><span class="fr"><b>Réimprimer un reçu :</b> ouvrez la vente → <span class="btnref">🖨 Imprimer le reçu</span>.</span><span class="en"><b>Reprint a receipt:</b> open the sale → <span class="btnref">🖨 Print receipt</span>.</span></li>
+        <li><span class="fr"><b>Rembourser (gérant) :</b> ouvrez la vente terminée → <span class="btnref">Rembourser la vente</span> → confirmez. Le stock revient en rayon et les paiements sont annulés (crédit, avoir, carte cadeau compris). Le statut passe à « Remboursée ».</span><span class="en"><b>Refund (manager):</b> open the completed sale → <span class="btnref">Refund sale</span> → confirm. Stock goes back on the shelf and payments are reversed (credit, store credit, gift card included). Status becomes "Refunded".</span></li>
+      </ol>
+      <div class="note"><span class="ic">📱</span><div><span class="fr"><b>Sur mobile :</b> onglet Historique, avec défilement infini. Hors ligne, il affiche les ventes de cet appareil, marquées « Non synchronisée » jusqu'à leur envoi.</span><span class="en"><b>On mobile:</b> History tab, with infinite scroll. Offline, it shows this device's sales, marked "Not synced" until they're sent.</span></div></div>
+    </section>
