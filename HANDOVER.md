@@ -1,231 +1,228 @@
-# StockFlow / PharmaStock — Project Handover
+# StockFlow / PharmaStock: Project Handover
 
 > Purpose: seed a **fresh chat scoped to this project only**. Read this first, then
-> `CLAUDE.md` (deeper engineering context) and `README.md` (older, partly stale —
+> `CLAUDE.md` (deeper engineering context) and `README.md` (older, partly stale:
 > predates the MAUI→Expo and Blazor→React pivots; trust CLAUDE.md + this file over it).
-> Last verified against the live system: **2026-10-05** (prod healthy).
+> **Last verified against the live system: 2026-10-11.** Everything is at **v0.2.2**
+> (API + web deployed, desktop 0.2.2 installed, APK 0.2.2 on the tablet and the phone).
+> The project memory (`~/.claude/projects/C--Dev-PharmaStock/memory/MEMORY.md`) holds the
+> detailed decision records referenced below by `name`.
 
 ---
 
 ## 1. What this is
 
-A **stock & sales management ecosystem** for a mini-pharmacy in Cameroon (with a
-light maternity/services module), built generic enough to **resell to other small
-businesses**. Low-connectivity context → **offline-first** is a first-class
-requirement, and the **Android tablet is the primary POS**, not the PC.
+A **stock & sales management ecosystem** for a mini-pharmacy in Cameroon (with a light
+maternity/services module), built generic enough to **resell to other small businesses**.
+Low-connectivity context → **offline-first** is a hard requirement ("surtout pour l'Afrique"),
+and the **Android tablet is the primary POS**, not the PC.
 
-Product name in UI/installers: **PharmaStock**. Shared package / ecosystem name:
-**StockFlow** (`@stockflow/core`). Same thing.
+Names: product/installers **PharmaStock**, ecosystem/brand **StockFlow** (`@stockflow/core`,
+logo, UI). Sponsor credited in every page footer: **mfSPACE.lu** (exact spelling).
 
-Full spec: two Word docs at the repo root —
-`Specification_Book_Stock_Management_Ecosystem.docx` (EN) and
-`Cahier_des_Charges_Ecosysteme_Gestion_Stock_FR.docx` (FR). The code is built
-section-by-section against them.
+Full spec: two Word docs at the repo root (`Specification_Book_Stock_Management_Ecosystem.docx`
+EN, `Cahier_des_Charges_Ecosysteme_Gestion_Stock_FR.docx` FR).
 
 ---
 
-## 2. Access map & platforms (how to get "full access")
+## 2. Access map & platforms
 
-A new Claude Code chat **on this machine** inherits the same filesystem + SSH keys
-this session used, so it already has the access below. Secret *values* are deliberately
-NOT written in this repo — they live on the server's `.env`; retrieve them there.
+A new Claude Code chat **on this machine** inherits the filesystem + SSH keys. Secret *values*
+are NOT in this repo; they live in the server `.env`.
 
 | Thing | Where / how |
 |---|---|
-| **Code repo** | `github.com/CeraphT/Stock-sales-Management` (private), branch `main`. Local: `C:\Dev\PharmaStock`. |
-| **Prod server** | Hetzner Ubuntu box **`root@116.203.144.105`** (CX23, 2 vCPU / 4 GB / 40 GB). SSH key already authorized from this machine. |
-| **StockFlow on server** | `/root/apps/stockflow` — deploy from `/root/apps/stockflow/deploy` (compose project **`deploy`** → containers `deploy-api-1`, `deploy-web-1`, `deploy-caddy-1`, `deploy-db-1`). |
-| **Domains** (LWS DNS for `mfspace.lu`, A → server IP) | `api.mfspace.lu` → .NET API · `stock.mfspace.lu` → web client. TLS is automatic (Caddy + Let's Encrypt). |
-| **Prod DB** | Postgres in `deploy-db-1`, database **`pharmastock`**, role **`stockflow`** (password in `deploy/.env`). Same container also hosts the `housebudget` DB (sibling app). |
-| **Prod secrets** | `/root/apps/stockflow/deploy/.env` on the server: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `JWT_SECRET`, `BOOTSTRAP_SECRET` (+ `HB_*` for the sibling app). **Never commit these.** Generate with `openssl rand -base64 48`. |
-| **App super-admin (dev)** | phone **`600000000`** / password **`super1234`** (dev-seeded). |
-| **App super-admin (prod)** | "Foning", phone **`661595648`** — password is user-set, **not known to Claude**. New super-admins are bootstrapped via `POST /api/superadmin/bootstrap` (header `X-Bootstrap-Secret: <BOOTSTRAP_SECRET>`) or the console → Administrators tab. **Claude does not create accounts or set passwords** — the user does. |
-| **Local dev DB** | Postgres service `postgresql-x64-17`, db `pharmastock`, `postgres`/`postgres` (see `appsettings.json`). |
-| **Sibling app** | HouseBudget v2 (rental mgmt) — separate repo `CeraphT/HouseBudget-v2` at `/root/apps/housebudget-v2`, own compose project `housebudget` (`hb-api`, `hb-web`), domains `budget`/`budgetapi.mfspace.lu`. Shares the same Postgres container. It's the **source of the "ideas to port" in §8**. |
+| **Code repo** | `github.com/CeraphT/Stock-sales-Management` (private), branch `main`. Local: `C:\Dev\PharmaStock`. Working tree clean at handover (last commit `92bcf89`). |
+| **Prod server** | Hetzner Ubuntu **`root@116.203.144.105`** (CX23, 2 vCPU / **4 GB** / 40 GB, 4 GB swap added). SSH key authorized from this machine. |
+| **StockFlow on server** | `/root/apps/stockflow`, compose project **`deploy`** in `deploy/`: `deploy-api-1`, `deploy-web-1`, `deploy-caddy-1`, `deploy-db-1`, plus the `guide` container. **`deploy/Caddyfile`, `deploy/docker-compose.yml` and `deploy/guide.Caddyfile` hold LIVE uncommitted edits** (SMTP env, guide mounts): back them up before every `git pull` (see §6). |
+| **Domains** (LWS DNS, `mfspace.lu`) | `api.mfspace.lu` API · `stock.mfspace.lu` web · `guide.mfspace.lu` user guides (HouseBudget at `/`, **StockFlow at `/stockflow/`**). TLS automatic (Caddy). |
+| **Prod DB** | Postgres in `deploy-db-1`, db **`pharmastock`**, role **`stockflow`** (password in `deploy/.env`; use `$POSTGRES_USER` inside the container, there is no `postgres` role). Same container hosts `housebudget`. |
+| **Backups** | Cron `/etc/cron.d/pg-backup` → `/root/bin/pg-backup.sh` daily 03:30 UTC (both DBs, `/root/backups`, 14 days, validated). PC pull task "PharmaStock - Pull prod DB backups" (daily 09:00) → `C:\Dev\prod-backups\`. E-mail alerts to infos@mfspace.lu on failure / stale backup. Run `pg-backup.sh` manually **before every deploy**. |
+| **Prod secrets** | `/root/apps/stockflow/deploy/.env`: `POSTGRES_*`, `JWT_SECRET`, `BOOTSTRAP_SECRET`, `SMTP_PASS`. **Never commit or print these.** |
+| **App super-admin (prod)** | "Foning", phone **`661595648`**, password user-set (**not known to Claude**). The same phone also has a **shop account "Steve Foning"** (2 CeraphT shops). If both have the same password, login asks *My shops* / *Super-admin console* (v0.2.2). |
+| **App super-admin (dev)** | phone `600000000` / `super1234` (dev seed only). Claude does **not** create real accounts or set passwords. |
+| **Test devices (adb)** | Samsung Tab S7 FE **SM-T733** `R52W606FF6A` (primary POS) · Xiaomi **M2101K9G** `5d23f540` (user's phone). Both accept plain `adb install -r` now (the package was sideloaded once). |
+| **Local dev DB** | Postgres 17 service, db `pharmastock`, `postgres`/`postgres`. Also a **scratch DB `pharmastock_migtest`** (restored prod dump + fictional test accounts Awa/Paul): used to test migrations; can be dropped when no longer needed (user hasn't decided). |
+| **Sibling app** | HouseBudget v2 (rental mgmt): `C:\Dev\HouseBudget`, server `/root/apps/housebudget-v2`, compose `housebudget`, `budget.mfspace.lu`. Shares the Postgres container and the guide site. |
 
 ---
 
 ## 3. Architecture
 
-One backend, three clients, one shared TS core. Dependency direction on the backend
-is strict: **Api → Infrastructure → Domain**, never reversed.
+One backend, three clients, one shared TS core. Backend direction: **Api → Infrastructure → Domain**.
 
-- **Backend** — ASP.NET Core Web API (.NET 8) + EF Core 8 + PostgreSQL.
-  `src/PharmaStock.Api` (`Services/` = endpoint groups + plain services, **no `Endpoints/` folder**),
-  `src/PharmaStock.Infrastructure` (DbContext, `Data/Configurations`, `Data/Migrations`,
-  `Services/` shared logic like `StockDeductionService`),
-  `src/PharmaStock.Domain` (POCO entities, one class/enum per file).
-  `AUTO_MIGRATE=true` applies EF migrations on API start. `dotnet-ef` pinned **8.0.10**.
-- **Mobile** — `apps/mobile` — **Expo / React Native** (Expo Router, NativeWind,
-  TanStack Query, Zustand, expo-sqlite + Drizzle). **Primary POS target (Android tablet).**
-  Full offline-first (local SQLite mirror + push/pull sync).
-- **Desktop** — `apps/desktop` — **Tauri v2 + React + TS + Tailwind**, wraps the web build.
-  Dual-driver local SQLite (tauri-plugin-sql natively; sql.js in a plain browser for dev).
-  Full bidirectional sync. Only raw ESC/POS thermal transport is unbuilt (hardware-dependent).
-- **Web** — `apps/web` — **React + Vite + TS + Tailwind**, **online-first** (no offline layer),
-  consumes `@stockflow/core`. Hosts the **Super-Admin console** (fleet, impersonation).
-- **Shared core** — `packages/core` (`@stockflow/core`) — api client, types, sync, receipt,
-  printer, business logic shared across mobile/desktop/web.
-- **Legacy, deleted** — the old .NET MAUI client (Windows+Android) and the Blazor
-  SuperAdmin web were removed; recoverable from git history. Don't revive them.
+- **Backend**: ASP.NET Core 8 + EF Core 8 + PostgreSQL (`src/PharmaStock.*`). Endpoint groups in
+  `Api/Services/*Endpoints.cs` (no `Endpoints/` folder). Migrations auto-apply on start.
+  `dotnet-ef` pinned **8.0.10**.
+- **Accounts model (new, 2026-10-06)**: one **account per phone** (`User`, phone globally unique
+  except SuperAdmins) linked to shops through **`CompanyMembership`** (role Cashier/CompanyAdmin,
+  `Restrict*` flags, status Active/Pending/Rejected/Disabled). A **shop-scoped JWT** carries the
+  same claims as before (`company_id` + membership role), so business endpoints are unchanged.
+  Endpoints: `/api/auth/register`, login (`accountOnly`, `preferShopAccount`),
+  `/api/auth/select-company`, `/api/me/companies`, `/api/me/join`, join-requests approve/reject.
+  Old app versions still work (legacy login opens a shop directly). See `project_multishop_accounts`.
+- **Mobile**: `apps/mobile`, Expo/React Native (Expo Router, NativeWind, TanStack Query, Zustand,
+  expo-sqlite + Drizzle). Primary POS. Full offline-first. Release builds use `https://api.mfspace.lu`,
+  dev builds `http://localhost:5080` (needs `adb reverse tcp:5080 tcp:5080`).
+- **Desktop**: `apps/desktop`, Tauri v2 + React (near-copy of the web screens), local SQLite,
+  offline sales + outbox. Only raw ESC/POS over Rust transport is hardware-dependent.
+- **Web**: `apps/web`, React + Vite. Local mirror for reads, but **the browser POS needs internet**
+  to charge. Hosts the Super-Admin console.
+- **Shared core**: `packages/core` (`@stockflow/core`): API client (GET retry, 20 s timeout,
+  `NetworkError`), types, sync (push outbox → pull), keyed mobile i18n (`i18n/translations.ts`),
+  receipts, printer, local services.
+- **User guide**: `docs/user-guide/` (built HTML, see §6 and `reference_user_guide`).
 
 ---
 
-## 4. Current status (what's built)
+## 4. Current status
 
-Backend is solid and in production. From recent history (`git log`), the clients now cover:
+Production is healthy and everything below is deployed / installed at v0.2.2.
 
-- **Onboarding/auth** — create company (+ first admin, returns JWT), join by code,
-  phone+password login, refresh tokens, staff roster/activate/password-reset.
-- **Catalog & stock** — products with packaging hierarchy (box/blister/unit),
-  categories, stock receive (new Batch + cost), manual adjust (reasoned, no-negative),
-  batch/movement history, stock availability check (Section 17).
-- **POS / sales** — FEFO deduction via `StockMovement`, packaging-aware pricing,
-  mixed product+service lines, split payments, Credit sales, barcode scanning,
-  hold/resume sales, refunds; **two-pane POS on tablet**.
-- **Multi-branch** (Section 16.6) — `Batch`/`Sale`/`StockMovement` carry `LocationId`;
-  FEFO scoped per location.
-- **Tax** — per-product VAT snapshot at sale time; configurable accounting system
-  (OHADA / GenericVAT / None) — see §7.
-- **Customers/loyalty** — customers (list/create only, keep financial history),
-  credit balance **and** store credit (distinct), hidden loyalty points, reward gift cards.
-- **Suppliers, Purchase Orders** (partial receiving → real Batch + movement, IMEI capture),
-  **Gift Cards**, **Reports** (date-range sales, top products), **Services module** (Section 20).
-- **Inventory capabilities N1–N5** — adaptive per business type: weight/measure selling,
-  serial/IMEI tracking, product variants (size/colour), assembly/kits (BOM, build-to-stock),
-  plus supplier returns, cycle count, barcode labels, reorder-aware alerts, demand forecast,
-  dead-stock. (See `project_inventory_capabilities` memory for per-client status + what's deferred.)
-- **Super-admin** (web only) — overview, companies, devices & sessions, users, audit log,
-  administrators, **impersonation**, fleet presence/geo, device block/wipe.
-- **Printing** — PDF/HTML receipts; ESC/POS layer exists (mobile has a native Kotlin module);
-  raw thermal transport is the one hardware-dependent gap.
+**Built and live**
+- **Login & My shops** (web, desktop, Android): phone + password with *Log in / Create an account*;
+  "My shops" page (create/join forms 3 : shop list 1; on phones the list comes first); 3-step
+  **creation wizard** (General / The shop / Equipment) over the *My business* fields, every step
+  fits a tablet/laptop screen without scrolling; join by code = **request the manager approves**
+  (role + restrictions) in Staff; branch picker remembered per shop; **safe shop switch**
+  (pushes unsent work first, asks before erasing); last shop reopens even offline;
+  super-admin/shop **chooser** after login.
+- **My business** fully shared between wizard and settings (`components/companyForm/`), all FR/EN.
+- **Catalog & stock**: packaging levels, FEFO batches, receive/adjust/return/count, bulk Excel
+  import, labels, capabilities N1–N5 (weight, serial/IMEI, variants, assembly), alerts, forecast,
+  dead stock, inventory report.
+- **POS / cash register / history / refunds**, held sales, reward gift cards, B2B VAT-on-top.
+- **Purchasing** (suppliers, POs with partial receive), **customers** (credit ≠ store credit),
+  **gift cards**, **reports**, **tax declaration** (OHADA / generic VAT / none, journals).
+- **Offline** A/B/C (local-first reads, outbox for stock ops + creates, cached server answers),
+  reconciliation banner, daily local backups.
+- **Support**: in-app tickets with screenshots on all apps, console triage (priority, SLA, assign,
+  internal notes), e-mail to infos@mfspace.lu with **signed one-click actions**, reporter pop-ups
+  + e-mail on reply/resolve. (`docs/support-process.md`, `project_support_feature`)
+- **Super-admin**: console (web), company picker + impersonation on desktop & mobile, **company
+  deactivation** (full block), devices/users/audit.
+- **Excel export** next to every PDF report (web + desktop, real numbers).
+- **Version footer** on every page: `StockFlow <Web|Desktop|Android> v0.2.2 · © mfSPACE.lu`
+  (no commit hash on screen). (`feedback_version_footer`)
+- **Branding**: teal box + amber arrow logo on all apps, installers (incl. NSIS icon) and launchers.
+- **User guide** (FR/EN, illustrated, 21 sections): https://guide.mfspace.lu/stockflow/
 
-**Known open items / gaps**
-- **Desktop release readiness** (not features): auto-update + code signing (SmartScreen warns),
-  visible sync status (last-synced / N pending / offline), on-device verification of a real
-  sale + ESC/POS print + full offline↔online cycle from the *installed* app. See
-  `project_desktop_release_gaps` memory.
-- **Mobile API base** — the Expo app still defaults to `http://localhost:5080` (needs
-  `adb reverse`). To ship an APK that works off the PC, point it at `https://api.mfspace.lu`
-  (HouseBudget's mobile already does this via a `PROD_API` constant — copy that pattern).
-- Super-admin mode on mobile/desktop (company-picker/impersonate) — pending **M8**.
+**Open items / known gaps**
+- **Desktop release**: code signing (SmartScreen warns) and auto-update are not done; ESC/POS
+  thermal transport needs hardware testing. (`project_desktop_release_gaps`)
+- **Web browser POS is online-only** (desktop/mobile sell offline). Documented in the guide.
+- **Mobile**: logo upload missing (editable on web/desktop only); printer-settings and camera
+  scanner strings are English only; some deep screens still have untranslated strings.
+- **Scratch DB `pharmastock_migtest`**: delete when no longer needed (ask the user).
+- Duplicate shop names in prod ("CeraphT" ×2 under Steve Foning): data, not a bug; user may rename.
 
 ---
 
 ## 5. Dev environment & how to run
 
-- **PostgreSQL 17** local (`postgres`/`postgres`, db `pharmastock`).
-- **.NET SDK** installed; net8.0 runtimes present. `dotnet-ef` **must stay 8.0.10**.
-- **API**: `cd src/PharmaStock.Api && dotnet run --urls http://localhost:5080` → `GET /health`.
-- **Web**: `cd apps/web && npm run dev` → http://localhost:5174 (API on :5080).
-- **Desktop**: `cd apps/desktop && npm run tauri dev` (native) or `npm run dev` (browser :5173).
-- **Mobile**: Metro `cd apps/mobile && npx expo start`; native build via `npx expo run:android`
-  (run in the **user's own terminal** — it binds a loopback that fails from Claude's tool).
-- Android device: `adb reverse tcp:5080 tcp:5080` after each USB reconnect (lost on reboot).
+- **API**: `cd src/PharmaStock.Api && dotnet run --urls http://localhost:5080` (`GET /health`).
+  Against the scratch DB: `ConnectionStrings__Default="Host=localhost;Database=pharmastock_migtest;..."`
+  on port 5091.
+- **Web**: `npm run dev -w pharmastock-web` (:5174). Launch configs in `.claude/launch.json`:
+  `web`, `desktop`, `api`, `web-testapi` (:5175 → API :5091), `desktop-testapi` (:5176),
+  `web-prodpreview` (:5177), `guide` (:5178, open `/index.html`).
+- **Desktop**: `cd apps/desktop && npm run tauri dev` (native) or `npm run dev` (browser).
+- **Mobile**: native builds **only in the user's terminal** (Gradle loopback fails from Claude's
+  tool): `cd C:\Dev\PharmaStock\apps\mobile\android; .\gradlew assembleRelease`.
+- Type-check before shipping: `npx tsc --noEmit -p .` in `apps/web`, `apps/desktop`; `npx tsc --noEmit` in `apps/mobile`.
+- Git Bash + adb: prefix with `MSYS_NO_PATHCONV=1` (path mangling). Use PowerShell for MSBuild paths.
 
 ---
 
-## 6. Build & deploy
+## 6. Build & deploy (the safe procedure)
 
-**Prod (web + API) — one box, Docker + Caddy:**
-```bash
-ssh root@116.203.144.105 'cd /root/apps/stockflow && git pull && cd deploy && docker compose up -d --build'
-```
-Rebuild just one service: append `api` or `web` (e.g. `... up -d --build api web`).
-Watch startup + auto-migrations: `ssh root@116.203.144.105 'docker compose -f /root/apps/stockflow/deploy/docker-compose.yml logs -f api'`.
-Verify: `curl https://api.mfspace.lu/health` → `{"status":"ok",...}`, `https://stock.mfspace.lu` → 200.
+**Never `docker compose --build` on the 4 GB box** (it OOM-froze the server once). Build locally,
+ship artifacts, wrap them in light images. (`reference_stockflow_web_deploy_oom`)
 
-**Desktop installer (Windows, PowerShell):** close the running app first (it locks the exe).
+1. Backup: `ssh root@116.203.144.105 '/root/bin/pg-backup.sh >> /var/log/pg-backup.log 2>&1'`
+2. Local: `dotnet publish src/PharmaStock.Api/PharmaStock.Api.csproj -c Release -o api-publish`
+   and `VITE_API_BASE_URL=https://api.mfspace.lu npm run build -w pharmastock-web`.
+3. `tar -czf deploy-artifacts.tgz api-publish -C apps/web dist nginx.conf` → scp to `/tmp`.
+4. On the server in `/root/apps/stockflow`: copy `deploy/Caddyfile` and `deploy/docker-compose.yml`
+   to `*.live.<ts>`, `git checkout --` them, `git pull`, restore the live copies; tag current
+   images `deploy-api:pre-<tag>` / `deploy-web:pre-<tag>` (rollback); build images from
+   `aspnet:8.0` + `COPY app/` and `nginx:alpine` + `COPY dist` + `nginx.conf`;
+   `docker compose up -d --no-build api web`.
+5. Verify `https://api.mfspace.lu/health`, `stock` and `budget` return 200, no errors in API logs.
+
+**Versioning rule**: bump the version on **every** shipped build (web `apps/web/package.json`;
+desktop `package.json` + `src-tauri/tauri.conf.json` + `Cargo.toml`; mobile `app.json` +
+`android/app/build.gradle` versionName/versionCode, android/ is gitignored). Current: 0.2.2,
+versionCode 4. Next change → 0.2.3.
+
+**Desktop installer** (PowerShell; make sure no exe from `target/release` is running):
 ```powershell
 cd C:\Dev\PharmaStock\apps\desktop
-$env:PATH = "$env:USERPROFILE\.cargo\bin;$env:PATH"   # cargo not on default PATH
-$env:VITE_API_BASE_URL = "https://api.mfspace.lu"
+$env:PATH = "$env:USERPROFILE\.cargo\bin;$env:PATH"; $env:VITE_API_BASE_URL = "https://api.mfspace.lu"
 npm run tauri build
 ```
-Output: `src-tauri/target/release/bundle/nsis/PharmaStock_<ver>_x64-setup.exe` (+ `/msi/...msi`).
+→ `src-tauri/target/release/bundle/nsis/PharmaStock_<ver>_x64-setup.exe` + `msi/`. Smoke-test the
+exe (ProductVersion + window title), commit `Cargo.lock`.
 
-**Mobile APK (user's own terminal):**
-```bash
-cd C:\Dev\PharmaStock\apps\mobile\android; .\gradlew assembleRelease
-adb install -r app\build\outputs\apk\release\app-release.apk
-```
-Signature conflict on install → `adb uninstall com.pharmastock.app` then reinstall.
-MIUI/Xiaomi test devices block adb installs — see the manual-sideload workaround in `CLAUDE.md`.
+**APK**: user runs `.\gradlew assembleRelease`; then **check the APK timestamp is newer than the
+last commit** before `adb -s <serial> install -r apps/mobile/android/app/build/outputs/apk/release/app-release.apk`.
 
----
-
-## 7. Key product decisions & gotchas (don't undo these)
-
-- **Enums serialize as integers** over the wire (no `JsonStringEnumConverter` registered).
-  Client enums must match the C# declaration order exactly (`apps/mobile/src/lib/api/enums.ts`).
-- **Customer value model**: credit ≠ store credit (keep both); loyalty points hidden;
-  rewards issued as gift cards; HID-only scanner. (`project_customer_value_model`)
-- **Tax & OHADA**: VAT-inclusive; rate 0 = off (no `taxEnabled` column); OHADA TVA
-  declaration with SYSCOHADA accounts 4431/4452/4441; accounting system configurable
-  (OHADA / GenericVAT / None). (`project_tax_ohada`)
-- **Customers** are list/create-only (preserve financial history); no update/delete/get-by-id.
-  **Gift cards** are standalone bearer instruments (`GC-XXXXXXXX`), no `CustomerId`.
-- **EF + Npgsql + DateTime**: all `DateTime` coerced to UTC via a global ValueConverter in
-  the DbContext — don't special-case per endpoint.
-- **drizzle-orm on expo-sqlite**: `db.transaction()` silently drops multi-statement upserts —
-  issue each statement top-level. (`reference_drizzle_sqlite_proxy_findfirst_phantom`,
-  and the transaction note in `CLAUDE.md`.)
-- **Tauri `sql:allow-execute`**: desktop local-DB writes silently no-op without the
-  capability + `$N` placeholders. (`reference_tauri_sql_execute_permission`)
-- **NativeWind**: never use `box-shadow`/`shadow-*` classes in the Expo app — crashes the
-  **release** bundle (react-native-css-interop). Use native RN `shadow*`/`elevation` style props.
-  (`reference_nativewind_boxshadow_release_crash`)
-- **Native Android builds** fail from Claude's tool (Gradle loopback) — run in the user's
-  terminal. (`reference_android_build_loopback`)
-- **Debug escalation**: cap narrow same-shaped fix attempts at 2, then change approach.
-  (`feedback_debug_escalation`)
+**User guide**: edit `docs/user-guide/content.html` / `sec-*.html` → `node docs/user-guide/build.mjs`
+(fails on any em dash) → commit + push → on the server `git pull` in `/root/apps/stockflow`
+(same live-config dance). The `guide` container mounts `docs/user-guide` at `/srv-stockflow`
+(a nested mount under the read-only `/srv` fails and took the site down once).
 
 ---
 
-## 8. Ideas from HouseBudget worth porting into StockFlow
+## 7. Key decisions & gotchas (don't undo)
 
-HouseBudget was **forked from StockFlow's architecture**, so patterns transfer cleanly
-(same `core`/web/desktop/mobile layering, same offline outbox, same EF shared DbContext).
-Recent HouseBudget work that would benefit StockFlow:
-
-1. **MailKit for all email** — HouseBudget replaced the legacy `System.Net.Mail.SmtpClient`
-   (which over STARTTLS on 587 *completes without throwing yet never delivers*) with MailKit
-   (StartTls on 587 / SslOnConnect on 465, 30 s timeout, real errors). If StockFlow emails
-   receipts/reports/alerts, use MailKit the same way. (`reference_hb_email_mailkit`)
-2. **Fire-and-forget email** on hot paths — don't make a sale/checkout/sign response wait on
-   SMTP; persist first, send the email on a background task so the client never blocks.
-3. **Client request timeout** — HouseBudget added a 45 s `AbortController` timeout to the
-   shared fetch so a stalled request surfaces as "offline" (queued to the outbox) instead of
-   freezing on a spinner forever. StockFlow's `@stockflow/core` fetch should do the same.
-4. **On-device build tag** — a tiny visible `build YYYY-MM-DDx` label (bumped each release)
-   on a first screen, so you can instantly confirm *which* build is actually installed. Hugely
-   useful given the silent-failed-`adb install` problem on MIUI devices.
-5. **Document / action trail** — a chronological "journal" consolidating every document
-   generated / emailed / downloaded / signed + lifecycle events, each re-downloadable. Maps
-   to a StockFlow **receipt/invoice/PO trail** per sale/customer/supplier.
-6. **PDF generation with QuestPDF** incl. per-page content (HouseBudget stamps a signature on
-   every page). StockFlow invoices/PO PDFs can reuse this.
-7. **Step wizard forms** (Next/Back, "Create" only on the last step, Enter advances instead of
-   submitting) for onboarding / product / company creation.
-8. **Icon-only action buttons** with tooltip on hover (web) / long-press (mobile).
-9. **Prerequisite gating** — block a step until its prerequisites are met, with a clear
-   checklist of what's missing (HouseBudget gates rent entry on deposit + move-in).
-10. **Richer select labels** — show the distinguishing attribute (type/size), not just a name
-    or price, in pickers.
-11. **Logo → home** navigation + a real **favicon/brand mark** on web.
-
-Cross-pollination goes both ways: StockFlow's FEFO, multi-branch, offline sync protocol,
-and super-admin fleet console are the mature originals HouseBudget borrowed.
+- **Enums are integers on the wire**; client enums must match C# order.
+- **Customer value model**: credit ≠ store credit; points hidden; reward gift cards. (`project_customer_value_model`)
+- **Tax**: VAT-inclusive, rate 0 = off, SYSCOHADA 4431/4452/4441, accounting system configurable. (`project_tax_ohada`)
+- **Customers** list/create only; **gift cards** standalone bearer cards.
+- **No em dashes "—" in user-facing text** (looks AI-written). (`feedback_no_em_dashes`)
+- **Blocked or failed action → popup**, not just a toast. (`feedback_blocked_popup`)
+- **No commit hash on screen**; version + © mfSPACE.lu footer everywhere.
+- **Super-admin impersonation flag**: guards must use `useInsideCompany()` (flag AND companyId);
+  logout and every login reset it (a stale flag caused a blank /shops redirect loop, fixed v0.2.1).
+- **Caching**: `index.html`/SPA routes and the guide site are served `Cache-Control: no-cache`
+  (stale index pointing at deleted hashed assets = blank page).
+- **Mobile footer & safe areas**: screens get their own `SafeAreaProvider` above the version
+  footer, otherwise the bottom inset is applied twice.
+- **EF + Npgsql DateTime** forced UTC globally; **drizzle on expo-sqlite**: no multi-statement
+  `transaction()`; **Tauri** needs `sql:allow-execute` and `fs:allow-write-file` (Excel export).
+- **NativeWind**: never `shadow-*`/box-shadow classes in the Expo app (release crash).
+- **MailKit** for e-mail (System.Net.Mail silently fails on 587). Support e-mails are fire-and-forget.
+- **Debug escalation**: at most 2 narrow fix attempts, then change approach. (`feedback_debug_escalation`)
 
 ---
 
-## 9. Starting the new chat
+## 8. What was done in this chat (2026-10-04 → 2026-10-11)
 
-Open a Claude Code chat in `C:\Dev\PharmaStock`. It auto-loads `CLAUDE.md`. Point it at this
-`HANDOVER.md` for status + access + the HouseBudget idea list. The project's own memory
-(`~/.claude/projects/C--Dev-PharmaStock/memory/`, indexed by `MEMORY.md`) carries the
-detailed decision records referenced above and persists across chats.
+1. **Brand**: new logo + teal theme on all apps; installer/launcher icons (NSIS icon, Windows icon cache).
+2. **Server health**: swap, build-cache prune, HouseBudget backup bloat fix, daily pg_dump + PC pull
+   + e-mail alerts.
+3. **Mobile fixes**: dashboard skeleton, session restore, company picker for super-admin (M8),
+   greyed features without company, loading states, flaky-DNS retries.
+4. **Super-admin**: company deactivation (full block), picker on desktop.
+5. **Offline A/B/C** and offline sales history.
+6. **Support system** end to end (tickets, console, e-mail actions, reporter notifications).
+7. **Copy**: removed all em dashes from UI text.
+8. **Excel export** (web + desktop).
+9. **Accounts & My shops** redesign (server migration merged duplicate prod accounts; 34-check
+   e2e harness in the scratch DB), creation wizard, join approvals, Staff by phone,
+   tablet layout iterations (forms 3 : list 1, no-scroll steps), mobile My business/Staff in FR.
+10. **Version footer** + aligned versions (0.2.0 → 0.2.2), cache fixes, blank-page loop fix,
+    super-admin/shop chooser.
+11. **User guide** at guide.mfspace.lu/stockflow with a HouseBudget | StockFlow switcher.
 
-**Safety reminders that still apply:** Claude does not create accounts or set passwords;
-production secret *values* stay in the server `.env` and must never be committed; confirm
-before destructive/outward-facing actions.
+Desktop builds shipped: 0.1.1 → 0.2.2. APKs installed on the tablet and the user's phone.
+
+---
+
+## 9. Starting a new chat
+
+Open Claude Code in `C:\Dev\PharmaStock` (auto-loads `CLAUDE.md`), point it at this file.
+Safety rules that still apply: Claude does not create real accounts or set passwords; production
+secrets stay in the server `.env`; confirm before destructive or outward-facing actions (deploys,
+deletes, messages); keep the server's live config files when pulling.
