@@ -18,6 +18,7 @@ import {
   TaxSection,
 } from '@/components/companyForm/CompanyFormSections';
 import { useCompanyForm } from '@/components/companyForm/useCompanyForm';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import type { CompanyResponse, LocationResponse } from '@/lib/api/types/auth';
 import { companiesApi } from '@/lib/api/endpoints/companies';
 import { locationsApi } from '@/lib/api/endpoints/locations';
@@ -178,7 +179,7 @@ export default function MyBusinessScreen() {
         </ScrollView>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5 pb-10" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5 pb-10" keyboardShouldPersistTaps="handled">
         {tab === 'business' ? (
           <>
             <View className="flex-row items-center justify-between rounded-xl bg-surface p-3.5">
@@ -265,7 +266,7 @@ export default function MyBusinessScreen() {
         {tab === 'rules' ? <RulesSection f={f} services={services} onServices={setServices} /> : null}
 
         <Button title={saving ? t('common.saving') : t('biz.save')} loading={saving} onPress={onSave} />
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

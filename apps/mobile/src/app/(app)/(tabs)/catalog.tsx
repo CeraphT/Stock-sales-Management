@@ -8,6 +8,7 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, TextInput
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { FiltersDisclosure } from '@/components/FiltersDisclosure';
 import { StockBadge } from '@/components/StockBadge';
+import { renderKeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { PurchaseOrderStatus, type StockStatus } from '@/lib/api/enums';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { purchaseOrdersApi } from '@/lib/api/endpoints/purchaseOrders';
@@ -254,6 +255,7 @@ export default function CatalogScreen() {
       </View>
 
       <FlatList
+        renderScrollComponent={renderKeyboardAwareScroll}
         data={filteredProducts}
         keyExtractor={(item) => item.id}
         key={`cols-${numColumns}`}

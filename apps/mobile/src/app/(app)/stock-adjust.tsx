@@ -1,12 +1,13 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { ApiError } from '@/lib/api/client';
 import { useAuthStore } from '@/lib/auth/store';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -64,7 +65,7 @@ export default function StockAdjustScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         <TextField
           label="Quantity change (base units)"
           placeholder="e.g. -5 for breakage, 3 for a correction"
@@ -75,7 +76,7 @@ export default function StockAdjustScreen() {
         <TextField label="Reason" placeholder="e.g. Breakage during handling" value={reason} onChangeText={setReason} />
 
         <Button title={submitting ? 'Adjusting…' : 'Apply adjustment'} loading={submitting} onPress={onSubmit} />
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

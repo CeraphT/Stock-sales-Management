@@ -2,13 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { eq } from 'drizzle-orm';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { useAuthStore } from '@/lib/auth/store';
 import { buildTemplateWorkbook, parseFilledSheetRows } from '@stockflow/core/bulk/bulkTemplate';
@@ -189,7 +190,7 @@ export default function BulkStockRegisterScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         <View className="gap-2 rounded-2xl bg-surface p-4">
           <Text className="text-sm font-bold text-text-primary">How it works</Text>
           <Text className="text-xs text-text-secondary">
@@ -284,7 +285,7 @@ export default function BulkStockRegisterScreen() {
             />
           </View>
         ) : null}
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

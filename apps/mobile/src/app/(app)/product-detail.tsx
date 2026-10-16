@@ -1,6 +1,6 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -14,6 +14,7 @@ import { NetworkError } from '@/lib/api/client';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
 import { OfflineNotice } from '@/components/OfflineNotice';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { purchaseOrdersApi } from '@/lib/api/endpoints/purchaseOrders';
 import type { BatchResponse, ProductDetailResponse } from '@/lib/api/types/catalog';
@@ -220,7 +221,7 @@ export default function ProductDetailScreen() {
       </View>
 
       <OfflineNotice visible={offline} message={t('offline.productDetail')} />
-      <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         {!product.isActive ? (
           <View className="rounded-xl bg-error/10 px-4 py-3">
             <Text className="text-sm font-semibold text-error">This product is archived.</Text>
@@ -289,7 +290,7 @@ export default function ProductDetailScreen() {
             </View>
           ))
         )}
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

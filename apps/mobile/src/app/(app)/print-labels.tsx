@@ -2,12 +2,13 @@ import { code128Svg } from '@stockflow/core/barcode/code128';
 import { useQuery } from '@tanstack/react-query';
 import * as Print from 'expo-print';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import type { ProductSearchResult } from '@/lib/api/types/catalog';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { useAuthStore } from '@/lib/auth/store';
@@ -117,7 +118,7 @@ export default function PrintLabelsScreen() {
         ) : null}
       </View>
 
-      <ScrollView contentContainerClassName="gap-2 p-5" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-2 p-5" keyboardShouldPersistTaps="handled">
         {picks.length === 0 ? (
           <Text className="py-10 text-center text-sm text-text-secondary">Add products to print price/barcode labels.</Text>
         ) : (
@@ -139,7 +140,7 @@ export default function PrintLabelsScreen() {
             </View>
           ))
         )}
-      </ScrollView>
+      </KeyboardAwareScroll>
 
       <View className="border-t border-border bg-surface p-4">
         <Button title={printing ? 'Printing…' : `Print ${totalLabels} label(s)`} loading={printing} onPress={print} disabled={totalLabels === 0} />

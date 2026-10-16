@@ -1,7 +1,7 @@
 import { reportsApi } from '@stockflow/core/api/endpoints/reports';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/BackButton';
@@ -9,6 +9,7 @@ import { Button } from '@/components/Button';
 import { DateField } from '@/components/DateField';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { StatCard } from '@/components/StatCard';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { companiesApi } from '@/lib/api/endpoints/companies';
 import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency, paymentMethodLabel } from '@/lib/format';
@@ -140,7 +141,7 @@ export default function TaxDeclarationScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5 pb-10">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5 pb-10">
         <View className="flex-row gap-3">
           <View className="flex-1">
             <DateField label="From" value={from} onChange={setFrom} />
@@ -213,7 +214,7 @@ export default function TaxDeclarationScreen() {
             Prices are VAT-inclusive (TTC). VAT deductible on purchases is estimated at the standard rate, as purchase records don't store a per-line rate. Have your accountant confirm against actual supplier invoices. This report follows the SYSCOHADA VAT accounts and is a working document, not an official filing.
           </Text>
         </View>
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

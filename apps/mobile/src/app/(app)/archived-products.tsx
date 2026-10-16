@@ -7,6 +7,7 @@ import { ScreenBackground } from '@/components/ScreenBackground';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { StockBadge } from '@/components/StockBadge';
+import { renderKeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { productsApi } from '@/lib/api/endpoints/products';
 import type { ProductCatalogItem } from '@/lib/api/types/catalog';
 import { useAuthStore } from '@/lib/auth/store';
@@ -90,6 +91,7 @@ export default function ArchivedProductsScreen() {
       </View>
 
       <FlatList
+        renderScrollComponent={renderKeyboardAwareScroll}
         data={items}
         keyExtractor={(item) => item.id}
         contentContainerClassName="gap-2 p-4"

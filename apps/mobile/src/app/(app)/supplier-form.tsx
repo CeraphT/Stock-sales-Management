@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -8,6 +8,7 @@ import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { suppliersApi } from '@/lib/api/endpoints/suppliers';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { afterOfflineWrite } from '@/lib/sync/afterOfflineWrite';
@@ -66,13 +67,13 @@ export default function SupplierFormScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         <TextField label="Supplier name" value={name} onChangeText={setName} />
         <TextField label="Contact phone" keyboardType="phone-pad" value={contactPhone} onChangeText={setContactPhone} />
         <TextField label="Contact email" autoCapitalize="none" keyboardType="email-address" value={contactEmail} onChangeText={setContactEmail} />
 
         <Button title={submitting ? 'Saving…' : 'Save supplier'} loading={submitting} onPress={onSubmit} />
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

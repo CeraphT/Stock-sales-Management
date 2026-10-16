@@ -10,6 +10,7 @@ import { Text, View } from 'react-native';
 
 import { AppAlertHost } from '@/components/AppAlertHost';
 import { AppVersionFooter } from '@/components/AppVersionFooter';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastHost } from '@/components/ToastHost';
 import { db } from '@/lib/db/client';
@@ -85,6 +86,8 @@ export default function RootLayout() {
 
   return (
     <View className={rootClassName}>
+      {/* Keeps focused fields above the keyboard (see components/KeyboardAwareScroll). */}
+      <KeyboardProvider>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           {/* Every screen above, the build + sponsor strip below (never overlaps). */}
@@ -99,6 +102,7 @@ export default function RootLayout() {
           <ToastHost />
         </ThemeProvider>
       </QueryClientProvider>
+      </KeyboardProvider>
     </View>
   );
 }

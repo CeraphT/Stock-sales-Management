@@ -9,6 +9,7 @@ import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { SkeletonList } from '@/components/Skeleton';
 import { TextField } from '@/components/TextField';
+import { renderKeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { authApi } from '@/lib/api/endpoints/auth';
 import type { SetUserPermissionsRequest, UserResponse } from '@/lib/api/types/auth';
 import { UserRole } from '@/lib/api/enums';
@@ -251,6 +252,7 @@ export default function StaffScreen() {
         <SkeletonList />
       ) : (
         <FlatList
+        renderScrollComponent={renderKeyboardAwareScroll}
           data={visibleStaff}
           keyExtractor={(item) => item.id}
           contentContainerClassName="gap-2 p-4"

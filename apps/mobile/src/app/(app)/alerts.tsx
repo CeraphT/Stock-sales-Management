@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { BackButton } from '@/components/BackButton';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import type { ExpiryAlertItem, StockAlertItem } from '@/lib/api/types/catalog';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { useAuthStore } from '@/lib/auth/store';
@@ -32,7 +33,7 @@ export default function AlertsScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-5 p-5">
+      <KeyboardAwareScroll contentContainerClassName="gap-5 p-5">
         {isLoading ? (
           <Text className="py-10 text-center text-sm text-text-secondary">Loading…</Text>
         ) : total === 0 ? (
@@ -45,7 +46,7 @@ export default function AlertsScreen() {
             <ExpirySection title="⏳ Expiring soon" items={data!.expiringSoon} tone="warn" />
           </>
         )}
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

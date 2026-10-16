@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OfflineNotice } from '@/components/OfflineNotice';
@@ -9,6 +9,7 @@ import { ScreenBackground } from '@/components/ScreenBackground';
 import { cachedFetch } from '@stockflow/core/local/remoteCache';
 import { useStaleNotice } from '@/lib/hooks/useStaleNotice';
 import { BackButton } from '@/components/BackButton';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { reportsApi } from '@/lib/api/endpoints/reports';
 import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency } from '@/lib/format';
@@ -57,7 +58,7 @@ export default function DeadStockScreen() {
       </View>
 
       <OfflineNotice visible={!!staleAt} message={staleMessage} />
-      <ScrollView contentContainerClassName="gap-2 p-5">
+      <KeyboardAwareScroll contentContainerClassName="gap-2 p-5">
         {data.length > 0 ? (
           <View className="mb-2 rounded-xl bg-surface p-4">
             <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Value tied up in dead stock</Text>
@@ -86,7 +87,7 @@ export default function DeadStockScreen() {
             </Pressable>
           ))
         )}
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

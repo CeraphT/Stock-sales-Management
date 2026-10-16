@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -9,6 +9,7 @@ import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { DateField } from '@/components/DateField';
 import { TextField } from '@/components/TextField';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { NetworkError } from '@/lib/api/client';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
@@ -109,7 +110,7 @@ export default function StockReceiveScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         {product ? <Text className="text-sm text-text-secondary">{product.name}</Text> : null}
         <TextField label="Batch / lot number" placeholder="e.g. LOT-2026-07" value={batchNumber} onChangeText={setBatchNumber} />
         <DateField label={expiryRequired ? 'Expiry date' : 'Expiry date (optional)'} value={expiryDate} onChange={setExpiryDate} minimumDate={new Date()} />
@@ -149,7 +150,7 @@ export default function StockReceiveScreen() {
         />
 
         <Button title={submitting ? 'Receiving…' : 'Receive stock'} loading={submitting} onPress={onSubmit} />
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

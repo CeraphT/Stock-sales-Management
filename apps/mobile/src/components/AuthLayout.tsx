@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandLogo } from '@/components/BrandLogo';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 
 /**
  * Shared shell for the pre-login screens (login / create-company / join-company),
@@ -24,7 +25,7 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
         </View>
 
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-          <ScrollView
+          <KeyboardAwareScroll
             style={{ flex: 1 }}
             contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 24 }}
             keyboardShouldPersistTaps="handled">
@@ -47,7 +48,7 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
                 <View className="mt-5 gap-4">{children}</View>
               </View>
             </View>
-          </ScrollView>
+          </KeyboardAwareScroll>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>

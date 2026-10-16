@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { BackButton } from '@/components/BackButton';
 import { SkeletonList } from '@/components/Skeleton';
+import { renderKeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { servicesApi } from '@/lib/api/endpoints/services';
 import type { ServiceResponse } from '@/lib/api/types/services';
 import { useAuthStore } from '@/lib/auth/store';
@@ -87,6 +88,7 @@ export default function ServicePickerScreen() {
         <SkeletonList count={4} />
       ) : (
         <FlatList
+        renderScrollComponent={renderKeyboardAwareScroll}
           data={results}
           keyExtractor={(item) => item.id}
           contentContainerClassName="gap-2 p-4"

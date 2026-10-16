@@ -3,11 +3,12 @@ import { and, asc, eq } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { BackButton } from '@/components/BackButton';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { db } from '@/lib/db/client';
 import { products } from '@/lib/db/schema';
 import { useAuthStore } from '@/lib/auth/store';
@@ -70,7 +71,7 @@ export default function ReceiveStockPickerScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-2 p-5" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-2 p-5" keyboardShouldPersistTaps="handled">
         {filtered.length === 0 && (!productsLoadedAt || initialSyncing) ? (
           // Still loading / first sync bringing the catalogue in — not "empty".
           <View className="items-center gap-3 py-10">
@@ -96,7 +97,7 @@ export default function ReceiveStockPickerScreen() {
             </Pressable>
           ))
         )}
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

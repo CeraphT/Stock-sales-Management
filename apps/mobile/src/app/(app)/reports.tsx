@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OfflineNotice } from '@/components/OfflineNotice';
@@ -12,6 +12,7 @@ import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { DateField } from '@/components/DateField';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { reportsApi } from '@/lib/api/endpoints/reports';
 import type { SalesSummaryResponse, TopProductItem } from '@/lib/api/types/reports';
 import { useAuthStore } from '@/lib/auth/store';
@@ -100,7 +101,7 @@ export default function ReportsScreen() {
       </View>
 
       <OfflineNotice visible={!!staleAt} message={staleMessage} />
-      <ScrollView contentContainerClassName="gap-4 p-5">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5">
         <View className="flex-row gap-3">
           <View className="flex-1">
             <DateField label="From" value={from} onChange={setFrom} />
@@ -183,7 +184,7 @@ export default function ReportsScreen() {
             )}
           </>
         ) : null}
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

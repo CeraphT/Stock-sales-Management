@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { BackButton } from '@/components/BackButton';
+import { renderKeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import type { CustomerResponse } from '@/lib/api/types/customers';
 import { useAuthStore } from '@/lib/auth/store';
 import { useCartStore } from '@/lib/cart/store';
@@ -76,6 +77,7 @@ export default function CustomerPickerScreen() {
         <ActivityIndicator className="mt-6" />
       ) : (
         <FlatList
+        renderScrollComponent={renderKeyboardAwareScroll}
           data={results}
           keyExtractor={(item) => item.id}
           contentContainerClassName="gap-2 p-4"

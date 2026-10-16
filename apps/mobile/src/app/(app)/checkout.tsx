@@ -4,12 +4,13 @@ import { rewardsApi } from '@stockflow/core/api/endpoints/rewards';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { shareGiftCardVoucher } from '@/lib/giftCardVoucher';
 import { toast } from '@/lib/ui/toastStore';
 import { salesApi } from '@/lib/api/endpoints/sales';
@@ -243,7 +244,7 @@ export default function CheckoutScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-5 p-5">
+      <KeyboardAwareScroll contentContainerClassName="gap-5 p-5">
         <View className="rounded-2xl bg-surface p-5 shadow-sm shadow-black/5">
           <Text className="text-sm text-text-secondary">{t('checkout.totalDue')}</Text>
           <Text className="text-3xl font-bold text-text-primary">{formatCurrency(total, currency)}</Text>
@@ -338,7 +339,7 @@ export default function CheckoutScreen() {
           disabled={storeCreditShort}
           onPress={onCharge}
         />
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

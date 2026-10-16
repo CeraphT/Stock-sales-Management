@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import { ScrollView, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/BackButton';
@@ -9,6 +9,7 @@ import { FiltersDisclosure } from '@/components/FiltersDisclosure';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { StockBadge } from '@/components/StockBadge';
 import { FilterChip } from '@/components/FilterChip';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency } from '@/lib/format';
 import { useCompanyInfo } from '@/lib/hooks/useCompanyInfo';
@@ -121,7 +122,7 @@ export default function InventoryReportScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-4 pb-10">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-4 pb-10">
         {/* KPI tiles — matches desktop (Products, Units, Cost, Retail, Margin). */}
         <View className="flex-row flex-wrap gap-3">
           <Kpi label="Products" value={String(filtered.length)} />
@@ -219,7 +220,7 @@ export default function InventoryReportScreen() {
             </View>
           </>
         )}
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

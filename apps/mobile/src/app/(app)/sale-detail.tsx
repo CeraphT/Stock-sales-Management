@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { BackButton } from '@/components/BackButton';
 import { SkeletonDetail } from '@/components/Skeleton';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { NetworkError } from '@/lib/api/client';
 import { salesApi } from '@/lib/api/endpoints/sales';
 import { localSalesService } from '@/lib/local/salesService';
@@ -177,7 +178,7 @@ export default function SaleDetailScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5">
         <View className="rounded-2xl bg-surface p-5 shadow-sm shadow-black/5">
           <Text className="text-sm text-text-secondary">Total</Text>
           <Text className="text-3xl font-bold text-text-primary">{formatCurrency(sale.total, currency)}</Text>
@@ -263,7 +264,7 @@ export default function SaleDetailScreen() {
             ))}
           </View>
         ) : null}
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

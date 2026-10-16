@@ -3,12 +3,13 @@ import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import { useCallback, useEffect, useState } from 'react';
 import { router } from 'expo-router';
-import { ActivityIndicator, Image, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { NetworkError } from '@/lib/api/client';
 import { useAuthStore } from '@/lib/auth/store';
 import { devicePlatform } from '@/lib/device';
@@ -174,7 +175,7 @@ export default function SupportScreen() {
       </View>
 
       {tab === 'new' ? (
-        <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
+        <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
           <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('support.typeLabel')}</Text>
           <View className="flex-row gap-2">
             {CATEGORIES.map((c) => {
@@ -233,9 +234,9 @@ export default function SupportScreen() {
           </View>
 
           <Button title={t('support.send')} loading={sending} onPress={onSubmit} />
-        </ScrollView>
+        </KeyboardAwareScroll>
       ) : (
-        <ScrollView contentContainerClassName="gap-2 p-5">
+        <KeyboardAwareScroll contentContainerClassName="gap-2 p-5">
           {mineOffline ? <Text className="text-center text-xs text-text-secondary">{t('support.mineOffline')}</Text> : null}
           {mine === null ? (
             <ActivityIndicator className="mt-10" color={colors.primary} />
@@ -273,7 +274,7 @@ export default function SupportScreen() {
               );
             })
           )}
-        </ScrollView>
+        </KeyboardAwareScroll>
       )}
     </SafeAreaView>
   );

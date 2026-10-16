@@ -10,6 +10,7 @@ import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { useLocalFirst } from '@/lib/hooks/useLocalFirst';
 import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
 import { BackButton } from '@/components/BackButton';
+import { renderKeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { ApiError } from '@/lib/api/client';
 import { categoriesApi } from '@/lib/api/endpoints/categories';
 import type { CategoryResponse } from '@/lib/api/types/catalog';
@@ -129,6 +130,7 @@ export default function CategoriesScreen() {
       </View>
 
       <FlatList
+        renderScrollComponent={renderKeyboardAwareScroll}
         data={categories}
         keyExtractor={(item) => item.id}
         contentContainerClassName="gap-2 px-4 pb-4"

@@ -2,9 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, Modal, Pressable, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { renderKeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { useAuthStore } from '@/lib/auth/store';
 import { cartTotal, useCartStore, type CartLine } from '@/lib/cart/store';
 import { formatCurrency } from '@/lib/format';
@@ -155,6 +157,7 @@ export default function PosScreen() {
             <ActivityIndicator className="py-4" />
           ) : (
             <FlatList
+        renderScrollComponent={renderKeyboardAwareScroll}
               data={results}
               keyExtractor={(item) => item.productId}
               contentContainerClassName="p-3 gap-2"
@@ -225,6 +228,7 @@ export default function PosScreen() {
       </View>
 
       <FlatList
+        renderScrollComponent={renderKeyboardAwareScroll}
         className="flex-1"
         data={cartItems}
         keyExtractor={(item) => item.key}
@@ -343,6 +347,10 @@ export default function PosScreen() {
 
       {/* Sell-by-measure weight entry */}
       <Modal visible={!!measurePick} transparent animationType="fade" onRequestClose={() => setMeasurePick(null)}>
+        {/* A Modal renders outside the root KeyboardProvider: own provider, and the
+            dialog lifts above the keyboard so the Add button stays reachable. */}
+        <KeyboardProvider>
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <Pressable className="flex-1 items-center justify-center bg-black/40 p-6" onPress={() => setMeasurePick(null)}>
           <Pressable className="w-full max-w-sm gap-3 rounded-2xl bg-surface p-5" onPress={(e) => e.stopPropagation()}>
             <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">⚖️ {t('pos.enterWeight')}</Text>
@@ -385,6 +393,8 @@ export default function PosScreen() {
             </View>
           </Pressable>
         </Pressable>
+        </KeyboardAvoidingView>
+        </KeyboardProvider>
       </Modal>
     </SafeAreaView>
   );

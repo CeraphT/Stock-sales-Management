@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -9,6 +9,7 @@ import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { PackagingLevelsEditor, parsePackagingLevels, type DraftPackagingLevel } from '@/components/PackagingLevelsEditor';
 import { TextField } from '@/components/TextField';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { useAuthStore } from '@/lib/auth/store';
 import { MEASURE_UNITS, unitsPerMeasureFor } from '@/lib/businessTypes';
@@ -113,7 +114,7 @@ export default function AddProductScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         <TextField label="Product name" placeholder="e.g. Amoxicillin 500mg" value={name} onChangeText={setName} />
 
         <View className="gap-1.5">
@@ -199,7 +200,7 @@ export default function AddProductScreen() {
         ) : null}
 
         <Button title={submitting ? 'Creating…' : 'Create product'} loading={submitting} onPress={onSubmit} />
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

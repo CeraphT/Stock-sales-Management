@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ScrollView, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { ApiError, NetworkError } from '@/lib/api/client';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { useAuthStore } from '@/lib/auth/store';
@@ -96,7 +97,7 @@ export default function StockCountScreen() {
         />
       </View>
 
-      <ScrollView contentContainerClassName="gap-2 p-5" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-2 p-5" keyboardShouldPersistTaps="handled">
         {rows.length === 0 ? (
           <Text className="py-10 text-center text-sm text-text-secondary">No stock batches to count.</Text>
         ) : (
@@ -125,7 +126,7 @@ export default function StockCountScreen() {
             );
           })
         )}
-      </ScrollView>
+      </KeyboardAwareScroll>
 
       <View className="border-t border-border bg-surface p-4">
         <Text className="mb-2 text-center text-xs text-text-secondary">{variances.length} batch(es) with a variance</Text>

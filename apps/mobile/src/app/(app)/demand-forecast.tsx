@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OfflineNotice } from '@/components/OfflineNotice';
@@ -9,6 +9,7 @@ import { ScreenBackground } from '@/components/ScreenBackground';
 import { cachedFetch } from '@stockflow/core/local/remoteCache';
 import { useStaleNotice } from '@/lib/hooks/useStaleNotice';
 import { BackButton } from '@/components/BackButton';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { reportsApi } from '@/lib/api/endpoints/reports';
 import { useAuthStore } from '@/lib/auth/store';
 import { useThemeColors } from '@/lib/theme/colors';
@@ -52,7 +53,7 @@ export default function DemandForecastScreen() {
       </View>
 
       <OfflineNotice visible={!!staleAt} message={staleMessage} />
-      <ScrollView contentContainerClassName="gap-2 p-5">
+      <KeyboardAwareScroll contentContainerClassName="gap-2 p-5">
         {isLoading ? (
           <Text className="py-10 text-center text-sm text-text-secondary">Loading…</Text>
         ) : data.length === 0 ? (
@@ -80,7 +81,7 @@ export default function DemandForecastScreen() {
             );
           })
         )}
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

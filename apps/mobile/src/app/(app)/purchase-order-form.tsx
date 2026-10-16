@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -9,6 +9,7 @@ import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { purchaseOrdersApi } from '@/lib/api/endpoints/purchaseOrders';
 import { suppliersApi } from '@/lib/api/endpoints/suppliers';
@@ -172,7 +173,7 @@ export default function PurchaseOrderFormScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         <Text className="text-xs text-text-secondary">Location: {locationName ?? '-'}</Text>
 
         <View className="gap-1.5">
@@ -321,7 +322,7 @@ export default function PurchaseOrderFormScreen() {
         ))}
 
         <Button title={submitting ? 'Creating…' : 'Create purchase order'} loading={submitting} onPress={onSubmit} />
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

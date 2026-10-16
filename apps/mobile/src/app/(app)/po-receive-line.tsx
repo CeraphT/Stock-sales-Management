@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -9,6 +9,7 @@ import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { DateField } from '@/components/DateField';
 import { TextField } from '@/components/TextField';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { purchaseOrdersApi } from '@/lib/api/endpoints/purchaseOrders';
 import { useAuthStore } from '@/lib/auth/store';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
@@ -94,7 +95,7 @@ export default function PoReceiveLineScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         <Text className="text-sm font-semibold text-text-primary">{productName}</Text>
         <Text className="text-xs text-text-secondary">Up to {remaining} remaining on this line</Text>
 
@@ -132,7 +133,7 @@ export default function PoReceiveLineScreen() {
         />
 
         <Button title={submitting ? 'Receiving…' : 'Receive stock'} loading={submitting} onPress={onSubmit} />
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

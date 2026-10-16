@@ -10,6 +10,7 @@ import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { useLocalFirst } from '@/lib/hooks/useLocalFirst';
 import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
 import { BackButton } from '@/components/BackButton';
+import { renderKeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { ApiError } from '@/lib/api/client';
 import { suppliersApi } from '@/lib/api/endpoints/suppliers';
 import type { SupplierResponse } from '@/lib/api/types/catalog';
@@ -105,6 +106,7 @@ export default function SuppliersScreen() {
 
       <OfflineNotice visible={offline} />
       <FlatList
+        renderScrollComponent={renderKeyboardAwareScroll}
         data={suppliers}
         keyExtractor={(item) => item.id}
         contentContainerClassName="gap-2 p-4"

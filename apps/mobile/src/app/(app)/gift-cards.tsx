@@ -10,6 +10,7 @@ import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { useLocalFirst } from '@/lib/hooks/useLocalFirst';
 import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
 import { BackButton } from '@/components/BackButton';
+import { renderKeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { giftCardsApi } from '@/lib/api/endpoints/giftCards';
 import type { GiftCardResponse } from '@/lib/api/types/customers';
 import { shareGiftCardVoucher } from '@/lib/giftCardVoucher';
@@ -154,6 +155,7 @@ export default function GiftCardsScreen() {
 
       <OfflineNotice visible={offline} />
       <FlatList
+        renderScrollComponent={renderKeyboardAwareScroll}
         data={cards}
         keyExtractor={(item) => item.id}
         contentContainerClassName="gap-2 px-4 pb-4"

@@ -1,6 +1,6 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OfflineNotice } from '@/components/OfflineNotice';
@@ -10,6 +10,7 @@ import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { SkeletonDetail } from '@/components/Skeleton';
 import { TextField } from '@/components/TextField';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { SaleStatus } from '@/lib/api/enums';
 import { NetworkError } from '@/lib/api/client';
 import { customersApi } from '@/lib/api/endpoints/customers';
@@ -124,7 +125,7 @@ export default function CustomerDetailScreen() {
       </View>
 
       <OfflineNotice visible={offline} message={t('offline.creditHistory')} />
-      <ScrollView contentContainerClassName="gap-4 p-5">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5">
         <View className="rounded-2xl bg-surface p-4">
           <Text className="text-lg font-bold text-text-primary">{customer.name}</Text>
           <Text className="text-sm text-text-secondary">{customer.phone ?? 'No phone on file'}</Text>
@@ -186,7 +187,7 @@ export default function CustomerDetailScreen() {
             ))
           )}
         </View>
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

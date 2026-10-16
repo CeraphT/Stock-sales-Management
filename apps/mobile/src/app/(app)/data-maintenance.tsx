@@ -1,12 +1,13 @@
 import { UserRole } from '@stockflow/core/api/enums';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { backupsDirPath, lastBackupInfo, runDueBackup } from '@/lib/autoBackup';
 import { useAuthStore } from '@/lib/auth/store';
 import { resetAllData, shareBackup } from '@/lib/dataBackup';
@@ -192,7 +193,7 @@ export default function DataMaintenanceScreen() {
           </View>
         </View>
       ) : (
-        <ScrollView contentContainerClassName="gap-4 p-5 pb-10">
+        <KeyboardAwareScroll contentContainerClassName="gap-4 p-5 pb-10">
           {/* Automatic daily backup */}
           <View className="rounded-card border border-success/40 bg-success/5 p-4">
             <View className="flex-row items-center justify-between">
@@ -280,7 +281,7 @@ export default function DataMaintenanceScreen() {
               <Button title="♻️  Reset everything" variant="danger" loading={busy === 'reset'} disabled={!!busy} onPress={onReset} />
             </View>
           </View>
-        </ScrollView>
+        </KeyboardAwareScroll>
       )}
     </SafeAreaView>
   );

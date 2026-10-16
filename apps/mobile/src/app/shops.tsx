@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandLogo } from '@/components/BrandLogo';
@@ -21,6 +21,7 @@ import {
 } from '@/components/companyForm/CompanyFormSections';
 import { StarterKitSection } from '@/components/companyForm/StarterKitSection';
 import { useCompanyForm } from '@/components/companyForm/useCompanyForm';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { ApiError } from '@/lib/api/client';
 import { companiesApi } from '@/lib/api/endpoints/companies';
 import { MembershipStatus, UserRole } from '@/lib/api/enums';
@@ -165,7 +166,7 @@ export default function ShopsScreen() {
           </Pressable>
         </View>
 
-        <ScrollView contentContainerClassName="gap-3 px-4 pb-6" keyboardShouldPersistTaps="handled">
+        <KeyboardAwareScroll contentContainerClassName="gap-3 px-4 pb-6" keyboardShouldPersistTaps="handled">
           {isTablet ? (
             <View className="flex-row items-start gap-4">
               {/* The forms get three times the room of the shop list (3 : 1). */}
@@ -178,7 +179,7 @@ export default function ShopsScreen() {
               {actionsCard}
             </>
           )}
-        </ScrollView>
+        </KeyboardAwareScroll>
       </SafeAreaView>
 
       <Modal visible={!!branches} transparent animationType="fade" onRequestClose={() => setBranches(null)}>

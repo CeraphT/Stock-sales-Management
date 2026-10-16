@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BackButton } from '@/components/BackButton';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { SkeletonList } from '@/components/Skeleton';
+import { renderKeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { UserRole } from '@/lib/api/enums';
 import { superAdminApi } from '@stockflow/core/api/endpoints/superAdmin';
 import type { SuperAdminCompanySummary } from '@stockflow/core/api/types/superAdmin';
@@ -101,6 +102,7 @@ export default function CompanyPickerScreen() {
         <SkeletonList />
       ) : (
         <FlatList
+        renderScrollComponent={renderKeyboardAwareScroll}
           data={visible}
           keyExtractor={(item) => item.id}
           contentContainerClassName="gap-2 p-4"

@@ -1,11 +1,12 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { ApiError } from '@/lib/api/client';
 import { authApi } from '@/lib/api/endpoints/auth';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -61,13 +62,13 @@ export default function ChangePasswordScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         <TextField label={t('changePassword.current')} secureTextEntry value={currentPassword} onChangeText={setCurrentPassword} />
         <TextField label={t('changePassword.new')} secureTextEntry value={newPassword} onChangeText={setNewPassword} />
         <TextField label={t('changePassword.confirm')} secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} />
 
         <Button title={submitting ? t('changePassword.submitting') : t('changePassword.submit')} loading={submitting} onPress={onSubmit} />
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

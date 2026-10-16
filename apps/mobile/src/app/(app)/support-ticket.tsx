@@ -1,11 +1,12 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { NetworkError } from '@/lib/api/client';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useThemeColors } from '@/lib/theme/colors';
@@ -80,7 +81,7 @@ export default function SupportTicketScreen() {
           <ActivityIndicator className="mt-10" color={colors.primary} />
         )
       ) : (
-        <ScrollView contentContainerClassName="gap-3 p-5" keyboardShouldPersistTaps="handled">
+        <KeyboardAwareScroll contentContainerClassName="gap-3 p-5" keyboardShouldPersistTaps="handled">
           <View className="flex-row items-center gap-2">
             <View
               className="rounded-full px-2.5 py-1"
@@ -123,7 +124,7 @@ export default function SupportTicketScreen() {
             />
             <Button title={t('support.sendReply')} loading={sending} onPress={onSend} />
           </View>
-        </ScrollView>
+        </KeyboardAwareScroll>
       )}
     </SafeAreaView>
   );

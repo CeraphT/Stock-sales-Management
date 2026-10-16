@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OfflineNotice } from '@/components/OfflineNotice';
@@ -8,6 +8,7 @@ import { ScreenBackground } from '@/components/ScreenBackground';
 import { cachedFetch } from '@stockflow/core/local/remoteCache';
 import { useStaleNotice } from '@/lib/hooks/useStaleNotice';
 import { BackButton } from '@/components/BackButton';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { reconciliationApi, type ReconciliationResponse } from '@/lib/api/endpoints/reconciliation';
 import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency } from '@/lib/format';
@@ -93,7 +94,7 @@ export default function ReconciliationScreen() {
           <Text className="text-center text-sm text-text-secondary">✓ Nothing to reconcile.</Text>
         </View>
       ) : (
-        <ScrollView contentContainerClassName="gap-4 p-5 pb-10">
+        <KeyboardAwareScroll contentContainerClassName="gap-4 p-5 pb-10">
           {/* Auto-closed shift conflicts */}
           {conflicts.length > 0 ? (
             <View className="overflow-hidden rounded-card border border-border bg-surface">
@@ -162,7 +163,7 @@ export default function ReconciliationScreen() {
               ))}
             </View>
           ) : null}
-        </ScrollView>
+        </KeyboardAwareScroll>
       )}
     </SafeAreaView>
   );

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OfflineNotice } from '@/components/OfflineNotice';
@@ -13,6 +13,7 @@ import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { SkeletonList } from '@/components/Skeleton';
 import { TextField } from '@/components/TextField';
+import { KeyboardAwareScroll, renderKeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { companiesApi } from '@/lib/api/endpoints/companies';
 import { servicesApi } from '@/lib/api/endpoints/services';
 import type { ServiceRequest, ServiceResponse } from '@/lib/api/types/services';
@@ -196,7 +197,7 @@ export default function ServicesScreen() {
       ) : null}
 
       {showForm ? (
-        <ScrollView className="max-h-[70%] border-b border-border bg-surface" contentContainerClassName="gap-3 p-4" keyboardShouldPersistTaps="handled">
+        <KeyboardAwareScroll className="max-h-[70%] border-b border-border bg-surface" contentContainerClassName="gap-3 p-4" keyboardShouldPersistTaps="handled">
           <TextField label="Service name" value={draft.name} onChangeText={(v) => setDraft((d) => ({ ...d, name: v }))} />
           <TextField
             label={`Price (${currency})`}
@@ -248,7 +249,7 @@ export default function ServicesScreen() {
           ))}
 
           <Button title={saving ? 'Saving…' : editingId ? 'Save changes' : 'Create service'} loading={saving} onPress={onSave} />
-        </ScrollView>
+        </KeyboardAwareScroll>
       ) : null}
 
       <OfflineNotice visible={!!staleAt} message={staleMessage} />
@@ -256,6 +257,7 @@ export default function ServicesScreen() {
         <SkeletonList />
       ) : (
         <FlatList
+        renderScrollComponent={renderKeyboardAwareScroll}
           data={services}
           keyExtractor={(item) => item.id}
           contentContainerClassName="gap-2 p-4"

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OfflineNotice } from '@/components/OfflineNotice';
@@ -12,6 +12,7 @@ import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { SkeletonDetail } from '@/components/Skeleton';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { PurchaseOrderStatus } from '@/lib/api/enums';
 import { purchaseOrdersApi } from '@/lib/api/endpoints/purchaseOrders';
 import type { PurchaseOrderDetailResponse } from '@/lib/api/types/purchaseOrders';
@@ -140,7 +141,7 @@ export default function PurchaseOrderDetailScreen() {
       </View>
 
       <OfflineNotice visible={!!staleAt} message={staleMessage} />
-      <ScrollView contentContainerClassName="gap-4 p-5">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5">
         <View className="rounded-2xl bg-surface p-4">
           <View className="flex-row items-start justify-between">
             <View className="flex-1 pr-2">
@@ -227,7 +228,7 @@ export default function PurchaseOrderDetailScreen() {
         {order.status === PurchaseOrderStatus.Pending ? (
           <Button title={cancelling ? 'Cancelling…' : 'Cancel order'} variant="secondary" loading={cancelling} onPress={onCancel} />
         ) : null}
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }

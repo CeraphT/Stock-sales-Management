@@ -1,12 +1,13 @@
 import { paymentMethodLabel } from '@stockflow/core/format';
 import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { DateField } from '@/components/DateField';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { PaymentMethod, ShiftStatus } from '@/lib/api/enums';
 import type { ShiftDetailResponse } from '@/lib/api/types/shifts';
 import { useAuthStore } from '@/lib/auth/store';
@@ -148,7 +149,7 @@ export default function ShiftScreen() {
       </View>
 
       {loading ? null : (
-        <ScrollView contentContainerClassName="gap-4 p-5 pb-10">
+        <KeyboardAwareScroll contentContainerClassName="gap-4 p-5 pb-10">
           {shift ? (
             <View className="rounded-card border border-border bg-surface p-5">
               {/* Open header */}
@@ -345,7 +346,7 @@ export default function ShiftScreen() {
               })
             )}
           </View>
-        </ScrollView>
+        </KeyboardAwareScroll>
       )}
     </SafeAreaView>
   );

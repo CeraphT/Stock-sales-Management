@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { FlatList, Image, Modal, Pressable, Switch, Text, TextInput, View } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { TextField } from '@/components/TextField';
+import { renderKeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { BUSINESS_PRESETS, CAPABILITY_META } from '@/lib/businessTypes';
 import { COUNTRY_OPTIONS } from '@/lib/countries';
 import type { TranslationKey } from '@/lib/i18n/translations';
@@ -170,6 +172,7 @@ export function CountrySection({ f }: { f: CompanyForm }) {
       </Row>
 
       <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
+        <KeyboardProvider>
         <SafeAreaView className="flex-1 bg-background">
           <View className="flex-row items-center gap-2 border-b border-border px-4 py-3">
             <TextInput
@@ -185,6 +188,7 @@ export function CountrySection({ f }: { f: CompanyForm }) {
             </Pressable>
           </View>
           <FlatList
+        renderScrollComponent={renderKeyboardAwareScroll}
             data={options}
             keyExtractor={(o) => o.value}
             keyboardShouldPersistTaps="handled"
@@ -201,6 +205,7 @@ export function CountrySection({ f }: { f: CompanyForm }) {
             )}
           />
         </SafeAreaView>
+        </KeyboardProvider>
       </Modal>
     </>
   );

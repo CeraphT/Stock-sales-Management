@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Switch, Text, View } from 'react-native';
+import { Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -8,6 +8,7 @@ import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
+import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { afterOfflineWrite } from '@/lib/sync/afterOfflineWrite';
 import { offlineWrites } from '@stockflow/core/local/offlineWrites';
@@ -61,7 +62,7 @@ export default function CustomerFormScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         <TextField label="Customer name" value={name} onChangeText={setName} />
         <TextField label="Phone (optional)" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
 
@@ -75,7 +76,7 @@ export default function CustomerFormScreen() {
         {isBusiness ? <TextField label="Tax ID / NIU" value={taxId} onChangeText={setTaxId} /> : null}
 
         <Button title={submitting ? 'Creating…' : 'Create customer'} loading={submitting} onPress={onSubmit} />
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }
