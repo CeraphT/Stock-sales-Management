@@ -1226,6 +1226,24 @@ export const FR: Record<string, string> = {
   "Super-admin console": "Console super-admin",
   "Super-admin space": "Espace super-admin",
   "Manage every business on the platform.": "Gérez toutes les entreprises de la plateforme.",
+
+  // ── Starter content (shop creation) ──
+  "Starter content": "Contenu de départ",
+  "Created with your shop so you can start selling right away. Remove what you do not need or add your own. Everything stays editable afterwards.": "Créé avec votre boutique pour vendre tout de suite. Retirez ce dont vous n'avez pas besoin ou ajoutez les vôtres. Tout reste modifiable ensuite.",
+  "Add a category": "Ajouter une catégorie",
+  "Add a service": "Ajouter un service",
+  "Services are created at price 0: set your prices in Services. Leave empty to keep the services module off.": "Les services sont créés au prix 0 : fixez vos prix dans Services. Laissez vide pour ne pas activer le module services.",
+  "A \"Various supplier\" supplier": "Un fournisseur « Fournisseur divers »",
+  "So your first products and stock receipts are never blocked by a missing supplier.": "Pour que vos premiers produits et réceptions de stock ne soient jamais bloqués faute de fournisseur.",
+  "Sample products": "Produits d'exemple",
+  "No stock, to try the app. Archive them when you are ready.": "Sans stock, pour essayer l'application. Archivez-les quand vous êtes prêt.",
+  "Add suggested categories": "Ajouter les catégories suggérées",
+  "Suggested categories": "Catégories suggérées",
+  "You already have all the suggested categories. Add your own below.": "Vous avez déjà toutes les catégories suggérées. Ajoutez les vôtres ci-dessous.",
+  "Categories created": "Catégories créées",
+  "Could not add the categories": "Impossible d'ajouter les catégories",
+  "Check your internet connection.": "Vérifiez votre connexion internet.",
+  "Create": "Créer",
 };
 
 /** Reactive translator hook. `t(en)` returns the French string when the app

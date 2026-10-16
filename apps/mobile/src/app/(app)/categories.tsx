@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OfflineNotice } from '@/components/OfflineNotice';
 import { ScreenBackground } from '@/components/ScreenBackground';
+import { SuggestedCategories } from '@/components/SuggestedCategories';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { useLocalFirst } from '@/lib/hooks/useLocalFirst';
 import { localMirrorQueries } from '@stockflow/core/local/mirrorQueries';
@@ -106,6 +107,7 @@ export default function CategoriesScreen() {
       </View>
 
       <OfflineNotice visible={offline} />
+      {companyId && !loading ? <SuggestedCategories companyId={companyId} existing={categories.map((c) => c.name)} onCreated={() => void refresh()} /> : null}
 
       <View className="flex-row items-center gap-2 p-4">
         <TextInput

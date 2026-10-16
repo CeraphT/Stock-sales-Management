@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -19,6 +19,7 @@ import {
   RulesSection,
   TaxSection,
 } from '@/components/companyForm/CompanyFormSections';
+import { StarterKitSection } from '@/components/companyForm/StarterKitSection';
 import { useCompanyForm } from '@/components/companyForm/useCompanyForm';
 import { ApiError } from '@/lib/api/client';
 import { companiesApi } from '@/lib/api/endpoints/companies';
@@ -33,9 +34,19 @@ import { toast } from '@/lib/ui/toastStore';
 import { useIsTablet } from '@/lib/useIsTablet';
 import { membershipsApi } from '@stockflow/core/api/endpoints/memberships';
 import type { MyCompanyResponse } from '@stockflow/core/api/types/membership';
+import {
+  buildStarterKitRequest,
+  defaultLowStock,
+  defaultReceiptFooter,
+  demoProductNames,
+  mainLocationName,
+  starterKitDraft,
+  type StarterKitDraft,
+} from '@stockflow/core/setup/starterKit';
 
 type Panel = 'create' | 'join';
-type Step = 0 | 1 | 2;
+type Step = 0 | 1 | 2 | 3;
+const LAST_STEP = 3;
 
 const cardStyle = { shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 6 };
 
@@ -249,21 +260,40 @@ function ShopRow({ shop, busy, onOpen }: { shop: MyCompanyResponse; busy: boolea
   );
 }
 
-/** General → The shop → Equipment, with Next / Next / Create (step pills tappable too). */
+/** General → The shop → Equipment → Starter content (categories, services, supplier,
+ * samples from the business type), with Next / Create (step pills tappable too). */
 function CreateShopWizard({ onCreated }: { onCreated: (companyId: string) => void }) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const isTablet = useIsTablet();
   const f = useCompanyForm();
   const deviceId = useAuthStore((s) => s.deviceId);
   const [step, setStep] = useState<Step>(0);
-  const [preset, setPreset] = useState<string | null>(null);
+  const [preset, setPresetState] = useState<string | null>(null);
   const [services, setServices] = useState(false);
+  const [draft, setDraft] = useState<StarterKitDraft>(() => starterKitDraft(null, language));
   const [saving, setSaving] = useState(false);
+
+  // A new shop starts with a ready receipt footer (still editable in step 2).
+  useEffect(() => {
+    if (!f.receiptFooter) f.setReceiptFooter(defaultReceiptFooter(language));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** Picking a business type also proposes its starter content, stock threshold and
+   * the services module when that type offers services. */
+  const setPreset = (id: string) => {
+    setPresetState(id);
+    const next = starterKitDraft(id, language);
+    setDraft(next);
+    setServices(next.services.length > 0);
+    f.setLowStock(String(defaultLowStock(id)));
+  };
 
   const STEPS = [
     { label: t('wizard.general'), icon: '🏷️' },
     { label: t('wizard.shop'), icon: '🏪' },
     { label: t('wizard.equipment'), icon: '🧰' },
+    { label: t('kit.step'), icon: '✨' },
   ];
 
   const create = async () => {
@@ -290,6 +320,10 @@ function CreateShopWizard({ onCreated }: { onCreated: (companyId: string) => voi
           // Configured here, so the post-creation setup wizard never shows.
           setupCompleted: true,
         }),
+        businessType: preset ?? 'general',
+        // Services only when the module is on (step 3).
+        starterKit: buildStarterKitRequest(preset, language, services ? draft : { ...draft, services: [] }, f.currency || 'XAF'),
+        mainLocationName: mainLocationName(language),
       });
       toast(`${t('wizard.created')}: ${res.company.name}`, 'success');
       onCreated(res.company.id);
@@ -349,6 +383,7 @@ function CreateShopWizard({ onCreated }: { onCreated: (companyId: string) => voi
           )}
         </>
       ) : null}
+      {step === 3 ? <StarterKitSection draft={draft} onChange={setDraft} demoNames={demoProductNames(preset, language)} servicesOn={services} /> : null}
 
       <View className="flex-row items-center gap-2 border-t border-border pt-3">
         {step > 0 ? (
@@ -359,7 +394,7 @@ function CreateShopWizard({ onCreated }: { onCreated: (companyId: string) => voi
           <View className="flex-1" />
         )}
         <View className="flex-1">
-          {step < 2 ? (
+          {step < LAST_STEP ? (
             <Button title={`${t('wizard.next')} →`} onPress={() => setStep((s) => (s + 1) as Step)} />
           ) : (
             <Button title={`✓ ${t('wizard.create')}`} onPress={create} loading={saving} disabled={!f.name.trim()} />

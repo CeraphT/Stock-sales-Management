@@ -1,7 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
+import { packagingSuggestions } from '@stockflow/core/setup/starterKit';
+
 import type { PackagingLevelRequest } from '@/lib/api/types/catalog';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { useBusinessType } from '@/lib/useCapabilities';
 import { useThemeColors } from '@/lib/theme/colors';
 
 export interface DraftPackagingLevel {
@@ -49,6 +53,12 @@ export function PackagingLevelsEditor({
   currency: string;
 }) {
   const colors = useThemeColors();
+  const { language } = useTranslation();
+  const businessType = useBusinessType();
+  // One-tap packaging names for this business type (size still to fill).
+  const quick = packagingSuggestions(businessType, language).filter(
+    (u) => !levels.some((l) => l.unitName.trim().toLowerCase() === u.toLowerCase()),
+  );
 
   const addLevel = () => onChange([...levels, emptyPackagingLevel()]);
   const updateLevel = (index: number, patch: Partial<DraftPackagingLevel>) =>
@@ -63,6 +73,19 @@ export function PackagingLevelsEditor({
           <Ionicons name="add-circle-outline" size={22} color={colors.primary} />
         </Pressable>
       </View>
+
+      {quick.length > 0 ? (
+        <View className="flex-row flex-wrap gap-1.5">
+          {quick.map((u) => (
+            <Pressable
+              key={u}
+              onPress={() => onChange([...levels, { unitName: u, quantityInBaseUnits: '', salePriceOverride: '' }])}
+              className="rounded-full border border-border px-3 py-1">
+              <Text className="text-xs font-medium text-text-secondary">+ {u}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
 
       {levels.length === 0 ? (
         <Text className="text-xs text-text-secondary">

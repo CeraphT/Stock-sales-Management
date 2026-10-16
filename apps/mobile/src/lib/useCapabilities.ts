@@ -29,3 +29,17 @@ export function useCapabilities(): InventoryCapabilities {
   });
   return data?.capabilities ?? DEFAULT_CAPABILITIES;
 }
+
+/** The company's business type (pharmacy, grocery, ...), for the suggested
+ * packaging chips and categories; null offline or for older shops. Shares the
+ * capabilities query cache. */
+export function useBusinessType(): string | null {
+  const companyId = useAuthStore((s) => s.companyId);
+  const { data } = useQuery({
+    queryKey: ['company-capabilities', companyId],
+    queryFn: () => companiesApi.get(companyId!),
+    enabled: !!companyId,
+    staleTime: 5 * 60_000,
+  });
+  return data?.businessType ?? null;
+}

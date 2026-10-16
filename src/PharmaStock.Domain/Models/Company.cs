@@ -97,6 +97,11 @@ public class Company
     /// <summary>Serialized theme config (Section 10): primary/secondary color, font choice, dark mode.</summary>
     public string? ThemeConfigJson { get; set; }
 
+    /// <summary>Business type picked in the creation wizard (general, pharmacy, grocery,
+    /// electronics, fashion, food, workshop). Drives the suggested starter content
+    /// (categories, services, packaging chips); null for shops created before it existed.</summary>
+    public string? BusinessType { get; set; }
+
     /// <summary>Master toggle for the Optional Additional Services Module (Section 20).
     /// False by default — when false, no service-related screen or report renders anywhere.</summary>
     public bool ServicesModuleEnabled { get; set; } = false;

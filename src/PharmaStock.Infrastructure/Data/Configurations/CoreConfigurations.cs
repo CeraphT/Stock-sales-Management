@@ -14,6 +14,7 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company>
     public void Configure(EntityTypeBuilder<Company> builder)
     {
         builder.HasIndex(c => c.UniqueCode).IsUnique();
+        builder.Property(c => c.BusinessType).HasMaxLength(32);
     }
 }
 

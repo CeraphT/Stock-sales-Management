@@ -3,6 +3,7 @@ import { categoriesApi } from "@stockflow/core/api/endpoints/categories";
 import { productsApi } from "@stockflow/core/api/endpoints/products";
 import { suppliersApi } from "@stockflow/core/api/endpoints/suppliers";
 import type { PackagingLevelRequest } from "@stockflow/core/api/types/catalog";
+import { packagingSuggestions, variantSuggestions } from "@stockflow/core/setup/starterKit";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -15,7 +16,7 @@ import { useCapabilities } from "@/lib/useCapabilities";
 import { useSetBreadcrumb } from "@/lib/breadcrumb";
 import { useT } from "@/lib/i18n";
 import { usePrefsStore } from "@/lib/prefs";
-import { useAuthStore } from "@/lib/stores";
+import { useAuthStore, useLanguageStore } from "@/lib/stores";
 import { useCompany } from "@/lib/useCompany";
 import { runSync } from "@/lib/sync/runSync";
 import { toast } from "@/lib/toast";
@@ -48,6 +49,8 @@ export function ProductForm() {
   const [levels, setLevels] = useState<LevelRow[]>([]);
   const [isActive, setIsActive] = useState(true);
   const caps = useCapabilities();
+  const language = useLanguageStore((s) => s.language);
+  const businessType = useCompany().data?.businessType ?? null;
   const [sellByMeasure, setSellByMeasure] = useState(false);
   const [measureUnit, setMeasureUnit] = useState("kg");
   const [serialTracked, setSerialTracked] = useState(false);
@@ -441,6 +444,21 @@ export function ProductForm() {
               {t("+ Add level")}
             </button>
           </div>
+          {/* One-tap packaging names for this business type (quantity still to fill). */}
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {packagingSuggestions(businessType, language)
+              .filter((u) => !levels.some((l) => l.unitName.trim().toLowerCase() === u.toLowerCase()))
+              .map((u) => (
+                <button
+                  key={u}
+                  type="button"
+                  onClick={() => setLevels((l) => [...l, { unitName: u, quantityInBaseUnits: "", salePriceOverride: "" }])}
+                  className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-text-secondary hover:border-primary hover:text-primary"
+                >
+                  + {u}
+                </button>
+              ))}
+          </div>
           {levels.length === 0 ? (
             <p className="text-xs text-text-secondary">{t("Base unit only. Add a level for boxes/blisters (e.g. “Box” = 10 units).")}</p>
           ) : (
@@ -500,6 +518,18 @@ export function ProductForm() {
             ) : (
               <p className="mb-3 text-xs text-text-secondary">{t("Add sizes/colours as variants. Each gets its own stock, barcode and price.")}</p>
             )}
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {variantSuggestions(language).map((g) => (
+                <button
+                  key={g.label}
+                  type="button"
+                  onClick={() => setVariantInput(g.values.filter((v) => !variants.some((x) => x.variantName === v)).join(", "))}
+                  className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-text-secondary hover:border-primary hover:text-primary"
+                >
+                  {g.label}: {g.values.slice(0, 3).join(", ")}…
+                </button>
+              ))}
+            </div>
             <div className="flex items-end gap-2">
               <div className="flex-1">
                 <TextField label={t("New variants (comma-separated)")} value={variantInput} onChange={(e) => setVariantInput(e.target.value)} placeholder="S, M, L" />

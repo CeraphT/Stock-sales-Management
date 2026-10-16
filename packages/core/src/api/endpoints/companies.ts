@@ -4,6 +4,8 @@ import type {
   CreateCompanyRequest,
   CreateCompanyResponse,
   JoinCompanyRequest,
+  StarterKitRequest,
+  StarterKitResponse,
   UpdateCompanyRequest,
 } from "../types/auth";
 
@@ -25,6 +27,9 @@ export const companiesApi = {
   createForAccount: (body: CreateCompanyRequest) => api.post<CreateCompanyResponse>("/api/companies", body),
   join: (body: JoinCompanyRequest) =>
     api.post<CompanyResponse>("/api/companies/join", body, { skipAuth: true }),
+  /** Admin: add starter content (categories, services, ...) to an existing shop; skips duplicates. */
+  applyStarterKit: (id: string, businessType: string | null, kit: StarterKitRequest) =>
+    api.post<StarterKitResponse>(`/api/companies/${id}/starter-kit`, { businessType, kit }),
   get: (id: string) => api.get<CompanyResponse>(`/api/companies/${id}`),
   update: (id: string, body: UpdateCompanyRequest) =>
     api.put<CompanyResponse>(`/api/companies/${id}`, body),

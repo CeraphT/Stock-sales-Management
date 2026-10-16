@@ -83,6 +83,34 @@ export interface CreateCompanyRequest {
   capabilities?: InventoryCapabilities;
   /** Every field of the creation wizard (the "My business" fields), saved on the company. */
   settings?: UpdateCompanyRequest;
+  /** Business-type preset id (general, pharmacy, grocery, ...). */
+  businessType?: string | null;
+  /** Starter content created with the shop (see setup/starterKit). */
+  starterKit?: StarterKitRequest | null;
+  /** Name of the first branch, in the shop language ("Boutique principale"). */
+  mainLocationName?: string | null;
+}
+
+export interface StarterKitRequest {
+  categories: string[];
+  services: { name: string; category: string | null }[];
+  defaultSupplierName: string | null;
+  demoProducts: {
+    name: string;
+    category: string | null;
+    purchasePrice: number;
+    salePrice: number;
+    measureUnit?: string | null;
+    unitsPerMeasure?: number;
+    packagingLevels?: { unitName: string; quantityInBaseUnits: number; salePriceOverride: number | null }[];
+  }[];
+}
+
+export interface StarterKitResponse {
+  categories: number;
+  services: number;
+  suppliers: number;
+  products: number;
 }
 
 export interface JoinCompanyRequest {
@@ -125,6 +153,8 @@ export interface CompanyResponse {
   taxId: string | null;
   accountingSystem?: number;
   capabilities: InventoryCapabilities;
+  /** Business type picked at creation (general, pharmacy, ...); null for older shops. */
+  businessType?: string | null;
 }
 
 export interface LocationResponse {

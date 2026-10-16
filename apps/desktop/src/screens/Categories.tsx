@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/Button";
 import { IconButton } from "@/components/IconButton";
+import { SuggestedCategories } from "@/components/SuggestedCategories";
 import { confirmDialog } from "@/lib/confirm";
 import { useT } from "@/lib/i18n";
 import { queryClient } from "@/lib/queryClient";
@@ -52,6 +53,7 @@ export function Categories() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      {!isLoading ? <SuggestedCategories existing={data.map((c) => c.name)} /> : null}
       <div className="mb-4 flex gap-2">
         <input
           value={name}

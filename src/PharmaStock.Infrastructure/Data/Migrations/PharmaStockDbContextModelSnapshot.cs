@@ -237,6 +237,10 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.Property<bool>("AssemblyEnabled")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("BusinessType")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 

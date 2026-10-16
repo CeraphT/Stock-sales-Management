@@ -19,15 +19,17 @@ public record CreateCompanyRequest(
     string? AdminName, string? AdminPhone, string? AdminPassword,
     Guid DeviceId, string DeviceName, DevicePlatform Platform,
     InventoryCapabilities? Capabilities = null,
-    UpdateCompanyRequest? Settings = null);
+    UpdateCompanyRequest? Settings = null,
+    string? BusinessType = null, StarterKitRequest? StarterKit = null, string? MainLocationName = null);
 public record JoinCompanyRequest(string UniqueCode);
+public record StarterKitApplyRequest(string? BusinessType, StarterKitRequest Kit);
 public record CompanyResponse(
     Guid Id, string Name, string UniqueCode, string Currency, bool ServicesModuleEnabled, string? Description, decimal DefaultTaxRatePercent,
     bool LoyaltyEnabled, decimal LoyaltyEarnRateAmount, decimal LoyaltyPointValue,
     bool RewardProgramEnabled, int RewardPurchaseCount, decimal RewardGiftCardValue,
     string? Address, string? Phone, string? ReceiptFooter, string? LogoUrl, int DefaultLowStockThreshold, bool SetupCompleted,
     TaxRegime TaxRegime, decimal FlatTaxAmount, FlatTaxPeriod FlatTaxPeriod, string? TaxId, AccountingSystem? AccountingSystem,
-    InventoryCapabilities Capabilities);
+    InventoryCapabilities Capabilities, string? BusinessType = null);
 public record CreateCompanyResponse(CompanyResponse Company, AuthResponse Admin, LocationResponse DefaultLocation);
 public record UpdateCompanyRequest(
     string Name, string? Description, string Currency, decimal DefaultTaxRatePercent,
@@ -105,6 +107,7 @@ public static class CompanyEndpoints
                 company.VariantsEnabled = caps.Variants;
                 company.AssemblyEnabled = caps.Assembly;
             }
+            company.BusinessType = NormalizeBusinessType(request.BusinessType);
             db.Companies.Add(company);
 
             var membership = new CompanyMembership
@@ -120,12 +123,20 @@ public static class CompanyEndpoints
             // single-shop usage (the common case) needs no extra setup before
             // stock can be received or a sale rung up; more branches can be
             // added later via POST .../locations.
+            // Named in the shop's language by the client ("Boutique principale"), and
+            // placed at the shop's own address from the wizard.
             var defaultLocation = new Location
             {
                 CompanyId = company.Id,
-                Name = "Main",
+                Name = string.IsNullOrWhiteSpace(request.MainLocationName) ? "Main" : request.MainLocationName.Trim(),
+                Address = company.Address,
             };
             db.Locations.Add(defaultLocation);
+
+            // Starter content (categories, services, catch-all supplier, demo products),
+            // committed with the shop itself.
+            if (request.StarterKit is { } kit)
+                await StarterKitService.ApplyAsync(db, company, kit, isNewCompany: true);
 
             await db.SaveChangesAsync();
 
@@ -193,6 +204,33 @@ public static class CompanyEndpoints
 
             return Results.Ok(ToResponse(company));
         }).RequireAuthorization(policy => policy.RequireRole(nameof(UserRole.CompanyAdmin), nameof(UserRole.SuperAdmin)));
+
+        // "Add the suggested content" for a shop that already exists (created before
+        // starter kits, or wanting more). Same insert as at creation, skips duplicates;
+        // also records the business type when the shop had none yet.
+        group.MapPost("/{id:guid}/starter-kit", async (Guid id, StarterKitApplyRequest request, PharmaStockDbContext db, HttpContext http) =>
+        {
+            if (http.User.GetCompanyId() != id)
+                return Results.Forbid();
+            var company = await db.Companies.FindAsync(id);
+            if (company is null)
+                return Results.NotFound(new { message = "Entreprise introuvable." });
+
+            if (company.BusinessType is null && NormalizeBusinessType(request.BusinessType) is { } type)
+                company.BusinessType = type;
+            var result = await StarterKitService.ApplyAsync(db, company, request.Kit, isNewCompany: false);
+            await db.SaveChangesAsync();
+            return Results.Ok(result);
+        }).RequireAuthorization(policy => policy.RequireRole(nameof(UserRole.CompanyAdmin), nameof(UserRole.SuperAdmin)));
+    }
+
+    private static readonly HashSet<string> BusinessTypes =
+        ["general", "pharmacy", "grocery", "electronics", "fashion", "food", "workshop"];
+
+    private static string? NormalizeBusinessType(string? type)
+    {
+        var key = type?.Trim().ToLowerInvariant();
+        return key is not null && BusinessTypes.Contains(key) ? key : null;
     }
 
     /// <summary>The "My business" fields, shared by the settings screen (PUT) and the
@@ -242,7 +280,8 @@ public static class CompanyEndpoints
         company.TaxRegime, company.FlatTaxAmount, company.FlatTaxPeriod, company.TaxId, company.AccountingSystem,
         new InventoryCapabilities(
             company.ExpiryTrackingEnabled, company.SellByMeasureEnabled, company.SerialTrackingEnabled,
-            company.VariantsEnabled, company.AssemblyEnabled));
+            company.VariantsEnabled, company.AssemblyEnabled),
+        company.BusinessType);
 
     /// <summary>Short, human-typeable code (Section 9): e.g. PHRM-7X2K9.
     /// Collision odds are negligible at this scale, but the database-level
