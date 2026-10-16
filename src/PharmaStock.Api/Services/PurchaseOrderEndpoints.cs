@@ -212,9 +212,12 @@ public static class PurchaseOrderEndpoints
             if (line is null)
                 return Results.NotFound(new { message = "Ligne de commande introuvable." });
 
+            // A delivery may exceed what is left on the line (bonus units, rounded
+            // cartons): the clients confirm it, the line then counts as fully
+            // received. Only a line that is already complete takes nothing more.
             var remaining = line.QuantityOrderedInBaseUnits - line.QuantityReceivedInBaseUnits;
-            if (request.QuantityReceivedNow > remaining)
-                return Results.BadRequest(new { message = $"La quantité reçue dépasse la quantité restante ({remaining})." });
+            if (remaining <= 0)
+                return Results.BadRequest(new { message = "Cette ligne est déjà entièrement reçue." });
 
             var product = await db.Products.FirstOrDefaultAsync(p => p.Id == line.ProductId && p.CompanyId == companyId);
             if (product is null)

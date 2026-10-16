@@ -61,11 +61,19 @@ export default function PoReceiveLineScreen() {
       showAlert('Invalid quantity', serialTracked ? 'Enter at least one serial number.' : 'Quantity must be a positive whole number.');
       return;
     }
+    // More than ordered (bonus units, rounded cartons) is allowed after a confirm.
     if (qty > maxQty) {
-      showAlert('Too many', `Only ${maxQty} remain on this line.`);
+      showAlert('More than ordered', `You are receiving ${qty}, but only ${maxQty} remain on this line. Receive them all anyway?`, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Receive', onPress: () => void receive() },
+      ]);
       return;
     }
+    await receive();
+  };
 
+  const receive = async () => {
+    if (!companyId || !orderId || !lineId) return;
     setSubmitting(true);
     try {
       await purchaseOrdersApi.receiveLine(companyId, orderId, lineId, {
@@ -117,7 +125,7 @@ export default function PoReceiveLineScreen() {
               onChangeText={setSerialText}
             />
             <Text className="text-xs text-text-secondary">
-              {serials.length} unit(s) - each serial is one unit received.{serials.length > maxQty ? ` · exceeds remaining (${maxQty})` : ''}
+              {serials.length} unit(s) - each serial is one unit received.{serials.length > maxQty ? ` · more than remaining (${maxQty})` : ''}
             </Text>
           </View>
         ) : (

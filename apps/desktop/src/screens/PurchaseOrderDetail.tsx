@@ -75,6 +75,18 @@ export function PurchaseOrderDetail() {
     const line = po?.lines.find((l) => l.id === lineId);
     const isSerial = !!line?.serialTracked;
     const quantity = isSerial ? serials.length : Number(qty) || 0;
+    // More than ordered (bonus units, rounded cartons) is allowed, after a confirm.
+    const outstanding = line ? line.quantityOrdered - line.quantityReceived : 0;
+    if (
+      quantity > outstanding &&
+      !(await confirmDialog({
+        title: t("More than ordered"),
+        message: `${t("You are receiving")} ${quantity}, ${t("but only")} ${outstanding} ${t("are outstanding on this line. Receive them all anyway?")}`,
+        confirmLabel: t("Receive"),
+        cancelLabel: t("Cancel"),
+      }))
+    )
+      return;
     setBusy(true);
     setError(null);
     try {
@@ -243,7 +255,7 @@ export function PurchaseOrderDetail() {
                           className="w-full rounded-lg border border-border bg-background px-2 py-1.5 font-mono text-sm outline-none focus:border-primary"
                         />
                         <p className="mt-1 text-xs text-text-secondary">
-                          {serials.length} {t("unit(s) - each serial is one unit received.")} {serials.length > remaining ? `· ⚠ ${t("exceeds outstanding")} (${remaining})` : ""}
+                          {serials.length} {t("unit(s) - each serial is one unit received.")} {serials.length > remaining ? `· ${t("more than outstanding")} (${remaining})` : ""}
                         </p>
                       </div>
                     ) : (
@@ -262,7 +274,7 @@ export function PurchaseOrderDetail() {
                         disabled={
                           !batch.trim() ||
                           (caps.expiryTracking && !expiry) ||
-                          (l.serialTracked ? serials.length <= 0 || serials.length > remaining : Number(qty) <= 0)
+                          (l.serialTracked ? serials.length <= 0 : Number(qty) <= 0)
                         }
                       >
                         {t("Confirm receive")}

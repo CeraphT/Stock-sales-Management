@@ -1,6 +1,7 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { reorderQuantity } from '@stockflow/core/purchasing/reorder';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenBackground } from '@/components/ScreenBackground';
@@ -44,7 +45,7 @@ export default function ProductDetailScreen() {
     }
     setReordering(true);
     try {
-      const line = { productId: product.id, quantityOrdered: Math.max(product.lowStockThreshold, 1), unitCost: product.purchasePrice };
+      const line = { productId: product.id, quantityOrdered: reorderQuantity(product.lowStockThreshold, batches.reduce((s, b) => s + b.quantityInBaseUnits, 0)), unitCost: product.purchasePrice };
       const openPos = await purchaseOrdersApi.list(companyId, { supplierId: product.supplierId, status: PurchaseOrderStatus.Pending });
       if (openPos.length > 0) {
         await purchaseOrdersApi.addLine(companyId, openPos[0].id, line);

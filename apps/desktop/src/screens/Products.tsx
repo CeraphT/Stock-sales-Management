@@ -1,5 +1,6 @@
 import { ApiError } from "@stockflow/core/api/client";
 import { PurchaseOrderStatus, type StockStatus } from "@stockflow/core/api/enums";
+import { reorderQuantity } from "@stockflow/core/purchasing/reorder";
 import { productsApi } from "@stockflow/core/api/endpoints/products";
 import { purchaseOrdersApi } from "@stockflow/core/api/endpoints/purchaseOrders";
 import { formatCurrency } from "@stockflow/core/format";
@@ -55,7 +56,7 @@ export function Products() {
 
   // One-click reorder: pull the product's supplier + cost, open a draft PO to
   // that supplier pre-filled with a line for this product, ready to adjust/send.
-  async function orderFromSupplier(productId: string) {
+  async function orderFromSupplier(productId: string, stock: number) {
     if (!companyId || !locationId || orderingId) return;
     setOrderingId(productId);
     try {
@@ -65,7 +66,7 @@ export function Products() {
         navigate(`/products/${productId}/edit`);
         return;
       }
-      const line = { productId, quantityOrdered: Math.max(detail.lowStockThreshold, 1), unitCost: detail.purchasePrice };
+      const line = { productId, quantityOrdered: reorderQuantity(detail.lowStockThreshold, stock), unitCost: detail.purchasePrice };
       // Consolidate: if this supplier already has an open (Pending) order, add
       // the line to it — one PO per supplier — otherwise start a new one.
       const openPos = await purchaseOrdersApi.list(companyId, {
@@ -213,7 +214,7 @@ export function Products() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              void orderFromSupplier(p.id);
+                              void orderFromSupplier(p.id, p.stock);
                             }}
                             disabled={orderingId === p.id}
                             title={t("Order from supplier")}
