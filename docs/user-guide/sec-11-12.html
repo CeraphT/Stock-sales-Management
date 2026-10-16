@@ -33,9 +33,29 @@
       </figure>
       <ol class="steps">
         <li><span class="fr"><b>Fournisseur :</b> Achats → Fournisseurs → <span class="btnref">+ Nouveau fournisseur</span> : nom, téléphone, e-mail. 📇 affiche le contact (téléphone et e-mail cliquables).</span><span class="en"><b>Supplier:</b> Purchasing → Suppliers → <span class="btnref">+ New supplier</span>: name, phone, email. 📇 shows the contact (clickable phone and email).</span></li>
-        <li><span class="fr"><b>Commander :</b> Bons de commande → <span class="btnref">+ Nouvelle commande</span> → fournisseur → ajoutez les produits avec quantité et coût unitaire → notes → <span class="btnref">Créer la commande</span>. Astuce : 🛒 Commander sur un produit en rupture prépare la commande pour vous.</span><span class="en"><b>Order:</b> Purchase orders → <span class="btnref">+ New order</span> → supplier → add products with quantity and unit cost → notes → <span class="btnref">Create order</span>. Tip: 🛒 Order on an out-of-stock product drafts it for you.</span></li>
-        <li><span class="fr"><b>Réceptionner la livraison :</b> ouvrez la commande → <span class="btnref">Réceptionner</span> sur chaque ligne livrée. Le stock reçu reste acquis même si vous annulez le reste.</span><span class="en"><b>Receive the delivery:</b> open the order → <span class="btnref">Receive</span> on each delivered line. Received stock is kept even if you cancel the rest.</span></li>
+        <li><span class="fr"><b>Commander :</b> Bons de commande → <span class="btnref">+ Nouvelle commande</span> → fournisseur → ajoutez les produits avec quantité et coût unitaire → notes → <span class="btnref">Créer la commande</span>. Astuce : 🛒 Commander sur un produit en rupture prépare la commande pour vous, avec assez pour repasser au-dessus du seuil (2 × seuil moins le stock actuel), modifiable.</span><span class="en"><b>Order:</b> Purchase orders → <span class="btnref">+ New order</span> → supplier → add products with quantity and unit cost → notes → <span class="btnref">Create order</span>. Tip: 🛒 Order on an out-of-stock product drafts it for you, with enough to get back above the threshold (2 × threshold minus current stock), editable.</span></li>
+        <li><span class="fr"><b>Réceptionner la livraison :</b> ouvrez la commande → <span class="btnref">Réceptionner</span> sur chaque ligne livrée. Le stock reçu reste acquis même si vous annulez le reste. Vous pouvez recevoir <b>plus</b> que commandé : l'application demande seulement de confirmer.</span><span class="en"><b>Receive the delivery:</b> open the order → <span class="btnref">Receive</span> on each delivered line. Received stock is kept even if you cancel the rest. You can receive <b>more</b> than ordered: the app just asks you to confirm.</span></li>
       </ol>
+      <figure class="figure">
+        <figcaption><span class="dot" style="background:var(--indigo)"></span><span class="fr">Recevoir plus que commandé</span><span class="en">Receiving more than ordered</span></figcaption>
+        <div class="mockwrap"><div class="frame">
+          <div class="browser">
+            <div class="chrome"><i></i><i></i><i></i><div class="url">stock.mfspace.lu/purchase-orders/…</div></div>
+            <div class="bwin" style="flex-direction:column;align-items:center;justify-content:center;padding:18px;background:var(--ui-bg)">
+              <div class="ucard" style="max-width:340px;width:100%;margin-top:0">
+                <div class="utitle"><span class="fr">Plus que commandé</span><span class="en">More than ordered</span></div>
+                <div class="umuted" style="font-size:10.5px;margin-top:5px" data-pin="1" data-pin-at="right"><span class="fr">Vous recevez 25, mais seulement 10 restent à recevoir sur cette ligne. Tout recevoir quand même ?</span><span class="en">You are receiving 25, but only 10 are outstanding on this line. Receive them all anyway?</span></div>
+                <div class="urow" style="margin-top:10px"><div class="uspace"></div><span class="ubtn g"><span class="fr">Annuler</span><span class="en">Cancel</span></span><span class="ubtn" data-pin="2" data-pin-at="right"><span class="fr">Recevoir</span><span class="en">Receive</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+        <ol class="legend">
+          <li><span class="pn">1</span><div><b><span class="fr">Livraison plus grande</span><span class="en">Bigger delivery</span></b> · <span class="d"><span class="fr">unités offertes, cartons arrondis : l'application vous prévient au lieu de bloquer.</span><span class="en">bonus units, rounded cartons: the app warns you instead of blocking.</span></span></div></li>
+          <li><span class="pn">2</span><div><b><span class="fr">Recevoir</span><span class="en">Receive</span></b> · <span class="d"><span class="fr">tout entre en stock et la ligne passe en Reçu. Une ligne déjà complète ne peut plus rien recevoir.</span><span class="en">everything goes into stock and the line becomes Received. A line already complete can't receive anything more.</span></span></div></li>
+        </ol>
+      </figure>
+
     </section>
 
     <!-- ==================== 12. CUSTOMERS ==================== -->
