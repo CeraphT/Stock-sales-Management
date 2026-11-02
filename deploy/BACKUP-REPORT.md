@@ -1,9 +1,16 @@
 # Daily backup-status e-mail
 
-A daily e-mail to **infos@mfspace.lu** summarising the Postgres backups, styled
-like an MSP "Backup & Recovery" dashboard. Lives on the Hetzner box
-(`116.203.144.105`); the live Caddy/compose config is kept on the server (not in
-git), this folder holds the script + these notes.
+A daily e-mail summarising the Postgres backups, styled like an MSP "Backup &
+Recovery" dashboard. Lives on the Hetzner box (`116.203.144.105`); the live
+Caddy/compose config is kept on the server (not in git), this folder holds the
+script + these notes.
+
+**Recipient** defaults to **infos@mfspace.lu** and is configurable from *either*
+super-admin console (StockFlow or HouseBudget → Settings → Daily backup report).
+Each console writes the key `backup.report.recipient` to its own app database's
+`"PlatformSettings"` table; the script reads both and uses whichever side was
+updated most recently (`UpdatedAt`), falling back to infos@mfspace.lu when neither
+is set.
 
 ## What it reports
 For both databases dumped by `/root/bin/pg-backup.sh` (**housebudget** +

@@ -14,11 +14,21 @@ FROM=infos@mfspace.lu
 now=$(date +%s)
 nowfmt=$(date -u +"%Y-%m-%d %H:%M UTC")
 PGU=$(grep '^POSTGRES_USER=' /root/apps/stockflow/deploy/.env 2>/dev/null | cut -d= -f2-)
-# Recipient is configurable from the StockFlow super-admin console (Settings →
-# Daily backup report), stored in pharmastock."PlatformSettings" under the key
-# 'backup.report.recipient'. Falls back to infos@mfspace.lu when unset/empty.
-TO=$(docker exec deploy-db-1 psql -U "$PGU" -d pharmastock -tAc \
-  "select \"Value\" from \"PlatformSettings\" where \"Key\"='backup.report.recipient'" 2>/dev/null | tr -d '[:space:]')
+# Recipient is configurable from EITHER super-admin console (StockFlow or
+# HouseBudget → Settings → Daily backup report). Each writes the key
+# 'backup.report.recipient' to its own "PlatformSettings" table; we take
+# whichever side was updated most recently. Falls back to infos@mfspace.lu.
+pick_recipient() {
+  local out="" line
+  for db in pharmastock housebudget; do
+    line=$(docker exec deploy-db-1 psql -U "$PGU" -d "$db" -tAF'|' -c \
+      "select \"Value\", to_char(\"UpdatedAt\",'YYYYMMDDHH24MISS') from \"PlatformSettings\" where \"Key\"='backup.report.recipient' and coalesce(\"Value\",'')<>''" 2>/dev/null | head -1)
+    [ -n "$line" ] && out="$out$line"$'\n'
+  done
+  # Sort the "value|timestamp" rows by timestamp desc, emit the newest value.
+  printf '%s' "$out" | awk -F'|' 'NF>=2{print $2"|"$1}' | sort -r | head -1 | cut -d'|' -f2
+}
+TO=$(pick_recipient | tr -d '[:space:]')
 TO=${TO:-infos@mfspace.lu}
 
 human() { b=${1:-0}; awk -v b="$b" 'BEGIN{ s="B KB MB GB TB"; split(s,a," "); i=1; while(b>=1024 && i<5){b/=1024;i++} printf (b>=10||i==1)?"%.0f %s":"%.1f %s", b, a[i] }'; }
