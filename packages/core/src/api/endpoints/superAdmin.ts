@@ -1,6 +1,7 @@
-import { api } from "../client";
+import { api, apiFetchBlob } from "../client";
 import type {
   AuditLogRow,
+  BackupReport,
   CreateSuperAdminRequest,
   ImpersonateResponse,
   SuperAdminAccount,
@@ -53,4 +54,15 @@ export const superAdminApi = {
     api.post<unknown>(`/api/superadmin/users/${id}/active`, { active }),
 
   listAudit: (take = 200) => api.get<AuditLogRow[]>("/api/superadmin/audit", { take: String(take) }),
+
+  // ── Backups (same data as the daily report e-mail) ────────────────────
+  backups: () => api.get<BackupReport>("/api/superadmin/backups"),
+
+  /** One backup file (pg_dump or HouseBudget JSON export); audited server-side. */
+  downloadBackup: (source: string, name: string) =>
+    apiFetchBlob(`/api/superadmin/backups/download?source=${encodeURIComponent(source)}&name=${encodeURIComponent(name)}`),
+
+  backupReportPreview: () => api.get<{ subject: string; html: string }>("/api/superadmin/backups/report/preview"),
+
+  sendBackupReport: () => api.post<{ to: string }>("/api/superadmin/backups/report/send", {}),
 };

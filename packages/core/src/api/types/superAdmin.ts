@@ -118,3 +118,55 @@ export interface AuditLogRow {
   detail: string | null;
   createdAt: string;
 }
+
+// ── Backups (daily report + console page) ────────────────────────────────
+
+/** Mirrors the C# `BackupState` enum (serialized as its integer). */
+export enum BackupState {
+  NoBackup = 0,
+  Completed = 1,
+  CompletedWithErrors = 2,
+  InProcess = 3,
+  Unsuccessful = 4,
+}
+
+export interface BackupFile {
+  name: string;
+  sizeBytes: number;
+  createdAt: string;
+  /** Property name for HouseBudget exports. */
+  label: string | null;
+}
+
+export interface BackupFeatureKpi {
+  label: string;
+  count: number;
+  /** Change since yesterday's report; null when there is no earlier snapshot. */
+  delta: number | null;
+}
+
+export interface BackupSourceStatus {
+  key: string;
+  name: string;
+  location: string;
+  application: string;
+  type: string;
+  dataSources: string[];
+  dataSizeBytes: number | null;
+  storageBytes: number | null;
+  lastSuccessAt: string | null;
+  state: BackupState;
+  note: string | null;
+  /** 28 days, oldest first, today last; null = unknown. */
+  history: (BackupState | null)[];
+  errorCount: number;
+  downloadable: boolean;
+  files: BackupFile[];
+  kpis: BackupFeatureKpi[];
+}
+
+export interface BackupReport {
+  generatedAt: string;
+  consoleUrl: string;
+  sources: BackupSourceStatus[];
+}

@@ -25,6 +25,10 @@ builder.Services.AddScoped<StockDeductionService>();
 builder.Services.AddHttpClient(); // outbound FX-rate lookups for currency conversion
 builder.Services.AddMemoryCache(); // device presence throttle + enforcement cache + geo cache
 builder.Services.AddSingleton<GeoIpService>(); // best-effort IP -> city/country for the fleet view
+// Daily backup report e-mail (both apps) + the super-admin Backups page.
+builder.Services.AddScoped<BackupStatusCollector>();
+builder.Services.AddSingleton<BackupReportService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<BackupReportService>());
 
 // Dev-only fallback secret, same pattern as the connection string above —
 // production deployments must override Jwt:Secret via environment/user-secrets.
@@ -124,5 +128,6 @@ app.MapReconciliationEndpoints();
 app.MapAlertsEndpoints();
 app.MapSupportEndpoints();
 app.MapSupportEmailActions();
+app.MapBackupEndpoints();
 
 app.Run();

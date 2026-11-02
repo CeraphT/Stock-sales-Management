@@ -62,6 +62,8 @@ public class PharmaStockDbContext : DbContext
     public DbSet<SupportAttachment> SupportAttachments => Set<SupportAttachment>();
     public DbSet<SupportMessage> SupportMessages => Set<SupportMessage>();
 
+    public DbSet<BackupSnapshot> BackupSnapshots => Set<BackupSnapshot>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PharmaStockDbContext).Assembly);

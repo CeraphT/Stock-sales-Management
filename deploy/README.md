@@ -90,9 +90,33 @@ cd deploy && docker compose up -d --build
 Migrations re-run automatically on API start.
 
 ## Backups
-- Postgres data lives in the `pgdata` Docker volume. Add a nightly
-  `docker compose exec db pg_dump ...` to a Hetzner Storage Box, or enable Hetzner
-  server Backups (the console's "Backups" tab).
+- Postgres data lives in the `pgdata` Docker volume. Nightly `pg_dump`s of both
+  databases are written to `/root/backups` by `/root/bin/pg-backup.sh` (cron, 03:30
+  UTC, 14 days), pulled daily to the office PC, and watched by
+  `/root/bin/backup-watchdog.sh`.
+- **Daily report e-mail + Super Admin "Sauvegardes" page.** The `api` service
+  e-mails a status report (bars, 28-day history, row counts per feature of both
+  apps) to `BACKUP_REPORT_TO` every day at `BACKUP_REPORT_HOUR_UTC` (default 05:00),
+  linking to `https://stock.mfspace.lu/superadmin/backups` where the files are
+  downloaded (login required, audited). It only *reads* the backups, so mount
+  them read-only into `api`:
+  ```yaml
+  api:
+    environment:
+      BACKUP_REPORT_TO: "infos@mfspace.lu"     # default: SUPPORT_NOTIFY_EMAIL
+      SERVER_BACKUP_DIR: "/backups/server"    # pg_dumps + LAST_OK + LAST_PULLED
+      HB_BACKUP_DIR: "/backups/hb-exports"    # HouseBudget per-property JSON exports
+      # HB_DB_CONNECTION: optional; default = this API's connection with Database=housebudget
+    volumes:
+      - /root/backups:/backups/server:ro
+      - hb_backups:/backups/hb-exports:ro
+  volumes:
+    hb_backups:
+      external: true
+      name: housebudget_hb_backups   # check: docker volume ls | grep hb_backups
+  ```
+  Without SMTP (`SMTP_HOST`) or with `BACKUP_REPORT_DISABLED=true` nothing is sent.
+  The page has "Aperçu de l'e-mail" and "Envoyer le rapport" for a manual check.
 
 ---
 
