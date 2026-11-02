@@ -27,32 +27,30 @@ For both databases dumped by `/root/bin/pg-backup.sh` (**housebudget** +
   `/root/apps/housebudget-v2/deploy/.env` at send time). Only `curl` is installed.
   One retry, then a `backup-alert.sh` notice if the send still fails.
 
-## Protected download link
-The e-mail links each dump at `https://guide.mfspace.lu/dl-<TOKEN>/<file>.dump`.
-Served by the existing **`guide`** Caddy container:
+## Download link
+The e-mail links each dump at `https://guide.mfspace.lu/dl-<TOKEN>/<file>.dump` —
+a **direct download on click** (no login prompt). Served by the existing
+**`guide`** Caddy container:
 - `docker-compose.yml` (server): add a RO mount to the `guide` service:
   `- /root/backups:/srv-backups:ro`
 - `guide.Caddyfile` (server): add, before the catch-all `handle`:
   ```
   handle_path /dl-<TOKEN>/* {
-      basic_auth {
-          mfspace <BCRYPT_HASH>
-      }
       root * /srv-backups
-      file_server { browse }
+      file_server
   }
   ```
+  No `browse`, so the bare `/dl-<TOKEN>/` returns 404 (no directory listing); only
+  the exact file links from the e-mail work.
 - `<TOKEN>` is a long random path segment stored in **`/root/secrets/dl-token`**
-  (the script reads it; never hardcoded). Basic-auth user `mfspace`; the password
-  and its bcrypt hash are set on the server only (NOT in git).
+  (the script reads it; never hardcoded, never in git).
 
 **Rotate** the link: `openssl rand -hex 16` → write to `/root/secrets/dl-token`
-and update the `handle_path` segment; regenerate the password with
-`docker exec guide caddy hash-password --plaintext '…'`; then validate the
-on-disk Caddyfile with a throwaway container and `docker compose up -d
---force-recreate guide` (the single bind-mounted file keeps its old inode until
-the container is recreated).
+and update the `handle_path` segment; validate the on-disk Caddyfile with a
+throwaway container, then `docker compose up -d --force-recreate guide` (the
+single bind-mounted file keeps its old inode until the container is recreated).
 
-> Security note: these dumps contain all customer data. The link is defended by a
-> secret path **and** basic auth, but it is reachable over the internet. Restrict
-> by IP or remove the link if that trade-off isn't wanted.
+> Security note: these dumps contain all customer data, and the link is reachable
+> over the internet guarded only by the unguessable secret path. Anyone with the
+> e-mail can download. Restrict by IP, re-add basic auth, or remove the link if
+> that trade-off isn't wanted.

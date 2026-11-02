@@ -63,35 +63,57 @@ kpi() { # $1 label  $2 count  $3 total  $4 color
 rows_status="$(kpi "No backups" "$nobak" "$total" "#9aa0a6")$(kpi "Completed" "$completed" "$total" "#35b65a")$(kpi "Completed with errors" "$witherr" "$total" "#e0a800")$(kpi "In process" "$inproc" "$total" "#f4c20d")$(kpi "Unsuccessful" "$unsucc" "$total" "#e5473f")"
 rows_time="$(kpi "No successful backup" "$b_none" "$total" "#9aa0a6")$(kpi "Less than 24 hours ago" "$b_lt24" "$total" "#35b65a")$(kpi "Less than 48 hours ago" "$b_lt48" "$total" "#35b65a")$(kpi "More than 48 hours ago" "$b_gt48" "$total" "#e5473f")"
 
-# ---- devices table rows ----
-devrows=""
-for db in "${DBS[@]}"; do
-  st="${R_STATUS[$db]}"; stripe="#35b65a"; [ "$st" != "Completed" ] && stripe="#e5473f"
-  link="${R_LINK[$db]:-}"
-  dl=$([ -n "$link" ] && echo "<a href=\"$link\" style=\"color:#2563eb;text-decoration:none;font-weight:600\">⬇ Download</a>" || echo "<span style=\"color:#999\">—</span>")
-  bar="${R_BAR[$db]:-}"
-  devrows+="<tr style=\"border-bottom:1px solid #eee\">
-    <td style=\"border-left:4px solid $stripe;padding:10px 8px;font-size:13px;font-weight:600;color:#222\">$db</td>
-    <td style=\"padding:10px 8px;font-size:12px;color:#555\">Database</td>
-    <td style=\"padding:10px 8px;font-size:12px;color:#555\">${R_SRC[$db]}</td>
-    <td style=\"padding:10px 8px;font-size:12px;color:#555\">${R_SEL[$db]:-—}</td>
-    <td style=\"padding:10px 8px;font-size:12px;color:#555\">${R_DUMP[$db]:-—}</td>
-    <td style=\"padding:10px 8px\"><table cellpadding=\"0\" cellspacing=\"0\"><tr>$bar</tr></table></td>
-    <td style=\"padding:10px 8px;font-size:12px;color:#333\">$st</td>
-    <td style=\"padding:10px 8px;font-size:12px;color:#333;text-align:center\">${R_ERR[$db]:-0}</td>
-    <td style=\"padding:10px 8px;font-size:12px\">$dl</td>
-  </tr>"
-done
-
-# ---- all restore points (full list, newest first) ----
-nfiles=0; totbytes=0; allrows=""
+# ---- restore points per database ----
+declare -A RP_ROWS RP_N RP_BYTES
+nfiles=0; totbytes=0
+for db in "${DBS[@]}"; do RP_ROWS[$db]=""; RP_N[$db]=0; RP_BYTES[$db]=0; done
 for f in $(ls -t "$DIR"/*.dump 2>/dev/null); do
   bn=$(basename "$f"); db=${bn%%-*}; sz=$(stat -c %s "$f"); d=$(stat -c %Y "$f")
-  nfiles=$((nfiles+1)); totbytes=$((totbytes+sz))
+  [ -z "${RP_N[$db]+x}" ] && continue
+  nfiles=$((nfiles+1)); totbytes=$((totbytes+sz)); RP_N[$db]=$((RP_N[$db]+1)); RP_BYTES[$db]=$((RP_BYTES[$db]+sz))
   dt=$(date -u -d "@$d" +"%Y-%m-%d %H:%M")
-  allrows+="<tr style=\"border-bottom:1px solid #f1f1f1\"><td style=\"padding:7px 8px;font-size:12px;font-weight:600;color:#222\">$db</td><td style=\"padding:7px 8px;font-size:12px;color:#555\">$dt UTC</td><td style=\"padding:7px 8px;font-size:12px;color:#555\">$(human "$sz")</td><td style=\"padding:7px 8px;font-size:12px;color:#2f9e5f\">OK</td><td style=\"padding:7px 8px;font-size:12px\"><a href=\"$DL_BASE/$bn\" style=\"color:#2563eb;text-decoration:none;font-weight:600\">&#x2B07; Download</a></td></tr>"
+  RP_ROWS[$db]+="<tr style=\"border-bottom:1px solid #f1f1f1\"><td style=\"padding:6px 8px;font-size:12px;color:#555\">$dt UTC</td><td style=\"padding:6px 8px;font-size:12px;color:#555\">$(human "$sz")</td><td style=\"padding:6px 8px;font-size:12px;color:#2f9e5f\">OK</td><td style=\"padding:6px 8px;font-size:12px\"><a href=\"$DL_BASE/$bn\" style=\"color:#2563eb;text-decoration:none;font-weight:600\">&#x2B07; Download</a></td></tr>"
 done
 tot_h=$(human "$totbytes")
+
+# ---- one module card per app (HouseBudget / PharmaStock, clearly distinct) ----
+declare -A MOD_NAME MOD_COLOR MOD_ICON
+MOD_NAME[housebudget]="HouseBudget"; MOD_COLOR[housebudget]="#5B5BF0"; MOD_ICON[housebudget]="&#x1F3E0;"
+MOD_NAME[pharmastock]="PharmaStock"; MOD_COLOR[pharmastock]="#12b886"; MOD_ICON[pharmastock]="&#x1F4E6;"
+modules=""
+for db in "${DBS[@]}"; do
+  nm="${MOD_NAME[$db]:-$db}"; col="${MOD_COLOR[$db]:-#555}"; ic="${MOD_ICON[$db]:-}"
+  st="${R_STATUS[$db]}"; badge="#2f9e5f"; [ "$st" != "Completed" ] && badge="#e5473f"
+  age="${R_AGE[$db]:-?}"; bar="${R_BAR[$db]:-}"
+  modules+="<div style=\"border:1px solid #e8e8ee;border-radius:8px;overflow:hidden;margin:0 0 20px\">
+    <div style=\"background:$col;padding:11px 16px\">
+      <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>
+        <td style=\"font-size:16px;font-weight:700;color:#ffffff\">$ic&nbsp; $nm</td>
+        <td style=\"text-align:right\"><span style=\"font-size:12px;font-weight:700;color:#ffffff;background:$badge;padding:3px 12px;border-radius:12px\">$st</span></td>
+      </tr></table>
+    </div>
+    <div style=\"padding:14px 16px\">
+      <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:12px;color:#555\"><tr>
+        <td style=\"padding:2px 0\">Dernière sauvegarde : <b style=\"color:#222\">il y a ${age} h</b></td>
+        <td style=\"padding:2px 0\">Taille base : <b style=\"color:#222\">${R_SEL[$db]:-—}</b></td>
+        <td style=\"padding:2px 0\">Taille dump : <b style=\"color:#222\">${R_DUMP[$db]:-—}</b></td>
+        <td style=\"padding:2px 0\">Erreurs : <b style=\"color:#222\">${R_ERR[$db]:-0}</b></td>
+      </tr></table>
+      <div style=\"margin:10px 0 4px;font-size:11px;color:#888\">14 derniers jours</div>
+      <table cellpadding=\"0\" cellspacing=\"0\"><tr>$bar</tr></table>
+      <div style=\"margin:16px 0 6px;font-size:11px;font-weight:700;color:#888;text-transform:uppercase\">Points de restauration (${RP_N[$db]} dumps &middot; $(human "${RP_BYTES[$db]}"))</div>
+      <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #eee;border-radius:6px;overflow:hidden\">
+        <tr style=\"background:#fafbfc;border-bottom:2px solid #eee\">
+          <th style=\"text-align:left;padding:7px 8px;font-size:11px;color:#888;text-transform:uppercase\">Date (UTC)</th>
+          <th style=\"text-align:left;padding:7px 8px;font-size:11px;color:#888;text-transform:uppercase\">Taille</th>
+          <th style=\"text-align:left;padding:7px 8px;font-size:11px;color:#888;text-transform:uppercase\">Statut</th>
+          <th style=\"text-align:left;padding:7px 8px;font-size:11px;color:#888;text-transform:uppercase\">Téléchargement</th>
+        </tr>
+        ${RP_ROWS[$db]}
+      </table>
+    </div>
+  </div>"
+done
 
 # ---- assemble HTML ----
 html=$(cat <<HTML
@@ -106,33 +128,9 @@ html=$(cat <<HTML
     <table cellpadding="0" cellspacing="0" style="width:100%">$rows_status</table>
     <div style="font-size:12px;font-weight:700;letter-spacing:.5px;color:#888;margin:26px 0 8px">LAST SUCCESSFUL BACKUP TIME</div>
     <table cellpadding="0" cellspacing="0" style="width:100%">$rows_time</table>
-    <div style="font-size:12px;font-weight:700;letter-spacing:.5px;color:#888;margin:28px 0 8px">BASES DE DONNÉES (1-$total sur $total)</div>
-    <table cellpadding="0" cellspacing="0" style="width:100%;border:1px solid #eee;border-radius:6px;overflow:hidden">
-      <tr style="background:#fafbfc;border-bottom:2px solid #eee">
-        <th style="text-align:left;padding:8px;font-size:11px;color:#888;text-transform:uppercase">Base</th>
-        <th style="text-align:left;padding:8px;font-size:11px;color:#888;text-transform:uppercase">Type</th>
-        <th style="text-align:left;padding:8px;font-size:11px;color:#888;text-transform:uppercase">Source</th>
-        <th style="text-align:left;padding:8px;font-size:11px;color:#888;text-transform:uppercase">Taille (base)</th>
-        <th style="text-align:left;padding:8px;font-size:11px;color:#888;text-transform:uppercase">Taille (dump)</th>
-        <th style="text-align:left;padding:8px;font-size:11px;color:#888;text-transform:uppercase">14 derniers jours</th>
-        <th style="text-align:left;padding:8px;font-size:11px;color:#888;text-transform:uppercase">Statut</th>
-        <th style="text-align:center;padding:8px;font-size:11px;color:#888;text-transform:uppercase">Erreurs</th>
-        <th style="text-align:left;padding:8px;font-size:11px;color:#888;text-transform:uppercase">Téléchargement</th>
-      </tr>
-      $devrows
-    </table>
-    <div style="font-size:12px;font-weight:700;letter-spacing:.5px;color:#888;margin:28px 0 8px">TOUS LES POINTS DE RESTAURATION ($nfiles dumps · $tot_h)</div>
-    <table cellpadding="0" cellspacing="0" style="width:100%;border:1px solid #eee;border-radius:6px;overflow:hidden">
-      <tr style="background:#fafbfc;border-bottom:2px solid #eee">
-        <th style="text-align:left;padding:8px;font-size:11px;color:#888;text-transform:uppercase">Base</th>
-        <th style="text-align:left;padding:8px;font-size:11px;color:#888;text-transform:uppercase">Date (UTC)</th>
-        <th style="text-align:left;padding:8px;font-size:11px;color:#888;text-transform:uppercase">Taille</th>
-        <th style="text-align:left;padding:8px;font-size:11px;color:#888;text-transform:uppercase">Statut</th>
-        <th style="text-align:left;padding:8px;font-size:11px;color:#888;text-transform:uppercase">Téléchargement</th>
-      </tr>
-      $allrows
-    </table>
-    <div style="font-size:11px;color:#9aa0a6;margin-top:18px">Dumps quotidiens PostgreSQL (format custom <code>-Fc</code>, validés via <code>pg_restore -l</code>), rétention 14 jours, serveur 116.203.144.105. Lien de téléchargement protégé par identifiants. Généré par /root/bin/backup-report.sh.</div>
+    <div style="font-size:12px;font-weight:700;letter-spacing:.5px;color:#888;margin:28px 0 12px">DÉTAIL PAR MODULE ($nfiles dumps &middot; $tot_h)</div>
+    $modules
+    <div style="font-size:11px;color:#9aa0a6;margin-top:18px">Dumps quotidiens PostgreSQL (format custom <code>-Fc</code>, validés via <code>pg_restore -l</code>), rétention 14 jours, serveur 116.203.144.105. Lien de téléchargement direct (chemin secret, sans mot de passe). Généré par /root/bin/backup-report.sh.</div>
   </div>
 </div>
 </body></html>
