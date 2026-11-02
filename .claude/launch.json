@@ -96,6 +96,18 @@
         "--strictPort"
       ],
       "port": 5178
+    },
+    {
+      "name": "mfspace-site",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "C:/Dev/mfspace-site/site",
+        "--port",
+        "5180",
+        "--strictPort"
+      ],
+      "port": 5180
     }
   ]
 }
