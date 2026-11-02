@@ -1,0 +1,18 @@
+# Daily backup report (see README "Backups"). Copied on the server as
+# deploy/docker-compose.override.yml, which `docker compose` merges into the
+# live docker-compose.yml automatically, so the live file isn't edited.
+# The api only READS the backups: both mounts are read-only.
+services:
+  api:
+    environment:
+      BACKUP_REPORT_TO: "infos@mfspace.lu"
+      SERVER_BACKUP_DIR: "/backups/server"
+      HB_BACKUP_DIR: "/backups/hb-exports"
+    volumes:
+      - /root/backups:/backups/server:ro
+      - hb_backups:/backups/hb-exports:ro
+
+volumes:
+  hb_backups:
+    external: true
+    name: housebudget_hb_backups

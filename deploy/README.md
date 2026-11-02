@@ -99,7 +99,9 @@ Migrations re-run automatically on API start.
   apps) to `BACKUP_REPORT_TO` every day at `BACKUP_REPORT_HOUR_UTC` (default 05:00),
   linking to `https://stock.mfspace.lu/superadmin/backups` where the files are
   downloaded (login required, audited). It only *reads* the backups, so mount
-  them read-only into `api`:
+  them read-only into `api`. On the server this is done without touching the
+  live `docker-compose.yml`: copy `deploy/backup-report.override.yml` to
+  `deploy/docker-compose.override.yml` (compose merges it automatically). Content:
   ```yaml
   api:
     environment:
