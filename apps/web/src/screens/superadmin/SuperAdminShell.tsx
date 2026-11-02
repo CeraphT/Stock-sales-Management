@@ -20,6 +20,7 @@ const NAV: { to: string; label: string; icon: string; end?: boolean }[] = [
   { to: "/superadmin/support", label: "Support", icon: "🆘" },
   { to: "/superadmin/audit", label: "Audit log", icon: "📜" },
   { to: "/superadmin/admins", label: "Administrators", icon: "🛡️" },
+  { to: "/superadmin/settings", label: "Settings", icon: "⚙️" },
 ];
 
 export function SuperAdminShell() {

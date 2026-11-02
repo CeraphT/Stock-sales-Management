@@ -50,6 +50,10 @@ public record SuperAdminUserRow(
 
 public record SetActiveRequest(bool Active);
 
+// ── Platform settings (cross-tenant operational config) ─────────────────────
+public record BackupRecipientResponse(string Email);
+public record UpdateBackupRecipientRequest(string Email);
+
 public record AuditLogRow(
     Guid Id, Guid? ActorUserId, string ActorName, string Action,
     string? TargetType, Guid? TargetId, Guid? CompanyId, string? Ip, string? Detail, DateTime CreatedAt);
@@ -338,6 +342,42 @@ public static class SuperAdminEndpoints
             user.Active = request.Active;
             await db.SaveChangesAsync();
             return Results.Ok(new SuperAdminAccountResponse(user.Id, user.Name, user.Phone, user.Email, user.Active));
+        });
+
+        // ── Platform settings ───────────────────────────────────────────────
+        // The recipient of the daily backup-status e-mail. Stored as a single
+        // key/value row so the server-side cron script (/root/bin/backup-report.sh)
+        // can read it straight from Postgres, with infos@mfspace.lu as the
+        // fallback when unset. Empty on purpose means "use the fallback".
+        const string backupRecipientKey = "backup.report.recipient";
+        const string backupRecipientFallback = "infos@mfspace.lu";
+
+        group.MapGet("/settings/backup-recipient", async (PharmaStockDbContext db) =>
+        {
+            var setting = await db.PlatformSettings.FirstOrDefaultAsync(s => s.Key == backupRecipientKey);
+            var email = string.IsNullOrWhiteSpace(setting?.Value) ? backupRecipientFallback : setting!.Value;
+            return Results.Ok(new BackupRecipientResponse(email));
+        });
+
+        group.MapPut("/settings/backup-recipient", async (UpdateBackupRecipientRequest request, PharmaStockDbContext db) =>
+        {
+            var email = request.Email?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(email) || !email.Contains('@') || email.Contains(' '))
+                return Results.BadRequest(new { message = "Adresse e-mail invalide." });
+
+            var setting = await db.PlatformSettings.FirstOrDefaultAsync(s => s.Key == backupRecipientKey);
+            if (setting is null)
+            {
+                setting = new PlatformSetting { Key = backupRecipientKey, Value = email };
+                db.PlatformSettings.Add(setting);
+            }
+            else
+            {
+                setting.Value = email;
+                setting.UpdatedAt = DateTime.UtcNow;
+            }
+            await db.SaveChangesAsync();
+            return Results.Ok(new BackupRecipientResponse(email));
         });
 
         // One-time-only bootstrap for the very first SuperAdmin account — there's

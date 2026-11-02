@@ -11,10 +11,15 @@ DBS=(housebudget pharmastock)
 DL_TOKEN=$(cat /root/secrets/dl-token 2>/dev/null)
 DL_BASE="https://guide.mfspace.lu/dl-${DL_TOKEN}"
 FROM=infos@mfspace.lu
-TO=infos@mfspace.lu
 now=$(date +%s)
 nowfmt=$(date -u +"%Y-%m-%d %H:%M UTC")
 PGU=$(grep '^POSTGRES_USER=' /root/apps/stockflow/deploy/.env 2>/dev/null | cut -d= -f2-)
+# Recipient is configurable from the StockFlow super-admin console (Settings →
+# Daily backup report), stored in pharmastock."PlatformSettings" under the key
+# 'backup.report.recipient'. Falls back to infos@mfspace.lu when unset/empty.
+TO=$(docker exec deploy-db-1 psql -U "$PGU" -d pharmastock -tAc \
+  "select \"Value\" from \"PlatformSettings\" where \"Key\"='backup.report.recipient'" 2>/dev/null | tr -d '[:space:]')
+TO=${TO:-infos@mfspace.lu}
 
 human() { b=${1:-0}; awk -v b="$b" 'BEGIN{ s="B KB MB GB TB"; split(s,a," "); i=1; while(b>=1024 && i<5){b/=1024;i++} printf (b>=10||i==1)?"%.0f %s":"%.1f %s", b, a[i] }'; }
 dbsize() { docker exec deploy-db-1 psql -U "$PGU" -d "$1" -tAc "select pg_database_size('$1')" 2>/dev/null | tr -d '[:space:]'; }

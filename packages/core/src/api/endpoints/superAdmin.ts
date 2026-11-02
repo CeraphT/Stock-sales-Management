@@ -1,6 +1,7 @@
 import { api } from "../client";
 import type {
   AuditLogRow,
+  BackupRecipient,
   CreateSuperAdminRequest,
   ImpersonateResponse,
   SuperAdminAccount,
@@ -53,4 +54,11 @@ export const superAdminApi = {
     api.post<unknown>(`/api/superadmin/users/${id}/active`, { active }),
 
   listAudit: (take = 200) => api.get<AuditLogRow[]>("/api/superadmin/audit", { take: String(take) }),
+
+  // ── Platform settings ─────────────────────────────────────────────────
+  /** Recipient of the daily backup-status e-mail (falls back to infos@mfspace.lu). */
+  getBackupRecipient: () => api.get<BackupRecipient>("/api/superadmin/settings/backup-recipient"),
+
+  setBackupRecipient: (email: string) =>
+    api.put<BackupRecipient>("/api/superadmin/settings/backup-recipient", { email }),
 };

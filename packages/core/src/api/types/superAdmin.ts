@@ -106,6 +106,13 @@ export interface SuperAdminUserRow {
   lastActiveAt: string | null;
 }
 
+/** The recipient address of the daily backup-status e-mail (platform setting
+ * `backup.report.recipient`). The API returns the fallback (infos@mfspace.lu)
+ * when none has been set, so this is always a usable address. */
+export interface BackupRecipient {
+  email: string;
+}
+
 export interface AuditLogRow {
   id: string;
   actorUserId: string | null;

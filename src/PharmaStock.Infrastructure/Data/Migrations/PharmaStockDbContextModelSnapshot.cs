@@ -703,6 +703,33 @@ namespace PharmaStock.Infrastructure.Data.Migrations
                     b.ToTable("PaymentSplits");
                 });
 
+            modelBuilder.Entity("PharmaStock.Domain.Models.PlatformSetting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("PlatformSettings");
+                });
+
             modelBuilder.Entity("PharmaStock.Domain.Models.Product", b =>
                 {
                     b.Property<Guid>("Id")

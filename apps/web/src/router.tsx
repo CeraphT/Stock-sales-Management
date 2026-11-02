@@ -57,6 +57,7 @@ import { Shell } from "@/screens/Shell";
 import { Login } from "@/screens/auth/Login";
 import { MyShops } from "@/screens/MyShops";
 import { SuperAdminAdmins } from "@/screens/superadmin/Admins";
+import { SuperAdminSettings } from "@/screens/superadmin/Settings";
 import { SuperAdminAudit } from "@/screens/superadmin/Audit";
 import { SuperAdminSupport } from "@/screens/superadmin/Support";
 import { SuperAdminCompanies } from "@/screens/superadmin/Companies";
@@ -157,6 +158,7 @@ export const router = createBrowserRouter([
           { path: "/superadmin/support", element: <SuperAdminSupport /> },
           { path: "/superadmin/audit", element: <SuperAdminAudit /> },
           { path: "/superadmin/admins", element: <SuperAdminAdmins /> },
+          { path: "/superadmin/settings", element: <SuperAdminSettings /> },
         ],
       },
     ],
