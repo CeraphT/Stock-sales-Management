@@ -24,6 +24,7 @@ import { purchaseOrderStatusTone } from '@/lib/purchaseOrderStatusTone';
 import { sharePurchaseOrder, viewOrPrintPurchaseOrder } from '@/lib/reports/purchaseOrderActions';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { appLocale } from '@/lib/i18n/locale';
 
 export default function PurchaseOrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -147,7 +148,7 @@ export default function PurchaseOrderDetailScreen() {
             <View className="flex-1 pr-2">
               <Text className="text-base font-bold text-text-primary">{order.supplierName}</Text>
               <Text className="mt-0.5 text-xs text-text-secondary">{order.locationName}</Text>
-              <Text className="text-xs text-text-secondary">{new Date(order.createdAt).toLocaleString()}</Text>
+              <Text className="text-xs text-text-secondary">{new Date(order.createdAt).toLocaleString(appLocale())}</Text>
             </View>
             <View className={`flex-row items-center gap-1.5 rounded-full px-2.5 py-1 ${tone.badgeClass}`}>
               <Ionicons name={tone.icon} size={13} color={tone.iconColor} />

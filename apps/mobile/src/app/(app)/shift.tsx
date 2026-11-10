@@ -20,6 +20,7 @@ import { useThemeColors } from '@/lib/theme/colors';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { showAlert } from '@/lib/ui/alertStore';
 import { toast } from '@/lib/ui/toastStore';
+import { appLocale } from '@/lib/i18n/locale';
 
 function methodTotal(shift: ShiftDetailResponse, method: PaymentMethod): number {
   return shift.paymentBreakdown.find((b) => b.method === method)?.total ?? 0;
@@ -160,7 +161,7 @@ export default function ShiftScreen() {
                     <Text className="text-lg font-bold text-text-primary">Register open</Text>
                   </View>
                   <Text className="mt-0.5 text-xs text-text-secondary">
-                    {locationName ?? shift.locationName} · opened {new Date(shift.openedAt).toLocaleString()} by {shift.openedByName}
+                    {locationName ?? shift.locationName} · opened {new Date(shift.openedAt).toLocaleString(appLocale())} by {shift.openedByName}
                   </Text>
                 </View>
                 <View className="items-end">
@@ -300,7 +301,7 @@ export default function ShiftScreen() {
                 </View>
                 {dailyRows.map((r) => (
                   <View key={r.date} className="flex-row items-center border-b border-border/60 px-4 py-2.5">
-                    <Text className="flex-1 text-sm text-text-primary">{new Date(`${r.date}T00:00:00`).toLocaleDateString()}</Text>
+                    <Text className="flex-1 text-sm text-text-primary">{new Date(`${r.date}T00:00:00`).toLocaleDateString(appLocale())}</Text>
                     <Text className="w-24 text-right text-sm text-text-primary">{formatCurrency(r.cash, currency)}</Text>
                     <Text className="w-24 text-right text-sm text-text-primary">{formatCurrency(r.mobile, currency)}</Text>
                     <Text className="w-24 text-right text-sm font-semibold text-text-primary">{formatCurrency(r.total, currency)}</Text>
@@ -327,7 +328,7 @@ export default function ShiftScreen() {
                 return (
                   <View key={h.id} className="border-b border-border/60 px-4 py-3">
                     <View className="flex-row items-center justify-between">
-                      <Text className="text-sm font-semibold text-text-primary">{new Date(h.openedAt).toLocaleDateString()}</Text>
+                      <Text className="text-sm font-semibold text-text-primary">{new Date(h.openedAt).toLocaleDateString(appLocale())}</Text>
                       <Text className="text-sm font-bold text-text-primary">{formatCurrency(h.totalSales, currency)}</Text>
                     </View>
                     <Text className="mt-0.5 text-xs text-text-secondary">by {h.openedByName}</Text>

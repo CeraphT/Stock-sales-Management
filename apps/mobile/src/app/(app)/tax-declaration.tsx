@@ -16,6 +16,7 @@ import { formatCurrency, paymentMethodLabel } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { shareColoredReport } from '@/lib/reports/taxPdf';
 import { toast } from '@/lib/ui/toastStore';
+import { appLocale } from '@/lib/i18n/locale';
 
 const PERIOD_LABEL = ['month', 'quarter', 'year'];
 
@@ -65,7 +66,7 @@ export default function TaxDeclarationScreen() {
         title: 'Sales journal',
         meta: [{ label: 'Sales', value: String(rows.length) }, { label: 'VAT collected', value: fmt(tVat) }],
         columns: [{ header: 'When' }, { header: 'Ref' }, { header: 'Customer' }, { header: 'Payment' }, { header: 'Base', align: 'right' }, { header: 'VAT', align: 'right' }, { header: 'Total', align: 'right' }],
-        rows: rows.map((r) => [new Date(r.timestamp).toLocaleDateString(), r.id.slice(0, 8).toUpperCase(), r.customerName ?? 'Walk-in', paymentMethodLabel(r.paymentMethod), fmt(r.ht), fmt(r.vat), fmt(r.ttc)]),
+        rows: rows.map((r) => [new Date(r.timestamp).toLocaleDateString(appLocale()), r.id.slice(0, 8).toUpperCase(), r.customerName ?? 'Walk-in', paymentMethodLabel(r.paymentMethod), fmt(r.ht), fmt(r.vat), fmt(r.ttc)]),
         totals: ['Total', null, null, null, fmt(tHt), fmt(tVat), fmt(tTtc)],
       });
     });
@@ -82,7 +83,7 @@ export default function TaxDeclarationScreen() {
         title: 'Purchases journal',
         meta: [{ label: 'Receipts', value: String(rows.length) }, { label: 'VAT deductible', value: fmt(tVat) }],
         columns: [{ header: 'When' }, { header: 'Product' }, { header: 'Batch' }, { header: 'Supplier' }, { header: 'Base', align: 'right' }, { header: 'VAT', align: 'right' }, { header: 'Total', align: 'right' }],
-        rows: rows.map((r) => [new Date(r.timestamp).toLocaleDateString(), r.productName, r.batchNumber, r.supplierName ?? '-', fmt(r.ht), fmt(r.vat), fmt(r.ttc)]),
+        rows: rows.map((r) => [new Date(r.timestamp).toLocaleDateString(appLocale()), r.productName, r.batchNumber, r.supplierName ?? '-', fmt(r.ht), fmt(r.vat), fmt(r.ttc)]),
         totals: ['Total', null, null, null, fmt(tHt), fmt(tVat), fmt(tTtc)],
       });
     });
@@ -96,7 +97,7 @@ export default function TaxDeclarationScreen() {
         title: 'Cash book',
         meta: [{ label: 'Shifts', value: String(rows.length) }],
         columns: [{ header: 'Opened' }, { header: 'Cashier' }, { header: 'Opening', align: 'right' }, { header: 'Cash sales', align: 'right' }, { header: 'Expected', align: 'right' }, { header: 'Counted', align: 'right' }, { header: 'Diff', align: 'right' }],
-        rows: rows.map((r) => [new Date(r.openedAt).toLocaleDateString(), r.cashierName, fmt(r.openingCash), fmt(r.cashSales), r.expectedCash != null ? fmt(r.expectedCash) : '-', r.closingCash != null ? fmt(r.closingCash) : '-', r.discrepancy != null ? fmt(r.discrepancy) : '-']),
+        rows: rows.map((r) => [new Date(r.openedAt).toLocaleDateString(appLocale()), r.cashierName, fmt(r.openingCash), fmt(r.cashSales), r.expectedCash != null ? fmt(r.expectedCash) : '-', r.closingCash != null ? fmt(r.closingCash) : '-', r.discrepancy != null ? fmt(r.discrepancy) : '-']),
       });
     });
 

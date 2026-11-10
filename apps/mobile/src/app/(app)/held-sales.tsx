@@ -16,6 +16,7 @@ import { localSalesService } from '@/lib/local/salesService';
 import { useThemeColors } from '@/lib/theme/colors';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { showAlert } from '@/lib/ui/alertStore';
+import { appLocale } from '@/lib/i18n/locale';
 
 export default function HeldSalesScreen() {
   const companyId = useAuthStore((s) => s.companyId);
@@ -155,7 +156,7 @@ export default function HeldSalesScreen() {
                 {item.itemCount} items · {formatCurrency(item.total, currency)}
               </Text>
               <Text className="mt-1 text-xs text-text-secondary">
-                {new Date(item.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                {new Date(item.timestamp).toLocaleString(appLocale(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 {item.cashierName ? ` · ${item.cashierName}` : ''}
               </Text>
             </View>

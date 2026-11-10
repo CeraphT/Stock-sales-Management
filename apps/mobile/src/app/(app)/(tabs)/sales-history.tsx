@@ -18,6 +18,17 @@ import { localSalesService } from '@/lib/local/salesService';
 import { shareList } from '@/lib/reports/listActions';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { appLocale } from '@/lib/i18n/locale';
+import { PaymentMethod } from '@stockflow/core/api/enums';
+
+// Translated payment labels; methods without a key (split) keep the core label.
+const PAY_KEYS: Partial<Record<PaymentMethod, 'pay.cash' | 'pay.mobileMoney' | 'pay.credit' | 'pay.storeCredit' | 'pay.giftCard'>> = {
+  [PaymentMethod.Cash]: 'pay.cash',
+  [PaymentMethod.MobileMoney]: 'pay.mobileMoney',
+  [PaymentMethod.Credit]: 'pay.credit',
+  [PaymentMethod.StoreCredit]: 'pay.storeCredit',
+  [PaymentMethod.GiftCard]: 'pay.giftCard',
+};
 
 function isoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -169,7 +180,7 @@ export default function SalesHistoryScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <View className="w-12">{fetchingServer && !loading ? <ActivityIndicator size="small" color={colors.primary} /> : null}</View>
-          <Text className="text-lg font-bold text-text-primary">Sales history</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.salesHistory')}</Text>
           <Pressable onPress={onShare} hitSlop={8} disabled={items.length === 0} accessibilityLabel="Share PDF">
             <Ionicons name="share-outline" size={20} color={items.length > 0 ? colors.primary : colors.iconMuted} />
           </Pressable>
@@ -178,15 +189,15 @@ export default function SalesHistoryScreen() {
         {/* From/To date range — matches desktop's DateRange filter. */}
         <View className="mt-3 flex-row items-end gap-2">
           <View className="flex-1">
-            <DateField label="From" value={from || null} onChange={setFrom} placeholder="Any" />
+            <DateField label={t('history.from')} value={from || null} onChange={setFrom} placeholder={t('history.any')} />
           </View>
           <View className="flex-1">
             <DateField
-              label="To"
+              label={t('history.to')}
               value={to || null}
               onChange={setTo}
               minimumDate={from ? new Date(`${from}T00:00:00`) : undefined}
-              placeholder="Any"
+              placeholder={t('history.any')}
             />
           </View>
           {from || to ? (
@@ -197,7 +208,7 @@ export default function SalesHistoryScreen() {
               }}
               hitSlop={8}
               className="pb-3">
-              <Text className="text-xs font-semibold text-text-secondary">Clear</Text>
+              <Text className="text-xs font-semibold text-text-secondary">{t('history.clear')}</Text>
             </Pressable>
           ) : null}
         </View>
@@ -230,11 +241,11 @@ export default function SalesHistoryScreen() {
               onPress={() => router.push({ pathname: '/sale-detail', params: { id: item.id } })}
               className="rounded-2xl bg-surface p-4 shadow-sm shadow-black/5 active:opacity-80">
               <View className="flex-row items-center justify-between">
-                <Text className="text-sm font-semibold text-text-primary">{paymentMethodLabel(item.paymentMethod)}</Text>
+                <Text className="text-sm font-semibold text-text-primary">{PAY_KEYS[item.paymentMethod] ? t(PAY_KEYS[item.paymentMethod]!) : paymentMethodLabel(item.paymentMethod)}</Text>
                 <Text className="text-base font-bold text-primary">{formatCurrency(item.total, currency)}</Text>
               </View>
               <Text className="mt-1 text-xs text-text-secondary">
-                {item.cashierName} · {item.itemCount} items · {new Date(item.timestamp).toLocaleString()}
+                {item.cashierName} · {t('sales.itemsCount').replace('{n}', String(item.itemCount))} · {new Date(item.timestamp).toLocaleString(appLocale())}
               </Text>
               {pendingIds.has(item.id) ? (
                 <View className="mt-2 flex-row items-center gap-1 self-start rounded-full px-2 py-0.5" style={{ backgroundColor: colors.accentAmber + '22' }}>
@@ -247,7 +258,7 @@ export default function SalesHistoryScreen() {
           ListFooterComponent={loadingMore ? <ActivityIndicator className="py-4" /> : null}
           ListEmptyComponent={
             <View className="items-center py-16">
-              <Text className="text-sm text-text-secondary">No sales in this period.</Text>
+              <Text className="text-sm text-text-secondary">{t('history.empty')}</Text>
             </View>
           }
         />

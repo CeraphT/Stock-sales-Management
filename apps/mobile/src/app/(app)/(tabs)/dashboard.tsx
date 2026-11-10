@@ -23,6 +23,7 @@ import { useThemeColors } from '@/lib/theme/colors';
 import { useIsTablet } from '@/lib/useIsTablet';
 import { toast } from '@/lib/ui/toastStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { appLocale } from '@/lib/i18n/locale';
 
 type Summary = Awaited<ReturnType<typeof dashboardApi.summary>>;
 
@@ -201,7 +202,7 @@ export default function DashboardScreen() {
               <View key={op.id} className="flex-row items-start gap-2 rounded-xl bg-surface p-3">
                 <View className="flex-1">
                   <Text className="text-xs font-bold text-text-primary">
-                    {t(('outbox.kind.' + op.kind) as Parameters<typeof t>[0])} · {new Date(op.createdAt).toLocaleString()}
+                    {t(('outbox.kind.' + op.kind) as Parameters<typeof t>[0])} · {new Date(op.createdAt).toLocaleString(appLocale())}
                   </Text>
                   {op.error ? <Text className="mt-0.5 text-xs text-text-secondary">{op.error}</Text> : null}
                 </View>
@@ -349,7 +350,7 @@ export default function DashboardScreen() {
                         {s.items.map((it) => `${it.quantity}× ${it.name}`).join(', ')}
                       </Text>
                       <Text className="text-xs text-text-secondary">
-                        {new Date(s.timestamp).toLocaleString(undefined, { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}
+                        {new Date(s.timestamp).toLocaleString(appLocale(), { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}
                       </Text>
                     </View>
                     <Text className="text-sm font-semibold text-text-primary">{formatCurrency(s.total, currency)}</Text>

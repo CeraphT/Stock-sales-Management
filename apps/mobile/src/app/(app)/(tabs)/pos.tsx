@@ -241,7 +241,7 @@ export default function PosScreen() {
                 <Text className="text-xs text-text-secondary">
                   {item.line.measureUnit
                     ? `${formatCurrency(item.line.unitPrice * (item.line.unitsPerMeasure || 1), currency)}/${item.line.measureUnit}`
-                    : `${item.line.packagingLevelName ?? 'Unit'} · ${formatCurrency(item.line.unitPrice, currency)} each`}
+                    : t('pos.linePrice').replace('{unit}', item.line.packagingLevelName ?? t('pos.unit')).replace('{price}', formatCurrency(item.line.unitPrice, currency))}
                 </Text>
               </View>
               {item.line.measureUnit ? (

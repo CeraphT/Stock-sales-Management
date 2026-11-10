@@ -31,8 +31,14 @@ export function purchaseOrderStatusLabel(status: PurchaseOrderStatus): string {
  * number + suffix works for any value and matches how amounts were shown
  * throughout the MAUI client and the seed data ("8,600 XAF"). */
 export function formatCurrency(amount: number, currency: string): string {
-  return `${amount.toLocaleString()} ${currency}`;
+  // CFA francs (and other currencies without cents) never show decimals: a
+  // computed amount such as VAT (28 850 x 19.25 / 119.25 = 4 657.128) would
+  // otherwise print as "4,657.128 XAF". Others keep at most 2 decimals.
+  const digits = ZERO_DECIMAL_CURRENCIES.has(currency.trim().toUpperCase()) ? 0 : 2;
+  return `${amount.toLocaleString(undefined, { maximumFractionDigits: digits })} ${currency}`;
 }
+
+const ZERO_DECIMAL_CURRENCIES = new Set(["XAF", "XOF", "FCFA", "CFA", "GNF", "RWF", "BIF", "KMF", "DJF", "UGX", "JPY", "KRW", "VND", "CLP", "PYG"]);
 
 /** `1234` -> "1.2k", `2500000` -> "2.5M" — for tight spaces (chart bar
  * labels) where a full grouped number + currency suffix won't fit. */

@@ -19,6 +19,7 @@ import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
 import { toast } from '@/lib/ui/toastStore';
 import { supportApi } from '@stockflow/core/api/endpoints/support';
+import { appLocale } from '@/lib/i18n/locale';
 import {
   SupportTicketCategory,
   SupportTicketStatus,
@@ -260,7 +261,7 @@ export default function SupportScreen() {
                     </View>
                   </View>
                   <Text className="text-xs text-text-secondary">
-                    {new Date(tk.createdAt).toLocaleString()}
+                    {new Date(tk.createdAt).toLocaleString(appLocale())}
                     {tk.attachmentCount > 0 ? ` · ${tk.attachmentCount} 🖼` : ''}
                   </Text>
                   {tk.adminReply ? (

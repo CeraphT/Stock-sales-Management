@@ -21,6 +21,7 @@ import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { showAlert } from '@/lib/ui/alertStore';
+import { appLocale } from '@/lib/i18n/locale';
 
 export default function CustomerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -167,7 +168,7 @@ export default function CustomerDetailScreen() {
                 onPress={() => router.push({ pathname: '/sale-detail', params: { id: entry.saleId } })}
                 className="border-b border-border/60 px-4 py-3 active:opacity-70">
                 <View className="flex-row items-center justify-between">
-                  <Text className="text-xs text-text-secondary">{new Date(entry.timestamp).toLocaleString()}</Text>
+                  <Text className="text-xs text-text-secondary">{new Date(entry.timestamp).toLocaleString(appLocale())}</Text>
                   {entry.status === SaleStatus.Refunded ? (
                     <Text className="text-[10px] font-bold text-error">REFUNDED</Text>
                   ) : null}

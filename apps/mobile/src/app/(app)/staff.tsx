@@ -21,6 +21,7 @@ import { membershipsApi } from '@stockflow/core/api/endpoints/memberships';
 import type { JoinRequestResponse } from '@stockflow/core/api/types/membership';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { appLocale } from '@/lib/i18n/locale';
 
 const ROLES: { value: UserRole; label: TranslationKey }[] = [
   { value: UserRole.Cashier, label: 'staff.roleCashier' },
@@ -286,7 +287,7 @@ export default function StaffScreen() {
                       <View>
                         <Text className="text-sm font-semibold text-text-primary">{r.name}</Text>
                         <Text className="text-xs text-text-secondary">
-                          {r.phone} · {new Date(r.createdAt).toLocaleDateString()}
+                          {r.phone} · {new Date(r.createdAt).toLocaleDateString(appLocale())}
                         </Text>
                       </View>
                       <View className="flex-row gap-2">

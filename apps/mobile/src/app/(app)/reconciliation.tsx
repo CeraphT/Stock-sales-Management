@@ -15,6 +15,7 @@ import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { useThemeColors } from '@/lib/theme/colors';
 import { toast } from '@/lib/ui/toastStore';
+import { appLocale } from '@/lib/i18n/locale';
 
 export default function ReconciliationScreen() {
   const companyId = useAuthStore((s) => s.companyId);
@@ -114,7 +115,7 @@ export default function ReconciliationScreen() {
                 <View key={s.id} className="flex-row items-start justify-between gap-3 border-b border-border/60 px-4 py-3">
                   <View className="flex-1">
                     <Text className="text-sm font-semibold text-text-primary">
-                      {s.locationName} · {new Date(s.openedAt).toLocaleString()}
+                      {s.locationName} · {new Date(s.openedAt).toLocaleString(appLocale())}
                     </Text>
                     <Text className="mt-0.5 text-xs text-text-secondary">
                       Opened by {s.openedByName} · Float {formatCurrency(s.openingCashAmount, currency)}

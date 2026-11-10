@@ -91,6 +91,25 @@ function applyDefaults(cells: string[], i: number): void {
   if (!(Number(cells[8]) > 0)) cells[8] = "1";
 }
 
+/** SheetJS options for reading a filled template: decode CSV files as UTF-8
+ * (otherwise "Paracétamol" arrives as "ParacÃ©tamol"), keep CSV cells as typed
+ * text (otherwise "2028-03-31" is reparsed as a date and comes back "3/31/28"),
+ * and give real Excel date cells as Date objects. Use with
+ * `sheet_to_json(sheet, { header: 1, raw: true, defval: "" })`. */
+export const SHEET_READ_OPTIONS = { type: "array", codepage: 65001, raw: true, cellDates: true } as const;
+
+/** One raw cell as text; Excel date cells become YYYY-MM-DD, the format the
+ * paste-parser expects. SheetJS builds them at local midnight, so read the local
+ * date (with a 12 h margin against small time-zone offsets). */
+function cellText(v: unknown): string {
+  if (v instanceof Date) {
+    const d = new Date(v.getTime() + 12 * 3600 * 1000);
+    const p = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  }
+  return String(v ?? "").trim();
+}
+
 /** Turn a filled template's 2D cell rows (SheetJS sheet_to_json header:1) into
  * tab-separated data lines for the paste-parser. Skips the title / instruction
  * / header / guide rows and fills blanks with defaults; rows with no product
@@ -99,7 +118,7 @@ export function parseFilledSheetRows(rows: unknown[][]): string {
   const lines: string[] = [];
   let dataIndex = 0;
   for (const raw of rows) {
-    const cells = Array.from({ length: COLS }, (_, i) => String((raw as unknown[])[i] ?? "").trim());
+    const cells = Array.from({ length: COLS }, (_, i) => cellText((raw as unknown[])[i]));
     const name = cells[0];
     if (!name) continue; // blank row
     if (BOILERPLATE.test(name)) continue; // title / header / instruction

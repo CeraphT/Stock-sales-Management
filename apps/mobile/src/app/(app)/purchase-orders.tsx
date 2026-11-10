@@ -24,6 +24,7 @@ import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { purchaseOrderStatusTone } from '@/lib/purchaseOrderStatusTone';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { appLocale } from '@/lib/i18n/locale';
 
 const STATUS_FILTERS: (PurchaseOrderStatus | 'all')[] = [
   'all',
@@ -215,7 +216,7 @@ export default function PurchaseOrdersScreen() {
                 <Text className="mt-1 text-xs text-text-secondary">
                   {item.locationName} · {item.lineCount} line{item.lineCount === 1 ? '' : 's'} · {formatCurrency(item.totalCost, currency)}
                 </Text>
-                <Text className="mt-0.5 text-xs text-text-secondary">{new Date(item.createdAt).toLocaleString()}</Text>
+                <Text className="mt-0.5 text-xs text-text-secondary">{new Date(item.createdAt).toLocaleString(appLocale())}</Text>
               </Pressable>
             );
           }}

@@ -1,4 +1,4 @@
-import { parseFilledSheetRows } from "@stockflow/core/bulk/bulkTemplate";
+import { parseFilledSheetRows, SHEET_READ_OPTIONS } from "@stockflow/core/bulk/bulkTemplate";
 
 /**
  * Reads a filled bulk-stock template (.xlsx / .xls / .csv) and returns
@@ -12,9 +12,9 @@ export async function readFilledTemplate(file: File): Promise<string> {
   // startup bundle — it's only needed the moment someone uploads a file.
   const XLSX = await import("xlsx");
   const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: "array" });
+  const wb = XLSX.read(buf, SHEET_READ_OPTIONS);
   const sheet = wb.Sheets[wb.SheetNames[0]];
   if (!sheet) throw new Error("empty");
-  const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: false, defval: "" });
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true, defval: "" });
   return parseFilledSheetRows(rows);
 }

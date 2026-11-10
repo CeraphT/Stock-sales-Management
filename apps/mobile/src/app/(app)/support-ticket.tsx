@@ -14,6 +14,7 @@ import { showAlert } from '@/lib/ui/alertStore';
 import { toast } from '@/lib/ui/toastStore';
 import { supportApi } from '@stockflow/core/api/endpoints/support';
 import { SupportTicketStatus, type MySupportTicketDetail } from '@stockflow/core/api/types/support';
+import { appLocale } from '@/lib/i18n/locale';
 
 /** One of the user's support requests: the conversation with support, and a
  * reply box. Opening it marks support's reply as read (clears the pop-up /
@@ -90,7 +91,7 @@ export default function SupportTicketScreen() {
                 {t(statusKey(ticket.status))}
               </Text>
             </View>
-            <Text className="text-xs text-text-secondary">{new Date(ticket.createdAt).toLocaleString()}</Text>
+            <Text className="text-xs text-text-secondary">{new Date(ticket.createdAt).toLocaleString(appLocale())}</Text>
           </View>
 
           {/* The original request, then the conversation. */}
@@ -107,7 +108,7 @@ export default function SupportTicketScreen() {
               style={{ maxWidth: '88%' }}>
               {m.fromSupport ? <Text className="mb-0.5 text-[11px] font-bold text-primary">{t('support.reply')}</Text> : null}
               <Text className="text-sm text-text-primary">{m.body}</Text>
-              <Text className="mt-1 text-[10px] text-text-secondary">{new Date(m.createdAt).toLocaleString()}</Text>
+              <Text className="mt-1 text-[10px] text-text-secondary">{new Date(m.createdAt).toLocaleString(appLocale())}</Text>
             </View>
           ))}
 

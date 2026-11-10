@@ -16,6 +16,7 @@ import { useCompanyInfo } from '@/lib/hooks/useCompanyInfo';
 import { shareList, viewOrPrintList } from '@/lib/reports/listActions';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { appLocale } from '@/lib/i18n/locale';
 
 type DateRange = 'today' | 'week' | 'month' | 'all';
 
@@ -152,7 +153,7 @@ export default function HeldSalesHistoryScreen() {
                 <Text className="text-base font-bold text-primary">{formatCurrency(item.total, currency)}</Text>
               </View>
               <Text className="mt-1 text-xs text-text-secondary">
-                {item.cashierName} · {item.itemCount} items · {new Date(item.timestamp).toLocaleString()}
+                {item.cashierName} · {item.itemCount} items · {new Date(item.timestamp).toLocaleString(appLocale())}
               </Text>
               <Pressable
                 onPress={() => onDiscard(item)}

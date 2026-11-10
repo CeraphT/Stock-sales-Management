@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useThemeColors } from '@/lib/theme/colors';
 
 /** A "Filters" pill that expands/collapses its children — keeps a list
@@ -12,6 +13,7 @@ import { useThemeColors } from '@/lib/theme/colors';
 export function FiltersDisclosure({ active, children }: { active: boolean; children: ReactNode }) {
   const [expanded, setExpanded] = useState(false);
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   return (
     <View className="mt-3">
@@ -19,7 +21,7 @@ export function FiltersDisclosure({ active, children }: { active: boolean; child
         onPress={() => setExpanded((v) => !v)}
         className={`flex-row items-center gap-1.5 self-start rounded-full border px-3 py-1.5 ${active ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
         <Ionicons name="options-outline" size={14} color={active ? colors.primary : colors.textSecondary} />
-        <Text className={`text-xs font-semibold ${active ? 'text-primary' : 'text-text-secondary'}`}>Filters</Text>
+        <Text className={`text-xs font-semibold ${active ? 'text-primary' : 'text-text-secondary'}`}>{t('filters.label')}</Text>
         {active ? <View className="h-1.5 w-1.5 rounded-full bg-primary" /> : null}
         <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={12} color={active ? colors.primary : colors.textSecondary} />
       </Pressable>

@@ -12,7 +12,7 @@ import { Button } from '@/components/Button';
 import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { useAuthStore } from '@/lib/auth/store';
-import { buildTemplateWorkbook, parseFilledSheetRows } from '@stockflow/core/bulk/bulkTemplate';
+import { buildTemplateWorkbook, parseFilledSheetRows, SHEET_READ_OPTIONS } from '@stockflow/core/bulk/bulkTemplate';
 import { parseRawText, resolveRows, type ParsedBulkStockRow } from '@/lib/bulk/parseBulkStock';
 import { db } from '@/lib/db/client';
 import { categories, products } from '@/lib/db/schema';
@@ -93,13 +93,13 @@ export default function BulkStockRegisterScreen() {
       const { File } = await import('expo-file-system');
       const buf = await new File(res.assets[0].uri).arrayBuffer();
       const XLSX = await import('xlsx');
-      const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+      const wb = XLSX.read(new Uint8Array(buf), SHEET_READ_OPTIONS);
       const sheet = wb.Sheets[wb.SheetNames[0]];
       if (!sheet) {
         showAlert('Empty file', 'That file has no sheets.');
         return;
       }
-      const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: false, defval: '' });
+      const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true, defval: '' });
       const text = parseFilledSheetRows(rows);
       if (!text.trim()) {
         showAlert('No rows found', 'No product rows found in that file.');

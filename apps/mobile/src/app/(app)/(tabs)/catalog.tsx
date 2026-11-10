@@ -221,14 +221,14 @@ export default function CatalogScreen() {
             <Ionicons name="add" size={24} color="#FFFFFF" />
           </Pressable>
         </View>
-        <Text className="text-2xl font-bold text-text-primary">Products</Text>
+        <Text className="text-2xl font-bold text-text-primary">{t('catalog.title')}</Text>
         <Text className="text-sm text-text-secondary">
-          {syncing ? 'Syncing…' : syncError ? syncError : `${filteredProducts.length} of ${productRows?.length ?? 0} products`}
+          {syncing ? t('catalog.syncing') : syncError ? syncError : t('catalog.count').replace('{n}', String(filteredProducts.length)).replace('{total}', String(productRows?.length ?? 0))}
         </Text>
 
         <TextInput
           className="mt-3 rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
-          placeholder="Search name or barcode"
+          placeholder={t('catalog.search')}
           placeholderTextColor={colors.placeholder}
           value={query}
           onChangeText={setQuery}
@@ -238,8 +238,8 @@ export default function CatalogScreen() {
         <FiltersDisclosure active={stockFilter !== 'all' || categoryId !== null}>
           <View className="flex-row flex-wrap gap-2">
             <FilterChip label="All stock" active={stockFilter === 'all'} onPress={() => setStockFilter('all')} />
-            <FilterChip label="Low stock" active={stockFilter === 'low'} onPress={() => setStockFilter('low')} />
-            <FilterChip label="Out of stock" active={stockFilter === 'out'} onPress={() => setStockFilter('out')} />
+            <FilterChip label={t('stockHealth.lowStock')} active={stockFilter === 'low'} onPress={() => setStockFilter('low')} />
+            <FilterChip label={t('stockHealth.outOfStock')} active={stockFilter === 'out'} onPress={() => setStockFilter('out')} />
             <FilterChip label="Expiring" active={stockFilter === 'expiring'} onPress={() => setStockFilter('expiring')} />
           </View>
 
@@ -291,12 +291,12 @@ export default function CatalogScreen() {
                     ) : null}
                   </View>
                   {categoryName ? <Text className="mt-0.5 text-xs text-text-secondary">{categoryName}</Text> : null}
-                  {item.barcode ? <Text className="text-xs text-text-secondary">Barcode: {item.barcode}</Text> : null}
-                  <Text className={`text-xs ${expTone}`}>Expiry: {expiry ? expiry.slice(0, 10) : '-'}</Text>
+                  {item.barcode ? <Text className="text-xs text-text-secondary">{t('catalog.barcode').replace('{v}', item.barcode)}</Text> : null}
+                  <Text className={`text-xs ${expTone}`}>{t('catalog.expiry').replace('{v}', expiry ? expiry.slice(0, 10) : '-')}</Text>
                 </View>
                 <View className="items-end">
                   <Text className="text-base font-bold text-primary">{formatCurrency(item.salePrice, currency)}</Text>
-                  <Text className="mt-0.5 text-xs text-text-secondary">{stock} in stock</Text>
+                  <Text className="mt-0.5 text-xs text-text-secondary">{t('catalog.inStockCount').replace('{n}', String(stock))}</Text>
                 </View>
               </View>
 
@@ -330,7 +330,7 @@ export default function CatalogScreen() {
           ) : (
             <View className="items-center py-16">
               <Text className="text-sm text-text-secondary">
-                {hasActiveFilters ? 'No products match these filters.' : 'No products yet.'}
+                {hasActiveFilters ? t('catalog.noMatch') : t('catalog.empty')}
               </Text>
             </View>
           )

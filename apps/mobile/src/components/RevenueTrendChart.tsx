@@ -4,12 +4,17 @@ import Svg, { Circle, Defs, LinearGradient, Path, Stop, Text as SvgText } from '
 import { formatCompactNumber } from '@/lib/format';
 import type { DailyRevenuePoint } from '@/lib/local/dashboardQueries';
 import { useThemeColors } from '@/lib/theme/colors';
+import { appLocale } from '@/lib/i18n/locale';
 
 const H = 150;
 const PAD_TOP = 22; // headroom for the value labels above each point
 const PAD_BOTTOM = 8;
 const STEP = 46; // horizontal spacing per day
-const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+// Short weekday in the app's language ("Lun.", "Mar." in French; "Mon", "Tue" in English).
+const weekdayLabel = (d: Date) => {
+  const s = d.toLocaleDateString(appLocale(), { weekday: 'short', timeZone: 'UTC' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
 
 /** Smooth line + gradient-area revenue chart — the React Native equivalent of
  * desktop's AreaChart (apps/desktop/src/components/AreaChart.tsx): a cubic line
@@ -51,8 +56,8 @@ export function RevenueTrendChart({ points }: { points: DailyRevenuePoint[] }) {
   const axisLabel = (p: DailyRevenuePoint) => {
     const d = new Date(`${p.date}T00:00:00Z`);
     return dense
-      ? d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' })
-      : WEEKDAY_LABELS[d.getUTCDay()];
+      ? d.toLocaleDateString(appLocale(), { day: 'numeric', month: 'short', timeZone: 'UTC' })
+      : weekdayLabel(d);
   };
 
   return (

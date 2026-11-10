@@ -28,13 +28,13 @@ import { useThemeColors } from '@/lib/theme/colors';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { showAlert } from '@/lib/ui/alertStore';
 
-const METHODS: { method: PaymentMethod; label: string }[] = [
-  { method: PaymentMethod.Cash, label: 'Cash' },
-  { method: PaymentMethod.MobileMoney, label: 'Mobile money' },
-  { method: PaymentMethod.Credit, label: 'Credit (pay later)' },
-  { method: PaymentMethod.StoreCredit, label: 'Store credit (prepaid)' },
-  { method: PaymentMethod.GiftCard, label: 'Gift card' },
-];
+const METHODS = [
+  { method: PaymentMethod.Cash, label: 'pay.cash' },
+  { method: PaymentMethod.MobileMoney, label: 'pay.mobileMoney' },
+  { method: PaymentMethod.Credit, label: 'pay.credit' },
+  { method: PaymentMethod.StoreCredit, label: 'pay.storeCredit' },
+  { method: PaymentMethod.GiftCard, label: 'pay.giftCard' },
+] as const;
 
 export default function CheckoutScreen() {
   const companyId = useAuthStore((s) => s.companyId);
@@ -197,8 +197,9 @@ export default function CheckoutScreen() {
       };
 
       showAlert(
-        'Sale complete',
-        `Total: ${formatCurrency(result.total, currency)}${result.changeDue ? `\nChange due: ${formatCurrency(result.changeDue, currency)}` : ''}`,
+        t('checkout.saleComplete'),
+        t('checkout.totalLine').replace('{total}', formatCurrency(result.total, currency)) +
+          (result.changeDue ? '\n' + t('checkout.changeLine').replace('{change}', formatCurrency(result.changeDue, currency)) : ''),
         [
           { text: t('common.done'), onPress: () => router.dismissTo('/dashboard') },
           {
@@ -279,7 +280,7 @@ export default function CheckoutScreen() {
                 key={m.method}
                 onPress={() => setMethod(m.method)}
                 className={`rounded-xl border px-4 py-2.5 ${method === m.method ? 'border-primary bg-primary/10' : 'border-border bg-surface'}`}>
-                <Text className={`text-sm font-semibold ${method === m.method ? 'text-primary' : 'text-text-primary'}`}>{m.label}</Text>
+                <Text className={`text-sm font-semibold ${method === m.method ? 'text-primary' : 'text-text-primary'}`}>{t(m.label)}</Text>
               </Pressable>
             ))}
           </View>

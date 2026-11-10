@@ -17,6 +17,7 @@ import { reportsApi } from '@/lib/api/endpoints/reports';
 import type { SalesSummaryResponse, TopProductItem } from '@/lib/api/types/reports';
 import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency } from '@/lib/format';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useCompanyInfo } from '@/lib/hooks/useCompanyInfo';
 import { shareReport, viewOrPrintReport } from '@/lib/reports/reportActions';
 import type { ReportData } from '@/lib/reports/reportTypes';
@@ -36,6 +37,7 @@ export default function ReportsScreen() {
   useFeatureGuard(useAuthStore((s) => s.user?.restrictReportsAndFullSales));
   const { name: companyName, currency } = useCompanyInfo();
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [from, setFrom] = useState(isoDaysAgo(30));
   const [to, setTo] = useState(isoDaysAgo(0));
@@ -93,7 +95,7 @@ export default function ReportsScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Reports</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('reports.title')}</Text>
           <Pressable onPress={onShare} hitSlop={8} disabled={!summary} accessibilityLabel="Share report PDF">
             <Ionicons name="share-outline" size={20} color={summary ? colors.primary : colors.iconMuted} />
           </Pressable>
@@ -104,13 +106,13 @@ export default function ReportsScreen() {
       <KeyboardAwareScroll contentContainerClassName="gap-4 p-5">
         <View className="flex-row gap-3">
           <View className="flex-1">
-            <DateField label="From" value={from} onChange={setFrom} />
+            <DateField label={t('history.from')} value={from} onChange={setFrom} />
           </View>
           <View className="flex-1">
-            <DateField label="To" value={to} onChange={setTo} />
+            <DateField label={t('history.to')} value={to} onChange={setTo} />
           </View>
         </View>
-        <Button title="Run report" onPress={run} />
+        <Button title={t('reports.run')} onPress={run} />
 
         {loading ? (
           <ActivityIndicator className="mt-4" />
@@ -118,28 +120,28 @@ export default function ReportsScreen() {
           <>
             <View className="flex-row flex-wrap gap-3">
               <View className="w-[47%] rounded-2xl bg-surface p-4">
-                <Text className="text-xs uppercase tracking-wide text-text-secondary">Revenue</Text>
+                <Text className="text-xs uppercase tracking-wide text-text-secondary">{t('reports.revenue')}</Text>
                 <Text className="mt-1 text-base font-bold text-text-primary">{formatCurrency(summary.totalRevenue, currency)}</Text>
               </View>
               <View className="w-[47%] rounded-2xl bg-surface p-4">
-                <Text className="text-xs uppercase tracking-wide text-text-secondary">Cost</Text>
+                <Text className="text-xs uppercase tracking-wide text-text-secondary">{t('reports.cost')}</Text>
                 <Text className="mt-1 text-base font-bold text-text-primary">{formatCurrency(summary.totalCost, currency)}</Text>
               </View>
               <View className="w-[47%] rounded-2xl bg-surface p-4">
-                <Text className="text-xs uppercase tracking-wide text-text-secondary">Profit</Text>
+                <Text className="text-xs uppercase tracking-wide text-text-secondary">{t('reports.profit')}</Text>
                 <Text className="mt-1 text-base font-bold text-success">{formatCurrency(summary.totalProfit, currency)}</Text>
               </View>
               <View className="w-[47%] rounded-2xl bg-surface p-4">
-                <Text className="text-xs uppercase tracking-wide text-text-secondary">VAT / TVA</Text>
+                <Text className="text-xs uppercase tracking-wide text-text-secondary">{t('reports.vat')}</Text>
                 <Text className="mt-1 text-base font-bold text-accent-amber">{formatCurrency(summary.totalTax, currency)}</Text>
-                <Text className="text-[10px] text-text-secondary">included in revenue</Text>
+                <Text className="text-[10px] text-text-secondary">{t('reports.vatIncluded')}</Text>
               </View>
               <View className="w-[47%] rounded-2xl bg-surface p-4">
-                <Text className="text-xs uppercase tracking-wide text-text-secondary">Sales</Text>
+                <Text className="text-xs uppercase tracking-wide text-text-secondary">{t('reports.sales')}</Text>
                 <Text className="mt-1 text-base font-bold text-text-primary">{summary.totalSalesCount}</Text>
               </View>
               <View className="w-[47%] rounded-2xl bg-surface p-4">
-                <Text className="text-xs uppercase tracking-wide text-text-secondary">Average sale</Text>
+                <Text className="text-xs uppercase tracking-wide text-text-secondary">{t('reports.average')}</Text>
                 <Text className="mt-1 text-base font-bold text-text-primary">{formatCurrency(summary.averageSaleValue, currency)}</Text>
               </View>
             </View>
@@ -148,12 +150,12 @@ export default function ReportsScreen() {
               onPress={onView}
               className="flex-row items-center justify-center gap-2 rounded-xl bg-primary py-3.5 active:opacity-90">
               <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
-              <Text className="text-sm font-semibold text-white">View / print report (PDF)</Text>
+              <Text className="text-sm font-semibold text-white">{t('reports.viewPdf')}</Text>
             </Pressable>
 
-            <Text className="text-sm font-bold text-text-primary">Daily breakdown</Text>
+            <Text className="text-sm font-bold text-text-primary">{t('reports.daily')}</Text>
             {summary.dailyBreakdown.length === 0 ? (
-              <Text className="text-sm text-text-secondary">No sales in this period.</Text>
+              <Text className="text-sm text-text-secondary">{t('history.empty')}</Text>
             ) : (
               <View className="overflow-hidden rounded-xl bg-surface">
                 {summary.dailyBreakdown.map((d, i) => (
@@ -161,22 +163,22 @@ export default function ReportsScreen() {
                     key={d.date}
                     className={`flex-row items-center justify-between px-3.5 py-2.5 ${i === summary.dailyBreakdown.length - 1 ? '' : 'border-b border-border/60'}`}>
                     <Text className="text-sm text-text-primary">{d.date.slice(0, 10)}</Text>
-                    <Text className="text-xs text-text-secondary">{d.salesCount} sales</Text>
+                    <Text className="text-xs text-text-secondary">{t('reports.salesCount').replace('{n}', String(d.salesCount))}</Text>
                     <Text className="w-28 text-right text-sm font-semibold text-text-primary">{formatCurrency(d.revenue, currency)}</Text>
                   </View>
                 ))}
               </View>
             )}
 
-            <Text className="text-sm font-bold text-text-primary">Top products</Text>
+            <Text className="text-sm font-bold text-text-primary">{t('reports.top')}</Text>
             {topProducts.length === 0 ? (
-              <Text className="text-sm text-text-secondary">No sales in this period.</Text>
+              <Text className="text-sm text-text-secondary">{t('history.empty')}</Text>
             ) : (
               topProducts.map((p) => (
                 <View key={p.productId} className="flex-row items-center justify-between rounded-xl bg-surface p-3.5">
                   <View className="flex-1 pr-2">
                     <Text className="text-sm font-semibold text-text-primary">{p.productName}</Text>
-                    <Text className="text-xs text-text-secondary">{p.quantitySold} sold</Text>
+                    <Text className="text-xs text-text-secondary">{t('reports.sold').replace('{n}', String(p.quantitySold))}</Text>
                   </View>
                   <Text className="text-sm font-bold text-primary">{formatCurrency(p.revenue, currency)}</Text>
                 </View>

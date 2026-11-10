@@ -247,7 +247,7 @@ export default function MoreScreen() {
             <TextInput
               className="flex-1 text-sm"
               style={{ color: colors.textPrimary }}
-              placeholder="Search menu"
+              placeholder={t('more.search')}
               placeholderTextColor={colors.placeholder}
               value={query}
               onChangeText={setQuery}
@@ -308,7 +308,7 @@ export default function MoreScreen() {
               {quick.length > 0 ? (
                 <>
                   <Text className="mb-2 ml-0.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: colors.textSecondary }}>
-                    Quick access
+                    {t('more.quickAccess')}
                   </Text>
                   <View className="mb-5 flex-row flex-wrap justify-between">
                     {quick.map(({ item, tint }) => {

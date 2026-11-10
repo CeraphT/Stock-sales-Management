@@ -21,6 +21,7 @@ import { shareReceipt, viewOrPrintReceipt } from '@/lib/receipt/receiptActions';
 import type { ReceiptData } from '@/lib/receipt/receiptTypes';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { appLocale } from '@/lib/i18n/locale';
 
 export default function SaleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -185,7 +186,7 @@ export default function SaleDetailScreen() {
           <Text className="mt-2 text-xs text-text-secondary">
             {sale.cashierName} · {sale.locationName}
           </Text>
-          <Text className="text-xs text-text-secondary">{new Date(sale.timestamp).toLocaleString()}</Text>
+          <Text className="text-xs text-text-secondary">{new Date(sale.timestamp).toLocaleString(appLocale())}</Text>
           <Text className="mt-1 text-xs font-semibold text-primary">{paymentMethodLabel(sale.paymentMethod)}</Text>
           {sale.amountTendered != null ? (
             <Text className="text-xs text-text-secondary">
