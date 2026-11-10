@@ -1,4 +1,5 @@
 import { formatCurrency } from "../format";
+import { docLocale, dt } from "../i18n/docText";
 
 function escapeHtml(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -25,14 +26,14 @@ export interface SalesListData {
  * language as generateReportHtml.ts so every PDF the app produces reads as
  * one consistent family of documents. */
 export function generateListHtml(data: SalesListData): string {
-  const generatedAt = new Date().toLocaleString();
+  const generatedAt = new Date().toLocaleString(docLocale(), { dateStyle: "medium", timeStyle: "short" });
   const total = data.rows.reduce((sum, r) => sum + r.total, 0);
 
   const rows = data.rows
     .map(
       (r) => `
         <tr>
-          <td>${new Date(r.timestamp).toLocaleString()}</td>
+          <td>${new Date(r.timestamp).toLocaleString(docLocale(), { dateStyle: "short", timeStyle: "short" })}</td>
           <td>${escapeHtml(r.primaryLabel)}</td>
           <td>${escapeHtml(r.secondaryLabel)}</td>
           <td class="num">${formatCurrency(r.total, data.currency)}</td>
@@ -69,20 +70,20 @@ export function generateListHtml(data: SalesListData): string {
       <p class="company-name">${escapeHtml(data.companyName)}</p>
       <p class="report-title">${escapeHtml(data.title)} · ${escapeHtml(data.subtitle)}</p>
     </div>
-    <div class="meta">Generated <strong>${generatedAt}</strong></div>
+    <div class="meta">${dt("doc.generated")} <strong>${generatedAt}</strong></div>
   </div>
 
   ${
     rows
       ? `<table>
-    <thead><tr><th>Date</th><th>${escapeHtml(data.primaryColumnLabel)}</th><th>${escapeHtml(data.secondaryColumnLabel)}</th><th class="num">Total</th></tr></thead>
+    <thead><tr><th>${dt("doc.date")}</th><th>${escapeHtml(data.primaryColumnLabel)}</th><th>${escapeHtml(data.secondaryColumnLabel)}</th><th class="num">${dt("doc.total")}</th></tr></thead>
     <tbody>${rows}</tbody>
-    <tfoot><tr><td colspan="3">Total (${data.rows.length})</td><td class="num">${formatCurrency(total, data.currency)}</td></tr></tfoot>
+    <tfoot><tr><td colspan="3">${dt("doc.totalCount", { n: data.rows.length })}</td><td class="num">${formatCurrency(total, data.currency)}</td></tr></tfoot>
   </table>`
-      : `<p class="empty">Nothing to show for this period.</p>`
+      : `<p class="empty">${dt("doc.nothing")}</p>`
   }
 
-  <div class="footer">Powered by StockFlow</div>
+  <div class="footer">${dt("doc.poweredBy")}</div>
 </body>
 </html>`;
 }

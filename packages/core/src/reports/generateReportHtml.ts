@@ -1,4 +1,5 @@
 import { formatCurrency } from "../format";
+import { docLocale, dt } from "../i18n/docText";
 
 import type { ReportData } from "./reportTypes";
 
@@ -7,11 +8,11 @@ function escapeHtml(value: string): string {
 }
 
 function formatDate(iso: string): string {
-  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  return new Date(`${iso}T00:00:00`).toLocaleDateString(docLocale(), { year: "numeric", month: "short", day: "numeric" });
 }
 
 function formatDayLabel(iso: string): string {
-  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  return new Date(`${iso}T00:00:00`).toLocaleDateString(docLocale(), { weekday: "short", month: "short", day: "numeric" });
 }
 
 /** Renders the sales report (summary + daily breakdown + top products) as
@@ -21,7 +22,7 @@ function formatDayLabel(iso: string): string {
 export function generateReportHtml(data: ReportData): string {
   const { summary, topProducts, currency } = data;
   const margin = summary.totalRevenue > 0 ? (summary.totalProfit / summary.totalRevenue) * 100 : 0;
-  const generatedAt = new Date().toLocaleString();
+  const generatedAt = new Date().toLocaleString(docLocale(), { dateStyle: "medium", timeStyle: "short" });
 
   const dailyRows = [...summary.dailyBreakdown]
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -138,67 +139,67 @@ export function generateReportHtml(data: ReportData): string {
   <div class="header">
     <div>
       <p class="company-name">${escapeHtml(data.companyName)}</p>
-      <p class="report-title">Sales Report · ${formatDate(data.from)} – ${formatDate(data.to)}</p>
+      <p class="report-title">${dt("doc.salesReport")} · ${formatDate(data.from)} – ${formatDate(data.to)}</p>
     </div>
     <div class="meta">
-      Generated <strong>${generatedAt}</strong>
+      ${dt("doc.generated")} <strong>${generatedAt}</strong>
     </div>
   </div>
 
   <div class="summary-grid">
     <div class="summary-card">
-      <p class="summary-label">Total revenue</p>
+      <p class="summary-label">${dt("doc.totalRevenue")}</p>
       <p class="summary-value accent">${formatCurrency(summary.totalRevenue, currency)}</p>
     </div>
     <div class="summary-card">
-      <p class="summary-label">Total cost</p>
+      <p class="summary-label">${dt("doc.totalCost")}</p>
       <p class="summary-value">${formatCurrency(summary.totalCost, currency)}</p>
     </div>
     <div class="summary-card">
-      <p class="summary-label">Total profit</p>
+      <p class="summary-label">${dt("doc.totalProfit")}</p>
       <p class="summary-value accent">${formatCurrency(summary.totalProfit, currency)}</p>
     </div>
     <div class="summary-card">
-      <p class="summary-label">Profit margin</p>
+      <p class="summary-label">${dt("doc.margin")}</p>
       <p class="summary-value">${margin.toFixed(1)}%</p>
     </div>
     <div class="summary-card">
-      <p class="summary-label">Sales count</p>
+      <p class="summary-label">${dt("doc.salesCount")}</p>
       <p class="summary-value">${summary.totalSalesCount}</p>
     </div>
     <div class="summary-card">
-      <p class="summary-label">Average sale</p>
+      <p class="summary-label">${dt("doc.averageSale")}</p>
       <p class="summary-value">${formatCurrency(summary.averageSaleValue, currency)}</p>
     </div>
   </div>
 
   <section>
-    <h2>Daily breakdown</h2>
+    <h2>${dt("doc.daily")}</h2>
     ${
       dailyRows
         ? `<table>
-      <thead><tr><th>Date</th><th class="num">Sales</th><th class="num">Revenue</th></tr></thead>
+      <thead><tr><th>${dt("doc.date")}</th><th class="num">${dt("doc.sales")}</th><th class="num">${dt("doc.revenue")}</th></tr></thead>
       <tbody>${dailyRows}</tbody>
-      <tfoot><tr><td>Total</td><td class="num">${dailyTotalSales}</td><td class="num accent">${formatCurrency(dailyTotalRevenue, currency)}</td></tr></tfoot>
+      <tfoot><tr><td>${dt("doc.total")}</td><td class="num">${dailyTotalSales}</td><td class="num accent">${formatCurrency(dailyTotalRevenue, currency)}</td></tr></tfoot>
     </table>`
-        : `<p class="empty">No sales in this period.</p>`
+        : `<p class="empty">${dt("doc.noSales")}</p>`
     }
   </section>
 
   <section>
-    <h2>Top products</h2>
+    <h2>${dt("doc.topProducts")}</h2>
     ${
       topProductRows
         ? `<table>
-      <thead><tr><th class="num">#</th><th>Product</th><th class="num">Qty sold</th><th class="num">Revenue</th><th class="num">Profit</th></tr></thead>
+      <thead><tr><th class="num">#</th><th>${dt("doc.product")}</th><th class="num">${dt("doc.qtySold")}</th><th class="num">${dt("doc.revenue")}</th><th class="num">${dt("doc.profit")}</th></tr></thead>
       <tbody>${topProductRows}</tbody>
-      <tfoot><tr><td colspan="2">Total (top ${topProducts.length})</td><td class="num">${topProductsTotalQty}</td><td class="num accent">${formatCurrency(topProductsTotalRevenue, currency)}</td><td class="num accent">${formatCurrency(topProductsTotalProfit, currency)}</td></tr></tfoot>
+      <tfoot><tr><td colspan="2">${dt("doc.topTotal", { n: topProducts.length })}</td><td class="num">${topProductsTotalQty}</td><td class="num accent">${formatCurrency(topProductsTotalRevenue, currency)}</td><td class="num accent">${formatCurrency(topProductsTotalProfit, currency)}</td></tr></tfoot>
     </table>`
-        : `<p class="empty">No product sales in this period.</p>`
+        : `<p class="empty">${dt("doc.noProductSales")}</p>`
     }
   </section>
 
-  <div class="footer">Powered by StockFlow</div>
+  <div class="footer">${dt("doc.poweredBy")}</div>
 </body>
 </html>`;
 }

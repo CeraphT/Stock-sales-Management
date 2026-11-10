@@ -1,5 +1,6 @@
 import { PurchaseOrderStatus } from "../api/enums";
-import { formatCurrency, purchaseOrderStatusLabel } from "../format";
+import { formatCurrency, purchaseOrderStatusLabelKey } from "../format";
+import { docLocale, dt } from "../i18n/docText";
 
 import type { PurchaseOrderPdfData } from "./purchaseOrderPdfTypes";
 
@@ -19,8 +20,8 @@ const STATUS_COLOR: Record<PurchaseOrderStatus, string> = {
  * A supplier-facing document, so it always shows both ordered and received
  * quantities per line, whatever the order's current status is. */
 export function generatePurchaseOrderHtml(data: PurchaseOrderPdfData): string {
-  const generatedAt = new Date().toLocaleString();
-  const createdAt = new Date(data.createdAt).toLocaleDateString(undefined, {
+  const generatedAt = new Date().toLocaleString(docLocale(), { dateStyle: "medium", timeStyle: "short" });
+  const createdAt = new Date(data.createdAt).toLocaleDateString(docLocale(), {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -85,40 +86,40 @@ export function generatePurchaseOrderHtml(data: PurchaseOrderPdfData): string {
   <div class="header">
     <div>
       <p class="company-name">${escapeHtml(data.companyName)}</p>
-      <p class="doc-title">Purchase Order · #${data.id.slice(0, 8).toUpperCase()}</p>
-      <span class="status-badge">${purchaseOrderStatusLabel(data.status)}</span>
+      <p class="doc-title">${dt("doc.purchaseOrder")} · #${data.id.slice(0, 8).toUpperCase()}</p>
+      <span class="status-badge">${dt(purchaseOrderStatusLabelKey(data.status))}</span>
     </div>
-    <div class="meta">Generated <strong>${generatedAt}</strong></div>
+    <div class="meta">${dt("doc.generated")} <strong>${generatedAt}</strong></div>
   </div>
 
   <div class="info-grid">
     <div class="info-card">
-      <p class="info-label">Supplier</p>
+      <p class="info-label">${dt("doc.supplier")}</p>
       <p class="info-value">${escapeHtml(data.supplierName)}</p>
     </div>
     <div class="info-card">
-      <p class="info-label">Location</p>
+      <p class="info-label">${dt("doc.location")}</p>
       <p class="info-value">${escapeHtml(data.locationName)}</p>
     </div>
     <div class="info-card">
-      <p class="info-label">Order date</p>
+      <p class="info-label">${dt("doc.orderDate")}</p>
       <p class="info-value">${createdAt}</p>
     </div>
   </div>
 
-  ${data.notes ? `<div class="notes"><strong>Notes:</strong> ${escapeHtml(data.notes)}</div>` : ""}
+  ${data.notes ? `<div class="notes"><strong>${dt("doc.notes")} :</strong> ${escapeHtml(data.notes)}</div>` : ""}
 
   ${
     rows
       ? `<table>
-    <thead><tr><th>Product</th><th class="num">Ordered</th><th class="num">Received</th><th class="num">Unit cost</th><th class="num">Line total</th></tr></thead>
+    <thead><tr><th>${dt("doc.product")}</th><th class="num">${dt("doc.ordered")}</th><th class="num">${dt("doc.received")}</th><th class="num">${dt("doc.unitCost")}</th><th class="num">${dt("doc.lineTotal")}</th></tr></thead>
     <tbody>${rows}</tbody>
-    <tfoot><tr><td>Total (${data.lines.length} line${data.lines.length === 1 ? "" : "s"})</td><td class="num">${totalOrdered}</td><td class="num">${totalReceived}</td><td></td><td class="num">${formatCurrency(total, data.currency)}</td></tr></tfoot>
+    <tfoot><tr><td>${data.lines.length === 1 ? dt("doc.linesTotal1") : dt("doc.linesTotal", { n: data.lines.length })}</td><td class="num">${totalOrdered}</td><td class="num">${totalReceived}</td><td></td><td class="num">${formatCurrency(total, data.currency)}</td></tr></tfoot>
   </table>`
-      : `<p>No lines on this order.</p>`
+      : `<p>${dt("doc.noLines")}</p>`
   }
 
-  <div class="footer">Powered by StockFlow</div>
+  <div class="footer">${dt("doc.poweredBy")}</div>
 </body>
 </html>`;
 }

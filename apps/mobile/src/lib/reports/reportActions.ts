@@ -22,5 +22,5 @@ export async function shareReport(data: ReportData): Promise<void> {
   if (!canShare) {
     throw new Error(tr("common.sharingUnavailable"));
   }
-  await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Sales report" });
+  await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: tr("doc.salesReport") });
 }

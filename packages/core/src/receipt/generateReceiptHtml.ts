@@ -1,5 +1,6 @@
 import { PaymentMethod } from "../api/enums";
-import { formatCurrency, paymentMethodLabel } from "../format";
+import { formatCurrency, paymentMethodLabelKey } from "../format";
+import { docLocale, dt } from "../i18n/docText";
 
 import type { ReceiptData } from "./receiptTypes";
 
@@ -20,7 +21,7 @@ function formatLineQuantity(line: ReceiptData["productLines"][number]): string {
     const count = line.quantityInBaseUnits / line.unitsPerPackagingLevel;
     return `${count} × ${escapeHtml(line.packagingLevelName)}`;
   }
-  return `${line.quantityInBaseUnits} unit${line.quantityInBaseUnits === 1 ? "" : "s"}`;
+  return `${line.quantityInBaseUnits} ${dt(line.quantityInBaseUnits === 1 ? "doc.unit" : "doc.units")}`;
 }
 
 /** Unit price shown on the receipt — per display measure unit for weight/length
@@ -71,14 +72,14 @@ export function generateReceiptHtml(data: ReceiptData): string {
           .map(
             (split) => `
         <div class="payment-row">
-          <span>${paymentMethodLabel(split.method)}</span>
+          <span>${dt(paymentMethodLabelKey(split.method))}</span>
           <span>${formatCurrency(split.amount, data.currency)}</span>
         </div>`,
           )
           .join("")
       : `
         <div class="payment-row">
-          <span>${paymentMethodLabel(data.paymentMethod)}</span>
+          <span>${dt(paymentMethodLabelKey(data.paymentMethod))}</span>
           <span>${formatCurrency(data.total, data.currency)}</span>
         </div>`;
 
@@ -86,11 +87,11 @@ export function generateReceiptHtml(data: ReceiptData): string {
     data.paymentMethod === PaymentMethod.Cash && data.amountTendered != null
       ? `
         <div class="payment-row muted">
-          <span>Tendered</span>
+          <span>${dt("doc.tendered")}</span>
           <span>${formatCurrency(data.amountTendered, data.currency)}</span>
         </div>
         <div class="payment-row muted">
-          <span>Change</span>
+          <span>${dt("doc.change")}</span>
           <span>${formatCurrency(data.changeDue ?? 0, data.currency)}</span>
         </div>`
       : "";
@@ -98,7 +99,7 @@ export function generateReceiptHtml(data: ReceiptData): string {
   const timestamp = new Date(data.timestamp);
 
   return `<!DOCTYPE html>
-<html>
+<html lang="${docLocale().slice(0, 2)}">
 <head>
 <meta charset="utf-8" />
 <style>
@@ -208,20 +209,20 @@ export function generateReceiptHtml(data: ReceiptData): string {
 
     <div class="divider"></div>
 
-    <div class="meta"><span>${data.invoiceNumber ? "Invoice N°" : "Receipt"}</span><span>${
+    <div class="meta"><span>${data.invoiceNumber ? dt("doc.invoiceNo") : dt("doc.receipt")}</span><span>${
       data.invoiceNumber ? String(data.invoiceNumber).padStart(6, "0") : "#" + data.saleId.slice(0, 8).toUpperCase()
     }</span></div>
-    <div class="meta"><span>Date</span><span>${timestamp.toLocaleString()}</span></div>
-    <div class="meta"><span>Cashier</span><span>${escapeHtml(data.cashierName)}</span></div>
-    ${data.customerTaxId ? `<div class="meta"><span>Client NIU</span><span>${escapeHtml(data.customerTaxId)}</span></div>` : ""}
+    <div class="meta"><span>${dt("doc.date")}</span><span>${timestamp.toLocaleString(docLocale(), { dateStyle: "short", timeStyle: "short" })}</span></div>
+    <div class="meta"><span>${dt("doc.cashier")}</span><span>${escapeHtml(data.cashierName)}</span></div>
+    ${data.customerTaxId ? `<div class="meta"><span>${dt("doc.clientNiu")}</span><span>${escapeHtml(data.customerTaxId)}</span></div>` : ""}
 
     <table>
       <thead>
         <tr>
-          <th>Item</th>
-          <th class="item-qty">Qty</th>
-          <th class="item-price">Price</th>
-          <th class="item-total">Total</th>
+          <th>${dt("doc.item")}</th>
+          <th class="item-qty">${dt("doc.qty")}</th>
+          <th class="item-price">${dt("doc.price")}</th>
+          <th class="item-total">${dt("doc.total")}</th>
         </tr>
       </thead>
       <tbody>
@@ -231,12 +232,12 @@ export function generateReceiptHtml(data: ReceiptData): string {
 
     ${
       data.taxTotal && data.taxTotal > 0
-        ? `<div class="meta"><span>Subtotal (excl. VAT)</span><span>${formatCurrency(data.total - data.taxTotal, data.currency)}</span></div>
-    <div class="meta"><span>VAT / TVA</span><span>${formatCurrency(data.taxTotal, data.currency)}</span></div>`
+        ? `<div class="meta"><span>${dt("doc.subtotalExVat")}</span><span>${formatCurrency(data.total - data.taxTotal, data.currency)}</span></div>
+    <div class="meta"><span>${dt("doc.vat")}</span><span>${formatCurrency(data.taxTotal, data.currency)}</span></div>`
         : ""
     }
     <div class="total-row">
-      <span class="total-label">Total</span>
+      <span class="total-label">${dt("doc.total")}</span>
       <span class="total-value">${formatCurrency(data.total, data.currency)}</span>
     </div>
 
@@ -246,8 +247,8 @@ export function generateReceiptHtml(data: ReceiptData): string {
     ${tenderedBlock}
 
     <div class="footer">
-      <p class="thanks">${escapeHtml(data.footer || "Thank you for your business!")}</p>
-      <p>Powered by StockFlow</p>
+      <p class="thanks">${escapeHtml(data.footer || dt("doc.thanks"))}</p>
+      <p>${dt("doc.poweredBy")}</p>
     </div>
   </div>
 </body>

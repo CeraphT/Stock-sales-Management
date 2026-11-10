@@ -1,5 +1,6 @@
 import { PaymentMethod } from "../api/enums";
-import { paymentMethodLabel } from "../format";
+import { paymentMethodLabelKey } from "../format";
+import { dt } from "../i18n/docText";
 import type { ReceiptData, ReceiptLine } from "../receipt/receiptTypes";
 
 import { encodeCp850 } from "./cp850";
@@ -79,7 +80,9 @@ function justified(label: string, amount: string): string {
 }
 
 function formatAmount(amount: number): string {
-  return Math.round(amount).toLocaleString();
+  // Plain spaces as thousands separator: the fr-FR narrow no-break space has no
+  // CP850 code and would print as "?" on the thermal printer.
+  return String(Math.round(amount)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
 function formatQuantityDetail(line: ReceiptLine): string {
@@ -87,7 +90,7 @@ function formatQuantityDetail(line: ReceiptLine): string {
     const count = line.quantityInBaseUnits / line.unitsPerPackagingLevel;
     return `${count} ${line.packagingLevelName} × ${formatAmount(line.unitPrice * line.unitsPerPackagingLevel)}`;
   }
-  return `${line.quantityInBaseUnits} unit${line.quantityInBaseUnits === 1 ? "" : "s"} × ${formatAmount(line.unitPrice)}`;
+  return `${line.quantityInBaseUnits} ${dt(line.quantityInBaseUnits === 1 ? "doc.unit" : "doc.units")} × ${formatAmount(line.unitPrice)}`;
 }
 
 function formatTimestamp(iso: string): string {
@@ -112,7 +115,7 @@ export function buildEscPosReceipt(data: ReceiptData): Uint8Array {
   w.bold(false);
   if (data.locationName) w.line(data.locationName);
   w.line(formatTimestamp(data.timestamp));
-  w.line(`Cashier: ${data.cashierName}`);
+  w.line(`${dt("doc.cashier")} : ${data.cashierName}`);
   w.separator();
 
   w.align(Align.Left);
@@ -127,26 +130,26 @@ export function buildEscPosReceipt(data: ReceiptData): Uint8Array {
   w.separator();
 
   w.bold(true);
-  w.line(justified("TOTAL", `${formatAmount(data.total)} ${data.currency}`));
+  w.line(justified(dt("doc.total").toUpperCase(), `${formatAmount(data.total)} ${data.currency}`));
   w.bold(false);
 
   if (data.paymentSplits.length > 0) {
     for (const split of data.paymentSplits) {
-      w.line(justified(paymentMethodLabel(split.method), formatAmount(split.amount)));
+      w.line(justified(dt(paymentMethodLabelKey(split.method)), formatAmount(split.amount)));
     }
   } else {
-    w.line(paymentMethodLabel(data.paymentMethod));
+    w.line(dt(paymentMethodLabelKey(data.paymentMethod)));
   }
 
   if (data.paymentMethod === PaymentMethod.Cash && data.amountTendered != null) {
-    w.line(justified("Tendered", formatAmount(data.amountTendered)));
-    w.line(justified("Change", formatAmount(data.changeDue ?? 0)));
+    w.line(justified(dt("doc.tendered"), formatAmount(data.amountTendered)));
+    w.line(justified(dt("doc.change"), formatAmount(data.changeDue ?? 0)));
   }
 
   w.separator();
   w.align(Align.Center);
-  w.line("Thank you for your business!");
-  w.line("Powered by StockFlow");
+  w.line(dt("doc.thanks"));
+  w.line(dt("doc.poweredBy"));
   w.feed(4);
   w.raw(GS, 0x56, 1); // GS V 1. Partial cut (ignored by printers with no cutter)
 
@@ -161,13 +164,13 @@ export function buildEscPosTestPage(companyName: string, currency: string): Uint
     saleId: "test",
     timestamp: now,
     companyName,
-    locationName: "Print test",
+    locationName: dt("doc.printTest"),
     cashierName: "-",
     currency,
     paymentMethod: PaymentMethod.Cash,
     productLines: [
       {
-        productName: "Test item",
+        productName: dt("doc.testItem"),
         quantityInBaseUnits: 1,
         packagingLevelName: null,
         unitsPerPackagingLevel: 1,

@@ -25,5 +25,5 @@ export async function shareReceipt(data: ReceiptData): Promise<void> {
   if (!canShare) {
     throw new Error(tr("common.sharingUnavailable"));
   }
-  await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Receipt" });
+  await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: tr("doc.receipt") });
 }
