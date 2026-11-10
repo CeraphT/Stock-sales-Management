@@ -1,3 +1,4 @@
+import { docLocale } from "./i18n/docText";
 import { PaymentMethod, PurchaseOrderStatus } from "./api/enums";
 import type { TranslationKey } from "./i18n/translations";
 
@@ -63,7 +64,7 @@ export function formatCurrency(amount: number, currency: string): string {
   // computed amount such as VAT (28 850 x 19.25 / 119.25 = 4 657.128) would
   // otherwise print as "4,657.128 XAF". Others keep at most 2 decimals.
   const digits = ZERO_DECIMAL_CURRENCIES.has(currency.trim().toUpperCase()) ? 0 : 2;
-  return `${amount.toLocaleString(undefined, { maximumFractionDigits: digits })} ${currency}`;
+  return `${amount.toLocaleString(docLocale(), { maximumFractionDigits: digits })} ${currency}`;
 }
 
 const ZERO_DECIMAL_CURRENCIES = new Set(["XAF", "XOF", "FCFA", "CFA", "GNF", "RWF", "BIF", "KMF", "DJF", "UGX", "JPY", "KRW", "VND", "CLP", "PYG"]);
