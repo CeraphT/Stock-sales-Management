@@ -3,6 +3,7 @@ import * as Sharing from 'expo-sharing';
 
 import { db } from '@/lib/db/client';
 import * as schema from '@/lib/db/schema';
+import { tr } from '@/lib/i18n/translate';
 
 // expo-file-system is imported lazily (inside shareBackup) so this module loads
 // even where the native module isn't present yet — see autoBackup.ts.
@@ -39,7 +40,7 @@ function stamp(): string {
  * tenant-isolation guard runs first, so the file can only contain the
  * signed-in company's data. Purely a read. */
 export async function buildBackup(companyId: string): Promise<{ json: string; rowCount: number }> {
-  if (!companyId) throw new Error('A signed-in company is required to back up data.');
+  if (!companyId) throw new Error(tr('backup.needCompany'));
   await isolateCompany(companyId);
 
   const tables: Record<string, unknown[]> = {};

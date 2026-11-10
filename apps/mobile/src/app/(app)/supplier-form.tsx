@@ -31,7 +31,7 @@ export default function SupplierFormScreen() {
   const onSubmit = async () => {
     if (!companyId) return;
     if (!name.trim()) {
-      showAlert('Missing name', 'Enter a supplier name.');
+      showAlert(t('product.missingName'), t('suppliers.missingNameBody'));
       return;
     }
     setSubmitting(true);
@@ -50,7 +50,7 @@ export default function SupplierFormScreen() {
       }
       router.back();
     } catch (err) {
-      showAlert('Could not save supplier', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('suppliers.saveFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -62,17 +62,17 @@ export default function SupplierFormScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">{isEdit ? 'Edit supplier' : 'Add supplier'}</Text>
+          <Text className="text-lg font-bold text-text-primary">{isEdit ? t('suppliers.edit') : t('suppliers.add')}</Text>
           <View className="w-12" />
         </View>
       </View>
 
       <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
-        <TextField label="Supplier name" value={name} onChangeText={setName} />
-        <TextField label="Contact phone" keyboardType="phone-pad" value={contactPhone} onChangeText={setContactPhone} />
-        <TextField label="Contact email" autoCapitalize="none" keyboardType="email-address" value={contactEmail} onChangeText={setContactEmail} />
+        <TextField label={t('suppliers.name')} value={name} onChangeText={setName} />
+        <TextField label={t('suppliers.phone')} keyboardType="phone-pad" value={contactPhone} onChangeText={setContactPhone} />
+        <TextField label={t('suppliers.emailLabel')} autoCapitalize="none" keyboardType="email-address" value={contactEmail} onChangeText={setContactEmail} />
 
-        <Button title={submitting ? 'Saving…' : 'Save supplier'} loading={submitting} onPress={onSubmit} />
+        <Button title={submitting ? t('common.saving') : t('suppliers.save')} loading={submitting} onPress={onSubmit} />
       </KeyboardAwareScroll>
     </SafeAreaView>
   );

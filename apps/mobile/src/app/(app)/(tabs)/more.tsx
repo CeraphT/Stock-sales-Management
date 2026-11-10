@@ -124,7 +124,7 @@ export default function MoreScreen() {
   const companyLocked = useCompanyLocked();
   const isLocked = (item: MenuLeaf) => companyLocked && isCompanyRoute(item.route);
 
-  const roleLabel = user?.role === UserRole.SuperAdmin ? 'Super admin' : user?.role === UserRole.CompanyAdmin ? 'Admin' : 'Cashier';
+  const roleLabel = t(user?.role === UserRole.SuperAdmin ? 'staff.roleSuperAdmin' : user?.role === UserRole.CompanyAdmin ? 'staff.roleAdmin' : 'staff.roleCashier');
   const initial = (user?.name?.trim()[0] ?? '•').toUpperCase();
 
   const visibleGroups = useMemo(

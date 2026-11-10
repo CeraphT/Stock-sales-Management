@@ -1,7 +1,10 @@
 import { SyncStatus } from '@stockflow/core/api/enums';
 import { and, eq } from 'drizzle-orm';
 
+import type { TranslationKey } from '@stockflow/core/i18n/translations';
+
 import { db } from '@/lib/db/client';
+import { tr } from '@/lib/i18n/translate';
 import * as schema from '@/lib/db/schema';
 
 /** Parsed backup file. `companyId` gates cross-business restore. */
@@ -48,11 +51,11 @@ export function parseBackup(text: string): ParsedBackup {
   try {
     data = JSON.parse(text);
   } catch {
-    throw new Error("This file isn't valid JSON.");
+    throw new Error(tr('backup.notJson'));
   }
   const d = data as Record<string, unknown>;
   if (!d || d.app !== 'PharmaStock' || d.kind !== 'local-backup' || typeof d.tables !== 'object') {
-    throw new Error("This file isn't a PharmaStock backup.");
+    throw new Error(tr('backup.notBackup'));
   }
   return {
     companyId: (d.companyId as string) ?? null,
@@ -152,21 +155,22 @@ export async function countUnsyncedTransactions(companyId: string): Promise<numb
 }
 
 /** Human labels for the recap list. */
-export const TABLE_LABELS: Record<string, string> = {
-  companies: 'Company profile',
-  locations: 'Branches',
-  users: 'Staff',
-  categories: 'Categories',
-  suppliers: 'Suppliers',
-  products: 'Products',
-  productPackagingLevels: 'Product packaging',
-  batches: 'Stock batches',
-  stockMovements: 'Stock movements',
-  customers: 'Customers',
-  loyaltyAccounts: 'Loyalty accounts',
-  giftCards: 'Gift cards',
-  cashRegisterShifts: 'Cash register shifts',
-  sales: 'Sales',
-  saleLines: 'Sale lines',
-  paymentSplits: 'Payments',
+/** Backup table name → translation key for its display label. */
+export const TABLE_LABELS: Record<string, TranslationKey> = {
+  companies: 'backup.table.companies',
+  locations: 'biz.branches',
+  users: 'staff.title',
+  categories: 'kit.categories',
+  suppliers: 'drawer.item.suppliers',
+  products: 'drawer.item.products',
+  productPackagingLevels: 'backup.table.packaging',
+  batches: 'backup.table.batches',
+  stockMovements: 'backup.table.movements',
+  customers: 'drawer.item.customers',
+  loyaltyAccounts: 'backup.table.loyalty',
+  giftCards: 'drawer.item.giftCards',
+  cashRegisterShifts: 'backup.table.shifts',
+  sales: 'reports.sales',
+  saleLines: 'backup.table.saleLines',
+  paymentSplits: 'backup.table.payments',
 };

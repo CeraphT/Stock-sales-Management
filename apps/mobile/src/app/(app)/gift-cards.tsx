@@ -20,6 +20,7 @@ import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { useCompanyInfo } from '@/lib/hooks/useCompanyInfo';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function GiftCardsScreen() {
   const companyId = useAuthStore((s) => s.companyId);
@@ -27,12 +28,13 @@ export default function GiftCardsScreen() {
   const currency = useCompanyCurrency();
   const { name: companyName } = useCompanyInfo();
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   async function onVoucher(card: GiftCardResponse) {
     try {
       await shareGiftCardVoucher({ companyName, code: card.code, value: card.initialValue, currency });
     } catch (err) {
-      showAlert('Could not create voucher', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('giftCards.voucherFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     }
   }
 
@@ -47,7 +49,7 @@ export default function GiftCardsScreen() {
     enabled: !!companyId,
     local: () => localMirrorQueries.listGiftCards(companyId!, appliedSearch || undefined),
     remote: () => giftCardsApi.list(companyId!, appliedSearch || undefined),
-    errorTitle: 'Could not load gift cards',
+    errorTitle: t('giftCards.loadFailed'),
     deps: [companyId, appliedSearch],
   });
   const cards = data ?? [];
@@ -61,7 +63,7 @@ export default function GiftCardsScreen() {
     if (!companyId) return;
     const value = Number(issueValue);
     if (!Number.isFinite(value) || value <= 0) {
-      showAlert('Invalid amount', 'Enter a positive gift card value.');
+      showAlert(t('shift.invalidAmount'), t('giftCards.invalidAmountBody'));
       return;
     }
     setIssuing(true);
@@ -70,7 +72,7 @@ export default function GiftCardsScreen() {
       setIssueValue('');
       await refresh(query);
     } catch (err) {
-      showAlert('Could not issue gift card', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('giftCards.issueFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setIssuing(false);
     }
@@ -82,7 +84,7 @@ export default function GiftCardsScreen() {
       await giftCardsApi.setActive(companyId, card.id, { active: !card.active });
       await refresh(query);
     } catch (err) {
-      showAlert('Could not update gift card', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('giftCards.updateFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     }
   };
 
@@ -90,13 +92,13 @@ export default function GiftCardsScreen() {
     // A used card (redeemed against a sale) has financial history — deleting it
     // would erase that trail, so it can only be deactivated. Same guard as desktop.
     if (card.remainingValue < card.initialValue) {
-      showAlert('Cannot delete', 'This card has been used. Deactivate it instead of deleting.');
+      showAlert(t('giftCards.cannotDelete'), t('giftCards.cannotDeleteBody'));
       return;
     }
-    showAlert('Delete gift card?', `${card.code} - this permanently removes it. Continue?`, [
-      { text: 'Cancel', style: 'cancel' },
+    showAlert(t('giftCards.deleteTitle'), t('giftCards.deleteBody').replace('{code}', card.code), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('heldSales.delete'),
         style: 'destructive',
         onPress: async () => {
           if (!companyId) return;
@@ -104,7 +106,7 @@ export default function GiftCardsScreen() {
             await giftCardsApi.delete(companyId, card.id);
             await refresh(query);
           } catch (err) {
-            showAlert('Could not delete gift card', err instanceof Error ? err.message : 'Something went wrong.');
+            showAlert(t('giftCards.deleteFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
           }
         },
       },
@@ -117,12 +119,12 @@ export default function GiftCardsScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Gift cards</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.giftCards')}</Text>
           <View className="w-12" />
         </View>
         <TextInput
           className="mt-3 rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
-          placeholder="Search by code"
+          placeholder={t('giftCards.search')}
           placeholderTextColor={colors.placeholder}
           value={query}
           onChangeText={(text) => {
@@ -136,7 +138,7 @@ export default function GiftCardsScreen() {
       <View className="flex-row items-center gap-2 p-4">
         <TextInput
           className="flex-1 rounded-xl border border-border bg-surface px-3.5 py-3 text-base text-text-primary"
-          placeholder={`Issue new card value (${currency})`}
+          placeholder={t('giftCards.issuePlaceholder').replace('{currency}', currency)}
           placeholderTextColor={colors.placeholder}
           keyboardType="numeric"
           value={issueValue}
@@ -147,7 +149,7 @@ export default function GiftCardsScreen() {
         <Pressable
           onPress={onIssue}
           disabled={!issueValue.trim() || issuing}
-          accessibilityLabel="Issue gift card"
+          accessibilityLabel={t('giftCards.issue')}
           className="h-12 w-12 items-center justify-center rounded-xl bg-primary active:opacity-90 disabled:opacity-50">
           {issuing ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="add" size={22} color="#FFFFFF" />}
         </Pressable>
@@ -166,7 +168,7 @@ export default function GiftCardsScreen() {
             <View className="flex-1 pr-2">
               <Text className="text-sm font-semibold text-text-primary">{item.code}</Text>
               <Text className="text-xs text-text-secondary">
-                {formatCurrency(item.remainingValue, currency)} remaining of {formatCurrency(item.initialValue, currency)}
+                {t('giftCards.remainingOf').replace('{remaining}', formatCurrency(item.remainingValue, currency)).replace('{initial}', formatCurrency(item.initialValue, currency))}
               </Text>
             </View>
             <View className="flex-row items-center gap-2">
@@ -179,13 +181,13 @@ export default function GiftCardsScreen() {
                 onPress={() => onToggleActive(item)}
                 className={`rounded-full border px-3 py-1.5 ${item.active ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
                 <Text className={`text-xs font-semibold ${item.active ? 'text-primary' : 'text-text-secondary'}`}>
-                  {item.active ? 'Active' : 'Inactive'}
+                  {item.active ? t('staff.active') : t('staff.inactive')}
                 </Text>
               </Pressable>
               <Pressable
                 onPress={() => onDelete(item)}
                 hitSlop={6}
-                accessibilityLabel="Delete gift card"
+                accessibilityLabel={t('giftCards.delete')}
                 className="h-9 w-9 items-center justify-center rounded-full border border-border bg-background active:opacity-80">
                 <Ionicons name="trash-outline" size={16} color={colors.error} />
               </Pressable>
@@ -193,7 +195,7 @@ export default function GiftCardsScreen() {
           </View>
         )}
         ListEmptyComponent={
-          !loading ? <Text className="p-4 text-center text-sm text-text-secondary">No gift cards yet.</Text> : null
+          !loading ? <Text className="p-4 text-center text-sm text-text-secondary">{t('giftCards.empty')}</Text> : null
         }
       />
     </SafeAreaView>

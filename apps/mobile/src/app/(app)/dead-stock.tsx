@@ -15,6 +15,7 @@ import { useAuthStore } from '@/lib/auth/store';
 import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { useThemeColors } from '@/lib/theme/colors';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 const WINDOWS = [60, 90, 180];
 
@@ -24,6 +25,7 @@ export default function DeadStockScreen() {
   const { staleAt, setStaleAt, staleMessage } = useStaleNotice();
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
+  const { t } = useTranslation();
   const [days, setDays] = useState(60);
 
   const { data = [], isLoading } = useQuery({
@@ -40,7 +42,7 @@ export default function DeadStockScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Dead stock</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.deadStock')}</Text>
           <View className="w-12" />
         </View>
       </View>
@@ -52,7 +54,7 @@ export default function DeadStockScreen() {
             onPress={() => setDays(w)}
             className="rounded-lg border px-3 py-1"
             style={{ borderColor: days === w ? colors.primary : colors.border, backgroundColor: days === w ? colors.primary + '14' : 'transparent' }}>
-            <Text className="text-xs font-bold" style={{ color: days === w ? colors.primary : colors.textSecondary }}>{w}d</Text>
+            <Text className="text-xs font-bold" style={{ color: days === w ? colors.primary : colors.textSecondary }}>{t('po.daysShort').replace('{n}', String(w))}</Text>
           </Pressable>
         ))}
       </View>
@@ -61,16 +63,16 @@ export default function DeadStockScreen() {
       <KeyboardAwareScroll contentContainerClassName="gap-2 p-5">
         {data.length > 0 ? (
           <View className="mb-2 rounded-xl bg-surface p-4">
-            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Value tied up in dead stock</Text>
+            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('dead.value')}</Text>
             <Text className="mt-1 text-2xl font-extrabold text-error">{formatCurrency(totalValue, currency)}</Text>
-            <Text className="text-xs text-text-secondary">{data.length} item(s), no sale in {days}d</Text>
+            <Text className="text-xs text-text-secondary">{t('dead.summary').replace('{n}', String(data.length)).replace('{days}', String(days))}</Text>
           </View>
         ) : null}
 
         {isLoading ? (
-          <Text className="py-10 text-center text-sm text-text-secondary">Loading…</Text>
+          <Text className="py-10 text-center text-sm text-text-secondary">{t('common.loading')}</Text>
         ) : data.length === 0 ? (
-          <Text className="py-10 text-center text-sm text-text-secondary">No dead stock. Everything's moving. 🎉</Text>
+          <Text className="py-10 text-center text-sm text-text-secondary">{t('dead.empty')} 🎉</Text>
         ) : (
           data.map((d) => (
             <Pressable
@@ -80,7 +82,10 @@ export default function DeadStockScreen() {
               <View className="flex-1 pr-2">
                 <Text className="text-sm font-semibold text-text-primary">{d.productName}</Text>
                 <Text className="text-xs text-text-secondary">
-                  stock {d.currentStock} · {d.lastSaleDate ? `last ${d.lastSaleDate.slice(0, 10)} (${d.daysSinceLastSale}d ago)` : 'never sold'}
+                  {t('dead.stock')} {d.currentStock} ·{' '}
+                  {d.lastSaleDate
+                    ? t('dead.lastSale').replace('{date}', d.lastSaleDate.slice(0, 10)).replace('{n}', String(d.daysSinceLastSale))
+                    : t('dead.neverSold')}
                 </Text>
               </View>
               <Text className="text-sm font-bold text-text-primary">{formatCurrency(d.stockValue, currency)}</Text>

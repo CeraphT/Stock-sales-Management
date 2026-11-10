@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 
+import { tr } from '@/lib/i18n/translate';
 import { showAlert } from '@/lib/ui/alertStore';
 
 /** Defense-in-depth for the 4 restrictable feature groups (see staff.tsx's
@@ -11,7 +12,7 @@ import { showAlert } from '@/lib/ui/alertStore';
 export function useFeatureGuard(restricted: boolean | undefined) {
   useEffect(() => {
     if (restricted) {
-      showAlert("Restricted", "You don't have access to this feature.");
+      showAlert(tr('guard.title'), tr('guard.body'));
       router.back();
     }
   }, [restricted]);

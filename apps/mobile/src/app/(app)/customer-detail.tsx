@@ -68,7 +68,7 @@ export default function CustomerDetailScreen() {
       if (err instanceof NetworkError && local) {
         setOffline(true);
       } else {
-        showAlert('Could not load customer', err instanceof Error ? err.message : 'Something went wrong.');
+        showAlert(t('customers.loadOneFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
         if (!local) router.back();
       }
     } finally {
@@ -86,11 +86,11 @@ export default function CustomerDetailScreen() {
     if (!companyId || !id || !customer) return;
     const pointsToRedeem = Number(points);
     if (!Number.isInteger(pointsToRedeem) || pointsToRedeem <= 0) {
-      showAlert('Invalid points', 'Enter a positive whole number of points.');
+      showAlert(t('customers.invalidPoints'), t('customers.invalidPointsBody'));
       return;
     }
     if (pointsToRedeem > customer.loyaltyPointsBalance) {
-      showAlert('Not enough points', `This customer only has ${customer.loyaltyPointsBalance} points.`);
+      showAlert(t('customers.notEnoughPoints'), t('customers.notEnoughPointsBody').replace('{n}', String(customer.loyaltyPointsBalance)));
       return;
     }
     setRedeeming(true);
@@ -98,9 +98,9 @@ export default function CustomerDetailScreen() {
       await customersApi.redeemLoyalty(companyId, id, { points: pointsToRedeem });
       setPoints('');
       await load();
-      showAlert('Redeemed', 'Points converted to store credit.');
+      showAlert(t('customers.redeemed'), t('customers.redeemedBody'));
     } catch (err) {
-      showAlert('Could not redeem', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('customers.redeemFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setRedeeming(false);
     }
@@ -120,7 +120,7 @@ export default function CustomerDetailScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Customer</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('pos.customer')}</Text>
           <View className="w-12" />
         </View>
       </View>
@@ -129,16 +129,16 @@ export default function CustomerDetailScreen() {
       <KeyboardAwareScroll contentContainerClassName="gap-4 p-5">
         <View className="rounded-2xl bg-surface p-4">
           <Text className="text-lg font-bold text-text-primary">{customer.name}</Text>
-          <Text className="text-sm text-text-secondary">{customer.phone ?? 'No phone on file'}</Text>
+          <Text className="text-sm text-text-secondary">{customer.phone ?? t('customers.noPhone')}</Text>
         </View>
 
         <View className="flex-row gap-3">
           <View className="flex-1 rounded-2xl bg-surface p-4">
-            <Text className="text-xs uppercase tracking-wide text-text-secondary">Credit balance</Text>
+            <Text className="text-xs uppercase tracking-wide text-text-secondary">{t('customers.creditBalance')}</Text>
             <Text className="mt-1 text-base font-bold text-text-primary">{formatCurrency(customer.creditBalance, currency)}</Text>
           </View>
           <View className="flex-1 rounded-2xl bg-surface p-4">
-            <Text className="text-xs uppercase tracking-wide text-text-secondary">Store credit</Text>
+            <Text className="text-xs uppercase tracking-wide text-text-secondary">{t('paymentMethod.storeCredit')}</Text>
             <Text className="mt-1 text-base font-bold text-text-primary">
               {formatCurrency(customer.loyaltyStoreCreditBalance, currency)}
             </Text>
@@ -146,21 +146,21 @@ export default function CustomerDetailScreen() {
         </View>
 
         <View className="rounded-2xl bg-surface p-4">
-          <Text className="text-xs uppercase tracking-wide text-text-secondary">Loyalty points</Text>
+          <Text className="text-xs uppercase tracking-wide text-text-secondary">{t('customers.loyaltyPoints')}</Text>
           <Text className="mt-1 text-2xl font-bold text-primary">{customer.loyaltyPointsBalance}</Text>
 
           <View className="mt-4 gap-3">
-            <TextField label="Redeem points" placeholder="0" keyboardType="numeric" value={points} onChangeText={setPoints} />
-            <Button title={redeeming ? 'Redeeming…' : 'Redeem for store credit'} loading={redeeming} onPress={onRedeem} />
+            <TextField label={t('customers.redeemPoints')} placeholder="0" keyboardType="numeric" value={points} onChangeText={setPoints} />
+            <Button title={redeeming ? t('customers.redeeming') : t('customers.redeemForCredit')} loading={redeeming} onPress={onRedeem} />
           </View>
         </View>
 
         {/* Credit statement — the sales that make up the owed / store-credit
             balances. Tap one to open the full sale. */}
         <View className="overflow-hidden rounded-2xl bg-surface">
-          <Text className="border-b border-border px-4 py-3 text-sm font-bold text-text-primary">Credit statement</Text>
+          <Text className="border-b border-border px-4 py-3 text-sm font-bold text-text-primary">{t('customers.statement')}</Text>
           {history.length === 0 ? (
-            <Text className="p-4 text-center text-xs text-text-secondary">No credit or store-credit activity yet.</Text>
+            <Text className="p-4 text-center text-xs text-text-secondary">{t('customers.statementEmpty')}</Text>
           ) : (
             history.map((entry) => (
               <Pressable
@@ -170,18 +170,18 @@ export default function CustomerDetailScreen() {
                 <View className="flex-row items-center justify-between">
                   <Text className="text-xs text-text-secondary">{new Date(entry.timestamp).toLocaleString(appLocale())}</Text>
                   {entry.status === SaleStatus.Refunded ? (
-                    <Text className="text-[10px] font-bold text-error">REFUNDED</Text>
+                    <Text className="text-[10px] font-bold text-error">{t('saleDetail.refunded').toUpperCase()}</Text>
                   ) : null}
                 </View>
                 <Text className="mt-0.5 text-sm text-text-primary" numberOfLines={2}>
-                  {entry.items || `Sale of ${formatCurrency(entry.total, currency)}`}
+                  {entry.items || t('customers.saleOf').replace('{amount}', formatCurrency(entry.total, currency))}
                 </Text>
                 <View className="mt-1 flex-row flex-wrap gap-x-3">
                   {entry.creditAmount > 0 ? (
-                    <Text className="text-xs font-semibold text-error">On account: {formatCurrency(entry.creditAmount, currency)}</Text>
+                    <Text className="text-xs font-semibold text-error">{t('customers.onAccount').replace('{amount}', formatCurrency(entry.creditAmount, currency))}</Text>
                   ) : null}
                   {entry.storeCreditAmount > 0 ? (
-                    <Text className="text-xs font-semibold text-success">Store credit used: {formatCurrency(entry.storeCreditAmount, currency)}</Text>
+                    <Text className="text-xs font-semibold text-success">{t('customers.storeCreditUsed').replace('{amount}', formatCurrency(entry.storeCreditAmount, currency))}</Text>
                   ) : null}
                 </View>
               </Pressable>

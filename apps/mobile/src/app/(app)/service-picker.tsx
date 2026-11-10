@@ -15,6 +15,7 @@ import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 // Services require connectivity to add to the cart — see checkout.tsx's
 // online-only service checkout path for why (no local Services table to
@@ -23,6 +24,7 @@ export default function ServicePickerScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
+  const { t } = useTranslation();
   const addServiceLine = useCartStore((s) => s.addServiceLine);
 
   const [query, setQuery] = useState('');
@@ -37,8 +39,8 @@ export default function ServicePickerScreen() {
       .then((all) => setServices(all.filter((s) => s.active)))
       .catch((err) =>
         showAlert(
-          'Could not load services',
-          err instanceof Error ? err.message : 'Services need an internet connection to add to a sale.',
+          t('services.loadFailed'),
+        err instanceof Error ? err.message : t('services.needInternet'),
         ),
       )
       .finally(() => setLoading(false));
@@ -71,12 +73,12 @@ export default function ServicePickerScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Add a service</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('kit.addService')}</Text>
           <View className="w-12" />
         </View>
         <TextInput
           className="mt-3 rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
-          placeholder="Search services"
+          placeholder={t('services.search')}
           placeholderTextColor={colors.placeholder}
           value={query}
           onChangeText={setQuery}
@@ -104,10 +106,10 @@ export default function ServicePickerScreen() {
           ListEmptyComponent={
             <Text className="p-4 text-center text-sm text-text-secondary">
               {services === null
-                ? 'Could not reach the server. Services need an internet connection.'
+                ? t('services.unreachable')
                 : services.length === 0
-                  ? 'No services set up yet. Add some from More → Services.'
-                  : 'No matching services.'}
+                  ? t('services.noneSetUp')
+                : t('services.noMatch')}
             </Text>
           }
         />

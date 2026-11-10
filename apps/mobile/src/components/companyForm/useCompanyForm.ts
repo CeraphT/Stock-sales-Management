@@ -2,13 +2,15 @@ import type { CompanyResponse, InventoryCapabilities, UpdateCompanyRequest } fro
 import { useEffect, useRef, useState } from "react";
 
 import { COUNTRY_INFO, countryForCurrency } from "@/lib/countries";
-import { CURRENCY_OPTIONS } from "@/lib/currencies";
+import { currencyLabel as labelForCurrency } from "@/lib/currencies";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { DEFAULT_CAPABILITIES } from "@/lib/useCapabilities";
 
 /** Every "My business" field, as editable form state. Shared by the settings
  * screen (loaded from the company) and the shop-creation wizard (blank, or from
  * a business-type preset), so both read and save the exact same fields. */
 export function useCompanyForm() {
+  const { language } = useTranslation();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
@@ -77,7 +79,7 @@ export function useCompanyForm() {
     setTax(Number(lastTaxRate.current) > 0 ? lastTaxRate.current : countryVat ? String(countryVat) : "19.25");
   }
 
-  const currencyLabel = CURRENCY_OPTIONS.find((o) => o.value === currency)?.label ?? currency;
+  const currencyLabel = labelForCurrency(currency, language);
 
   /** The PUT/POST body. `keep` supplies the fields this form doesn't edit
    * (hidden loyalty points, services module, setup flag). */

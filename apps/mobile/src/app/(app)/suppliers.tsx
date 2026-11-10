@@ -17,11 +17,13 @@ import type { SupplierResponse } from '@/lib/api/types/catalog';
 import { useAuthStore } from '@/lib/auth/store';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function SuppliersScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   useFeatureGuard(useAuthStore((s) => s.user?.restrictPurchasing));
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [query, setQuery] = useState('');
 
@@ -32,7 +34,7 @@ export default function SuppliersScreen() {
     enabled: !!companyId,
     local: () => localMirrorQueries.listSuppliers(companyId!, appliedSearch || undefined),
     remote: () => suppliersApi.list(companyId!, appliedSearch || undefined),
-    errorTitle: 'Could not load suppliers',
+    errorTitle: t('suppliers.loadFailed'),
     deps: [companyId, appliedSearch],
   });
   const suppliers = data ?? [];
@@ -48,17 +50,17 @@ export default function SuppliersScreen() {
     const phone = supplier.contactPhone?.trim();
     const email = supplier.contactEmail?.trim();
     const buttons: { text: string; style?: 'cancel' | 'destructive'; onPress?: () => void }[] = [];
-    if (phone) buttons.push({ text: `Call ${phone}`, onPress: () => void Linking.openURL(`tel:${phone}`) });
-    if (email) buttons.push({ text: `Email ${email}`, onPress: () => void Linking.openURL(`mailto:${email}`) });
-    buttons.push({ text: 'Close', style: 'cancel' });
-    showAlert(supplier.name, phone || email ? 'Contact this supplier' : 'No contact details on file.', buttons);
+    if (phone) buttons.push({ text: `${t('suppliers.call')} ${phone}`, onPress: () => void Linking.openURL(`tel:${phone}`) });
+    if (email) buttons.push({ text: `${t('suppliers.email')} ${email}`, onPress: () => void Linking.openURL(`mailto:${email}`) });
+    buttons.push({ text: t('common.close'), style: 'cancel' });
+    showAlert(supplier.name, phone || email ? t('suppliers.contactThis') : t('suppliers.noContact'), buttons);
   };
 
   const onDelete = (supplier: SupplierResponse) => {
-    showAlert('Delete supplier?', `"${supplier.name}" will be removed.`, [
-      { text: 'Cancel', style: 'cancel' },
+    showAlert(t('suppliers.deleteTitle'), t('common.willBeRemoved').replace('{name}', supplier.name), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('heldSales.delete'),
         style: 'destructive',
         onPress: async () => {
           if (!companyId) return;
@@ -66,8 +68,8 @@ export default function SuppliersScreen() {
             await suppliersApi.delete(companyId, supplier.id);
             await refresh(query);
           } catch (err) {
-            const message = err instanceof ApiError ? err.message : 'Something went wrong.';
-            showAlert('Could not delete supplier', message);
+            const message = err instanceof ApiError ? err.message : t('common.somethingWrong');
+            showAlert(t('suppliers.deleteFailed'), message);
           }
         },
       },
@@ -80,17 +82,17 @@ export default function SuppliersScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Suppliers</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.suppliers')}</Text>
           <Pressable
             onPress={() => router.push('/supplier-form')}
-            accessibilityLabel="Add supplier"
+            accessibilityLabel={t('suppliers.add')}
             className="h-9 w-9 items-center justify-center rounded-full bg-primary active:opacity-90">
             <Ionicons name="add" size={20} color="#FFFFFF" />
           </Pressable>
         </View>
         <TextInput
           className="mt-3 rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
-          placeholder="Search suppliers"
+          placeholder={t('suppliers.search')}
           placeholderTextColor={colors.placeholder}
           value={query}
           onChangeText={(text) => {
@@ -100,7 +102,7 @@ export default function SuppliersScreen() {
           autoCapitalize="none"
         />
         <Text className="mt-2 text-xs text-text-secondary">
-          {suppliers.length} {suppliers.length === 1 ? 'supplier' : 'suppliers'}
+          {suppliers.length} {suppliers.length === 1 ? t('suppliers.one') : t('suppliers.many')}
         </Text>
       </View>
 
@@ -130,16 +132,16 @@ export default function SuppliersScreen() {
               <Text className="text-sm font-semibold text-text-primary">{item.name}</Text>
               <Text className="text-xs text-text-secondary">{item.contactPhone ?? '-'} · {item.contactEmail ?? '-'}</Text>
             </View>
-            <Pressable onPress={() => onContact(item)} hitSlop={8} accessibilityLabel="Contact supplier" className="h-8 w-8 items-center justify-center">
+            <Pressable onPress={() => onContact(item)} hitSlop={8} accessibilityLabel={t('suppliers.contact')} className="h-8 w-8 items-center justify-center">
               <Ionicons name="call-outline" size={18} color={colors.primary} />
             </Pressable>
-            <Pressable onPress={() => onDelete(item)} hitSlop={8} accessibilityLabel="Delete" className="h-8 w-8 items-center justify-center">
+            <Pressable onPress={() => onDelete(item)} hitSlop={8} accessibilityLabel={t('heldSales.delete')} className="h-8 w-8 items-center justify-center">
               <Ionicons name="trash-outline" size={18} color={colors.error} />
             </Pressable>
           </Pressable>
         )}
         ListEmptyComponent={
-          !loading ? <Text className="p-4 text-center text-sm text-text-secondary">No suppliers yet.</Text> : null
+          !loading ? <Text className="p-4 text-center text-sm text-text-secondary">{t('suppliers.empty')}</Text> : null
         }
       />
     </SafeAreaView>

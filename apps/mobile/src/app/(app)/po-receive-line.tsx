@@ -17,6 +17,7 @@ import { syncNow } from '@/lib/sync/syncNow';
 import { useThemeColors } from '@/lib/theme/colors';
 import { useCapabilities } from '@/lib/useCapabilities';
 import { showAlert } from '@/lib/ui/alertStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function PoReceiveLineScreen() {
   const { orderId, lineId, productName, remaining, serialTracked: serialParam } = useLocalSearchParams<{
@@ -27,6 +28,7 @@ export default function PoReceiveLineScreen() {
     serialTracked: string;
   }>();
   const companyId = useAuthStore((s) => s.companyId);
+  const { t } = useTranslation();
   useFeatureGuard(useAuthStore((s) => s.user?.restrictPurchasing));
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
@@ -50,22 +52,22 @@ export default function PoReceiveLineScreen() {
   const onSubmit = async () => {
     if (!companyId || !orderId || !lineId) return;
     if (!batchNumber.trim()) {
-      showAlert('Missing batch number', 'Enter a batch/lot number.');
+      showAlert(t('receiveLine.missingBatch'), t('receiveLine.missingBatchBody'));
       return;
     }
     if (expiryRequired && !expiryDate) {
-      showAlert('Missing expiry date', 'Select the expiry date for this batch.');
+      showAlert(t('receiveLine.missingExpiry'), t('receiveLine.missingExpiryBody'));
       return;
     }
     if (serialTracked ? serials.length <= 0 : !Number.isInteger(qty) || qty <= 0) {
-      showAlert('Invalid quantity', serialTracked ? 'Enter at least one serial number.' : 'Quantity must be a positive whole number.');
+      showAlert(t('common.invalidQuantity'), serialTracked ? t('receiveLine.needSerial') : t('bulk.err.qty'));
       return;
     }
     // More than ordered (bonus units, rounded cartons) is allowed after a confirm.
     if (qty > maxQty) {
-      showAlert('More than ordered', `You are receiving ${qty}, but only ${maxQty} remain on this line. Receive them all anyway?`, [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Receive', onPress: () => void receive() },
+      showAlert(t('receiveLine.moreThanOrdered'), t('receiveLine.moreThanOrderedBody').replace('{qty}', String(qty)).replace('{max}', String(maxQty)), [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('po.receive'), onPress: () => void receive() },
       ]);
       return;
     }
@@ -86,7 +88,7 @@ export default function PoReceiveLineScreen() {
       await syncNow();
       router.back();
     } catch (err) {
-      showAlert('Could not receive line', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('receiveLine.failed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -98,21 +100,21 @@ export default function PoReceiveLineScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Receive stock</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.receiveStock')}</Text>
           <View className="w-12" />
         </View>
       </View>
 
       <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         <Text className="text-sm font-semibold text-text-primary">{productName}</Text>
-        <Text className="text-xs text-text-secondary">Up to {remaining} remaining on this line</Text>
+        <Text className="text-xs text-text-secondary">{t('receiveLine.upTo').replace('{n}', String(remaining))}</Text>
 
-        <TextField label="Batch / lot number" placeholder="e.g. LOT-2026-07" value={batchNumber} onChangeText={setBatchNumber} />
-        <DateField label={expiryRequired ? 'Expiry date' : 'Expiry date (optional)'} value={expiryDate} onChange={setExpiryDate} minimumDate={new Date()} />
+        <TextField label={t('receive.batchLabel')} placeholder={`${t('common.eg')} LOT-2026-07`} value={batchNumber} onChangeText={setBatchNumber} />
+        <DateField label={expiryRequired ? t('receive.expiry') : t('receive.expiryOptional')} value={expiryDate} onChange={setExpiryDate} minimumDate={new Date()} />
 
         {serialTracked ? (
           <View className="gap-1.5">
-            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Serial / IMEI numbers (one per line)</Text>
+            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('receive.serialsLabel')}</Text>
             <TextInput
               className="rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
               placeholder={'SN-0001\nSN-0002'}
@@ -125,22 +127,23 @@ export default function PoReceiveLineScreen() {
               onChangeText={setSerialText}
             />
             <Text className="text-xs text-text-secondary">
-              {serials.length} unit(s) - each serial is one unit received.{serials.length > maxQty ? ` · more than remaining (${maxQty})` : ''}
+              {t('receive.serialsCount').replace('{n}', String(serials.length))}
+              {serials.length > maxQty ? ` · ${t('receiveLine.moreThanRemaining').replace('{n}', String(maxQty))}` : ''}
             </Text>
           </View>
         ) : (
-          <TextField label="Quantity received now" keyboardType="numeric" value={quantity} onChangeText={setQuantity} />
+          <TextField label={t('receiveLine.qtyNow')} keyboardType="numeric" value={quantity} onChangeText={setQuantity} />
         )}
 
         <TextField
-          label={`Actual unit cost (${currency}, optional)`}
-          placeholder="Defaults to the ordered unit cost"
+          label={t('receiveLine.actualCost').replace('{currency}', currency)}
+          placeholder={t('receiveLine.actualCostPlaceholder')}
           keyboardType="numeric"
           value={actualUnitCost}
           onChangeText={setActualUnitCost}
         />
 
-        <Button title={submitting ? 'Receiving…' : 'Receive stock'} loading={submitting} onPress={onSubmit} />
+        <Button title={submitting ? t('receive.receiving') : t('drawer.item.receiveStock')} loading={submitting} onPress={onSubmit} />
       </KeyboardAwareScroll>
     </SafeAreaView>
   );

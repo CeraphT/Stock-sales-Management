@@ -56,7 +56,7 @@ export default function ReportsScreen() {
       setSummary(summaryResult);
       setTopProducts(topResult);
     } catch (err) {
-      showAlert('Could not load report', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('reports.loadFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export default function ReportsScreen() {
     const data = toReportData();
     if (!data) return;
     viewOrPrintReport(data).catch((err) =>
-      showAlert('Could not open report', err instanceof Error ? err.message : 'Something went wrong.'),
+      showAlert(t('reports.openFailed'), err instanceof Error ? err.message : t('common.somethingWrong')),
     );
   };
 
@@ -85,7 +85,7 @@ export default function ReportsScreen() {
     const data = toReportData();
     if (!data) return;
     shareReport(data).catch((err) =>
-      showAlert('Could not share report', err instanceof Error ? err.message : 'Something went wrong.'),
+      showAlert(t('reports.shareFailed'), err instanceof Error ? err.message : t('common.somethingWrong')),
     );
   };
 
@@ -96,7 +96,7 @@ export default function ReportsScreen() {
         <View className="flex-row items-center justify-between">
           <BackButton />
           <Text className="text-lg font-bold text-text-primary">{t('reports.title')}</Text>
-          <Pressable onPress={onShare} hitSlop={8} disabled={!summary} accessibilityLabel="Share report PDF">
+          <Pressable onPress={onShare} hitSlop={8} disabled={!summary} accessibilityLabel={t('reports.sharePdf')}>
             <Ionicons name="share-outline" size={20} color={summary ? colors.primary : colors.iconMuted} />
           </Pressable>
         </View>

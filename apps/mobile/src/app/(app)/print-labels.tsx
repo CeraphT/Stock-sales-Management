@@ -16,6 +16,7 @@ import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface LabelPick {
   productId: string;
@@ -31,6 +32,7 @@ export default function PrintLabelsScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [search, setSearch] = useState('');
   const [picks, setPicks] = useState<LabelPick[]>([]);
@@ -61,7 +63,7 @@ export default function PrintLabelsScreen() {
       for (let i = 0; i < p.count; i++) {
         labels.push(`<div class="label"><div class="name">${escapeHtml(p.name)}</div>
           <div class="price">${escapeHtml(formatCurrency(p.salePrice, currency))}</div>
-          ${svg ? `<div class="bc">${svg}</div><div class="code">${escapeHtml(p.barcode!)}</div>` : `<div class="nobc">No barcode</div>`}</div>`);
+          ${svg ? `<div class="bc">${svg}</div><div class="code">${escapeHtml(p.barcode!)}</div>` : `<div class="nobc">${escapeHtml(t('labels.noBarcode'))}</div>`}</div>`);
       }
     }
     const html = `<html><head><meta charset="utf-8"><style>
@@ -78,7 +80,7 @@ export default function PrintLabelsScreen() {
     try {
       await Print.printAsync({ html });
     } catch (err) {
-      showAlert('Could not print labels', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('labels.printFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setPrinting(false);
     }
@@ -92,7 +94,7 @@ export default function PrintLabelsScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Print labels</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.printLabels')}</Text>
           <View className="w-12" />
         </View>
       </View>
@@ -100,7 +102,7 @@ export default function PrintLabelsScreen() {
       <View className="px-5 pt-3">
         <TextInput
           className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-base text-text-primary"
-          placeholder="Search a product to add…"
+          placeholder={t('labels.search')}
           placeholderTextColor={colors.placeholder}
           value={search}
           onChangeText={setSearch}
@@ -111,7 +113,7 @@ export default function PrintLabelsScreen() {
             {results.slice(0, 8).map((r) => (
               <Pressable key={r.productId} onPress={() => addPick(r)} className="border-b border-border/50 px-3 py-2.5 last:border-0 active:opacity-70">
                 <Text className="text-sm text-text-primary">{r.name}</Text>
-                <Text className="text-xs text-text-secondary">{r.barcode ?? 'no barcode'}</Text>
+                <Text className="text-xs text-text-secondary">{r.barcode ?? t('labels.noBarcodeLower')}</Text>
               </Pressable>
             ))}
           </View>
@@ -120,13 +122,13 @@ export default function PrintLabelsScreen() {
 
       <KeyboardAwareScroll contentContainerClassName="gap-2 p-5" keyboardShouldPersistTaps="handled">
         {picks.length === 0 ? (
-          <Text className="py-10 text-center text-sm text-text-secondary">Add products to print price/barcode labels.</Text>
+          <Text className="py-10 text-center text-sm text-text-secondary">{t('labels.empty')}</Text>
         ) : (
           picks.map((p) => (
             <View key={p.productId} className="flex-row items-center gap-3 rounded-xl bg-surface p-3">
               <View className="flex-1">
                 <Text className="text-sm font-semibold text-text-primary">{p.name}</Text>
-                <Text className="text-xs text-text-secondary">{formatCurrency(p.salePrice, currency)} · {p.barcode ?? 'no barcode'}</Text>
+                <Text className="text-xs text-text-secondary">{formatCurrency(p.salePrice, currency)} · {p.barcode ?? t('labels.noBarcodeLower')}</Text>
               </View>
               <TextInput
                 className="w-16 rounded-lg border border-border bg-background px-2 py-2 text-right text-sm text-text-primary"
@@ -143,7 +145,7 @@ export default function PrintLabelsScreen() {
       </KeyboardAwareScroll>
 
       <View className="border-t border-border bg-surface p-4">
-        <Button title={printing ? 'Printing…' : `Print ${totalLabels} label(s)`} loading={printing} onPress={print} disabled={totalLabels === 0} />
+        <Button title={printing ? t('printer.printing') : t('labels.print').replace('{n}', String(totalLabels))} loading={printing} onPress={print} disabled={totalLabels === 0} />
       </View>
     </SafeAreaView>
   );

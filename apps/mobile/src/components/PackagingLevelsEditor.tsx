@@ -4,6 +4,7 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 import { packagingSuggestions } from '@stockflow/core/setup/starterKit';
 
 import type { PackagingLevelRequest } from '@/lib/api/types/catalog';
+import { tr } from '@/lib/i18n/translate';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useBusinessType } from '@/lib/useCapabilities';
 import { useThemeColors } from '@/lib/theme/colors';
@@ -22,14 +23,14 @@ export function parsePackagingLevels(levels: DraftPackagingLevel[]): { ok: true;
   const parsed: PackagingLevelRequest[] = [];
   for (const level of levels) {
     if (!level.unitName.trim() && !level.quantityInBaseUnits.trim()) continue; // skip fully-blank rows
-    if (!level.unitName.trim()) return { ok: false, message: 'Every packaging level needs a name (e.g. "Box of 10").' };
+    if (!level.unitName.trim()) return { ok: false, message: tr('packaging.errName') };
     const qty = Number(level.quantityInBaseUnits);
     if (!Number.isInteger(qty) || qty <= 1) {
-      return { ok: false, message: `"${level.unitName}" needs a whole-number size greater than 1 unit.` };
+      return { ok: false, message: tr('packaging.errSize').replace('{name}', level.unitName) };
     }
     const override = level.salePriceOverride.trim() ? Number(level.salePriceOverride) : null;
     if (override != null && (!Number.isFinite(override) || override < 0)) {
-      return { ok: false, message: `"${level.unitName}"'s price override must be zero or positive.` };
+      return { ok: false, message: tr('packaging.errPrice').replace('{name}', level.unitName) };
     }
     parsed.push({ unitName: level.unitName.trim(), quantityInBaseUnits: qty, salePriceOverride: override });
   }
@@ -53,7 +54,7 @@ export function PackagingLevelsEditor({
   currency: string;
 }) {
   const colors = useThemeColors();
-  const { language } = useTranslation();
+  const { t, language } = useTranslation();
   const businessType = useBusinessType();
   // One-tap packaging names for this business type (size still to fill).
   const quick = packagingSuggestions(businessType, language).filter(
@@ -68,8 +69,8 @@ export function PackagingLevelsEditor({
   return (
     <View className="gap-3">
       <View className="flex-row items-center justify-between">
-        <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Packaging levels (optional)</Text>
-        <Pressable onPress={addLevel} accessibilityLabel="Add packaging level" hitSlop={8}>
+        <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('packaging.title')}</Text>
+        <Pressable onPress={addLevel} accessibilityLabel={t('packaging.add')} hitSlop={8}>
           <Ionicons name="add-circle-outline" size={22} color={colors.primary} />
         </Pressable>
       </View>
@@ -88,22 +89,20 @@ export function PackagingLevelsEditor({
       ) : null}
 
       {levels.length === 0 ? (
-        <Text className="text-xs text-text-secondary">
-          Sells only as a single base unit. Add a level if this product is also sold as a box, blister, or case.
-        </Text>
+        <Text className="text-xs text-text-secondary">{t('packaging.emptyHint')}</Text>
       ) : null}
 
       {levels.map((level, index) => (
         <View key={index} className="gap-2 rounded-xl bg-surface p-3.5">
           <View className="flex-row items-center justify-between">
-            <Text className="text-xs font-semibold text-text-secondary">Level {index + 1}</Text>
-            <Pressable onPress={() => removeLevel(index)} hitSlop={8} accessibilityLabel="Remove packaging level">
+            <Text className="text-xs font-semibold text-text-secondary">{t('packaging.level').replace('{n}', String(index + 1))}</Text>
+            <Pressable onPress={() => removeLevel(index)} hitSlop={8} accessibilityLabel={t('packaging.remove')}>
               <Ionicons name="close-circle-outline" size={18} color={colors.error} />
             </Pressable>
           </View>
           <TextInput
             className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-primary"
-            placeholder="Name, e.g. Box of 10"
+            placeholder={t('packaging.namePlaceholder')}
             placeholderTextColor={colors.placeholder}
             value={level.unitName}
             onChangeText={(v) => updateLevel(index, { unitName: v })}
@@ -111,7 +110,7 @@ export function PackagingLevelsEditor({
           <View className="flex-row gap-2">
             <TextInput
               className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-primary"
-              placeholder="Base units inside"
+              placeholder={t('packaging.unitsInside')}
               placeholderTextColor={colors.placeholder}
               keyboardType="numeric"
               value={level.quantityInBaseUnits}
@@ -119,7 +118,7 @@ export function PackagingLevelsEditor({
             />
             <TextInput
               className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-primary"
-              placeholder={`Price override (${currency})`}
+              placeholder={t('packaging.priceOverride').replace('{currency}', currency)}
               placeholderTextColor={colors.placeholder}
               keyboardType="numeric"
               value={level.salePriceOverride}

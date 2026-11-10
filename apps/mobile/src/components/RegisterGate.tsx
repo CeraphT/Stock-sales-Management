@@ -9,6 +9,7 @@ import { localShiftService } from '@/lib/local/shiftService';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
 import { toast } from '@/lib/ui/toastStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 /**
  * Start-of-day freeze for cashiers. While a cashier has no open shift this is
@@ -21,6 +22,7 @@ export function RegisterGate({ onOpened }: { onOpened: () => void }) {
   const locationId = useAuthStore((s) => s.locationId);
   const clear = useAuthStore((s) => s.clear);
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [openingCash, setOpeningCash] = useState('');
   const [busy, setBusy] = useState(false);
@@ -29,16 +31,16 @@ export function RegisterGate({ onOpened }: { onOpened: () => void }) {
     if (busy || !companyId || !locationId) return;
     const amount = Number(openingCash || '0');
     if (Number.isNaN(amount) || amount < 0) {
-      showAlert('Invalid amount', 'Enter a valid opening cash amount.');
+      showAlert(t('shift.invalidAmount'), t('shift.invalidOpening'));
       return;
     }
     setBusy(true);
     try {
       await localShiftService.openShift(companyId, locationId, amount);
-      toast('Cash register opened.', 'success');
+      toast(t('shift.openedToast'), 'success');
       onOpened();
     } catch (err) {
-      showAlert('Could not open the register', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('shift.openFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setBusy(false);
     }
@@ -46,10 +48,10 @@ export function RegisterGate({ onOpened }: { onOpened: () => void }) {
 
   return (
     <AuthLayout
-      title="Open the cash register"
-      subtitle="Record the cash you're starting the day with. The app stays locked until the register is open.">
+      title={t('gate.title')}
+      subtitle={t('gate.subtitle')}>
       <View className="gap-1.5">
-        <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Opening cash float</Text>
+        <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('shift.openingCashFloat')}</Text>
         <TextInput
           className="rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
           placeholder="0"
@@ -60,7 +62,7 @@ export function RegisterGate({ onOpened }: { onOpened: () => void }) {
         />
       </View>
       <View className="mt-4">
-        <Button title={busy ? 'Opening…' : 'Open register'} loading={busy} onPress={onOpen} />
+        <Button title={busy ? t('shift.opening') : t('shift.openRegister')} loading={busy} onPress={onOpen} />
       </View>
       <Pressable
         onPress={() => {
@@ -68,7 +70,7 @@ export function RegisterGate({ onOpened }: { onOpened: () => void }) {
           router.replace('/');
         }}
         className="mt-3 items-center py-1">
-        <Text className="text-xs font-medium text-text-secondary">Log out</Text>
+        <Text className="text-xs font-medium text-text-secondary">{t('drawer.logout')}</Text>
       </Pressable>
     </AuthLayout>
   );

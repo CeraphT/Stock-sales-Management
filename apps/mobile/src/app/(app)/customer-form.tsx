@@ -29,7 +29,7 @@ export default function CustomerFormScreen() {
   const onSubmit = async () => {
     if (!companyId) return;
     if (!name.trim()) {
-      showAlert('Missing name', 'Enter a customer name.');
+      showAlert(t('product.missingName'), t('customers.missingNameBody'));
       return;
     }
     setSubmitting(true);
@@ -45,7 +45,7 @@ export default function CustomerFormScreen() {
       afterOfflineWrite({ queued: t('offline.queued'), rejected: t('offline.rejected') });
       router.back();
     } catch (err) {
-      showAlert('Could not create customer', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('customers.createFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -57,25 +57,25 @@ export default function CustomerFormScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Add customer</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('customers.add')}</Text>
           <View className="w-12" />
         </View>
       </View>
 
       <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
-        <TextField label="Customer name" value={name} onChangeText={setName} />
-        <TextField label="Phone (optional)" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
+        <TextField label={t('customers.name')} value={name} onChangeText={setName} />
+        <TextField label={t('customers.phoneOptional')} keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
 
         <View className="flex-row items-center justify-between rounded-xl bg-surface p-3.5">
           <View className="flex-1 pr-2">
-            <Text className="text-sm font-semibold text-text-primary">Business customer</Text>
-            <Text className="text-xs text-text-secondary">Enables a compliant invoice with the buyer's Tax ID (VAT added on top).</Text>
+            <Text className="text-sm font-semibold text-text-primary">{t('customers.business')}</Text>
+            <Text className="text-xs text-text-secondary">{t('customers.businessHint')}</Text>
           </View>
           <Switch value={isBusiness} onValueChange={setIsBusiness} trackColor={{ true: '#0F766E' }} />
         </View>
-        {isBusiness ? <TextField label="Tax ID / NIU" value={taxId} onChangeText={setTaxId} /> : null}
+        {isBusiness ? <TextField label={t('customers.taxId')} value={taxId} onChangeText={setTaxId} /> : null}
 
-        <Button title={submitting ? 'Creating…' : 'Create customer'} loading={submitting} onPress={onSubmit} />
+        <Button title={submitting ? t('createCompany.submitting') : t('customers.create')} loading={submitting} onPress={onSubmit} />
       </KeyboardAwareScroll>
     </SafeAreaView>
   );

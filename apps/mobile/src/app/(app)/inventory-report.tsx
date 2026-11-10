@@ -17,10 +17,12 @@ import { listInventory, type InventoryRow } from '@/lib/inventory';
 import { shareColoredReport } from '@/lib/reports/taxPdf';
 import { useThemeColors } from '@/lib/theme/colors';
 import { toast } from '@/lib/ui/toastStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import type { TranslationKey } from '@stockflow/core/i18n/translations';
 
 type StatusFilter = 'all' | 'in_stock' | 'low_stock' | 'out_of_stock';
 type ExpiryFilter = 'all' | 'expiring' | 'expired';
-const STATUS_LABEL: Record<Exclude<StatusFilter, 'all'>, string> = { in_stock: 'In stock', low_stock: 'Low stock', out_of_stock: 'Out of stock' };
+const STATUS_LABEL: Record<Exclude<StatusFilter, 'all'>, TranslationKey> = { in_stock: 'stockHealth.inStock', low_stock: 'stockHealth.lowStock', out_of_stock: 'stockHealth.outOfStock' };
 
 const TODAY = new Date().toISOString().slice(0, 10);
 function daysUntil(iso: string): number {
@@ -39,6 +41,7 @@ export default function InventoryReportScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   const { name: companyName, currency } = useCompanyInfo();
   const colors = useThemeColors();
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<StatusFilter>('all');
   const [category, setCategory] = useState<string>('');
@@ -87,25 +90,25 @@ export default function InventoryReportScreen() {
 
   async function sharePdf() {
     if (sharing || filtered.length === 0) {
-      if (filtered.length === 0) toast('Nothing to export.', 'info');
+      if (filtered.length === 0) toast(t('inventory.nothingToExport'), 'info');
       return;
     }
     setSharing(true);
     try {
       await shareColoredReport({
         companyName,
-        title: 'Inventory report',
-        subtitle: hasFilter ? 'Filtered' : 'All products',
+        title: t('drawer.item.inventoryReport'),
+        subtitle: hasFilter ? t('inventory.filtered') : t('inventory.allProducts'),
         meta: [
-          { label: 'Products', value: String(filtered.length) },
-          { label: 'Stock value (cost)', value: formatCurrency(totals.cost, currency) },
+          { label: t('dashboard.products'), value: String(filtered.length) },
+          { label: t('inventory.stockValueCost'), value: formatCurrency(totals.cost, currency) },
         ],
-        columns: [{ header: 'Product' }, { header: 'Category' }, { header: 'Supplier' }, { header: 'Stock', align: 'right' }, { header: 'Cost value', align: 'right' }, { header: 'Retail value', align: 'right' }],
+        columns: [{ header: t('tax.col.product') }, { header: t('inventory.category') }, { header: t('tax.col.supplier') }, { header: t('inventory.stock'), align: 'right' }, { header: t('inventory.costValue'), align: 'right' }, { header: t('inventory.retailValue'), align: 'right' }],
         rows: filtered.map((r) => [r.name, r.categoryName, r.supplierName, String(r.stock), formatCurrency(r.costValue, currency), formatCurrency(r.retailValue, currency)]),
-        totals: ['Total', null, null, String(totals.units), formatCurrency(totals.cost, currency), formatCurrency(totals.retail, currency)],
+        totals: [t('common.total'), null, null, String(totals.units), formatCurrency(totals.cost, currency), formatCurrency(totals.retail, currency)],
       });
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Could not export the report.', 'error');
+      toast(e instanceof Error ? e.message : t('tax.exportFailed'), 'error');
     } finally {
       setSharing(false);
     }
@@ -117,7 +120,7 @@ export default function InventoryReportScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Inventory report</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.inventoryReport')}</Text>
           <View className="w-12" />
         </View>
       </View>
@@ -125,17 +128,17 @@ export default function InventoryReportScreen() {
       <KeyboardAwareScroll contentContainerClassName="gap-4 p-4 pb-10">
         {/* KPI tiles — matches desktop (Products, Units, Cost, Retail, Margin). */}
         <View className="flex-row flex-wrap gap-3">
-          <Kpi label="Products" value={String(filtered.length)} />
-          <Kpi label="Units in stock" value={String(totals.units)} />
-          <Kpi label="Cost value" value={formatCurrency(totals.cost, currency)} tone="text-accent-amber" />
-          <Kpi label="Retail value" value={formatCurrency(totals.retail, currency)} tone="text-success" />
-          <Kpi label="Potential margin" value={formatCurrency(margin, currency)} tone="text-primary" />
+          <Kpi label={t('dashboard.products')} value={String(filtered.length)} />
+          <Kpi label={t('inventory.unitsInStock')} value={String(totals.units)} />
+          <Kpi label={t('inventory.costValue')} value={formatCurrency(totals.cost, currency)} tone="text-accent-amber" />
+          <Kpi label={t('inventory.retailValue')} value={formatCurrency(totals.retail, currency)} tone="text-success" />
+          <Kpi label={t('inventory.potentialMargin')} value={formatCurrency(margin, currency)} tone="text-primary" />
         </View>
 
         <View className="gap-3">
           <TextInput
             className="rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-text-primary"
-            placeholder="Search product or barcode"
+            placeholder={t('catalog.search')}
             placeholderTextColor={colors.placeholder}
             value={query}
             onChangeText={setQuery}
@@ -143,17 +146,17 @@ export default function InventoryReportScreen() {
           <FiltersDisclosure active={hasFilter}>
             <View className="flex-row flex-wrap gap-2">
               {(['all', 'in_stock', 'low_stock', 'out_of_stock'] as StatusFilter[]).map((s) => (
-                <FilterChip key={s} label={s === 'all' ? 'Any stock' : STATUS_LABEL[s]} active={status === s} onPress={() => setStatus(s)} />
+                <FilterChip key={s} label={s === 'all' ? t('inventory.anyStock') : t(STATUS_LABEL[s])} active={status === s} onPress={() => setStatus(s)} />
               ))}
             </View>
             <View className="flex-row flex-wrap gap-2">
               {(['all', 'expiring', 'expired'] as ExpiryFilter[]).map((e) => (
-                <FilterChip key={e} label={e === 'all' ? 'Any expiry' : e === 'expiring' ? 'Expiring soon' : 'Expired'} active={expiry === e} onPress={() => setExpiry(e)} />
+                <FilterChip key={e} label={e === 'all' ? t('inventory.anyExpiry') : e === 'expiring' ? t('dashboard.expiringSoon') : t('inventory.expired')} active={expiry === e} onPress={() => setExpiry(e)} />
               ))}
             </View>
             {categoryNames.length > 0 ? (
               <View className="flex-row flex-wrap gap-2">
-                <FilterChip label="All categories" active={category === ''} onPress={() => setCategory('')} />
+                <FilterChip label={t('inventory.allCategories')} active={category === ''} onPress={() => setCategory('')} />
                 {categoryNames.map((c) => (
                   <FilterChip key={c} label={c} active={category === c} onPress={() => setCategory(c)} />
                 ))}
@@ -161,20 +164,20 @@ export default function InventoryReportScreen() {
             ) : null}
             {supplierNames.length > 0 ? (
               <View className="flex-row flex-wrap gap-2">
-                <FilterChip label="All suppliers" active={supplier === ''} onPress={() => setSupplier('')} />
+                <FilterChip label={t('inventory.allSuppliers')} active={supplier === ''} onPress={() => setSupplier('')} />
                 {supplierNames.map((s) => (
                   <FilterChip key={s} label={s} active={supplier === s} onPress={() => setSupplier(s)} />
                 ))}
               </View>
             ) : null}
           </FiltersDisclosure>
-          <Button title="🖨  Share PDF" variant="secondary" loading={sharing} onPress={sharePdf} />
+          <Button title={`🖨  ${t('common.sharePdf')}`} variant="secondary" loading={sharing} onPress={sharePdf} />
         </View>
 
         {isLoading ? (
-          <Text className="p-4 text-center text-sm text-text-secondary">Loading…</Text>
+          <Text className="p-4 text-center text-sm text-text-secondary">{t('common.loading')}</Text>
         ) : filtered.length === 0 ? (
-          <Text className="p-4 text-center text-sm text-text-secondary">No products.</Text>
+          <Text className="p-4 text-center text-sm text-text-secondary">{t('inventory.noProducts')}</Text>
         ) : (
           <>
             {groups.map(([cat, catRows]) => {
@@ -191,15 +194,15 @@ export default function InventoryReportScreen() {
                         <View className="flex-1 flex-row flex-wrap items-center gap-1.5">
                           <Text className="text-sm font-medium text-text-primary">{r.name}</Text>
                           {isExpired(r) ? (
-                            <View className="rounded bg-error/15 px-1.5 py-0.5"><Text className="text-[10px] font-bold text-error">Expired</Text></View>
+                            <View className="rounded bg-error/15 px-1.5 py-0.5"><Text className="text-[10px] font-bold text-error">{t('inventory.expired')}</Text></View>
                           ) : isExpiringSoon(r) ? (
-                            <View className="rounded bg-accent-orange/15 px-1.5 py-0.5"><Text className="text-[10px] font-bold text-accent-orange">Expiring soon</Text></View>
+                            <View className="rounded bg-accent-orange/15 px-1.5 py-0.5"><Text className="text-[10px] font-bold text-accent-orange">{t('dashboard.expiringSoon')}</Text></View>
                           ) : null}
                         </View>
-                        <StockBadge status={r.status} label={STATUS_LABEL[r.status]} />
+                        <StockBadge status={r.status} label={t(STATUS_LABEL[r.status])} />
                       </View>
                       <View className="mt-1 flex-row items-center justify-between">
-                        <Text className="text-xs text-text-secondary">{r.supplierName} · {r.stock} in stock</Text>
+                        <Text className="text-xs text-text-secondary">{r.supplierName} · {t('catalog.inStockCount').replace('{n}', String(r.stock))}</Text>
                         <Text className="text-xs text-text-secondary">
                           {formatCurrency(r.costValue, currency)} → <Text className="font-semibold text-text-primary">{formatCurrency(r.retailValue, currency)}</Text>
                         </Text>
@@ -207,7 +210,7 @@ export default function InventoryReportScreen() {
                     </View>
                   ))}
                   <View className="flex-row items-center justify-between px-4 py-2">
-                    <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Subtotal · {sub.q}</Text>
+                    <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('inventory.subtotal')} · {sub.q}</Text>
                     <Text className="text-xs font-bold text-text-primary">{formatCurrency(sub.c, currency)} → {formatCurrency(sub.s, currency)}</Text>
                   </View>
                 </View>
@@ -215,7 +218,7 @@ export default function InventoryReportScreen() {
             })}
 
             <View className="flex-row items-center justify-between rounded-card border-2 border-primary/40 bg-primary/5 px-4 py-3">
-              <Text className="text-sm font-extrabold text-text-primary">Total · {totals.units} units</Text>
+              <Text className="text-sm font-extrabold text-text-primary">{t('common.total')} · {totals.units} {t('common.units')}</Text>
               <Text className="text-sm font-extrabold text-text-primary">{formatCurrency(totals.cost, currency)} → {formatCurrency(totals.retail, currency)}</Text>
             </View>
           </>

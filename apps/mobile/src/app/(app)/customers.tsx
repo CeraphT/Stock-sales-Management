@@ -18,12 +18,14 @@ import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function CustomersScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   useFeatureGuard(useAuthStore((s) => s.user?.restrictCustomers));
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [query, setQuery] = useState('');
 
@@ -34,7 +36,7 @@ export default function CustomersScreen() {
     enabled: !!companyId,
     local: () => localMirrorQueries.listCustomers(companyId!, appliedSearch || undefined),
     remote: () => customersApi.list(companyId!, appliedSearch || undefined),
-    errorTitle: 'Could not load customers',
+    errorTitle: t('customers.loadFailed'),
     deps: [companyId, appliedSearch],
   });
   const customers = data ?? [];
@@ -50,17 +52,17 @@ export default function CustomersScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Customers</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.customers')}</Text>
           <Pressable
             onPress={() => router.push('/customer-form')}
-            accessibilityLabel="Add customer"
+            accessibilityLabel={t('customers.add')}
             className="h-9 w-9 items-center justify-center rounded-full bg-primary active:opacity-90">
             <Ionicons name="add" size={20} color="#FFFFFF" />
           </Pressable>
         </View>
         <TextInput
           className="mt-3 rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
-          placeholder="Search name or phone"
+          placeholder={t('customers.search')}
           placeholderTextColor={colors.placeholder}
           value={query}
           onChangeText={(text) => {
@@ -96,23 +98,23 @@ export default function CustomersScreen() {
             </View>
             <View className="mt-1 flex-row flex-wrap gap-x-3">
               <Text className="text-xs text-text-secondary">
-                Credit:{' '}
+                {t('customers.creditLabel')}{' '}
                 <Text className={item.creditBalance > 0 ? 'font-semibold text-error' : 'text-text-primary'}>
                   {formatCurrency(item.creditBalance, currency)}
                 </Text>
               </Text>
               <Text className="text-xs text-text-secondary">
-                Store credit:{' '}
+                {t('customers.storeCreditLabel')}{' '}
                 <Text className={item.loyaltyStoreCreditBalance > 0 ? 'font-semibold text-success' : 'text-text-primary'}>
                   {formatCurrency(item.loyaltyStoreCreditBalance, currency)}
                 </Text>
               </Text>
-              {item.rewardsGranted > 0 ? <Text className="text-xs text-text-secondary">Rewards: 🎁 {item.rewardsGranted}</Text> : null}
+              {item.rewardsGranted > 0 ? <Text className="text-xs text-text-secondary">{t('customers.rewardsLabel')} 🎁 {item.rewardsGranted}</Text> : null}
             </View>
           </Pressable>
         )}
         ListEmptyComponent={
-          !loading ? <Text className="p-4 text-center text-sm text-text-secondary">No customers yet.</Text> : null
+          !loading ? <Text className="p-4 text-center text-sm text-text-secondary">{t('customers.empty')}</Text> : null
         }
       />
     </SafeAreaView>

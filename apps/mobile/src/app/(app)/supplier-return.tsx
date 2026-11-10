@@ -13,6 +13,7 @@ import { productsApi } from '@/lib/api/endpoints/products';
 import { useAuthStore } from '@/lib/auth/store';
 import { syncNow } from '@/lib/sync/syncNow';
 import { showAlert } from '@/lib/ui/alertStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function SupplierReturnScreen() {
   const { productId, batchId, batchNumber, available } = useLocalSearchParams<{
@@ -23,6 +24,7 @@ export default function SupplierReturnScreen() {
   }>();
   const companyId = useAuthStore((s) => s.companyId);
   const availableQty = Number(available ?? '0');
+  const { t } = useTranslation();
 
   const [qty, setQty] = useState('');
   const [reason, setReason] = useState('');
@@ -32,11 +34,11 @@ export default function SupplierReturnScreen() {
     if (!companyId || !productId || !batchId) return;
     const q = Number(qty);
     if (!Number.isInteger(q) || q <= 0) {
-      showAlert('Invalid quantity', 'Enter a positive whole number of base units to return.');
+      showAlert(t('common.invalidQuantity'), t('return.invalidQtyBody'));
       return;
     }
     if (availableQty > 0 && q > availableQty) {
-      showAlert('Too many', `Only ${availableQty} in stock in this batch.`);
+      showAlert(t('return.tooMany'), t('return.tooManyBody').replace('{n}', String(availableQty)));
       return;
     }
     setSubmitting(true);
@@ -49,7 +51,7 @@ export default function SupplierReturnScreen() {
       await syncNow();
       router.back();
     } catch (err) {
-      showAlert('Could not return stock', err instanceof ApiError ? err.message : 'Something went wrong.');
+      showAlert(t('return.failed'), err instanceof ApiError ? err.message : t('common.somethingWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -61,7 +63,7 @@ export default function SupplierReturnScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Return to supplier</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('product.returnToSupplier')}</Text>
           <View className="w-12" />
         </View>
       </View>
@@ -69,23 +71,23 @@ export default function SupplierReturnScreen() {
       <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         {batchNumber ? (
           <Text className="text-sm text-text-secondary">
-            Batch {batchNumber}{availableQty > 0 ? ` · ${availableQty} in stock` : ''}
+            {t('common.batch')} {batchNumber}{availableQty > 0 ? ` · ${t('catalog.inStockCount').replace('{n}', String(availableQty))}` : ''}
           </Text>
         ) : null}
         <TextField
-          label="Quantity to return (base units)"
+          label={t('return.qtyLabel')}
           placeholder="0"
           keyboardType="numeric"
           value={qty}
           onChangeText={setQty}
         />
         <TextField
-          label="Reason (optional)"
-          placeholder="e.g. damaged / expired / wrong item"
+          label={t('return.reason')}
+          placeholder={t('return.reasonPlaceholder')}
           value={reason}
           onChangeText={setReason}
         />
-        <Button title={submitting ? 'Returning…' : 'Return to supplier'} loading={submitting} onPress={onSubmit} />
+        <Button title={submitting ? t('return.returning') : t('product.returnToSupplier')} loading={submitting} onPress={onSubmit} />
       </KeyboardAwareScroll>
     </SafeAreaView>
   );

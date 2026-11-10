@@ -60,15 +60,15 @@ export default function StockReceiveScreen() {
   const onSubmit = async () => {
     if (!companyId || !locationId || !productId) return;
     if (!batchNumber.trim()) {
-      showAlert('Missing batch number', 'Enter a batch/lot number.');
+      showAlert(t('receiveLine.missingBatch'), t('receiveLine.missingBatchBody'));
       return;
     }
     if (expiryRequired && !expiryDate) {
-      showAlert('Missing expiry date', 'Select the expiry date for this batch.');
+      showAlert(t('receiveLine.missingExpiry'), t('receiveLine.missingExpiryBody'));
       return;
     }
     if (baseUnits <= 0) {
-      showAlert('Invalid quantity', serialTracked ? 'Enter at least one serial number.' : 'Quantity must be a positive number.');
+      showAlert(t('common.invalidQuantity'), serialTracked ? t('receiveLine.needSerial') : t('receive.qtyPositive'));
       return;
     }
 
@@ -93,7 +93,7 @@ export default function StockReceiveScreen() {
       }
       router.back();
     } catch (err) {
-      showAlert('Could not receive stock', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('receive.failed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -105,19 +105,19 @@ export default function StockReceiveScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Receive stock</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.receiveStock')}</Text>
           <View className="w-12" />
         </View>
       </View>
 
       <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         {product ? <Text className="text-sm text-text-secondary">{product.name}</Text> : null}
-        <TextField label="Batch / lot number" placeholder="e.g. LOT-2026-07" value={batchNumber} onChangeText={setBatchNumber} />
-        <DateField label={expiryRequired ? 'Expiry date' : 'Expiry date (optional)'} value={expiryDate} onChange={setExpiryDate} minimumDate={new Date()} />
+        <TextField label={t('receive.batchLabel')} placeholder={`${t('common.eg')} LOT-2026-07`} value={batchNumber} onChangeText={setBatchNumber} />
+        <DateField label={expiryRequired ? t('receive.expiry') : t('receive.expiryOptional')} value={expiryDate} onChange={setExpiryDate} minimumDate={new Date()} />
 
         {serialTracked ? (
           <View className="gap-1.5">
-            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Serial / IMEI numbers (one per line)</Text>
+            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('receive.serialsLabel')}</Text>
             <TextInput
               className="rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
               placeholder={'SN-0001\nSN-0002'}
@@ -129,11 +129,11 @@ export default function StockReceiveScreen() {
               value={serialText}
               onChangeText={setSerialText}
             />
-            <Text className="text-xs text-text-secondary">{serials.length} unit(s) - each serial is one unit received.</Text>
+            <Text className="text-xs text-text-secondary">{t('receive.serialsCount').replace('{n}', String(serials.length))}</Text>
           </View>
         ) : (
           <TextField
-            label={measure ? `Quantity (${measureUnit})` : 'Quantity (base units)'}
+            label={measure ? `${t('common.quantity')} (${measureUnit})` : t('receive.qtyBase')}
             placeholder="0"
             keyboardType="numeric"
             value={quantity}
@@ -142,14 +142,14 @@ export default function StockReceiveScreen() {
         )}
 
         <TextField
-          label={`Purchase price ${measure ? `per ${measureUnit}` : 'per base unit'} (${currency}, optional)`}
-          placeholder="Defaults to the product's catalog cost"
+          label={(measure ? t('receive.pricePerMeasure').replace('{unit}', measureUnit) : t('receive.pricePerUnit')).replace('{currency}', currency)}
+          placeholder={t('receive.priceDefault')}
           keyboardType="numeric"
           value={purchasePrice}
           onChangeText={setPurchasePrice}
         />
 
-        <Button title={submitting ? 'Receiving…' : 'Receive stock'} loading={submitting} onPress={onSubmit} />
+        <Button title={submitting ? t('receive.receiving') : t('drawer.item.receiveStock')} loading={submitting} onPress={onSubmit} />
       </KeyboardAwareScroll>
     </SafeAreaView>
   );

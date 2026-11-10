@@ -15,6 +15,7 @@ import { analyzeBackup, applyRestore, countUnsyncedTransactions, parseBackup, TA
 import { syncNow } from '@/lib/sync/syncNow';
 import { showAlert } from '@/lib/ui/alertStore';
 import { toast } from '@/lib/ui/toastStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 type Busy = null | 'backup' | 'auto' | 'restore' | 'analyze' | 'reset';
 
@@ -23,6 +24,7 @@ export default function DataMaintenanceScreen() {
   const role = useAuthStore((s) => s.user?.role);
   const clear = useAuthStore((s) => s.clear);
   const isAdmin = role === UserRole.CompanyAdmin || role === UserRole.SuperAdmin;
+  const { t } = useTranslation();
 
   const [busy, setBusy] = useState<Busy>(null);
   const [autoInfo, setAutoInfo] = useState<{ period: string; at: string } | null>(null);
@@ -48,9 +50,9 @@ export default function DataMaintenanceScreen() {
     setBusy('backup');
     try {
       const r = await shareBackup(companyId);
-      toast(`Backup ready · ${r.fileName} · ${r.rowCount} records`, 'success');
+      toast(t('backup.ready').replace('{file}', r.fileName).replace('{n}', String(r.rowCount)), 'success');
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Backup failed.', 'error');
+      toast(e instanceof Error ? e.message : t('backup.failed'), 'error');
     } finally {
       setBusy(null);
     }
@@ -62,9 +64,9 @@ export default function DataMaintenanceScreen() {
     try {
       const r = await runDueBackup(companyId, { force: true });
       setAutoInfo(await lastBackupInfo());
-      toast(r.ran ? `Daily backup saved · ${r.rows} records` : 'Nothing to back up.', 'success');
+      toast(r.ran ? t('backup.dailySaved').replace('{n}', String(r.rows)) : t('backup.nothing'), 'success');
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Backup failed.', 'error');
+      toast(e instanceof Error ? e.message : t('backup.failed'), 'error');
     } finally {
       setBusy(null);
     }
@@ -83,13 +85,13 @@ export default function DataMaintenanceScreen() {
       const text = await new File(res.assets[0].uri).text();
       const p = parseBackup(text);
       const { companyMismatch, recap: rc } = await analyzeBackup(p, companyId);
-      if (companyMismatch) return toast("This backup belongs to a different business. It can't be restored here.", 'error');
-      if (rc.length === 0) return toast('This backup has no records to restore.', 'info');
+      if (companyMismatch) return toast(t('backup.otherBusiness'), 'error');
+      if (rc.length === 0) return toast(t('backup.noRecords'), 'info');
       setParsed(p);
       setRecap(rc);
       setSel(new Set(rc.map((r) => r.name)));
     } catch (e) {
-      toast(e instanceof Error ? e.message : "Couldn't read this backup file.", 'error');
+      toast(e instanceof Error ? e.message : t('backup.readFailed'), 'error');
     } finally {
       setBusy(null);
     }
@@ -107,33 +109,33 @@ export default function DataMaintenanceScreen() {
 
   async function onRestore(mode: 'add' | 'replace') {
     if (!parsed || !companyId || busy) return;
-    if (sel.size === 0) return toast('Pick at least one type of data.', 'info');
+    if (sel.size === 0) return toast(t('backup.pickOne'), 'info');
     setBusy('restore');
     try {
       const r = await applyRestore(parsed, companyId, [...sel], mode);
-      toast(`Restore complete · ${r.inserted} added, ${r.updated} updated, ${r.skipped} skipped`, 'success');
+      toast(t('backup.restoreDone').replace('{added}', String(r.inserted)).replace('{updated}', String(r.updated)).replace('{skipped}', String(r.skipped)), 'success');
       setParsed(null);
       setRecap([]);
       setSel(new Set());
       const pending = await countUnsyncedTransactions(companyId);
       if (pending > 0) {
-        showAlert('Make restored sales official?', 'Some restored sales aren’t on the server yet. Send them so they become official for every device. Already-synced sales and your catalogue are handled automatically.', [
-          { text: 'Not now', style: 'cancel' },
+        showAlert(t('backup.officialTitle'), t('backup.officialBody'), [
+          { text: t('common.notNow'), style: 'cancel' },
           {
-            text: 'Send to server',
+            text: t('backup.sendToServer'),
             onPress: async () => {
               try {
                 await syncNow();
-                toast('Sent to server.', 'success');
+                toast(t('backup.sent'), 'success');
               } catch {
-                toast('Could not reach the server. Try Sync later.', 'error');
+                toast(t('backup.serverUnreachable'), 'error');
               }
             },
           },
         ]);
       }
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Restore failed.', 'error');
+      toast(e instanceof Error ? e.message : t('backup.restoreFailed'), 'error');
     } finally {
       setBusy(null);
     }
@@ -142,12 +144,12 @@ export default function DataMaintenanceScreen() {
   function onReset() {
     if (!companyId || busy) return;
     showAlert(
-      'Reset all data on this device?',
-      'This permanently clears every record stored on THIS device and signs you out. Your business data on the server is safe and downloads again next time you sign in. Any sales not yet synced will be lost.',
+      t('backup.resetTitle'),
+      t('backup.resetBody'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Reset everything',
+          text: t('backup.resetEverything'),
           style: 'destructive',
           onPress: async () => {
             setBusy('reset');
@@ -158,13 +160,13 @@ export default function DataMaintenanceScreen() {
                 /* offline — the dialog already warned unsynced sales will be lost */
               }
               await resetAllData();
-              toast('All local data cleared. Signing out…', 'success');
+              toast(t('backup.cleared'), 'success');
               setTimeout(() => {
                 clear();
                 router.replace('/');
               }, 500);
             } catch (e) {
-              toast(e instanceof Error ? e.message : 'Reset failed.', 'error');
+              toast(e instanceof Error ? e.message : t('backup.resetFailed'), 'error');
               setBusy(null);
             }
           },
@@ -179,7 +181,7 @@ export default function DataMaintenanceScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Data & maintenance</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.dataMaintenance')}</Text>
           <View className="w-12" />
         </View>
       </View>
@@ -188,8 +190,8 @@ export default function DataMaintenanceScreen() {
         <View className="p-5">
           <View className="rounded-card border border-border bg-surface p-6">
             <Text className="text-center text-3xl">🔒</Text>
-            <Text className="mt-2 text-center text-lg font-bold text-text-primary">Administrators only</Text>
-            <Text className="mt-1 text-center text-sm text-text-secondary">Backing up and resetting device data is restricted to a company administrator.</Text>
+            <Text className="mt-2 text-center text-lg font-bold text-text-primary">{t('backup.adminsOnly')}</Text>
+            <Text className="mt-1 text-center text-sm text-text-secondary">{t('backup.adminsOnlyBody')}</Text>
           </View>
         </View>
       ) : (
@@ -197,52 +199,50 @@ export default function DataMaintenanceScreen() {
           {/* Automatic daily backup */}
           <View className="rounded-card border border-success/40 bg-success/5 p-4">
             <View className="flex-row items-center justify-between">
-              <Text className="text-sm font-bold text-text-primary">🛡️ Automatic daily backup</Text>
+              <Text className="text-sm font-bold text-text-primary">🛡️ {t('backup.autoTitle')}</Text>
               <View className="rounded-full bg-success/15 px-2.5 py-0.5">
-                <Text className="text-xs font-bold text-success">On</Text>
+                <Text className="text-xs font-bold text-success">{t('backup.on')}</Text>
               </View>
             </View>
-            <Text className="mt-1 text-xs text-text-secondary">
-              Saved automatically once a day; the last 14 days are kept as separate files. So yesterday's work is always safe, even offline.
-            </Text>
+            <Text className="mt-1 text-xs text-text-secondary">{t('backup.autoHint')}</Text>
             <View className="mt-3 gap-1 rounded-xl bg-surface/60 p-3">
               <Text className="text-xs">
-                <Text className="text-text-secondary">Last backup: </Text>
-                <Text className="font-semibold text-text-primary">{autoInfo ? autoInfo.period : 'not yet'}</Text>
+                <Text className="text-text-secondary">{t('backup.last')} </Text>
+                <Text className="font-semibold text-text-primary">{autoInfo ? autoInfo.period : t('backup.notYet')}</Text>
               </Text>
               <Text className="text-xs">
-                <Text className="text-text-secondary">Saved in: </Text>
-                <Text className="text-text-primary">{backupsPath ?? 'app storage'}</Text>
+                <Text className="text-text-secondary">{t('backup.savedIn')} </Text>
+                <Text className="text-text-primary">{backupsPath ?? t('backup.appStorage')}</Text>
               </Text>
             </View>
             <View className="mt-3">
-              <Button title="🛡️  Run a daily backup now" variant="secondary" loading={busy === 'auto'} disabled={!!busy} onPress={onAutoBackupNow} />
+              <Button title={`🛡️  ${t('backup.runNow')}`} variant="secondary" loading={busy === 'auto'} disabled={!!busy} onPress={onAutoBackupNow} />
             </View>
           </View>
 
           {/* Manual backup */}
           <View className="rounded-card border border-border bg-surface p-4">
-            <Text className="text-sm font-bold text-text-primary">💾 Back up data</Text>
-            <Text className="mt-1 text-xs text-text-secondary">Save a full snapshot to a file you can keep or send (Files, Drive, WhatsApp…).</Text>
+            <Text className="text-sm font-bold text-text-primary">💾 {t('backup.backupTitle')}</Text>
+            <Text className="mt-1 text-xs text-text-secondary">{t('backup.backupHint')}</Text>
             <View className="mt-3">
-              <Button title="💾  Back up now" loading={busy === 'backup'} disabled={!!busy} onPress={onBackup} />
+              <Button title={`💾  ${t('backup.backupNow')}`} loading={busy === 'backup'} disabled={!!busy} onPress={onBackup} />
             </View>
           </View>
 
           {/* Restore */}
           <View className="rounded-card border border-border bg-surface p-4">
-            <Text className="text-sm font-bold text-text-primary">📥 Restore from a backup</Text>
-            <Text className="mt-1 text-xs text-text-secondary">Upload a backup, review what matches, then add only new records or replace existing ones.</Text>
+            <Text className="text-sm font-bold text-text-primary">📥 {t('backup.restoreTitle')}</Text>
+            <Text className="mt-1 text-xs text-text-secondary">{t('backup.restoreHint')}</Text>
             <View className="mt-3">
-              <Button title="📂  Choose backup file" variant="secondary" loading={busy === 'analyze'} disabled={!!busy} onPress={onChooseFile} />
+              <Button title={`📂  ${t('backup.chooseFile')}`} variant="secondary" loading={busy === 'analyze'} disabled={!!busy} onPress={onChooseFile} />
             </View>
 
             {parsed && recap.length > 0 ? (
               <View className="mt-4 gap-2">
                 <View className="flex-row items-center justify-between">
-                  <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Backup contents</Text>
+                  <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('backup.contents')}</Text>
                   <Pressable onPress={() => setSel(allSelected ? new Set() : new Set(recap.map((r) => r.name)))}>
-                    <Text className="text-xs font-semibold text-primary">{allSelected ? 'Select none' : 'Select all'}</Text>
+                    <Text className="text-xs font-semibold text-primary">{allSelected ? t('backup.selectNone') : t('backup.selectAll')}</Text>
                   </Pressable>
                 </View>
                 <View className="overflow-hidden rounded-xl border border-border">
@@ -251,22 +251,22 @@ export default function DataMaintenanceScreen() {
                       <View className={`h-5 w-5 items-center justify-center rounded border ${sel.has(r.name) ? 'border-primary bg-primary' : 'border-border'}`}>
                         {sel.has(r.name) ? <Text className="text-[11px] font-bold text-white">✓</Text> : null}
                       </View>
-                      <Text className="flex-1 text-sm text-text-primary">{TABLE_LABELS[r.name] ?? r.name}</Text>
+                      <Text className="flex-1 text-sm text-text-primary">{TABLE_LABELS[r.name] ? t(TABLE_LABELS[r.name]) : r.name}</Text>
                       <Text className="text-xs text-text-secondary">
-                        {r.fileRows} in file
-                        {r.existing > 0 ? <Text className="text-accent-amber"> · {r.existing} match</Text> : null}
-                        {r.newRows > 0 ? <Text className="text-success"> · {r.newRows} new</Text> : null}
+                        {t('backup.inFile').replace('{n}', String(r.fileRows))}
+                        {r.existing > 0 ? <Text className="text-accent-amber"> · {t('backup.match').replace('{n}', String(r.existing))}</Text> : null}
+                        {r.newRows > 0 ? <Text className="text-success"> · {t('backup.newRows').replace('{n}', String(r.newRows))}</Text> : null}
                       </Text>
                     </Pressable>
                   ))}
                 </View>
-                <Text className="text-[11px] text-text-secondary">“Add” keeps your current records and only inserts new ones. “Replace” overwrites the matching (amber) records with the backup's version.</Text>
+                <Text className="text-[11px] text-text-secondary">{t('backup.modesHint')}</Text>
                 <View className="flex-row gap-2 pt-1">
                   <View className="flex-1">
-                    <Button title="➕  Add new only" variant="secondary" loading={busy === 'restore'} disabled={!!busy} onPress={() => onRestore('add')} />
+                    <Button title={`➕  ${t('backup.addNewOnly')}`} variant="secondary" loading={busy === 'restore'} disabled={!!busy} onPress={() => onRestore('add')} />
                   </View>
                   <View className="flex-1">
-                    <Button title="♻️  Replace" variant="danger" loading={busy === 'restore'} disabled={!!busy} onPress={() => onRestore('replace')} />
+                    <Button title={`♻️  ${t('backup.replace')}`} variant="danger" loading={busy === 'restore'} disabled={!!busy} onPress={() => onRestore('replace')} />
                   </View>
                 </View>
               </View>
@@ -275,10 +275,10 @@ export default function DataMaintenanceScreen() {
 
           {/* Reset */}
           <View className="rounded-card border border-error/40 bg-error/5 p-4">
-            <Text className="text-sm font-bold text-error">♻️ Reset app data (complete refresh)</Text>
-            <Text className="mt-1 text-xs text-text-secondary">Clears this device and signs you out. Server data is safe and re-downloads on next sign-in. But sync first, as unsynced sales can't be recovered.</Text>
+            <Text className="text-sm font-bold text-error">♻️ {t('backup.resetSectionTitle')}</Text>
+            <Text className="mt-1 text-xs text-text-secondary">{t('backup.resetSectionHint')}</Text>
             <View className="mt-3">
-              <Button title="♻️  Reset everything" variant="danger" loading={busy === 'reset'} disabled={!!busy} onPress={onReset} />
+              <Button title={`♻️  ${t('backup.resetEverything')}`} variant="danger" loading={busy === 'reset'} disabled={!!busy} onPress={onReset} />
             </View>
           </View>
         </KeyboardAwareScroll>

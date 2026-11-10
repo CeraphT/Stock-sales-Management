@@ -12,6 +12,7 @@ import { useCartStore } from '@/lib/cart/store';
 import { localCatalogQueryService } from '@/lib/local/catalogQueryService';
 import { useScanCaptureStore } from '@/lib/scan/captureStore';
 import { useThemeColors } from '@/lib/theme/colors';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 const RESCAN_COOLDOWN_MS = 2000;
 // A single misread camera frame (blur, glare, an odd angle) can report a
@@ -48,6 +49,7 @@ export default function ScannerScreen() {
   const addLine = useCartStore((s) => s.addLine);
   const setCapturedCode = useScanCaptureStore((s) => s.setCode);
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [permission, requestPermission] = useCameraPermissions();
   const [banner, setBanner] = useState<{ text: string; tone: 'success' | 'error' } | null>(null);
@@ -104,9 +106,9 @@ export default function ScannerScreen() {
         },
         1,
       );
-      setBanner({ text: `Added: ${product.name}`, tone: 'success' });
+      setBanner({ text: t('scanner.added').replace('{name}', product.name), tone: 'success' });
     } catch (err) {
-      const message = err instanceof ApiError && err.status === 404 ? `No product for "${code}"` : 'Lookup failed.';
+      const message = err instanceof ApiError && err.status === 404 ? t('scanner.noProduct').replace('{code}', code) : t('scanner.lookupFailed');
       setBanner({ text: message, tone: 'error' });
     } finally {
       busy.current = false;
@@ -123,15 +125,13 @@ export default function ScannerScreen() {
       <SafeAreaView className="flex-1 items-center justify-center gap-4 bg-background px-8">
         <ScreenBackground />
         <Ionicons name="camera-outline" size={40} color={colors.iconMuted} />
-        <Text className="text-center text-base font-semibold text-text-primary">Camera access needed</Text>
-        <Text className="text-center text-sm text-text-secondary">
-          StockFlow needs camera access to scan product barcodes.
-        </Text>
+        <Text className="text-center text-base font-semibold text-text-primary">{t('scanner.cameraNeeded')}</Text>
+        <Text className="text-center text-sm text-text-secondary">{t('scanner.cameraNeededBody')}</Text>
         <Pressable onPress={requestPermission} className="rounded-xl bg-primary px-6 py-3">
-          <Text className="text-sm font-semibold text-white">Grant permission</Text>
+          <Text className="text-sm font-semibold text-white">{t('scanner.grant')}</Text>
         </Pressable>
         <Pressable onPress={() => router.back()}>
-          <Text className="text-sm font-semibold text-text-secondary">Cancel</Text>
+          <Text className="text-sm font-semibold text-text-secondary">{t('common.cancel')}</Text>
         </Pressable>
       </SafeAreaView>
     );
@@ -155,10 +155,10 @@ export default function ScannerScreen() {
             className="h-10 w-10 items-center justify-center rounded-full bg-black/50">
             <Ionicons name="close" size={22} color="#FFFFFF" />
           </Pressable>
-          <Text className="text-sm font-semibold text-white">{isCapture ? 'Scan barcode / QR' : 'Scan to add'}</Text>
+          <Text className="text-sm font-semibold text-white">{isCapture ? t('scanner.scanCode') : t('scanner.scanToAdd')}</Text>
           <Pressable
             onPress={() => setTorchOn((v) => !v)}
-            accessibilityLabel="Toggle flashlight"
+            accessibilityLabel={t('scanner.torch')}
             className="h-10 w-10 items-center justify-center rounded-full bg-black/50">
             <Ionicons name={torchOn ? 'flash' : 'flash-outline'} size={20} color="#FFFFFF" />
           </Pressable>
@@ -167,7 +167,7 @@ export default function ScannerScreen() {
 
       <View pointerEvents="none" className="absolute inset-0 items-center justify-center gap-3">
         <View className={`h-56 w-72 rounded-2xl border-2 ${confirming ? 'border-accent-amber' : 'border-white/80'}`} />
-        {confirming ? <Text className="text-sm font-semibold text-white">Hold steady…</Text> : null}
+        {confirming ? <Text className="text-sm font-semibold text-white">{t('scanner.holdSteady')}</Text> : null}
       </View>
 
       {banner ? (

@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useThemeColors } from '@/lib/theme/colors';
 
 interface TextFieldProps extends TextInputProps {
@@ -13,6 +14,7 @@ interface TextFieldProps extends TextInputProps {
  * transition. When `secureTextEntry` is passed, shows a show/hide toggle
  * inside the field instead of a bare masked input. */
 export function TextField({ label, secureTextEntry, ...inputProps }: TextFieldProps) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const isPassword = !!secureTextEntry;
   const colors = useThemeColors();
@@ -31,7 +33,7 @@ export function TextField({ label, secureTextEntry, ...inputProps }: TextFieldPr
           <Pressable
             onPress={() => setVisible((v) => !v)}
             hitSlop={8}
-            accessibilityLabel={visible ? 'Hide password' : 'Show password'}
+            accessibilityLabel={visible ? t('common.hidePassword') : t('common.showPassword')}
             className="absolute right-3 h-6 w-6 items-center justify-center">
             <Ionicons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.iconMuted} />
           </Pressable>

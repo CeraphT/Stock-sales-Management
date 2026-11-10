@@ -17,6 +17,7 @@ import { db } from '@/lib/db/client';
 import { installGlobalErrorHandlers } from '@/lib/globalErrors';
 import migrations from '@/lib/db/migrations/migrations';
 import { useLanguageStore } from '@/lib/i18n/store';
+import { tr } from '@/lib/i18n/translate';
 import { useThemeStore } from '@/lib/theme/store';
 
 import '../global.css';
@@ -76,7 +77,7 @@ export default function RootLayout() {
   if (error) {
     return (
       <View className={`${rootClassName} items-center justify-center bg-background px-6`}>
-        <Text className="text-center text-error">Local database setup failed: {error.message}</Text>
+        <Text className="text-center text-error">{tr('app.dbSetupFailed')} {error.message}</Text>
       </View>
     );
   }

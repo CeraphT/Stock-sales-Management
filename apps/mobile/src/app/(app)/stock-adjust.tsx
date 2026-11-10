@@ -28,11 +28,11 @@ export default function StockAdjustScreen() {
     if (!companyId || !productId || !batchId) return;
     const deltaNumber = Number(delta);
     if (!Number.isInteger(deltaNumber) || deltaNumber === 0) {
-      showAlert('Invalid quantity', 'Enter a non-zero whole number (negative for a loss, positive for a correction).');
+      showAlert(t('common.invalidQuantity'), t('adjust.invalidQtyBody'));
       return;
     }
     if (!reason.trim()) {
-      showAlert('Reason required', 'Enter a reason for this adjustment (breakage, theft, count correction, etc.).');
+      showAlert(t('adjust.reasonRequired'), t('adjust.reasonRequiredBody'));
       return;
     }
 
@@ -47,8 +47,8 @@ export default function StockAdjustScreen() {
       afterOfflineWrite({ queued: t('offline.queued'), rejected: t('offline.rejected') });
       router.back();
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'Something went wrong.';
-      showAlert('Could not adjust stock', message);
+      const message = err instanceof ApiError ? err.message : t('common.somethingWrong');
+      showAlert(t('adjust.failed'), message);
     } finally {
       setSubmitting(false);
     }
@@ -60,22 +60,22 @@ export default function StockAdjustScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Adjust stock</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('adjust.title')}</Text>
           <View className="w-12" />
         </View>
       </View>
 
       <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         <TextField
-          label="Quantity change (base units)"
-          placeholder="e.g. -5 for breakage, 3 for a correction"
+          label={t('adjust.qtyLabel')}
+          placeholder={t('adjust.qtyPlaceholder')}
           keyboardType="numbers-and-punctuation"
           value={delta}
           onChangeText={setDelta}
         />
-        <TextField label="Reason" placeholder="e.g. Breakage during handling" value={reason} onChangeText={setReason} />
+        <TextField label={t('adjust.reason')} placeholder={t('adjust.reasonPlaceholder')} value={reason} onChangeText={setReason} />
 
-        <Button title={submitting ? 'Adjusting…' : 'Apply adjustment'} loading={submitting} onPress={onSubmit} />
+        <Button title={submitting ? t('adjust.adjusting') : t('adjust.apply')} loading={submitting} onPress={onSubmit} />
       </KeyboardAwareScroll>
     </SafeAreaView>
   );

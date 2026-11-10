@@ -21,6 +21,7 @@ import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { localCatalogQueryService } from '@/lib/local/catalogQueryService';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { ProductSearchResult } from '@/lib/api/types/catalog';
 
 interface DraftLine {
@@ -37,6 +38,7 @@ export default function PurchaseOrderFormScreen() {
   const locationName = useAuthStore((s) => s.locationName);
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [suppliers, setSuppliers] = useState<SupplierResponse[]>([]);
   const [supplierId, setSupplierId] = useState<string | null>(null);
@@ -125,11 +127,11 @@ export default function PurchaseOrderFormScreen() {
   const onSubmit = async () => {
     if (!companyId || !locationId) return;
     if (!supplierId) {
-      showAlert('Missing supplier', 'Select a supplier for this order.');
+      showAlert(t('poForm.missingSupplier'), t('poForm.missingSupplierBody'));
       return;
     }
     if (lines.length === 0) {
-      showAlert('No lines', 'Add at least one product line.');
+      showAlert(t('poForm.noLines'), t('poForm.noLinesBody'));
       return;
     }
     const parsedLines = lines.map((l) => ({
@@ -138,11 +140,11 @@ export default function PurchaseOrderFormScreen() {
       unitCost: Number(l.unitCost || '0'),
     }));
     if (parsedLines.some((l) => !Number.isInteger(l.quantityOrdered) || l.quantityOrdered <= 0)) {
-      showAlert('Invalid quantity', 'Every line needs a positive whole-number quantity.');
+      showAlert(t('common.invalidQuantity'), t('poForm.invalidQtyBody'));
       return;
     }
     if (parsedLines.some((l) => !Number.isFinite(l.unitCost) || l.unitCost < 0)) {
-      showAlert('Invalid cost', 'Unit cost must be zero or positive.');
+      showAlert(t('poForm.invalidCost'), t('poForm.invalidCostBody'));
       return;
     }
 
@@ -156,7 +158,7 @@ export default function PurchaseOrderFormScreen() {
       });
       router.replace({ pathname: '/purchase-order-detail', params: { id: order.id } });
     } catch (err) {
-      showAlert('Could not create purchase order', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('poForm.createFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -168,16 +170,16 @@ export default function PurchaseOrderFormScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">New purchase order</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('po.new')}</Text>
           <View className="w-12" />
         </View>
       </View>
 
       <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
-        <Text className="text-xs text-text-secondary">Location: {locationName ?? '-'}</Text>
+        <Text className="text-xs text-text-secondary">{t('poForm.locationLine').replace('{name}', locationName ?? '-')}</Text>
 
         <View className="gap-1.5">
-          <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Supplier</Text>
+          <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('tax.col.supplier')}</Text>
           {selectedSupplier && !supplierDropdownOpen ? (
             <Pressable
               onPress={() => {
@@ -186,14 +188,14 @@ export default function PurchaseOrderFormScreen() {
               }}
               className="flex-row items-center justify-between rounded-xl border border-primary bg-primary/10 px-3.5 py-3">
               <Text className="text-sm font-semibold text-primary">{selectedSupplier.name}</Text>
-              <Text className="text-xs font-semibold text-primary">Change</Text>
+              <Text className="text-xs font-semibold text-primary">{t('poForm.change')}</Text>
             </Pressable>
           ) : (
             <>
               <View className="flex-row items-center">
                 <TextInput
                   className="flex-1 rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
-                  placeholder="Search suppliers by name"
+                  placeholder={t('poForm.searchSuppliers')}
                   placeholderTextColor={colors.placeholder}
                   value={supplierQuery}
                   onChangeText={setSupplierQuery}
@@ -210,7 +212,7 @@ export default function PurchaseOrderFormScreen() {
                 <View className="rounded-xl border border-border bg-surface">
                   {filteredSuppliers.length === 0 ? (
                     <Text className="p-3.5 text-sm text-text-secondary">
-                      {suppliers.length === 0 ? 'No suppliers yet. Add one first.' : 'No matching suppliers.'}
+                      {suppliers.length === 0 ? t('poForm.noSuppliers') : t('poForm.noMatchingSuppliers')}
                     </Text>
                   ) : (
                     filteredSuppliers.map((s, index) => (
@@ -234,11 +236,11 @@ export default function PurchaseOrderFormScreen() {
 
         {supplierId ? (
           <View className="gap-2">
-            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Suggested reorder</Text>
+            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('poForm.suggested')}</Text>
             {loadingSuggestions ? (
-              <Text className="text-sm text-text-secondary">Checking stock levels…</Text>
+              <Text className="text-sm text-text-secondary">{t('poForm.checkingStock')}</Text>
             ) : suggestions.length === 0 ? (
-              <Text className="text-sm text-text-secondary">Nothing from this supplier is low on stock right now.</Text>
+              <Text className="text-sm text-text-secondary">{t('poForm.nothingLow')}</Text>
             ) : (
               suggestions.map((s) => {
                 const added = lines.some((l) => l.productId === s.productId);
@@ -255,7 +257,7 @@ export default function PurchaseOrderFormScreen() {
                       onPress={() => addSuggestion(s)}
                       disabled={added}
                       className={`rounded-lg px-3 py-1.5 ${added ? 'bg-border' : 'bg-primary'}`}>
-                      <Text className="text-xs font-semibold text-white">{added ? 'Added' : 'Add'}</Text>
+                      <Text className="text-xs font-semibold text-white">{added ? t('poForm.added') : t('poForm.add')}</Text>
                     </Pressable>
                   </View>
                 );
@@ -264,13 +266,13 @@ export default function PurchaseOrderFormScreen() {
           </View>
         ) : null}
 
-        <TextField label="Notes (optional)" value={notes} onChangeText={setNotes} />
+        <TextField label={t('shift.notesOptional')} value={notes} onChangeText={setNotes} />
 
         <View className="gap-1.5">
-          <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Add product</Text>
+          <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('product.addTitle')}</Text>
           <TextInput
             className="rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
-            placeholder="Search product name or barcode"
+            placeholder={t('pos.searchPlaceholder')}
             placeholderTextColor={colors.placeholder}
             value={query}
             onChangeText={runSearch}
@@ -300,7 +302,7 @@ export default function PurchaseOrderFormScreen() {
             </View>
             <View className="flex-row gap-3">
               <View className="flex-1">
-                <Text className="mb-1 text-xs text-text-secondary">Quantity</Text>
+                <Text className="mb-1 text-xs text-text-secondary">{t('common.quantity')}</Text>
                 <TextInput
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-primary"
                   keyboardType="numeric"
@@ -309,7 +311,7 @@ export default function PurchaseOrderFormScreen() {
                 />
               </View>
               <View className="flex-1">
-                <Text className="mb-1 text-xs text-text-secondary">Unit cost ({currency})</Text>
+                <Text className="mb-1 text-xs text-text-secondary">{t('poForm.unitCost').replace('{currency}', currency)}</Text>
                 <TextInput
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-primary"
                   keyboardType="numeric"
@@ -321,7 +323,7 @@ export default function PurchaseOrderFormScreen() {
           </View>
         ))}
 
-        <Button title={submitting ? 'Creating…' : 'Create purchase order'} loading={submitting} onPress={onSubmit} />
+        <Button title={submitting ? t('createCompany.submitting') : t('poForm.create')} loading={submitting} onPress={onSubmit} />
       </KeyboardAwareScroll>
     </SafeAreaView>
   );

@@ -2,6 +2,7 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 
 import { NetworkError } from '@/lib/api/client';
+import { tr } from '@/lib/i18n/translate';
 import { showAlert } from '@/lib/ui/alertStore';
 
 /**
@@ -60,7 +61,7 @@ export function useLocalFirst<T>(opts: {
       if (err instanceof NetworkError) {
         setOffline(true);
       } else if (!hadLocal) {
-        showAlert(errorTitle, err instanceof Error ? err.message : 'Something went wrong.');
+        showAlert(errorTitle, err instanceof Error ? err.message : tr('common.somethingWrong'));
       }
     } finally {
       if (id === runId.current) {

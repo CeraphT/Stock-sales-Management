@@ -114,7 +114,7 @@ export default function CatalogScreen() {
     try {
       await syncNow();
     } catch (err) {
-      setSyncError(err instanceof Error ? err.message : 'Sync failed.');
+      setSyncError(err instanceof Error ? err.message : t('sync.failed'));
     } finally {
       setSyncing(false);
     }
@@ -183,7 +183,7 @@ export default function CatalogScreen() {
     try {
       const detail = await productsApi.get(companyId, productId);
       if (!detail.supplierId) {
-        toast('This product has no supplier. Add one on the product first.', 'error');
+        toast(t('catalog.noSupplier'), 'error');
         router.push({ pathname: '/product-detail', params: { id: productId } });
         return;
       }
@@ -191,19 +191,19 @@ export default function CatalogScreen() {
       const openPos = await purchaseOrdersApi.list(companyId, { supplierId: detail.supplierId, status: PurchaseOrderStatus.Pending });
       if (openPos.length > 0) {
         await purchaseOrdersApi.addLine(companyId, openPos[0].id, line);
-        toast('Added to the existing order for this supplier.', 'success');
+        toast(t('product.addedToOrder'), 'success');
         router.push({ pathname: '/purchase-order-detail', params: { id: openPos[0].id } });
       } else {
         const po = await purchaseOrdersApi.create(companyId, {
           locationId,
           supplierId: detail.supplierId,
-          notes: 'Reorder. Out of stock',
+          notes: t('catalog.reorderNote'),
           lines: [line],
         });
         router.push({ pathname: '/purchase-order-detail', params: { id: po.id } });
       }
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Could not start the order.', 'error');
+      toast(err instanceof Error ? err.message : t('product.orderFailed'), 'error');
     } finally {
       setOrderingId(null);
     }
@@ -216,7 +216,7 @@ export default function CatalogScreen() {
         <View className="mb-1 flex-row items-center justify-end">
           <Pressable
             onPress={() => router.push('/add-product')}
-            accessibilityLabel="Add product"
+            accessibilityLabel={t('product.addTitle')}
             className="h-11 w-11 items-center justify-center rounded-full bg-primary active:opacity-90">
             <Ionicons name="add" size={24} color="#FFFFFF" />
           </Pressable>
@@ -237,15 +237,15 @@ export default function CatalogScreen() {
 
         <FiltersDisclosure active={stockFilter !== 'all' || categoryId !== null}>
           <View className="flex-row flex-wrap gap-2">
-            <FilterChip label="All stock" active={stockFilter === 'all'} onPress={() => setStockFilter('all')} />
+            <FilterChip label={t('catalog.allStock')} active={stockFilter === 'all'} onPress={() => setStockFilter('all')} />
             <FilterChip label={t('stockHealth.lowStock')} active={stockFilter === 'low'} onPress={() => setStockFilter('low')} />
             <FilterChip label={t('stockHealth.outOfStock')} active={stockFilter === 'out'} onPress={() => setStockFilter('out')} />
-            <FilterChip label="Expiring" active={stockFilter === 'expiring'} onPress={() => setStockFilter('expiring')} />
+            <FilterChip label={t('catalog.expiring')} active={stockFilter === 'expiring'} onPress={() => setStockFilter('expiring')} />
           </View>
 
           {(categoryRows ?? []).length > 0 ? (
             <View className="flex-row flex-wrap gap-2">
-              <FilterChip label="All categories" active={categoryId === null} onPress={() => setCategoryId(null)} />
+              <FilterChip label={t('inventory.allCategories')} active={categoryId === null} onPress={() => setCategoryId(null)} />
               {(categoryRows ?? []).map((c) => (
                 <FilterChip key={c.id} label={c.name} active={categoryId === c.id} onPress={() => setCategoryId(c.id)} />
               ))}
@@ -304,7 +304,7 @@ export default function CatalogScreen() {
                 <StockBadge status={status} />
                 {expDays != null && expDays < 0 && stock > 0 ? (
                   <View className="rounded-lg bg-error/15 px-2 py-0.5">
-                    <Text className="text-xs font-semibold text-error">Expired</Text>
+                    <Text className="text-xs font-semibold text-error">{t('inventory.expired')}</Text>
                   </View>
                 ) : null}
                 {status === 'out_of_stock' ? (

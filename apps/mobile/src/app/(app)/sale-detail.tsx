@@ -14,7 +14,7 @@ import { localSalesService } from '@/lib/local/salesService';
 import { SaleStatus, UserRole } from '@/lib/api/enums';
 import type { SaleDetailResponse } from '@/lib/api/types/sales';
 import { useAuthStore } from '@/lib/auth/store';
-import { formatCurrency, paymentMethodLabel } from '@/lib/format';
+import { formatCurrency, paymentMethodLabelKey } from '@/lib/format';
 import { useCompanyInfo } from '@/lib/hooks/useCompanyInfo';
 import { printingService, NoPrinterConfiguredError } from '@/lib/printer/printingService';
 import { shareReceipt, viewOrPrintReceipt } from '@/lib/receipt/receiptActions';
@@ -22,12 +22,14 @@ import type { ReceiptData } from '@/lib/receipt/receiptTypes';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
 import { appLocale } from '@/lib/i18n/locale';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function SaleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const companyId = useAuthStore((s) => s.companyId);
   const userRole = useAuthStore((s) => s.user?.role);
   const { name: companyName, currency } = useCompanyInfo();
+  const { t } = useTranslation();
   const colors = useThemeColors();
 
   const [sale, setSale] = useState<SaleDetailResponse | null>(null);
@@ -43,7 +45,7 @@ export default function SaleDetailScreen() {
       // (and allow reprinting the receipt) instead of failing.
       .catch((err) => (err instanceof NetworkError ? localSalesService.getSaleDetail(companyId, id) : Promise.reject(err)))
       .then(setSale)
-      .catch((err) => showAlert('Could not load sale', err instanceof Error ? err.message : 'Something went wrong.'))
+      .catch((err) => showAlert(t('saleDetail.loadFailed'), err instanceof Error ? err.message : t('common.somethingWrong')))
       .finally(() => setLoading(false));
   }, [companyId, id]);
 
@@ -58,21 +60,21 @@ export default function SaleDetailScreen() {
   const onRefund = () => {
     if (!companyId || !id) return;
     showAlert(
-      'Refund this sale?',
-      'Stock is returned to inventory and any credit, gift card, or store credit used is reversed. This cannot be undone.',
+      t('saleDetail.refundConfirmTitle'),
+      t('saleDetail.refundConfirmBody'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Refund',
+          text: t('saleDetail.refund'),
           style: 'destructive',
           onPress: async () => {
             setRefunding(true);
             try {
               await salesApi.refund(companyId, id);
               load();
-              showAlert('Refunded', 'The sale has been refunded and stock restored.');
+              showAlert(t('saleDetail.refunded'), t('saleDetail.refundedBody'));
             } catch (err) {
-              showAlert('Could not refund', err instanceof Error ? err.message : 'Something went wrong.');
+              showAlert(t('saleDetail.refundFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
             } finally {
               setRefunding(false);
             }
@@ -131,7 +133,7 @@ export default function SaleDetailScreen() {
     const data = toReceiptData();
     if (!data) return;
     viewOrPrintReceipt(data).catch((err) =>
-      showAlert('Could not open receipt', err instanceof Error ? err.message : 'Something went wrong.'),
+      showAlert(t('receipt.openFailed'), err instanceof Error ? err.message : t('common.somethingWrong')),
     );
   };
 
@@ -139,7 +141,7 @@ export default function SaleDetailScreen() {
     const data = toReceiptData();
     if (!data) return;
     shareReceipt(data).catch((err) =>
-      showAlert('Could not share receipt', err instanceof Error ? err.message : 'Something went wrong.'),
+      showAlert(t('receipt.shareFailed'), err instanceof Error ? err.message : t('common.somethingWrong')),
     );
   };
 
@@ -148,13 +150,13 @@ export default function SaleDetailScreen() {
     if (!data) return;
     printingService.printReceipt(data).catch((err) => {
       if (err instanceof NoPrinterConfiguredError) {
-        showAlert('No printer configured', 'Set up a receipt printer first.', [
-          { text: 'Not now', style: 'cancel' },
-          { text: 'Set up printer', onPress: () => router.push('/printer-settings') },
+        showAlert(t('printer.noneTitle'), t('printer.noneBody'), [
+          { text: t('common.notNow'), style: 'cancel' },
+          { text: t('printer.setUp'), onPress: () => router.push('/printer-settings') },
         ]);
         return;
       }
-      showAlert('Could not print', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('printer.printFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     });
   };
 
@@ -172,8 +174,8 @@ export default function SaleDetailScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Sale receipt</Text>
-          <Pressable onPress={onShare} hitSlop={8} accessibilityLabel="Share receipt PDF">
+          <Text className="text-lg font-bold text-text-primary">{t('saleDetail.title')}</Text>
+          <Pressable onPress={onShare} hitSlop={8} accessibilityLabel={t('receipt.sharePdf')}>
             <Ionicons name="share-outline" size={20} color={colors.primary} />
           </Pressable>
         </View>
@@ -181,21 +183,21 @@ export default function SaleDetailScreen() {
 
       <KeyboardAwareScroll contentContainerClassName="gap-4 p-5">
         <View className="rounded-2xl bg-surface p-5 shadow-sm shadow-black/5">
-          <Text className="text-sm text-text-secondary">Total</Text>
+          <Text className="text-sm text-text-secondary">{t('common.total')}</Text>
           <Text className="text-3xl font-bold text-text-primary">{formatCurrency(sale.total, currency)}</Text>
           <Text className="mt-2 text-xs text-text-secondary">
             {sale.cashierName} · {sale.locationName}
           </Text>
           <Text className="text-xs text-text-secondary">{new Date(sale.timestamp).toLocaleString(appLocale())}</Text>
-          <Text className="mt-1 text-xs font-semibold text-primary">{paymentMethodLabel(sale.paymentMethod)}</Text>
+          <Text className="mt-1 text-xs font-semibold text-primary">{t(paymentMethodLabelKey(sale.paymentMethod))}</Text>
           {sale.amountTendered != null ? (
             <Text className="text-xs text-text-secondary">
-              Tendered {formatCurrency(sale.amountTendered, currency)} · Change {formatCurrency(sale.changeDue ?? 0, currency)}
+              {t('saleDetail.tendered')} {formatCurrency(sale.amountTendered, currency)} · {t('common.change')} {formatCurrency(sale.changeDue ?? 0, currency)}
             </Text>
           ) : null}
           {sale.status === SaleStatus.Refunded ? (
             <View className="mt-2 self-start rounded-full bg-error/10 px-2.5 py-1">
-              <Text className="text-xs font-bold text-error">Refunded</Text>
+              <Text className="text-xs font-bold text-error">{t('saleDetail.refunded')}</Text>
             </View>
           ) : null}
         </View>
@@ -206,23 +208,23 @@ export default function SaleDetailScreen() {
             disabled={refunding}
             className="flex-row items-center justify-center gap-2 rounded-xl border border-error py-3.5 active:opacity-80 disabled:opacity-50">
             <Ionicons name="return-up-back-outline" size={18} color={colors.error} />
-            <Text className="text-sm font-semibold text-error">{refunding ? 'Refunding…' : 'Refund this sale'}</Text>
+            <Text className="text-sm font-semibold text-error">{refunding ? t('saleDetail.refunding') : t('saleDetail.refundThis')}</Text>
           </Pressable>
         ) : null}
 
         <Pressable onPress={onView} className="flex-row items-center justify-center gap-2 rounded-xl bg-primary py-3.5 active:opacity-90">
           <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
-          <Text className="text-sm font-semibold text-white">View / print receipt (PDF)</Text>
+          <Text className="text-sm font-semibold text-white">{t('receipt.viewPdf')}</Text>
         </Pressable>
         <Pressable
           onPress={onPrint}
           className="flex-row items-center justify-center gap-2 rounded-xl border border-primary py-3.5 active:opacity-80">
           <Ionicons name="print-outline" size={18} color={colors.primary} />
-          <Text className="text-sm font-semibold text-primary">Print on receipt printer</Text>
+          <Text className="text-sm font-semibold text-primary">{t('receipt.printOnPrinter')}</Text>
         </Pressable>
 
         <View className="gap-2">
-          <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Items</Text>
+          <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('saleDetail.items')}</Text>
           {sale.productLines.map((line, index) => (
             <View key={`${line.productId}-${index}`} className="rounded-xl bg-surface p-3.5">
               <View className="flex-row items-center justify-between">
@@ -234,7 +236,7 @@ export default function SaleDetailScreen() {
                   ? `${line.quantityInBaseUnits / line.unitsPerMeasure} ${line.measureUnit} × ${formatCurrency(line.unitPrice * line.unitsPerMeasure, currency)}/${line.measureUnit}`
                   : line.packagingLevelName
                     ? `${line.quantityInBaseUnits / line.unitsPerPackagingLevel} ${line.packagingLevelName} × ${formatCurrency(line.unitPrice, currency)}`
-                    : `${line.quantityInBaseUnits} units × ${formatCurrency(line.unitPrice, currency)}`}
+                    : `${line.quantityInBaseUnits} ${t('common.units')} × ${formatCurrency(line.unitPrice, currency)}`}
               </Text>
               {line.serialNumbers && line.serialNumbers.length > 0 ? (
                 <Text className="mt-0.5 text-[11px] text-text-secondary">S/N: {line.serialNumbers.join(', ')}</Text>
@@ -256,10 +258,10 @@ export default function SaleDetailScreen() {
 
         {sale.paymentSplits.length > 0 ? (
           <View className="gap-2">
-            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Payment breakdown</Text>
+            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('saleDetail.paymentBreakdown')}</Text>
             {sale.paymentSplits.map((split, index) => (
               <View key={index} className="flex-row items-center justify-between rounded-xl bg-surface p-3">
-                <Text className="text-sm text-text-primary">{paymentMethodLabel(split.method)}</Text>
+                <Text className="text-sm text-text-primary">{t(paymentMethodLabelKey(split.method))}</Text>
                 <Text className="text-sm font-semibold text-text-primary">{formatCurrency(split.amount, currency)}</Text>
               </View>
             ))}

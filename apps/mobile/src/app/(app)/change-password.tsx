@@ -42,7 +42,7 @@ export default function ChangePasswordScreen() {
       setConfirmPassword('');
       showAlert(t('changePassword.title'), t('changePassword.success'), [{ text: t('common.done'), onPress: () => router.back() }]);
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Something went wrong.';
+      const message = err instanceof ApiError ? err.message : err instanceof Error ? err.message : t('common.somethingWrong');
       showAlert(t('changePassword.title'), message);
     } finally {
       setSubmitting(false);

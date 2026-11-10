@@ -9,9 +9,11 @@ import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import type { ExpiryAlertItem, StockAlertItem } from '@/lib/api/types/catalog';
 import { productsApi } from '@/lib/api/endpoints/products';
 import { useAuthStore } from '@/lib/auth/store';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function AlertsScreen() {
   const companyId = useAuthStore((s) => s.companyId);
+  const { t } = useTranslation();
 
   const { data, isLoading } = useQuery({
     queryKey: ['alerts', companyId],
@@ -28,22 +30,22 @@ export default function AlertsScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Alerts</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.alerts')}</Text>
           <View className="w-12" />
         </View>
       </View>
 
       <KeyboardAwareScroll contentContainerClassName="gap-5 p-5">
         {isLoading ? (
-          <Text className="py-10 text-center text-sm text-text-secondary">Loading…</Text>
+          <Text className="py-10 text-center text-sm text-text-secondary">{t('common.loading')}</Text>
         ) : total === 0 ? (
-          <Text className="py-10 text-center text-sm text-text-secondary">✅ Nothing needs attention right now.</Text>
+          <Text className="py-10 text-center text-sm text-text-secondary">✅ {t('alerts.nothing')}</Text>
         ) : (
           <>
-            <StockSection title="⛔ Out of stock" items={data!.outOfStock} tone="error" />
-            <StockSection title="⚠️ Low stock" items={data!.lowStock} tone="warn" showThreshold />
-            <ExpirySection title="⏰ Expired" items={data!.expired} tone="error" />
-            <ExpirySection title="⏳ Expiring soon" items={data!.expiringSoon} tone="warn" />
+            <StockSection title={`⛔ ${t('stockHealth.outOfStock')}`} items={data!.outOfStock} tone="error" />
+            <StockSection title={`⚠️ ${t('stockHealth.lowStock')}`} items={data!.lowStock} tone="warn" showThreshold />
+            <ExpirySection title={`⏰ ${t('inventory.expired')}`} items={data!.expired} tone="error" />
+            <ExpirySection title={`⏳ ${t('dashboard.expiringSoon')}`} items={data!.expiringSoon} tone="warn" />
           </>
         )}
       </KeyboardAwareScroll>
@@ -52,6 +54,7 @@ export default function AlertsScreen() {
 }
 
 function StockSection({ title, items, tone, showThreshold }: { title: string; items: StockAlertItem[]; tone: 'error' | 'warn'; showThreshold?: boolean }) {
+  const { t } = useTranslation();
   if (items.length === 0) return null;
   return (
     <View>
@@ -70,10 +73,10 @@ function StockSection({ title, items, tone, showThreshold }: { title: string; it
               className="flex-row items-center justify-between border-b border-border/50 px-4 py-3 last:border-0 active:opacity-70">
               <View className="flex-1 pr-2">
                 <Text className="text-sm text-text-primary">{p.name}</Text>
-                {onOrder ? <Text className="text-xs text-text-secondary">🧾 already on order. Open to print / share</Text> : null}
+                {onOrder ? <Text className="text-xs text-text-secondary">🧾 {t('alerts.onOrderHint')}</Text> : null}
               </View>
               {onOrder ? (
-                <Text className="text-xs font-semibold text-primary">On order</Text>
+                <Text className="text-xs font-semibold text-primary">{t('alerts.onOrder')}</Text>
               ) : showThreshold ? (
                 <Text className={`text-xs font-semibold ${tone === 'error' ? 'text-error' : 'text-accent-amber'}`}>{p.currentStock} / {p.lowStockThreshold}</Text>
               ) : (
@@ -88,6 +91,7 @@ function StockSection({ title, items, tone, showThreshold }: { title: string; it
 }
 
 function ExpirySection({ title, items, tone }: { title: string; items: ExpiryAlertItem[]; tone: 'error' | 'warn' }) {
+  const { t } = useTranslation();
   if (items.length === 0) return null;
   return (
     <View>
@@ -100,10 +104,10 @@ function ExpirySection({ title, items, tone }: { title: string; items: ExpiryAle
             className="flex-row items-center justify-between border-b border-border/50 px-4 py-3 last:border-0 active:opacity-70">
             <View className="flex-1 pr-2">
               <Text className="text-sm text-text-primary">{b.name}</Text>
-              <Text className="text-xs text-text-secondary">batch {b.batchNumber} · {b.expiryDate.slice(0, 10)} · {b.quantityInBaseUnits} units</Text>
+              <Text className="text-xs text-text-secondary">{t('common.batch')} {b.batchNumber} · {b.expiryDate.slice(0, 10)} · {b.quantityInBaseUnits} {t('common.units')}</Text>
             </View>
             <Text className={`text-xs font-semibold ${tone === 'error' ? 'text-error' : 'text-accent-amber'}`}>
-              {b.daysUntilExpiry < 0 ? `${-b.daysUntilExpiry}d ago` : `${b.daysUntilExpiry}d`}
+              {b.daysUntilExpiry < 0 ? t('alerts.daysAgo').replace('{n}', String(-b.daysUntilExpiry)) : t('po.daysShort').replace('{n}', String(b.daysUntilExpiry))}
             </Text>
           </Pressable>
         ))}

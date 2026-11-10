@@ -17,14 +17,16 @@ import { shareList, viewOrPrintList } from '@/lib/reports/listActions';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
 import { appLocale } from '@/lib/i18n/locale';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import type { TranslationKey } from '@stockflow/core/i18n/translations';
 
 type DateRange = 'today' | 'week' | 'month' | 'all';
 
-const DATE_RANGES: { value: DateRange; label: string }[] = [
-  { value: 'today', label: 'Today' },
-  { value: 'week', label: 'This week' },
-  { value: 'month', label: 'This month' },
-  { value: 'all', label: 'All time' },
+const DATE_RANGES: { value: DateRange; label: TranslationKey }[] = [
+  { value: 'today', label: 'range.today' },
+  { value: 'week', label: 'range.week' },
+  { value: 'month', label: 'range.month' },
+  { value: 'all', label: 'range.all' },
 ];
 
 function isoDate(date: Date): string {
@@ -54,6 +56,7 @@ export default function HeldSalesHistoryScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   const { name: companyName, currency } = useCompanyInfo();
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [dateRange, setDateRange] = useState<DateRange>('week');
   const [items, setItems] = useState<HeldSaleSummaryResponse[]>([]);
@@ -66,7 +69,7 @@ export default function HeldSalesHistoryScreen() {
       const { from, to } = rangeToFromTo(dateRange);
       setItems(await salesApi.held(companyId, { from, to }));
     } catch (err) {
-      showAlert('Could not load held sales', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('heldHistory.loadFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setLoading(false);
     }
@@ -79,10 +82,10 @@ export default function HeldSalesHistoryScreen() {
   );
 
   const onDiscard = (item: HeldSaleSummaryResponse) => {
-    showAlert('Discard this held sale?', `The parked cart at "${item.locationName}" (${formatCurrency(item.total, currency)}) will be permanently removed.`, [
-      { text: 'Cancel', style: 'cancel' },
+    showAlert(t('heldHistory.discardTitle'), t('heldHistory.discardBody').replace('{location}', item.locationName).replace('{total}', formatCurrency(item.total, currency)), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Discard',
+        text: t('heldHistory.discard'),
         style: 'destructive',
         onPress: async () => {
           if (!companyId) return;
@@ -90,7 +93,7 @@ export default function HeldSalesHistoryScreen() {
             await salesApi.discardHeld(companyId, item.id);
             await load();
           } catch (err) {
-            showAlert('Could not discard', err instanceof Error ? err.message : 'Something went wrong.');
+            showAlert(t('heldHistory.discardFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
           }
         },
       },
@@ -100,20 +103,20 @@ export default function HeldSalesHistoryScreen() {
   const toListData = () => ({
     companyName,
     currency,
-    title: 'Held Sales',
-    subtitle: DATE_RANGES.find((r) => r.value === dateRange)?.label ?? 'All time',
-    primaryColumnLabel: 'Location',
-    secondaryColumnLabel: 'Cashier',
+    title: t('heldSales.title'),
+    subtitle: t(DATE_RANGES.find((r) => r.value === dateRange)?.label ?? 'range.all'),
+    primaryColumnLabel: t('common.location'),
+    secondaryColumnLabel: t('common.cashier'),
     rows: items.map((item) => ({
       timestamp: item.timestamp,
       primaryLabel: item.locationName,
-      secondaryLabel: `${item.cashierName} · ${item.itemCount} items`,
+      secondaryLabel: `${item.cashierName} · ${t('sales.itemsCount').replace('{n}', String(item.itemCount))}`,
       total: item.total,
     })),
   });
 
   const onShare = () => {
-    shareList(toListData()).catch((err) => showAlert('Could not share', err instanceof Error ? err.message : 'Something went wrong.'));
+    shareList(toListData()).catch((err) => showAlert(t('common.shareFailed'), err instanceof Error ? err.message : t('common.somethingWrong')));
   };
 
   return (
@@ -122,8 +125,8 @@ export default function HeldSalesHistoryScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Held sales history</Text>
-          <Pressable onPress={onShare} hitSlop={8} disabled={items.length === 0} accessibilityLabel="Share PDF">
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.heldSalesHistory')}</Text>
+          <Pressable onPress={onShare} hitSlop={8} disabled={items.length === 0} accessibilityLabel={t('common.sharePdf')}>
             <Ionicons name="share-outline" size={20} color={items.length > 0 ? colors.primary : colors.iconMuted} />
           </Pressable>
         </View>
@@ -131,7 +134,7 @@ export default function HeldSalesHistoryScreen() {
         <FiltersDisclosure active={dateRange !== 'week'}>
           <View className="flex-row flex-wrap gap-2">
             {DATE_RANGES.map((r) => (
-              <FilterChip key={r.value} label={r.label} active={dateRange === r.value} onPress={() => setDateRange(r.value)} />
+              <FilterChip key={r.value} label={t(r.label)} active={dateRange === r.value} onPress={() => setDateRange(r.value)} />
             ))}
           </View>
         </FiltersDisclosure>
@@ -153,20 +156,20 @@ export default function HeldSalesHistoryScreen() {
                 <Text className="text-base font-bold text-primary">{formatCurrency(item.total, currency)}</Text>
               </View>
               <Text className="mt-1 text-xs text-text-secondary">
-                {item.cashierName} · {item.itemCount} items · {new Date(item.timestamp).toLocaleString(appLocale())}
+                {item.cashierName} · {t('sales.itemsCount').replace('{n}', String(item.itemCount))} · {new Date(item.timestamp).toLocaleString(appLocale())}
               </Text>
               <Pressable
                 onPress={() => onDiscard(item)}
                 className="mt-2 flex-row items-center gap-1 self-start rounded-lg px-2 py-1"
                 hitSlop={8}>
                 <Ionicons name="trash-outline" size={14} color={colors.error} />
-                <Text className="text-xs font-semibold text-error">Discard</Text>
+                <Text className="text-xs font-semibold text-error">{t('heldHistory.discard')}</Text>
               </Pressable>
             </View>
           )}
           ListEmptyComponent={
             <View className="items-center py-16">
-              <Text className="text-sm text-text-secondary">No held sales in this period, across any branch.</Text>
+              <Text className="text-sm text-text-secondary">{t('heldHistory.empty')}</Text>
             </View>
           }
         />

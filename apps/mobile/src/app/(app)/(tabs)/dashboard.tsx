@@ -177,7 +177,7 @@ export default function DashboardScreen() {
         refreshControl={<RefreshControl refreshing={syncing} onRefresh={onSync} />}>
         <View>
           <Text className="text-2xl font-bold text-text-primary">
-            {t('dashboard.hello')}, {user?.name?.split(' ')[0] ?? 'there'}
+            {t('dashboard.hello')}, {user?.name?.split(' ')[0] ?? ''}
           </Text>
           <Text className="text-sm text-text-secondary">{locationName ?? t('drawer.noLocation')}</Text>
         </View>
@@ -239,7 +239,7 @@ export default function DashboardScreen() {
                 <Pressable
                   onPress={() => router.push('/reconciliation')}
                   className="mt-2 self-start rounded-lg bg-error/15 px-3 py-1.5 active:opacity-80">
-                  <Text className="text-xs font-bold text-error">Review</Text>
+                  <Text className="text-xs font-bold text-error">{t('dashboard.review')}</Text>
                 </Pressable>
               ) : null}
             </View>

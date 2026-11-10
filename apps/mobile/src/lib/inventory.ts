@@ -2,6 +2,7 @@ import type { StockStatus } from '@stockflow/core/api/enums';
 import { and, eq } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
+import { tr } from '@/lib/i18n/translate';
 import { batches, categories, products, suppliers } from '@/lib/db/schema';
 
 export interface InventoryRow {
@@ -51,7 +52,7 @@ export async function listInventory(companyId: string): Promise<InventoryRow[]> 
       name: p.name,
       barcode: p.barcode,
       categoryId: p.categoryId,
-      categoryName: p.categoryId ? (catName.get(p.categoryId) ?? '-') : 'Uncategorized',
+      categoryName: p.categoryId ? (catName.get(p.categoryId) ?? '-') : tr('inventory.uncategorized'),
       supplierId: p.supplierId,
       supplierName: p.supplierId ? (supName.get(p.supplierId) ?? '-') : '-',
       stock,

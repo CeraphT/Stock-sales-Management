@@ -16,6 +16,7 @@ import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { useThemeColors } from '@/lib/theme/colors';
 import { toast } from '@/lib/ui/toastStore';
 import { appLocale } from '@/lib/i18n/locale';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function ReconciliationScreen() {
   const companyId = useAuthStore((s) => s.companyId);
@@ -23,6 +24,7 @@ export default function ReconciliationScreen() {
   const { staleAt, setStaleAt, staleMessage } = useStaleNotice();
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [data, setData] = useState<ReconciliationResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,7 +36,7 @@ export default function ReconciliationScreen() {
     try {
       setData(await cachedFetch(companyId, 'reconciliation', () => reconciliationApi.get(companyId), setStaleAt));
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Could not load reconciliation.', 'error');
+      toast(err instanceof Error ? err.message : t('recon.loadFailed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -54,7 +56,7 @@ export default function ReconciliationScreen() {
       await reconciliationApi.acknowledgeShift(companyId, shiftId);
       await load();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Could not update.', 'error');
+      toast(err instanceof Error ? err.message : t('recon.updateFailed'), 'error');
     } finally {
       setBusy(null);
     }
@@ -66,9 +68,9 @@ export default function ReconciliationScreen() {
     try {
       const res = await reconciliationApi.acknowledgeShiftConflicts(companyId);
       await load();
-      toast(`${res.acknowledged} shift(s) marked reviewed.`, 'success');
+      toast(t('recon.markedReviewed').replace('{n}', String(res.acknowledged)), 'success');
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Could not update.', 'error');
+      toast(err instanceof Error ? err.message : t('recon.updateFailed'), 'error');
     } finally {
       setBusy(null);
     }
@@ -80,7 +82,7 @@ export default function ReconciliationScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Reconciliation</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('recon.title')}</Text>
           <View className="w-12" />
         </View>
       </View>
@@ -92,7 +94,7 @@ export default function ReconciliationScreen() {
         </View>
       ) : conflicts.length === 0 && negatives.length === 0 ? (
         <View className="flex-1 items-center justify-center px-8">
-          <Text className="text-center text-sm text-text-secondary">✓ Nothing to reconcile.</Text>
+          <Text className="text-center text-sm text-text-secondary">✓ {t('recon.nothing')}</Text>
         </View>
       ) : (
         <KeyboardAwareScroll contentContainerClassName="gap-4 p-5 pb-10">
@@ -100,15 +102,13 @@ export default function ReconciliationScreen() {
           {conflicts.length > 0 ? (
             <View className="overflow-hidden rounded-card border border-border bg-surface">
               <View className="gap-2 border-b border-border px-4 py-3">
-                <Text className="text-sm font-bold text-text-primary">Auto-closed shifts</Text>
-                <Text className="text-xs text-text-secondary">
-                  Closed automatically when two devices opened a register at the same time. Review the numbers, then mark as reviewed.
-                </Text>
+                <Text className="text-sm font-bold text-text-primary">{t('recon.autoClosed')}</Text>
+                <Text className="text-xs text-text-secondary">{t('recon.autoClosedHint')}</Text>
                 <Pressable
                   onPress={acknowledgeAll}
                   disabled={busy === 'all'}
                   className="mt-1 self-start rounded-lg bg-primary/10 px-3 py-2 active:opacity-80">
-                  <Text className="text-xs font-bold text-primary">{busy === 'all' ? '…' : 'Mark all reviewed'}</Text>
+                  <Text className="text-xs font-bold text-primary">{busy === 'all' ? '…' : t('recon.markAll')}</Text>
                 </Pressable>
               </View>
               {conflicts.map((s) => (
@@ -118,12 +118,12 @@ export default function ReconciliationScreen() {
                       {s.locationName} · {new Date(s.openedAt).toLocaleString(appLocale())}
                     </Text>
                     <Text className="mt-0.5 text-xs text-text-secondary">
-                      Opened by {s.openedByName} · Float {formatCurrency(s.openingCashAmount, currency)}
-                      {s.closingCashAmount != null ? ` · Counted ${formatCurrency(s.closingCashAmount, currency)}` : ''}
+                      {t('recon.openedBy').replace('{name}', s.openedByName)} · {t('recon.float')} {formatCurrency(s.openingCashAmount, currency)}
+                      {s.closingCashAmount != null ? ` · ${t('recon.counted')} ${formatCurrency(s.closingCashAmount, currency)}` : ''}
                     </Text>
                     {s.discrepancy != null && s.discrepancy !== 0 ? (
                       <Text className={`mt-0.5 text-xs font-semibold ${s.discrepancy > 0 ? 'text-accent-amber' : 'text-error'}`}>
-                        {s.discrepancy > 0 ? 'Over' : 'Short'} {formatCurrency(Math.abs(s.discrepancy), currency)}
+                        {s.discrepancy > 0 ? t('recon.over') : t('recon.short')} {formatCurrency(Math.abs(s.discrepancy), currency)}
                       </Text>
                     ) : null}
                   </View>
@@ -131,7 +131,7 @@ export default function ReconciliationScreen() {
                     onPress={() => acknowledgeOne(s.id)}
                     disabled={busy === s.id}
                     className="rounded-lg bg-primary/10 px-3 py-2 active:opacity-80">
-                    <Text className="text-xs font-bold text-primary">{busy === s.id ? '…' : 'Reviewed'}</Text>
+                    <Text className="text-xs font-bold text-primary">{busy === s.id ? '…' : t('recon.reviewed')}</Text>
                   </Pressable>
                 </View>
               ))}
@@ -142,23 +142,21 @@ export default function ReconciliationScreen() {
           {negatives.length > 0 ? (
             <View className="overflow-hidden rounded-card border border-border bg-surface">
               <View className="gap-1 border-b border-border px-4 py-3">
-                <Text className="text-sm font-bold text-text-primary">Negative stock</Text>
-                <Text className="text-xs text-text-secondary">
-                  These batches went below zero from an offline sale. Adjust their stock to a correct count.
-                </Text>
+                <Text className="text-sm font-bold text-text-primary">{t('recon.negativeStock')}</Text>
+                <Text className="text-xs text-text-secondary">{t('recon.negativeHint')}</Text>
               </View>
               {negatives.map((b) => (
                 <View key={b.id} className="flex-row items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
                   <View className="flex-1">
                     <Text className="text-sm font-semibold text-text-primary">{b.productName}</Text>
                     <Text className="mt-0.5 text-xs text-text-secondary">
-                      Batch {b.batchNumber || '-'} · {b.locationName} · <Text className="font-semibold text-error">{b.quantityInBaseUnits}</Text>
+                      {t('common.batch')} {b.batchNumber || '-'} · {b.locationName} · <Text className="font-semibold text-error">{b.quantityInBaseUnits}</Text>
                     </Text>
                   </View>
                   <Pressable
                     onPress={() => router.push({ pathname: '/stock-adjust', params: { productId: b.productId, batchId: b.id } })}
                     className="rounded-lg bg-primary/10 px-3 py-2 active:opacity-80">
-                    <Text className="text-xs font-bold text-primary">Adjust</Text>
+                    <Text className="text-xs font-bold text-primary">{t('recon.adjust')}</Text>
                   </Pressable>
                 </View>
               ))}

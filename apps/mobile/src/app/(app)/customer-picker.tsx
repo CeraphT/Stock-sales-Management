@@ -14,12 +14,14 @@ import { formatCurrency } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { localCatalogQueryService } from '@/lib/local/catalogQueryService';
 import { useThemeColors } from '@/lib/theme/colors';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function CustomerPickerScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   const currency = useCompanyCurrency();
   const setCustomer = useCartStore((s) => s.setCustomer);
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CustomerResponse[]>([]);
@@ -47,12 +49,12 @@ export default function CustomerPickerScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Customer</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('pos.customer')}</Text>
           <View className="w-12" />
         </View>
         <TextInput
           className="mt-3 rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
-          placeholder="Search name or phone"
+          placeholder={t('customers.search')}
           placeholderTextColor={colors.placeholder}
           value={query}
           onChangeText={runSearch}
@@ -62,14 +64,14 @@ export default function CustomerPickerScreen() {
 
       <View className="mx-4 mt-4 flex-row gap-2">
         <Pressable onPress={() => select(null)} className="flex-1 rounded-xl border border-border bg-surface px-4 py-3">
-          <Text className="text-sm font-semibold text-text-primary">Walk-in (no customer)</Text>
+          <Text className="text-sm font-semibold text-text-primary">{t('customers.walkInNone')}</Text>
         </Pressable>
         <Pressable
           onPress={() => router.push('/customer-form')}
-          accessibilityLabel="New customer"
+          accessibilityLabel={t('outbox.kind.customer.create')}
           className="flex-row items-center gap-1.5 rounded-xl border border-primary bg-primary/10 px-4 py-3">
           <Ionicons name="add" size={16} color={colors.primary} />
-          <Text className="text-sm font-semibold text-primary">New</Text>
+          <Text className="text-sm font-semibold text-primary">{t('customers.new')}</Text>
         </Pressable>
       </View>
 
@@ -90,7 +92,7 @@ export default function CustomerPickerScreen() {
             </Pressable>
           )}
           ListEmptyComponent={
-            query.trim() ? <Text className="p-4 text-center text-sm text-text-secondary">No matching customers.</Text> : null
+            query.trim() ? <Text className="p-4 text-center text-sm text-text-secondary">{t('customers.noMatch')}</Text> : null
           }
         />
       )}

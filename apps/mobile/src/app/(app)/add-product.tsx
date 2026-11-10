@@ -19,12 +19,14 @@ import { syncNow } from '@/lib/sync/syncNow';
 import { useThemeColors } from '@/lib/theme/colors';
 import { useCapabilities } from '@/lib/useCapabilities';
 import { showAlert } from '@/lib/ui/alertStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function AddProductScreen() {
   const companyId = useAuthStore((s) => s.companyId);
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
   const caps = useCapabilities();
+  const { t } = useTranslation();
   const capturedCode = useScanCaptureStore((s) => s.code);
   const clearCapturedCode = useScanCaptureStore((s) => s.clear);
 
@@ -54,19 +56,19 @@ export default function AddProductScreen() {
   const onSubmit = async () => {
     if (!companyId) return;
     if (!name.trim()) {
-      showAlert('Missing name', 'Enter a product name.');
+      showAlert(t('product.missingName'), t('product.missingNameBody'));
       return;
     }
     const purchase = Number(purchasePrice || '0');
     const sale = Number(salePrice || '0');
     const threshold = Number(lowStockThreshold || '0');
     if ([purchase, sale, threshold].some((n) => Number.isNaN(n) || n < 0)) {
-      showAlert('Invalid numbers', 'Prices and threshold must be zero or positive.');
+      showAlert(t('product.invalidNumbers'), t('product.invalidNumbersBody'));
       return;
     }
     const parsedLevels = parsePackagingLevels(packagingLevels);
     if (!parsedLevels.ok) {
-      showAlert('Invalid packaging level', parsedLevels.message);
+      showAlert(t('packaging.invalid'), parsedLevels.message);
       return;
     }
 
@@ -97,7 +99,7 @@ export default function AddProductScreen() {
       await syncNow();
       router.back();
     } catch (err) {
-      showAlert('Could not create product', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('product.createFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -109,20 +111,20 @@ export default function AddProductScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Add product</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('product.addTitle')}</Text>
           <View className="w-12" />
         </View>
       </View>
 
       <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
-        <TextField label="Product name" placeholder="e.g. Amoxicillin 500mg" value={name} onChangeText={setName} />
+        <TextField label={t('product.name')} placeholder={`${t('common.eg')} Amoxicilline 500mg`} value={name} onChangeText={setName} />
 
         <View className="gap-1.5">
-          <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">Barcode (optional)</Text>
+          <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('product.barcodeOptional')}</Text>
           <View className="flex-row items-center gap-2">
             <TextInput
               className="flex-1 rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
-              placeholder="Scan or type"
+              placeholder={t('product.scanOrType')}
               placeholderTextColor={colors.placeholder}
               autoCapitalize="none"
               value={barcode}
@@ -130,7 +132,7 @@ export default function AddProductScreen() {
             />
             <Pressable
               onPress={() => router.push('/scanner?mode=capture')}
-              accessibilityLabel="Scan barcode"
+              accessibilityLabel={t('product.scanBarcode')}
               className="h-12 w-12 items-center justify-center rounded-xl bg-primary active:opacity-90">
               <Ionicons name="scan-outline" size={22} color="#FFFFFF" />
             </Pressable>
@@ -142,7 +144,7 @@ export default function AddProductScreen() {
           <View className="gap-2 rounded-xl border border-border p-3">
             <Pressable className="flex-row items-center gap-2" onPress={() => { setSellByMeasure((v) => !v); if (!sellByMeasure) setSerialTracked(false); }}>
               <Ionicons name={sellByMeasure ? 'checkbox' : 'square-outline'} size={20} color={sellByMeasure ? colors.primary : colors.textSecondary} />
-              <Text className="text-sm font-semibold text-text-primary">⚖️ Sold by weight / measure</Text>
+              <Text className="text-sm font-semibold text-text-primary">⚖️ {t('product.soldByMeasure')}</Text>
             </Pressable>
             {sellByMeasure ? (
               <View className="flex-row flex-wrap gap-1.5">
@@ -165,30 +167,30 @@ export default function AddProductScreen() {
             className="flex-row items-center gap-2 rounded-xl border border-border p-3"
             onPress={() => { setSerialTracked((v) => !v); if (!serialTracked) setSellByMeasure(false); }}>
             <Ionicons name={serialTracked ? 'checkbox' : 'square-outline'} size={20} color={serialTracked ? colors.primary : colors.textSecondary} />
-            <Text className="text-sm font-semibold text-text-primary">🔢 Track serial / IMEI numbers</Text>
+            <Text className="text-sm font-semibold text-text-primary">🔢 {t('product.trackSerial')}</Text>
           </Pressable>
         ) : null}
 
         {caps.assembly ? (
-          <TextField label="Manufacturer / brand (optional)" value={manufacturer} onChangeText={setManufacturer} />
+          <TextField label={t('product.manufacturer')} value={manufacturer} onChangeText={setManufacturer} />
         ) : null}
 
         <TextField
-          label={`Purchase price (${currency})${priceUnit}`}
+          label={`${t('product.purchasePrice').replace('{currency}', currency)}${priceUnit}`}
           placeholder="0"
           keyboardType="numeric"
           value={purchasePrice}
           onChangeText={setPurchasePrice}
         />
         <TextField
-          label={`Sale price (${currency})${priceUnit}`}
+          label={`${t('product.salePrice').replace('{currency}', currency)}${priceUnit}`}
           placeholder="0"
           keyboardType="numeric"
           value={salePrice}
           onChangeText={setSalePrice}
         />
         <TextField
-          label="Low stock threshold"
+          label={t('product.lowStockThreshold')}
           placeholder="0"
           keyboardType="numeric"
           value={lowStockThreshold}
@@ -199,7 +201,7 @@ export default function AddProductScreen() {
           <PackagingLevelsEditor levels={packagingLevels} onChange={setPackagingLevels} currency={currency} />
         ) : null}
 
-        <Button title={submitting ? 'Creating…' : 'Create product'} loading={submitting} onPress={onSubmit} />
+        <Button title={submitting ? t('createCompany.submitting') : t('product.create')} loading={submitting} onPress={onSubmit} />
       </KeyboardAwareScroll>
     </SafeAreaView>
   );

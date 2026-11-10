@@ -47,7 +47,7 @@ export default function HeldSalesScreen() {
   const onResume = async (saleId: string) => {
     if (!companyId) return;
     if (cartHasLines) {
-      showAlert('Cart not empty', 'Clear or complete the current cart before resuming a held sale.');
+      showAlert(t('heldSales.cartNotEmpty'), t('heldSales.cartNotEmptyBody'));
       return;
     }
     try {
@@ -78,7 +78,7 @@ export default function HeldSalesScreen() {
         const available = await localCatalogQueryService.getAvailableStock(productId);
         if (available < required) {
           const line = detail.productLines.find((l) => l.productId === productId);
-          shortfalls.push(`${line?.productName ?? productId}: needs ${required}, only ${available} in stock`);
+          shortfalls.push(`${line?.productName ?? productId}: ${t('heldSales.shortfall').replace('{required}', String(required)).replace('{available}', String(available))}`);
         }
       }
 
@@ -88,10 +88,10 @@ export default function HeldSalesScreen() {
       };
 
       if (shortfalls.length > 0) {
-        showAlert('Stock has changed', `Some items in this held sale are no longer fully available:\n\n${shortfalls.join('\n')}`, [
-          { text: 'Cancel', style: 'cancel' },
+        showAlert(t('heldSales.stockChanged'), `${t('heldSales.stockChangedBody')}\n\n${shortfalls.join('\n')}`, [
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Resume anyway',
+            text: t('heldSales.resumeAnyway'),
             onPress: async () => {
               await localSalesService.deleteHeldSale(companyId, saleId);
               proceed();
@@ -104,15 +104,15 @@ export default function HeldSalesScreen() {
       await localSalesService.deleteHeldSale(companyId, saleId);
       proceed();
     } catch (err) {
-      showAlert('Could not resume sale', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('heldSales.resumeFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     }
   };
 
   const onDelete = (saleId: string) => {
-    showAlert('Delete held sale?', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
+    showAlert(t('heldSales.deleteTitle'), t('common.cannotUndo'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('heldSales.delete'),
         style: 'destructive',
         onPress: async () => {
           if (!companyId) return;
@@ -153,7 +153,7 @@ export default function HeldSalesScreen() {
           <View className="flex-row items-center gap-3 rounded-2xl bg-surface p-4 shadow-sm shadow-black/5">
             <View className="flex-1">
               <Text className="text-sm font-semibold text-text-primary">
-                {item.itemCount} items · {formatCurrency(item.total, currency)}
+                {t('sales.itemsCount').replace('{n}', String(item.itemCount))} · {formatCurrency(item.total, currency)}
               </Text>
               <Text className="mt-1 text-xs text-text-secondary">
                 {new Date(item.timestamp).toLocaleString(appLocale(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}

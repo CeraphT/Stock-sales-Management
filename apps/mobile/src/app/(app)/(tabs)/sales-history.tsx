@@ -11,7 +11,7 @@ import { salesApi } from '@/lib/api/endpoints/sales';
 import type { SaleSummaryResponse } from '@/lib/api/types/sales';
 import { SkeletonList } from '@/components/Skeleton';
 import { useAuthStore } from '@/lib/auth/store';
-import { formatCurrency, paymentMethodLabel } from '@/lib/format';
+import { formatCurrency, paymentMethodLabelKey } from '@/lib/format';
 import { useCompanyInfo } from '@/lib/hooks/useCompanyInfo';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { localSalesService } from '@/lib/local/salesService';
@@ -137,7 +137,7 @@ export default function SalesHistoryScreen() {
             setHasMore(false);
           }
         } else {
-          showAlert('Could not load sales', err instanceof Error ? err.message : 'Something went wrong.');
+          showAlert(t('history.loadFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
         }
       } finally {
         setLoading(false);
@@ -155,23 +155,23 @@ export default function SalesHistoryScreen() {
     }, [companyId, from, to]),
   );
 
-  const rangeLabel = from || to ? `${from || '…'} → ${to || 'today'}` : 'All time';
+  const rangeLabel = from || to ? `${from || '…'} → ${to || t('tax.today')}` : t('range.all');
 
   const onShare = () => {
     shareList({
       companyName,
       currency,
-      title: 'Sales History',
-      subtitle: `${rangeLabel} · loaded ${items.length} sale${items.length === 1 ? '' : 's'}`,
-      primaryColumnLabel: 'Cashier',
-      secondaryColumnLabel: 'Payment',
+      title: t('drawer.item.salesHistory'),
+      subtitle: `${rangeLabel} · ${t(items.length === 1 ? 'history.loadedOne' : 'history.loadedMany').replace('{n}', String(items.length))}`,
+      primaryColumnLabel: t('common.cashier'),
+      secondaryColumnLabel: t('tax.col.payment'),
       rows: items.map((item) => ({
         timestamp: item.timestamp,
         primaryLabel: item.cashierName,
-        secondaryLabel: `${paymentMethodLabel(item.paymentMethod)} · ${item.itemCount} items`,
+        secondaryLabel: `${t(paymentMethodLabelKey(item.paymentMethod))} · ${t('sales.itemsCount').replace('{n}', String(item.itemCount))}`,
         total: item.total,
       })),
-    }).catch((err) => showAlert('Could not share', err instanceof Error ? err.message : 'Something went wrong.'));
+    }).catch((err) => showAlert(t('common.shareFailed'), err instanceof Error ? err.message : t('common.somethingWrong')));
   };
 
   return (
@@ -181,7 +181,7 @@ export default function SalesHistoryScreen() {
         <View className="flex-row items-center justify-between">
           <View className="w-12">{fetchingServer && !loading ? <ActivityIndicator size="small" color={colors.primary} /> : null}</View>
           <Text className="text-lg font-bold text-text-primary">{t('drawer.item.salesHistory')}</Text>
-          <Pressable onPress={onShare} hitSlop={8} disabled={items.length === 0} accessibilityLabel="Share PDF">
+          <Pressable onPress={onShare} hitSlop={8} disabled={items.length === 0} accessibilityLabel={t('common.sharePdf')}>
             <Ionicons name="share-outline" size={20} color={items.length > 0 ? colors.primary : colors.iconMuted} />
           </Pressable>
         </View>
@@ -241,7 +241,7 @@ export default function SalesHistoryScreen() {
               onPress={() => router.push({ pathname: '/sale-detail', params: { id: item.id } })}
               className="rounded-2xl bg-surface p-4 shadow-sm shadow-black/5 active:opacity-80">
               <View className="flex-row items-center justify-between">
-                <Text className="text-sm font-semibold text-text-primary">{PAY_KEYS[item.paymentMethod] ? t(PAY_KEYS[item.paymentMethod]!) : paymentMethodLabel(item.paymentMethod)}</Text>
+                <Text className="text-sm font-semibold text-text-primary">{PAY_KEYS[item.paymentMethod] ? t(PAY_KEYS[item.paymentMethod]!) : t(paymentMethodLabelKey(item.paymentMethod))}</Text>
                 <Text className="text-base font-bold text-primary">{formatCurrency(item.total, currency)}</Text>
               </View>
               <Text className="mt-1 text-xs text-text-secondary">

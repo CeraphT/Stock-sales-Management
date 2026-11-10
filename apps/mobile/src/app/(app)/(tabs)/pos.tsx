@@ -119,7 +119,7 @@ export default function PosScreen() {
       clearCart();
       router.replace('/dashboard');
     } catch (err) {
-      showAlert('Could not hold sale', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('pos.holdFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setHolding(false);
     }
@@ -144,7 +144,7 @@ export default function PosScreen() {
           />
           <Pressable
             onPress={() => router.push('/scanner')}
-            accessibilityLabel="Scan barcode"
+            accessibilityLabel={t('product.scanBarcode')}
             className="h-12 w-12 items-center justify-center rounded-xl bg-primary active:opacity-90">
             <Ionicons name="scan-outline" size={22} color="#FFFFFF" />
           </Pressable>
@@ -278,7 +278,7 @@ export default function PosScreen() {
                   <Ionicons name="medkit-outline" size={12} color={colors.accentPurple} />
                   <Text className="text-sm font-semibold text-text-primary">{item.line.serviceName}</Text>
                 </View>
-                <Text className="text-xs text-text-secondary">{formatCurrency(item.line.unitPrice, currency)} each</Text>
+                <Text className="text-xs text-text-secondary">{t('pos.each').replace('{price}', formatCurrency(item.line.unitPrice, currency))}</Text>
               </View>
               <View className="flex-row items-center gap-3">
                 <Pressable
@@ -304,7 +304,7 @@ export default function PosScreen() {
       />
 
       {serviceLines.length > 0 ? (
-        <Text className="px-4 text-xs text-text-secondary">Sales with services need an internet connection to complete.</Text>
+        <Text className="px-4 text-xs text-text-secondary">{t('pos.servicesNeedInternet')}</Text>
       ) : null}
 
       <View className="gap-3 border-t border-border bg-surface p-4">

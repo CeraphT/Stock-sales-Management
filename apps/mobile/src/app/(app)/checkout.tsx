@@ -74,10 +74,10 @@ export default function CheckoutScreen() {
     try {
       const card = await rewardsApi.issue(companyId, customerId);
       await shareGiftCardVoucher({ companyName, code: card.code, value: card.remainingValue, currency, customerName: customerName ?? undefined });
-      toast(`🎁 Reward issued: ${card.code}`, 'success');
+      toast(`🎁 ${t('checkout.rewardIssued').replace('{code}', card.code)}`, 'success');
       await refetchReward();
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Could not issue the reward.', 'error');
+      toast(e instanceof Error ? e.message : t('checkout.rewardFailed'), 'error');
     } finally {
       setIssuingReward(false);
     }
@@ -118,15 +118,15 @@ export default function CheckoutScreen() {
   const onCharge = async () => {
     if (!companyId || !locationId) return;
     if (needsCustomer && !customerId) {
-      showAlert('Customer required', 'This payment method requires a customer to be selected.');
+      showAlert(t('checkout.customerRequiredTitle'), t('checkout.customerRequiredBody'));
       return;
     }
     if (storeCreditShort) {
-      showAlert('Not enough store credit', `This customer has only ${formatCurrency(storeCreditAvailable, currency)} in store credit.`);
+      showAlert(t('checkout.notEnoughCredit'), t('checkout.notEnoughCreditBody').replace('{amount}', formatCurrency(storeCreditAvailable, currency)));
       return;
     }
     if (method === PaymentMethod.GiftCard && !giftCardCode.trim()) {
-      showAlert('Gift card code required', 'Enter the gift card code to redeem.');
+      showAlert(t('checkout.giftCodeRequired'), t('checkout.giftCodeRequiredBody'));
       return;
     }
 
@@ -207,13 +207,13 @@ export default function CheckoutScreen() {
             onPress: () => {
               printingService.printReceipt(receipt).catch((err) => {
                 if (err instanceof NoPrinterConfiguredError) {
-                  showAlert('No printer configured', 'Set up a receipt printer first.', [
-                    { text: 'Not now', style: 'cancel' },
-                    { text: 'Set up printer', onPress: () => router.push('/printer-settings') },
+                  showAlert(t('printer.noneTitle'), t('printer.noneBody'), [
+          { text: t('common.notNow'), style: 'cancel' },
+          { text: t('printer.setUp'), onPress: () => router.push('/printer-settings') },
                   ]);
                   return;
                 }
-                showAlert('Could not print', err instanceof Error ? err.message : 'Something went wrong.');
+                showAlert(t('printer.printFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
               });
             },
           },
@@ -221,14 +221,14 @@ export default function CheckoutScreen() {
             text: t('checkout.viewReceipt'),
             onPress: () => {
               viewOrPrintReceipt(receipt).catch((err) =>
-                showAlert('Could not open receipt', err instanceof Error ? err.message : 'Something went wrong.'),
+                showAlert(t('receipt.openFailed'), err instanceof Error ? err.message : t('common.somethingWrong')),
               );
             },
           },
         ],
       );
     } catch (err) {
-      showAlert('Could not complete sale', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('checkout.completeFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -258,17 +258,19 @@ export default function CheckoutScreen() {
           <View className="flex-row items-center gap-3 rounded-card border border-accent-purple/40 bg-accent-purple/10 p-4">
             <Text className="text-2xl">🎁</Text>
             <View className="flex-1">
-              <Text className="text-sm font-bold text-text-primary">Reward due</Text>
+              <Text className="text-sm font-bold text-text-primary">{t('checkout.rewardDue')}</Text>
               <Text className="text-xs text-text-secondary">
-                {customerName ?? 'This customer'} earned {reward.rewardsDue} gift card{reward.rewardsDue === 1 ? '' : 's'} ·{' '}
-                {formatCurrency(reward.rewardValue, currency)} each
+                {t(reward.rewardsDue === 1 ? 'checkout.rewardEarnedOne' : 'checkout.rewardEarnedMany')
+                  .replace('{name}', customerName ?? t('checkout.thisCustomer'))
+                  .replace('{n}', String(reward.rewardsDue))
+                  .replace('{value}', formatCurrency(reward.rewardValue, currency))}
               </Text>
             </View>
-            <Button title="Issue" variant="secondary" loading={issuingReward} onPress={issueReward} />
+            <Button title={t('checkout.issue')} variant="secondary" loading={issuingReward} onPress={issueReward} />
           </View>
         ) : reward?.enabled && reward.purchasesUntilNext > 0 ? (
           <Text className="-mt-2 text-xs text-text-secondary">
-            🎁 {reward.purchasesUntilNext} more purchase{reward.purchasesUntilNext === 1 ? '' : 's'} until this customer earns a reward.
+            🎁 {t(reward.purchasesUntilNext === 1 ? 'checkout.untilRewardOne' : 'checkout.untilRewardMany').replace('{n}', String(reward.purchasesUntilNext))}
           </Text>
         ) : null}
 
@@ -286,12 +288,12 @@ export default function CheckoutScreen() {
           </View>
           {customerId && method === PaymentMethod.StoreCredit ? (
             <Text className={`text-xs ${storeCreditShort ? 'text-error' : 'text-text-secondary'}`}>
-              Store credit available: {formatCurrency(storeCreditAvailable, currency)}
-              {storeCreditShort ? '. Not enough for this sale' : ''}
+              {t('checkout.storeCreditAvailable').replace('{amount}', formatCurrency(storeCreditAvailable, currency))}
+              {storeCreditShort ? `. ${t('checkout.notEnoughForSale')}` : ''}
             </Text>
           ) : null}
           {customerId && method === PaymentMethod.Credit ? (
-            <Text className="text-xs text-text-secondary">Current balance owed: {formatCurrency(creditOwed, currency)}</Text>
+            <Text className="text-xs text-text-secondary">{t('checkout.balanceOwed').replace('{amount}', formatCurrency(creditOwed, currency))}</Text>
           ) : null}
         </View>
 
@@ -300,7 +302,7 @@ export default function CheckoutScreen() {
             <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('checkout.amountTendered')}</Text>
             <TextInput
               className="rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
-              placeholder={`e.g. ${total}`}
+              placeholder={`${t('common.eg')} ${total}`}
               placeholderTextColor={colors.placeholder}
               keyboardType="numeric"
               value={tendered}
@@ -321,7 +323,7 @@ export default function CheckoutScreen() {
             <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('checkout.giftCardCode')}</Text>
             <TextInput
               className="rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
-              placeholder="e.g. ABC123"
+              placeholder={`${t('common.eg')} ABC123`}
               placeholderTextColor={colors.placeholder}
               autoCapitalize="characters"
               value={giftCardCode}

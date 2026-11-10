@@ -39,7 +39,7 @@ export default function CategoriesScreen() {
     enabled: !!companyId,
     local: () => localMirrorQueries.listCategories(companyId!),
     remote: () => categoriesApi.list(companyId!),
-    errorTitle: 'Could not load categories',
+    errorTitle: t('categories.loadFailed'),
     deps: [companyId],
   });
   const categories = data ?? [];
@@ -54,7 +54,7 @@ export default function CategoriesScreen() {
       await refresh();
       afterOfflineWrite({ queued: t('offline.queued'), rejected: t('offline.rejected') });
     } catch (err) {
-      showAlert('Could not create category', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('categories.createFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setCreating(false);
     }
@@ -69,17 +69,17 @@ export default function CategoriesScreen() {
       await refresh();
       await syncNow();
     } catch (err) {
-      showAlert('Could not rename category', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('categories.renameFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setSavingEdit(false);
     }
   };
 
   const onDelete = (category: CategoryResponse) => {
-    showAlert('Delete category?', `"${category.name}" will be removed. Products keep their other details.`, [
-      { text: 'Cancel', style: 'cancel' },
+    showAlert(t('categories.deleteTitle'), t('categories.deleteBody').replace('{name}', category.name), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('heldSales.delete'),
         style: 'destructive',
         onPress: async () => {
           if (!companyId) return;
@@ -88,8 +88,8 @@ export default function CategoriesScreen() {
             await refresh();
             await syncNow();
           } catch (err) {
-            const message = err instanceof ApiError ? err.message : 'Something went wrong.';
-            showAlert('Could not delete category', message);
+            const message = err instanceof ApiError ? err.message : t('common.somethingWrong');
+            showAlert(t('categories.deleteFailed'), message);
           }
         },
       },
@@ -102,7 +102,7 @@ export default function CategoriesScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Categories</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.categories')}</Text>
           <View className="w-12" />
         </View>
       </View>
@@ -113,7 +113,7 @@ export default function CategoriesScreen() {
       <View className="flex-row items-center gap-2 p-4">
         <TextInput
           className="flex-1 rounded-xl border border-border bg-surface px-3.5 py-3 text-base text-text-primary"
-          placeholder="New category name"
+          placeholder={t('categories.newName')}
           placeholderTextColor={colors.placeholder}
           value={newName}
           onChangeText={setNewName}
@@ -123,7 +123,7 @@ export default function CategoriesScreen() {
         <Pressable
           onPress={onCreate}
           disabled={!newName.trim() || creating}
-          accessibilityLabel="Add category"
+          accessibilityLabel={t('kit.addCategory')}
           className="h-12 w-12 items-center justify-center rounded-xl bg-primary active:opacity-90 disabled:opacity-50">
           {creating ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="add" size={22} color="#FFFFFF" />}
         </Pressable>
@@ -153,11 +153,11 @@ export default function CategoriesScreen() {
                   onPress={() => onRename(item.id)}
                   disabled={savingEdit || !editValue.trim()}
                   hitSlop={6}
-                  accessibilityLabel="Save"
+                  accessibilityLabel={t('common.save')}
                   className="h-8 w-8 items-center justify-center">
                   {savingEdit ? <ActivityIndicator color={colors.primary} /> : <Ionicons name="checkmark" size={20} color={colors.primary} />}
                 </Pressable>
-                <Pressable onPress={() => setEditId(null)} hitSlop={6} accessibilityLabel="Cancel" className="h-8 w-8 items-center justify-center">
+                <Pressable onPress={() => setEditId(null)} hitSlop={6} accessibilityLabel={t('common.cancel')} className="h-8 w-8 items-center justify-center">
                   <Ionicons name="close" size={20} color={colors.iconMuted} />
                 </Pressable>
               </>
@@ -170,11 +170,11 @@ export default function CategoriesScreen() {
                     setEditValue(item.name);
                   }}
                   hitSlop={6}
-                  accessibilityLabel="Rename"
+                  accessibilityLabel={t('categories.rename')}
                   className="h-8 w-8 items-center justify-center">
                   <Ionicons name="pencil" size={17} color={colors.primary} />
                 </Pressable>
-                <Pressable onPress={() => onDelete(item)} hitSlop={6} accessibilityLabel="Delete" className="h-8 w-8 items-center justify-center">
+                <Pressable onPress={() => onDelete(item)} hitSlop={6} accessibilityLabel={t('heldSales.delete')} className="h-8 w-8 items-center justify-center">
                   <Ionicons name="trash-outline" size={18} color={colors.error} />
                 </Pressable>
               </>
@@ -182,7 +182,7 @@ export default function CategoriesScreen() {
           </View>
         )}
         ListEmptyComponent={
-          !loading ? <Text className="p-4 text-center text-sm text-text-secondary">No categories yet.</Text> : null
+          !loading ? <Text className="p-4 text-center text-sm text-text-secondary">{t('categories.empty')}</Text> : null
         }
       />
     </SafeAreaView>

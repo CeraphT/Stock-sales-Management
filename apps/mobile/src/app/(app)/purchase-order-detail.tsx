@@ -17,7 +17,7 @@ import { PurchaseOrderStatus } from '@/lib/api/enums';
 import { purchaseOrdersApi } from '@/lib/api/endpoints/purchaseOrders';
 import type { PurchaseOrderDetailResponse } from '@/lib/api/types/purchaseOrders';
 import { useAuthStore } from '@/lib/auth/store';
-import { formatCurrency, purchaseOrderStatusLabel } from '@/lib/format';
+import { formatCurrency, purchaseOrderStatusLabelKey } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { useCompanyInfo } from '@/lib/hooks/useCompanyInfo';
 import { purchaseOrderStatusTone } from '@/lib/purchaseOrderStatusTone';
@@ -25,6 +25,7 @@ import { sharePurchaseOrder, viewOrPrintPurchaseOrder } from '@/lib/reports/purc
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
 import { appLocale } from '@/lib/i18n/locale';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function PurchaseOrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -35,6 +36,7 @@ export default function PurchaseOrderDetailScreen() {
   const currency = useCompanyCurrency();
   const { name: companyName } = useCompanyInfo();
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [order, setOrder] = useState<PurchaseOrderDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,10 +59,10 @@ export default function PurchaseOrderDetailScreen() {
   );
 
   const onCancel = () => {
-    showAlert('Cancel this order?', 'This can only be done before any receipt has been recorded.', [
-      { text: 'Keep order', style: 'cancel' },
+    showAlert(t('po.cancelTitle'), t('po.cancelBody'), [
+      { text: t('po.keep'), style: 'cancel' },
       {
-        text: 'Cancel order',
+        text: t('po.cancelOrder'),
         style: 'destructive',
         onPress: async () => {
           if (!companyId || !id) return;
@@ -69,7 +71,7 @@ export default function PurchaseOrderDetailScreen() {
             await purchaseOrdersApi.cancel(companyId, id);
             await load();
           } catch (err) {
-            showAlert('Could not cancel order', err instanceof Error ? err.message : 'Something went wrong.');
+            showAlert(t('po.cancelFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
           } finally {
             setCancelling(false);
           }
@@ -102,7 +104,7 @@ export default function PurchaseOrderDetailScreen() {
     const data = toPdfData();
     if (!data) return;
     viewOrPrintPurchaseOrder(data).catch((err) =>
-      showAlert('Could not open PDF', err instanceof Error ? err.message : 'Something went wrong.'),
+      showAlert(t('common.openPdfFailed'), err instanceof Error ? err.message : t('common.somethingWrong')),
     );
   };
 
@@ -110,7 +112,7 @@ export default function PurchaseOrderDetailScreen() {
     const data = toPdfData();
     if (!data) return;
     sharePurchaseOrder(data).catch((err) =>
-      showAlert('Could not share PDF', err instanceof Error ? err.message : 'Something went wrong.'),
+      showAlert(t('common.sharePdfFailed'), err instanceof Error ? err.message : t('common.somethingWrong')),
     );
   };
 
@@ -134,8 +136,8 @@ export default function PurchaseOrderDetailScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Purchase order</Text>
-          <Pressable onPress={onShare} hitSlop={8} accessibilityLabel="Share PDF">
+          <Text className="text-lg font-bold text-text-primary">{t('po.title')}</Text>
+          <Pressable onPress={onShare} hitSlop={8} accessibilityLabel={t('common.sharePdf')}>
             <Ionicons name="share-outline" size={20} color={colors.primary} />
           </Pressable>
         </View>
@@ -152,7 +154,7 @@ export default function PurchaseOrderDetailScreen() {
             </View>
             <View className={`flex-row items-center gap-1.5 rounded-full px-2.5 py-1 ${tone.badgeClass}`}>
               <Ionicons name={tone.icon} size={13} color={tone.iconColor} />
-              <Text className={`text-xs font-bold ${tone.textClass}`}>{purchaseOrderStatusLabel(order.status)}</Text>
+              <Text className={`text-xs font-bold ${tone.textClass}`}>{t(purchaseOrderStatusLabelKey(order.status))}</Text>
             </View>
           </View>
 
@@ -162,7 +164,7 @@ export default function PurchaseOrderDetailScreen() {
             <View className="mt-3">
               <View className="flex-row items-center justify-between">
                 <Text className="text-xs font-semibold text-text-secondary">
-                  {totalReceived} of {totalOrdered} units received
+                  {t('po.unitsReceived').replace('{received}', String(totalReceived)).replace('{ordered}', String(totalOrdered))}
                 </Text>
                 <Text className="text-xs font-semibold text-text-secondary">{Math.round(receivedFraction * 100)}%</Text>
               </View>
@@ -176,7 +178,7 @@ export default function PurchaseOrderDetailScreen() {
           ) : null}
 
           <View className="mt-3 flex-row items-center justify-between border-t border-border pt-3">
-            <Text className="text-sm font-semibold text-text-secondary">Order total</Text>
+            <Text className="text-sm font-semibold text-text-secondary">{t('po.orderTotal')}</Text>
             <Text className="text-base font-bold text-text-primary">{formatCurrency(totalCost, currency)}</Text>
           </View>
         </View>
@@ -186,11 +188,11 @@ export default function PurchaseOrderDetailScreen() {
             onPress={onView}
             className="flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-primary py-3.5 active:opacity-90">
             <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
-            <Text className="text-sm font-semibold text-white">View / print (PDF)</Text>
+            <Text className="text-sm font-semibold text-white">{t('common.viewPrintPdf')}</Text>
           </Pressable>
         </View>
 
-        <Text className="text-sm font-bold text-text-primary">Lines</Text>
+        <Text className="text-sm font-bold text-text-primary">{t('po.lines')}</Text>
         {order.lines.map((line) => {
           const remaining = line.quantityOrdered - line.quantityReceived;
           const lineFraction = line.quantityOrdered > 0 ? Math.min(1, line.quantityReceived / line.quantityOrdered) : 0;
@@ -202,7 +204,10 @@ export default function PurchaseOrderDetailScreen() {
                 {lineDone ? <Ionicons name="checkmark-circle" size={18} color={colors.success} /> : null}
               </View>
               <Text className="mt-1 text-xs text-text-secondary">
-                {line.quantityReceived} / {line.quantityOrdered} received · {formatCurrency(line.unitCost, currency)} each
+                {t('po.lineReceived')
+                  .replace('{received}', String(line.quantityReceived))
+                  .replace('{ordered}', String(line.quantityOrdered))
+                  .replace('{cost}', formatCurrency(line.unitCost, currency))}
               </Text>
               <View className="mt-2 h-1.5 overflow-hidden rounded-full bg-border">
                 <View
@@ -219,7 +224,7 @@ export default function PurchaseOrderDetailScreen() {
                     })
                   }
                   className="mt-2 self-start rounded-lg border border-primary px-3 py-1.5">
-                  <Text className="text-xs font-semibold text-primary">Receive</Text>
+                  <Text className="text-xs font-semibold text-primary">{t('po.receive')}</Text>
                 </Pressable>
               ) : null}
             </View>
@@ -227,7 +232,7 @@ export default function PurchaseOrderDetailScreen() {
         })}
 
         {order.status === PurchaseOrderStatus.Pending ? (
-          <Button title={cancelling ? 'Cancelling…' : 'Cancel order'} variant="secondary" loading={cancelling} onPress={onCancel} />
+          <Button title={cancelling ? t('po.cancelling') : t('po.cancelOrder')} variant="secondary" loading={cancelling} onPress={onCancel} />
         ) : null}
       </KeyboardAwareScroll>
     </SafeAreaView>

@@ -67,9 +67,9 @@ export default function StockCountScreen() {
       await refetch();
       setCounts({});
       const applied = result.filter((r) => r.delta !== 0).length;
-      showAlert('Count posted', `${applied} batch(es) adjusted.`);
+      showAlert(t('count.posted'), t('count.postedBody').replace('{n}', String(applied)));
     } catch (err) {
-      showAlert('Could not post the count', err instanceof ApiError ? err.message : 'Something went wrong.');
+      showAlert(t('count.failed'), err instanceof ApiError ? err.message : t('common.somethingWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -81,7 +81,7 @@ export default function StockCountScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Stock count</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.stockCount')}</Text>
           <View className="w-12" />
         </View>
       </View>
@@ -89,7 +89,7 @@ export default function StockCountScreen() {
       <View className="px-5 pt-3">
         <TextInput
           className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-base text-text-primary"
-          placeholder="Search product or batch…"
+          placeholder={t('count.search')}
           placeholderTextColor={colors.placeholder}
           value={search}
           onChangeText={setSearch}
@@ -99,7 +99,7 @@ export default function StockCountScreen() {
 
       <KeyboardAwareScroll contentContainerClassName="gap-2 p-5" keyboardShouldPersistTaps="handled">
         {rows.length === 0 ? (
-          <Text className="py-10 text-center text-sm text-text-secondary">No stock batches to count.</Text>
+          <Text className="py-10 text-center text-sm text-text-secondary">{t('count.empty')}</Text>
         ) : (
           rows.map((b) => {
             const raw = counts[b.batchId];
@@ -110,13 +110,13 @@ export default function StockCountScreen() {
                 <View className="flex-1">
                   <Text className="text-sm font-semibold text-text-primary">{b.productName}</Text>
                   <Text className="text-xs text-text-secondary">
-                    {b.batchNumber} · system {b.quantityInBaseUnits}
+                    {b.batchNumber} · {t('count.system')} {b.quantityInBaseUnits}
                     {delta != null && delta !== 0 ? ` · ${delta > 0 ? '+' : ''}${delta}` : ''}
                   </Text>
                 </View>
                 <TextInput
                   className="w-24 rounded-lg border border-border bg-background px-2 py-2 text-right text-sm text-text-primary"
-                  placeholder="count"
+                  placeholder={t('count.placeholder')}
                   placeholderTextColor={colors.placeholder}
                   keyboardType="numeric"
                   value={raw ?? ''}
@@ -131,7 +131,7 @@ export default function StockCountScreen() {
       <View className="border-t border-border bg-surface p-4">
         <Text className="mb-2 text-center text-xs text-text-secondary">{variances.length} batch(es) with a variance</Text>
         <Button
-          title={submitting ? 'Posting…' : 'Post count & adjust'}
+          title={submitting ? t('count.posting') : t('count.post')}
           loading={submitting}
           onPress={post}
           disabled={variances.length === 0}

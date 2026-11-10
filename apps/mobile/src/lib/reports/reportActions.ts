@@ -1,6 +1,8 @@
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
+import { tr } from "@/lib/i18n/translate";
+
 import { generateReportHtml } from "./generateReportHtml";
 import type { ReportData } from "./reportTypes";
 
@@ -18,7 +20,7 @@ export async function shareReport(data: ReportData): Promise<void> {
   const { uri } = await Print.printToFileAsync({ html });
   const canShare = await Sharing.isAvailableAsync();
   if (!canShare) {
-    throw new Error("Sharing isn't available on this device.");
+    throw new Error(tr("common.sharingUnavailable"));
   }
   await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Sales report" });
 }

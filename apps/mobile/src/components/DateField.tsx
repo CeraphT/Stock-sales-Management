@@ -1,6 +1,8 @@
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Pressable, Text, View } from 'react-native';
 
+import { useTranslation } from '@/lib/i18n/useTranslation';
+
 interface DateFieldProps {
   label: string;
   /** ISO date string (YYYY-MM-DD) or null if unset. */
@@ -14,7 +16,8 @@ interface DateFieldProps {
  * work with a plain YYYY-MM-DD string — matches every other date field
  * in the app being stored/sent that way. Android-only for now, same as
  * the rest of the client (see CLAUDE.md). */
-export function DateField({ label, value, onChange, minimumDate, placeholder = 'Select a date' }: DateFieldProps) {
+export function DateField({ label, value, onChange, minimumDate, placeholder }: DateFieldProps) {
+  const { t } = useTranslation();
   const openPicker = () => {
     DateTimePickerAndroid.open({
       value: value ? new Date(`${value}T00:00:00`) : new Date(),
@@ -33,7 +36,7 @@ export function DateField({ label, value, onChange, minimumDate, placeholder = '
       <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{label}</Text>
       <Pressable onPress={openPicker} className="rounded-xl border border-border bg-background px-3.5 py-3">
         <Text className={value ? 'text-base text-text-primary' : 'text-base text-text-secondary'}>
-          {value ?? placeholder}
+          {value ?? placeholder ?? t('common.selectDate')}
         </Text>
       </Pressable>
     </View>

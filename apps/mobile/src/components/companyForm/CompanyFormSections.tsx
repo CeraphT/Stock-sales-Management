@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextField } from '@/components/TextField';
 import { renderKeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
 import { BUSINESS_PRESETS, CAPABILITY_META } from '@/lib/businessTypes';
-import { COUNTRY_OPTIONS } from '@/lib/countries';
+import { countryOptions } from '@/lib/countries';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useThemeColors } from '@/lib/theme/colors';
@@ -138,15 +138,16 @@ export function ContactSection({ f, withDescription = true }: { f: CompanyForm; 
 
 /** Country (sets currency + VAT) via a searchable list, and the resulting currency. */
 export function CountrySection({ f }: { f: CompanyForm }) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const allCountries = useMemo(() => countryOptions(language), [language]);
   const colors = useThemeColors();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const options = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return s ? COUNTRY_OPTIONS.filter((o) => o.label.toLowerCase().includes(s)) : COUNTRY_OPTIONS;
-  }, [q]);
-  const current = COUNTRY_OPTIONS.find((o) => o.value === f.country);
+    return s ? allCountries.filter((o) => o.label.toLowerCase().includes(s) || o.value.toLowerCase().includes(s)) : allCountries;
+  }, [q, allCountries]);
+  const current = allCountries.find((o) => o.value === f.country);
 
   return (
     <>

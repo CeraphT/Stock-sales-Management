@@ -6,6 +6,7 @@ import { BrandLogo } from '@/components/BrandLogo';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 /**
  * Shared shell for the pre-login screens (login / create-company / join-company),
@@ -16,6 +17,7 @@ import { KeyboardAwareScroll } from '@/components/KeyboardAwareScroll';
  * ScrollView chain (see the old AuthScreenLayout note); inline style avoids it.
  */
 export function AuthLayout({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
+  const { t } = useTranslation();
   return (
     <View style={{ flex: 1 }} className="bg-background">
       <ScreenBackground />
@@ -35,7 +37,7 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
                 <BrandLogo size={48} />
                 <View>
                   <Text className="text-xl font-extrabold tracking-tight text-primary">StockFlow</Text>
-                  <Text className="text-xs text-text-secondary">Business management</Text>
+                  <Text className="text-xs text-text-secondary">{t('auth.tagline')}</Text>
                 </View>
               </View>
 

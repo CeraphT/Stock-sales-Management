@@ -1,4 +1,5 @@
 import { PaymentMethod, PurchaseOrderStatus } from "./api/enums";
+import type { TranslationKey } from "./i18n/translations";
 
 const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   [PaymentMethod.Cash]: "Cash",
@@ -13,6 +14,21 @@ export function paymentMethodLabel(method: PaymentMethod): string {
   return PAYMENT_METHOD_LABELS[method] ?? "Unknown";
 }
 
+const PAYMENT_METHOD_LABEL_KEYS: Record<PaymentMethod, TranslationKey> = {
+  [PaymentMethod.Cash]: "paymentMethod.cash",
+  [PaymentMethod.MobileMoney]: "paymentMethod.mobileMoney",
+  [PaymentMethod.Credit]: "paymentMethod.credit",
+  [PaymentMethod.StoreCredit]: "paymentMethod.storeCredit",
+  [PaymentMethod.GiftCard]: "paymentMethod.giftCard",
+  [PaymentMethod.Split]: "paymentMethod.split",
+};
+
+/** Translation key for a payment method, for translated UIs: `t(paymentMethodLabelKey(m))`.
+ * `paymentMethodLabel` stays English for receipts/PDFs and the web/desktop apps. */
+export function paymentMethodLabelKey(method: PaymentMethod): TranslationKey {
+  return PAYMENT_METHOD_LABEL_KEYS[method] ?? "common.unknown";
+}
+
 const PURCHASE_ORDER_STATUS_LABELS: Record<PurchaseOrderStatus, string> = {
   [PurchaseOrderStatus.Pending]: "Pending",
   [PurchaseOrderStatus.PartiallyReceived]: "Partially received",
@@ -22,6 +38,18 @@ const PURCHASE_ORDER_STATUS_LABELS: Record<PurchaseOrderStatus, string> = {
 
 export function purchaseOrderStatusLabel(status: PurchaseOrderStatus): string {
   return PURCHASE_ORDER_STATUS_LABELS[status] ?? "Unknown";
+}
+
+const PURCHASE_ORDER_STATUS_LABEL_KEYS: Record<PurchaseOrderStatus, TranslationKey> = {
+  [PurchaseOrderStatus.Pending]: "poStatus.pending",
+  [PurchaseOrderStatus.PartiallyReceived]: "poStatus.partiallyReceived",
+  [PurchaseOrderStatus.Received]: "poStatus.received",
+  [PurchaseOrderStatus.Cancelled]: "poStatus.cancelled",
+};
+
+/** Translation key for a purchase-order status: `t(purchaseOrderStatusLabelKey(s))`. */
+export function purchaseOrderStatusLabelKey(status: PurchaseOrderStatus): TranslationKey {
+  return PURCHASE_ORDER_STATUS_LABEL_KEYS[status] ?? "common.unknown";
 }
 
 /** `1234.5` + "XAF" -> "1,235 XAF". Deliberately not Intl.NumberFormat's

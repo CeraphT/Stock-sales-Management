@@ -19,12 +19,14 @@ import { DateField } from '@/components/DateField';
 import { FiltersDisclosure } from '@/components/FiltersDisclosure';
 import { SkeletonList } from '@/components/Skeleton';
 import { useAuthStore } from '@/lib/auth/store';
-import { formatCurrency, purchaseOrderStatusLabel } from '@/lib/format';
+import { formatCurrency, purchaseOrderStatusLabelKey } from '@/lib/format';
 import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { purchaseOrderStatusTone } from '@/lib/purchaseOrderStatusTone';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
 import { appLocale } from '@/lib/i18n/locale';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import type { TranslationKey } from '@stockflow/core/i18n/translations';
 
 const STATUS_FILTERS: (PurchaseOrderStatus | 'all')[] = [
   'all',
@@ -34,8 +36,8 @@ const STATUS_FILTERS: (PurchaseOrderStatus | 'all')[] = [
   PurchaseOrderStatus.Cancelled,
 ];
 
-function filterLabel(value: PurchaseOrderStatus | 'all'): string {
-  return value === 'all' ? 'All' : purchaseOrderStatusLabel(value);
+function filterLabel(value: PurchaseOrderStatus | 'all', t: (key: TranslationKey) => string): string {
+  return t(value === 'all' ? 'common.all' : purchaseOrderStatusLabelKey(value));
 }
 
 /** Whole days since an ISO timestamp — for the overdue badge (matches desktop). */
@@ -50,6 +52,7 @@ export default function PurchaseOrdersScreen() {
   useFeatureGuard(useAuthStore((s) => s.user?.restrictPurchasing));
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [statusFilter, setStatusFilter] = useState<PurchaseOrderStatus | 'all'>('all');
   const [from, setFrom] = useState('');
@@ -73,7 +76,7 @@ export default function PurchaseOrdersScreen() {
       setAllOrders(orders);
       setSuppliers(sups);
     } catch (err) {
-      showAlert('Could not load purchase orders', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('po.loadFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setLoading(false);
     }
@@ -90,12 +93,12 @@ export default function PurchaseOrdersScreen() {
     const phone = s?.contactPhone?.trim();
     const email = s?.contactEmail?.trim();
     const buttons: { text: string; style?: 'cancel' | 'destructive'; onPress?: () => void }[] = [];
-    if (phone) buttons.push({ text: `Call ${phone}`, onPress: () => void Linking.openURL(`tel:${phone}`) });
-    if (email) buttons.push({ text: `Email ${email}`, onPress: () => void Linking.openURL(`mailto:${email}`) });
-    buttons.push({ text: 'Close', style: 'cancel' });
+    if (phone) buttons.push({ text: `${t('suppliers.call')} ${phone}`, onPress: () => void Linking.openURL(`tel:${phone}`) });
+    if (email) buttons.push({ text: `${t('suppliers.email')} ${email}`, onPress: () => void Linking.openURL(`mailto:${email}`) });
+    buttons.push({ text: t('common.close'), style: 'cancel' });
     showAlert(
       supplierName,
-      phone || email ? 'Contact this supplier' : 'No contact details recorded. Add them on the Suppliers screen.',
+      phone || email ? t('suppliers.contactThis') : t('po.noContact'),
       buttons,
     );
   };
@@ -132,10 +135,10 @@ export default function PurchaseOrdersScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Purchase orders</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.purchaseOrders')}</Text>
           <Pressable
             onPress={() => router.push('/purchase-order-form')}
-            accessibilityLabel="New purchase order"
+            accessibilityLabel={t('po.new')}
             className="h-9 w-9 items-center justify-center rounded-full bg-primary active:opacity-90">
             <Ionicons name="add" size={20} color="#FFFFFF" />
           </Pressable>
@@ -143,7 +146,7 @@ export default function PurchaseOrdersScreen() {
 
         {!loading && openCount > 0 ? (
           <Text className="mt-2 text-xs text-text-secondary">
-            {openCount} order{openCount === 1 ? '' : 's'} still awaiting stock
+            {t(openCount === 1 ? 'po.awaitingOne' : 'po.awaitingMany').replace('{n}', String(openCount))}
           </Text>
         ) : null}
 
@@ -152,7 +155,7 @@ export default function PurchaseOrdersScreen() {
             {STATUS_FILTERS.map((s) => (
               <FilterChip
                 key={String(s)}
-                label={`${filterLabel(s)} (${counts[s] ?? 0})`}
+                label={`${filterLabel(s, t)} (${counts[s] ?? 0})`}
                 active={statusFilter === s}
                 onPress={() => setStatusFilter(s)}
               />
@@ -160,15 +163,15 @@ export default function PurchaseOrdersScreen() {
           </View>
           <View className="mt-3 flex-row gap-3">
             <View className="flex-1">
-              <DateField label="From" value={from || null} onChange={setFrom} />
+              <DateField label={t('history.from')} value={from || null} onChange={setFrom} />
             </View>
             <View className="flex-1">
-              <DateField label="To" value={to || null} onChange={setTo} />
+              <DateField label={t('history.to')} value={to || null} onChange={setTo} />
             </View>
           </View>
           {from || to ? (
             <Pressable onPress={() => { setFrom(''); setTo(''); }} className="mt-2 self-start">
-              <Text className="text-xs font-semibold text-primary">Clear dates</Text>
+              <Text className="text-xs font-semibold text-primary">{t('po.clearDates')}</Text>
             </Pressable>
           ) : null}
         </FiltersDisclosure>
@@ -197,24 +200,24 @@ export default function PurchaseOrdersScreen() {
                     {(item.status === PurchaseOrderStatus.Pending || item.status === PurchaseOrderStatus.PartiallyReceived) &&
                     daysSince(item.createdAt) > 30 ? (
                       <View className="rounded-lg bg-error/15 px-2 py-0.5">
-                        <Text className="text-[11px] font-bold text-error">⏰ {daysSince(item.createdAt)}d</Text>
+                        <Text className="text-[11px] font-bold text-error">⏰ {t('po.daysShort').replace('{n}', String(daysSince(item.createdAt)))}</Text>
                       </View>
                     ) : null}
                     <View className={`flex-row items-center gap-1 rounded-full px-2 py-1 ${tone.badgeClass}`}>
                       <Ionicons name={tone.icon} size={12} color={tone.iconColor} />
-                      <Text className={`text-[11px] font-bold ${tone.textClass}`}>{purchaseOrderStatusLabel(item.status)}</Text>
+                      <Text className={`text-[11px] font-bold ${tone.textClass}`}>{t(purchaseOrderStatusLabelKey(item.status))}</Text>
                     </View>
                     <Pressable
                       onPress={() => onContactSupplier(item.supplierName)}
                       hitSlop={8}
-                      accessibilityLabel="Contact supplier"
+                      accessibilityLabel={t('suppliers.contact')}
                       className="h-8 w-8 items-center justify-center">
                       <Ionicons name="call-outline" size={17} color={colors.primary} />
                     </Pressable>
                   </View>
                 </View>
                 <Text className="mt-1 text-xs text-text-secondary">
-                  {item.locationName} · {item.lineCount} line{item.lineCount === 1 ? '' : 's'} · {formatCurrency(item.totalCost, currency)}
+                  {item.locationName} · {t(item.lineCount === 1 ? 'po.lineOne' : 'po.lineMany').replace('{n}', String(item.lineCount))} · {formatCurrency(item.totalCost, currency)}
                 </Text>
                 <Text className="mt-0.5 text-xs text-text-secondary">{new Date(item.createdAt).toLocaleString(appLocale())}</Text>
               </Pressable>
@@ -222,7 +225,7 @@ export default function PurchaseOrdersScreen() {
           }}
           ListEmptyComponent={
             <View className="items-center py-16">
-              <Text className="text-sm text-text-secondary">No purchase orders match this filter.</Text>
+              <Text className="text-sm text-text-secondary">{t('po.emptyFilter')}</Text>
             </View>
           }
         />

@@ -24,6 +24,7 @@ import { useCompanyCurrency } from '@/lib/hooks/useCompanyCurrency';
 import { localCatalogQueryService } from '@/lib/local/catalogQueryService';
 import { useThemeColors } from '@/lib/theme/colors';
 import { showAlert } from '@/lib/ui/alertStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface DraftStockLink {
   productId: string;
@@ -40,6 +41,7 @@ export default function ServicesScreen() {
   useFeatureGuard(useAuthStore((s) => s.user?.restrictCatalog));
   const currency = useCompanyCurrency();
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   const [moduleEnabled, setModuleEnabled] = useState<boolean | null>(null);
   const [services, setServices] = useState<ServiceResponse[]>([]);
@@ -64,7 +66,7 @@ export default function ServicesScreen() {
       setModuleEnabled(company.servicesModuleEnabled);
       setServices(serviceList);
     } catch (err) {
-      showAlert('Could not load services', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('services.loadFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setLoading(false);
     }
@@ -121,17 +123,17 @@ export default function ServicesScreen() {
   const onSave = async () => {
     if (!companyId) return;
     if (!draft.name.trim()) {
-      showAlert('Missing name', 'Enter a service name.');
+      showAlert(t('product.missingName'), t('services.missingNameBody'));
       return;
     }
     const price = Number(draft.fixedPrice);
     if (!Number.isFinite(price) || price < 0) {
-      showAlert('Invalid price', 'Enter a valid, non-negative price.');
+      showAlert(t('services.invalidPrice'), t('services.invalidPriceBody'));
       return;
     }
     const parsedLinks = stockLinks.map((l) => ({ productId: l.productId, quantityConsumedInBaseUnits: Number(l.quantity) }));
     if (parsedLinks.some((l) => !Number.isInteger(l.quantityConsumedInBaseUnits) || l.quantityConsumedInBaseUnits <= 0)) {
-      showAlert('Invalid quantity', 'Every consumed-stock line needs a positive whole-number quantity.');
+      showAlert(t('common.invalidQuantity'), t('services.invalidQtyBody'));
       return;
     }
 
@@ -152,7 +154,7 @@ export default function ServicesScreen() {
       resetForm();
       await refresh();
     } catch (err) {
-      showAlert('Could not save service', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('services.saveFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setSaving(false);
     }
@@ -164,7 +166,7 @@ export default function ServicesScreen() {
       await servicesApi.setActive(companyId, service.id, { active: !service.active });
       await refresh();
     } catch (err) {
-      showAlert('Could not update service', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('services.updateFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     }
   };
 
@@ -174,11 +176,11 @@ export default function ServicesScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Services</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('drawer.item.services')}</Text>
           <Pressable
             onPress={() => (showForm ? resetForm() : setShowForm(true))}
             hitSlop={8}
-            accessibilityLabel="Add service">
+            accessibilityLabel={t('kit.addService')}>
             <Ionicons name={showForm ? 'close' : 'add'} size={24} color={colors.primary} />
           </Pressable>
         </View>
@@ -186,34 +188,30 @@ export default function ServicesScreen() {
 
       {moduleEnabled === false ? (
         <View className="m-4 gap-2 rounded-xl bg-accent-amber-soft p-4">
-          <Text className="text-sm font-bold text-text-primary">Services module is off</Text>
-          <Text className="text-xs text-text-secondary">
-            Turn it on from More → My business to let sales include billed services alongside products.
-          </Text>
+          <Text className="text-sm font-bold text-text-primary">{t('services.moduleOff')}</Text>
+          <Text className="text-xs text-text-secondary">{t('services.moduleOffHint')}</Text>
           <Pressable onPress={() => router.push('/my-business')} className="self-start rounded-lg bg-primary px-3 py-1.5">
-            <Text className="text-xs font-semibold text-white">Open My business</Text>
+            <Text className="text-xs font-semibold text-white">{t('services.openMyBusiness')}</Text>
           </Pressable>
         </View>
       ) : null}
 
       {showForm ? (
         <KeyboardAwareScroll className="max-h-[70%] border-b border-border bg-surface" contentContainerClassName="gap-3 p-4" keyboardShouldPersistTaps="handled">
-          <TextField label="Service name" value={draft.name} onChangeText={(v) => setDraft((d) => ({ ...d, name: v }))} />
+          <TextField label={t('services.name')} value={draft.name} onChangeText={(v) => setDraft((d) => ({ ...d, name: v }))} />
           <TextField
-            label={`Price (${currency})`}
+            label={t('services.price').replace('{currency}', currency)}
             keyboardType="numeric"
             value={draft.fixedPrice}
             onChangeText={(v) => setDraft((d) => ({ ...d, fixedPrice: v }))}
           />
-          <TextField label="Category (optional)" value={draft.category} onChangeText={(v) => setDraft((d) => ({ ...d, category: v }))} />
+          <TextField label={t('services.categoryOptional')} value={draft.category} onChangeText={(v) => setDraft((d) => ({ ...d, category: v }))} />
 
           <View className="gap-1.5">
-            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">
-              Stock consumed per service (optional)
-            </Text>
+            <Text className="text-xs font-bold uppercase tracking-wide text-text-secondary">{t('services.stockConsumed')}</Text>
             <TextInput
               className="rounded-xl border border-border bg-background px-3.5 py-3 text-base text-text-primary"
-              placeholder="Search product to consume from stock"
+              placeholder={t('services.searchProduct')}
               placeholderTextColor={colors.placeholder}
               value={productQuery}
               onChangeText={runProductSearch}
@@ -248,7 +246,7 @@ export default function ServicesScreen() {
             </View>
           ))}
 
-          <Button title={saving ? 'Saving…' : editingId ? 'Save changes' : 'Create service'} loading={saving} onPress={onSave} />
+          <Button title={saving ? t('common.saving') : editingId ? t('common.saveChanges') : t('services.create')} loading={saving} onPress={onSave} />
         </KeyboardAwareScroll>
       ) : null}
 
@@ -271,21 +269,21 @@ export default function ServicesScreen() {
                   <Text className="text-xs text-text-secondary">
                     {formatCurrency(item.fixedPrice, currency)}
                     {item.category ? ` · ${item.category}` : ''}
-                    {item.stockLinks.length > 0 ? ` · consumes ${item.stockLinks.length} product${item.stockLinks.length === 1 ? '' : 's'}` : ''}
+                    {item.stockLinks.length > 0 ? ` · ${t(item.stockLinks.length === 1 ? 'services.consumesOne' : 'services.consumesMany').replace('{n}', String(item.stockLinks.length))}` : ''}
                   </Text>
                 </View>
                 <Pressable
                   onPress={() => onToggleActive(item)}
                   className={`rounded-full border px-3 py-1.5 ${item.active ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
                   <Text className={`text-xs font-semibold ${item.active ? 'text-primary' : 'text-text-secondary'}`}>
-                    {item.active ? 'Active' : 'Inactive'}
+                    {item.active ? t('staff.active') : t('staff.inactive')}
                   </Text>
                 </Pressable>
               </View>
             </Pressable>
           )}
           ListEmptyComponent={
-            !loading ? <Text className="p-4 text-center text-sm text-text-secondary">No services yet.</Text> : null
+            !loading ? <Text className="p-4 text-center text-sm text-text-secondary">{t('services.empty')}</Text> : null
           }
         />
       )}

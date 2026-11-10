@@ -1,6 +1,8 @@
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
+import { tr } from "@/lib/i18n/translate";
+
 import { generateReceiptHtml } from "./generateReceiptHtml";
 import type { ReceiptData } from "./receiptTypes";
 
@@ -21,7 +23,7 @@ export async function shareReceipt(data: ReceiptData): Promise<void> {
   const { uri } = await Print.printToFileAsync({ html });
   const canShare = await Sharing.isAvailableAsync();
   if (!canShare) {
-    throw new Error("Sharing isn't available on this device.");
+    throw new Error(tr("common.sharingUnavailable"));
   }
   await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Receipt" });
 }

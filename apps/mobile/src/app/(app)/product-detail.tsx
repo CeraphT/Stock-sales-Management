@@ -40,7 +40,7 @@ export default function ProductDetailScreen() {
   async function onReorder() {
     if (!companyId || !locationId || !product || reordering) return;
     if (!product.supplierId) {
-      showAlert('No supplier', 'Add a supplier to this product first, then reorder.');
+      showAlert(t('product.noSupplier'), t('product.noSupplierBody'));
       return;
     }
     setReordering(true);
@@ -49,14 +49,14 @@ export default function ProductDetailScreen() {
       const openPos = await purchaseOrdersApi.list(companyId, { supplierId: product.supplierId, status: PurchaseOrderStatus.Pending });
       if (openPos.length > 0) {
         await purchaseOrdersApi.addLine(companyId, openPos[0].id, line);
-        toast('Added to the existing order for this supplier.', 'success');
+        toast(t('product.addedToOrder'), 'success');
         router.push({ pathname: '/purchase-order-detail', params: { id: openPos[0].id } });
       } else {
-        const po = await purchaseOrdersApi.create(companyId, { locationId, supplierId: product.supplierId, notes: 'Reorder. Low stock', lines: [line] });
+        const po = await purchaseOrdersApi.create(companyId, { locationId, supplierId: product.supplierId, notes: t('product.reorderNote'), lines: [line] });
         router.push({ pathname: '/purchase-order-detail', params: { id: po.id } });
       }
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Could not start the order.', 'error');
+      toast(e instanceof Error ? e.message : t('product.orderFailed'), 'error');
     } finally {
       setReordering(false);
     }
@@ -131,7 +131,7 @@ export default function ProductDetailScreen() {
       if (err instanceof NetworkError && hadLocal) {
         setOffline(true);
       } else {
-        showAlert('Could not load product', err instanceof Error ? err.message : 'Something went wrong.');
+        showAlert(t('product.loadFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
         if (!hadLocal) router.back();
       }
     } finally {
@@ -149,12 +149,12 @@ export default function ProductDetailScreen() {
   const onSave = async () => {
     if (!companyId || !id || !product) return;
     if (!name.trim()) {
-      showAlert('Missing name', 'Enter a product name.');
+      showAlert(t('product.missingName'), t('product.missingNameBody'));
       return;
     }
     const parsedLevels = parsePackagingLevels(packagingLevels);
     if (!parsedLevels.ok) {
-      showAlert('Invalid packaging level', parsedLevels.message);
+      showAlert(t('packaging.invalid'), parsedLevels.message);
       return;
     }
     setSaving(true);
@@ -176,9 +176,9 @@ export default function ProductDetailScreen() {
       });
       await syncNow();
       await load();
-      showAlert('Saved', 'Product updated.');
+      showAlert(t('product.saved'), t('product.updated'));
     } catch (err) {
-      showAlert('Could not save', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('common.saveFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setSaving(false);
     }
@@ -196,7 +196,7 @@ export default function ProductDetailScreen() {
       await syncNow();
       await load();
     } catch (err) {
-      showAlert('Could not update', err instanceof Error ? err.message : 'Something went wrong.');
+      showAlert(t('recon.updateFailed'), err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setArchiving(false);
     }
@@ -216,7 +216,7 @@ export default function ProductDetailScreen() {
       <View className="border-b border-border bg-surface px-5 pb-4 pt-14">
         <View className="flex-row items-center justify-between">
           <BackButton />
-          <Text className="text-lg font-bold text-text-primary">Product</Text>
+          <Text className="text-lg font-bold text-text-primary">{t('tax.col.product')}</Text>
           <View className="w-12" />
         </View>
       </View>
@@ -225,19 +225,19 @@ export default function ProductDetailScreen() {
       <KeyboardAwareScroll contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
         {!product.isActive ? (
           <View className="rounded-xl bg-error/10 px-4 py-3">
-            <Text className="text-sm font-semibold text-error">This product is archived.</Text>
+            <Text className="text-sm font-semibold text-error">{t('product.archivedNotice')}</Text>
           </View>
         ) : null}
 
-        <TextField label="Product name" value={name} onChangeText={setName} />
-        <TextField label="Barcode" autoCapitalize="none" value={barcode} onChangeText={setBarcode} />
+        <TextField label={t('product.name')} value={name} onChangeText={setName} />
+        <TextField label={t('product.barcode')} autoCapitalize="none" value={barcode} onChangeText={setBarcode} />
         {product.categoryName ? (
-          <Text className="text-xs text-text-secondary">Category: {product.categoryName}</Text>
+          <Text className="text-xs text-text-secondary">{t('product.categoryLine').replace('{name}', product.categoryName)}</Text>
         ) : null}
-        <TextField label={`Purchase price (${currency})`} keyboardType="numeric" value={purchasePrice} onChangeText={setPurchasePrice} />
-        <TextField label={`Sale price (${currency})`} keyboardType="numeric" value={salePrice} onChangeText={setSalePrice} />
+        <TextField label={t('product.purchasePrice').replace('{currency}', currency)} keyboardType="numeric" value={purchasePrice} onChangeText={setPurchasePrice} />
+        <TextField label={t('product.salePrice').replace('{currency}', currency)} keyboardType="numeric" value={salePrice} onChangeText={setSalePrice} />
         <TextField
-          label="Low stock threshold"
+          label={t('product.lowStockThreshold')}
           keyboardType="numeric"
           value={lowStockThreshold}
           onChangeText={setLowStockThreshold}
@@ -245,47 +245,47 @@ export default function ProductDetailScreen() {
 
         <PackagingLevelsEditor levels={packagingLevels} onChange={setPackagingLevels} currency={currency} />
 
-        <Button title={saving ? 'Saving…' : 'Save changes'} loading={saving} onPress={onSave} />
-        <Button title="🛒  Reorder from supplier" variant="secondary" loading={reordering} onPress={onReorder} />
+        <Button title={saving ? t('common.saving') : t('common.saveChanges')} loading={saving} onPress={onSave} />
+        <Button title={`🛒  ${t('product.reorder')}`} variant="secondary" loading={reordering} onPress={onReorder} />
         <Button
-          title={product.isActive ? 'Archive product' : 'Restore product'}
+          title={product.isActive ? t('product.archive') : t('product.restore')}
           variant="secondary"
           loading={archiving}
           onPress={onToggleArchive}
         />
 
         <View className="mt-4 flex-row items-center justify-between">
-          <Text className="text-sm font-bold text-text-primary">Batches</Text>
+          <Text className="text-sm font-bold text-text-primary">{t('product.batches')}</Text>
           <Pressable
             onPress={() => router.push({ pathname: '/stock-receive', params: { productId: id } })}
             className="rounded-lg bg-primary px-3 py-2">
-            <Text className="text-xs font-semibold text-white">Receive stock</Text>
+            <Text className="text-xs font-semibold text-white">{t('drawer.item.receiveStock')}</Text>
           </Pressable>
         </View>
 
         {batches.length === 0 ? (
-          <Text className="text-sm text-text-secondary">No batches received yet.</Text>
+          <Text className="text-sm text-text-secondary">{t('product.noBatches')}</Text>
         ) : (
           batches.map((batch) => (
             <View key={batch.id} className="rounded-xl bg-surface p-3.5">
               <View className="flex-row items-center justify-between">
                 <Text className="text-sm font-semibold text-text-primary">{batch.batchNumber}</Text>
-                <Text className="text-sm font-bold text-text-primary">{batch.quantityInBaseUnits} units</Text>
+                <Text className="text-sm font-bold text-text-primary">{batch.quantityInBaseUnits} {t('common.units')}</Text>
               </View>
               <Text className="text-xs text-text-secondary">
-                {batch.expiryDate ? `Expires ${batch.expiryDate.slice(0, 10)}` : 'No expiry'} · Cost{' '}
+                {batch.expiryDate ? t('product.expires').replace('{date}', batch.expiryDate.slice(0, 10)) : t('product.noExpiry')} · {t('product.cost')}{' '}
                 {formatCurrency(batch.purchasePricePerBaseUnit, currency)}
               </Text>
               <View className="mt-2 flex-row gap-2">
                 <Pressable
                   onPress={() => router.push({ pathname: '/stock-adjust', params: { productId: id, batchId: batch.id } })}
                   className="self-start rounded-lg border border-primary px-3 py-1.5">
-                  <Text className="text-xs font-semibold text-primary">Adjust</Text>
+                  <Text className="text-xs font-semibold text-primary">{t('recon.adjust')}</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => router.push({ pathname: '/supplier-return' as never, params: { productId: id, batchId: batch.id, batchNumber: batch.batchNumber, available: String(batch.quantityInBaseUnits) } })}
                   className="self-start rounded-lg border border-border px-3 py-1.5">
-                  <Text className="text-xs font-semibold text-text-secondary">Return to supplier</Text>
+                  <Text className="text-xs font-semibold text-text-secondary">{t('product.returnToSupplier')}</Text>
                 </Pressable>
               </View>
             </View>
