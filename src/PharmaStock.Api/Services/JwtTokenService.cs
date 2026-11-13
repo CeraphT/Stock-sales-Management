@@ -113,6 +113,43 @@ public class JwtTokenService
         return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
     }
 
+
+    /// <summary>Access token for the Claude connector (MCP). Same signing key and
+    /// business claims as an app token, but a DIFFERENT audience
+    /// (<see cref="McpConstants.Audience"/>), so it is refused by every normal API
+    /// endpoint and an app token is refused by /mcp. Carries the grant id so a
+    /// revoked connection stops working at its next tool call.</summary>
+    public (string Token, DateTime ExpiresAt) IssueMcpToken(User user, CompanyMembership membership, Guid grantId, string scope)
+    {
+        var secret = _configuration["Jwt:Secret"]
+            ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
+        var issuer = _configuration["Jwt:Issuer"] ?? "PharmaStock";
+        var expiryMinutes = _configuration.GetValue<int?>("Mcp:AccessTokenExpiryMinutes") ?? 60;
+
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, user.Name),
+            new(ClaimTypes.Role, membership.Role.ToString()),
+            new(CompanyIdClaimType, membership.CompanyId.ToString()),
+            new(McpConstants.GrantIdClaimType, grantId.ToString()),
+            new("scope", scope),
+        };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var expiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes);
+
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: McpConstants.Audience,
+            claims: claims,
+            expires: expiresAt,
+            signingCredentials: credentials);
+
+        return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
+    }
+
     /// <summary>Generates a new refresh token for a device. Returns the raw
     /// value (sent to the client once, never stored) alongside the hash that
     /// gets persisted on Device.RefreshTokenHash — mirrors how User.PasswordHash

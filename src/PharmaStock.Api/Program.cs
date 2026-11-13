@@ -48,6 +48,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromMinutes(1)
         };
     });
+// Read-only Claude connector (remote MCP server + its OAuth sign-in), see McpSetup.
+builder.AddStockFlowMcp(jwtSecret, jwtIssuer);
+
 // CORS for the browser-engine clients (the Tauri desktop webview, and the
 // Vite dev server when running the desktop UI in a plain browser). The API is
 // otherwise called by native HTTP stacks (MAUI/Expo) that aren't subject to
@@ -124,5 +127,6 @@ app.MapReconciliationEndpoints();
 app.MapAlertsEndpoints();
 app.MapSupportEndpoints();
 app.MapSupportEmailActions();
+app.MapStockFlowMcp();
 
 app.Run();

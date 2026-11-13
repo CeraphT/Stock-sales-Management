@@ -42,47 +42,7 @@ public static class ReportingEndpoints
             var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictReportsAndFullSales);
             if (restricted is not null) return restricted;
 
-            var salesQuery = db.Sales.Where(s => s.CompanyId == companyId && s.Status == SaleStatus.Completed);
-            if (locationId is not null) salesQuery = salesQuery.Where(s => s.LocationId == locationId);
-            if (from is not null) salesQuery = salesQuery.Where(s => s.Timestamp >= from.Value.Date);
-            if (to is not null) salesQuery = salesQuery.Where(s => s.Timestamp < to.Value.Date.AddDays(1));
-
-            // GroupBy().Select(g => new SomeRecord(...)) doesn't translate to SQL
-            // here (Npgsql can't build the record's positional constructor from
-            // grouped aggregates) — pull the flat rows down and group in memory
-            // instead, same workaround already used in DashboardEndpoints.
-            var salesRows = await salesQuery
-                .Select(s => new { s.Timestamp, s.Total })
-                .ToListAsync();
-
-            var dailyBreakdown = salesRows
-                .GroupBy(s => s.Timestamp.Date)
-                .Select(g => new DailySalesItem(g.Key, g.Sum(s => s.Total), g.Count()))
-                .OrderBy(d => d.Date)
-                .ToList();
-
-            var totalRevenue = salesRows.Sum(s => s.Total);
-            var totalSalesCount = salesRows.Count;
-
-            var lineQuery = db.SaleLines.Where(l => l.Sale!.CompanyId == companyId && l.Sale.Status == SaleStatus.Completed);
-            if (locationId is not null) lineQuery = lineQuery.Where(l => l.Sale!.LocationId == locationId);
-            if (from is not null) lineQuery = lineQuery.Where(l => l.Sale!.Timestamp >= from.Value.Date);
-            if (to is not null) lineQuery = lineQuery.Where(l => l.Sale!.Timestamp < to.Value.Date.AddDays(1));
-
-            var totalCost = await lineQuery.SumAsync(l =>
-                (l.Batch != null ? l.Batch.PurchasePricePerBaseUnit : 0) * l.QuantityInBaseUnits);
-
-            // VAT per line depends on the sale's mode: B2B adds it on top of the
-            // net price (rate/100); B2C extracts it from the inclusive price (rate/(100+rate)).
-            var totalTax = await lineQuery.SumAsync(l => l.Sale!.TaxAddedOnTop
-                ? l.UnitPrice * l.QuantityInBaseUnits * l.TaxRatePercent / 100m
-                : l.UnitPrice * l.QuantityInBaseUnits * l.TaxRatePercent / (100m + l.TaxRatePercent));
-
-            return Results.Ok(new SalesSummaryResponse(
-                totalRevenue, totalCost, totalRevenue - totalCost,
-                totalSalesCount, totalSalesCount > 0 ? totalRevenue / totalSalesCount : 0,
-                totalTax,
-                dailyBreakdown));
+            return Results.Ok(await ReportQueries.SalesSummaryAsync(db, companyId, locationId, from, to));
         }).RequireAuthorization();
 
         app.MapGet("/api/companies/{companyId:guid}/reports/top-products", async (
@@ -95,38 +55,7 @@ public static class ReportingEndpoints
             var restricted = await http.CheckFeatureRestrictionAsync(db, u => u.RestrictReportsAndFullSales);
             if (restricted is not null) return restricted;
 
-            var query = db.SaleLines.Where(l => l.Sale!.CompanyId == companyId && l.Sale.Status == SaleStatus.Completed);
-            if (locationId is not null) query = query.Where(l => l.Sale!.LocationId == locationId);
-            if (from is not null) query = query.Where(l => l.Sale!.Timestamp >= from.Value.Date);
-            if (to is not null) query = query.Where(l => l.Sale!.Timestamp < to.Value.Date.AddDays(1));
-
-            // Same reasoning as sales-summary: GroupBy + a conditional join into
-            // Batch inside an aggregate doesn't translate here, so flatten first
-            // and group the (typically low-thousands) rows in memory instead.
-            var lineRows = await query
-                .Select(l => new
-                {
-                    l.ProductId,
-                    ProductName = l.Product!.Name,
-                    l.QuantityInBaseUnits,
-                    l.UnitPrice,
-                    BatchCost = l.Batch != null ? l.Batch.PurchasePricePerBaseUnit : 0
-                })
-                .ToListAsync();
-
-            var topProducts = lineRows
-                .GroupBy(l => new { l.ProductId, l.ProductName })
-                .Select(g => new TopProductItem(
-                    g.Key.ProductId,
-                    g.Key.ProductName,
-                    g.Sum(l => l.QuantityInBaseUnits),
-                    g.Sum(l => l.UnitPrice * l.QuantityInBaseUnits),
-                    g.Sum(l => (l.UnitPrice - l.BatchCost) * l.QuantityInBaseUnits)))
-                .OrderByDescending(p => p.Revenue)
-                .Take(limit ?? 20)
-                .ToList();
-
-            return Results.Ok(topProducts);
+            return Results.Ok(await ReportQueries.TopProductsAsync(db, companyId, locationId, from, to, limit ?? 20));
         }).RequireAuthorization();
 
         // Demand forecast — per product: recent sales velocity, days of cover

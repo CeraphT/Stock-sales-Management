@@ -64,6 +64,10 @@ public class PharmaStockDbContext : DbContext
 
     public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
 
+    // Claude connector (MCP) OAuth: registered clients and per-business grants.
+    public DbSet<McpClient> McpClients => Set<McpClient>();
+    public DbSet<McpGrant> McpGrants => Set<McpGrant>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PharmaStockDbContext).Assembly);
