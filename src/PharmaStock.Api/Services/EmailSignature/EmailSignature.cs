@@ -8,7 +8,7 @@ namespace PharmaStock.Api.Services;
 public enum EmailSignatureKind
 {
     /// <summary>Email sent in mfSPACE's own name (password reset, reports, reminders,
-    /// support): full signature (Follah Manuella, phones, address, GDPR line).</summary>
+    /// support): full signature (mfSPACE, no personal names: phones, address, GDPR line).</summary>
     Company,
     /// <summary>Email a customer sends to THEIR contact through the app (landlord to
     /// tenant): neutral "sent via the app" footer, no mfSPACE personal details, and
