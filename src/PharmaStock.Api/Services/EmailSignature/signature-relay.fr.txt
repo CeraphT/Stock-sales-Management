@@ -1,0 +1,4 @@
+Envoyé via {{APP_NAME}}, un service mfSPACE (mfspace.lu).
+Pour répondre à l'expéditeur, répondez simplement à cet e-mail.
+
+Les données de ce message sont traitées via {{APP_NAME}} conformément au règlement (UE) 2016/679 (RGPD). Voir notre https://mfspace.lu/confidentialite.html.

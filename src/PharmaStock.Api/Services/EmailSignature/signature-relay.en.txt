@@ -1,0 +1,4 @@
+Sent via {{APP_NAME}}, a mfSPACE service (mfspace.lu).
+To reply to the sender, simply reply to this email.
+
+The data in this message is processed via {{APP_NAME}} in accordance with Regulation (EU) 2016/679 (GDPR). See our https://mfspace.lu/confidentialite.html.

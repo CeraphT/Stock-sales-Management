@@ -24,7 +24,11 @@ public class EmailService
 
     public record Attachment(string FileName, string ContentType, byte[] Content);
 
-    public async Task SendAsync(string to, string subject, string htmlBody, IEnumerable<Attachment>? attachments = null, string? replyTo = null)
+    /// <param name="signature">Company = mfSPACE's full signature (default);
+    /// Relay = neutral footer for emails a customer sends to their own contact.</param>
+    /// <param name="lang">"fr" (default) or "en": language of the signature.</param>
+    public async Task SendAsync(string to, string subject, string htmlBody, IEnumerable<Attachment>? attachments = null, string? replyTo = null,
+        EmailSignatureKind signature = EmailSignatureKind.Company, string? lang = null)
     {
         var host = Get("SMTP_HOST");
         if (string.IsNullOrWhiteSpace(host))
@@ -42,7 +46,9 @@ public class EmailService
         if (!string.IsNullOrWhiteSpace(replyTo) && replyTo != from)
             try { msg.ReplyTo.Add(MailboxAddress.Parse(replyTo.Trim())); } catch { /* ignore a malformed address */ }
 
-        var builder = new BodyBuilder { HtmlBody = htmlBody ?? "" };
+        // Every email leaves with the mfSPACE signature and a plain-text part.
+        var (html, text) = EmailSignature.Apply(htmlBody, "StockFlow", signature, lang);
+        var builder = new BodyBuilder { HtmlBody = html, TextBody = text };
         if (attachments is not null)
             foreach (var a in attachments)
                 builder.Attachments.Add(a.FileName, a.Content, ContentType.Parse(a.ContentType));
