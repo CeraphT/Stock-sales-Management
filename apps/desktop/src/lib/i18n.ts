@@ -377,6 +377,34 @@ export const FR: Record<string, string> = {
   "Back to dashboard": "Retour au tableau de bord",
   "Reload app": "Recharger l'application",
   "Data & maintenance": "Données et maintenance",
+  // ── Claude connections (read-only Claude connector) ──────────────────
+  "Claude connections": "Connexions Claude",
+  "Connect Claude to this shop": "Connecter Claude à cette boutique",
+  "Ask Claude about your sales, stock, expiry dates, customer credit and purchase orders in plain language. The connection is read-only: Claude cannot change anything in StockFlow.":
+    "Posez vos questions à Claude sur vos ventes, votre stock, les dates de péremption, les crédits clients et les commandes fournisseurs, en langage courant. La connexion est en lecture seule : Claude ne peut rien modifier dans StockFlow.",
+  "Connector address": "Adresse du connecteur",
+  "In Claude, open Settings > Connectors.": "Dans Claude, ouvrez Paramètres > Connecteurs.",
+  "Click \"Add custom connector\", name it StockFlow and paste the address above.":
+    "Cliquez sur « Ajouter un connecteur personnalisé », nommez-le StockFlow et collez l'adresse ci-dessus.",
+  "Click Connect, sign in with your StockFlow phone number and password, and choose this shop.":
+    "Cliquez sur Connecter, identifiez-vous avec votre numéro et votre mot de passe StockFlow, puis choisissez cette boutique.",
+  "In a new chat, turn StockFlow on in the connectors menu and ask your question.":
+    "Dans une nouvelle conversation, activez StockFlow dans le menu des connecteurs et posez votre question.",
+  "Staff can connect too. Their access limits in Staff also apply in Claude.":
+    "Le personnel peut aussi se connecter. Les limites d'accès définies dans Personnel s'appliquent aussi dans Claude.",
+  "Active connections": "Connexions actives",
+  "You only see your own connections.": "Vous ne voyez que vos propres connexions.",
+  "No connection to Claude yet.": "Aucune connexion à Claude pour l'instant.",
+  "Connected on": "Connecté le",
+  "Last used on": "Dernière utilisation le",
+  "Remove the Claude connection of": "Retirer la connexion Claude de",
+  "Claude will stop reading this shop at once. They can connect again later.":
+    "Claude cesse immédiatement de lire cette boutique. La personne pourra se reconnecter plus tard.",
+  "Connection removed. Claude can no longer read this shop through it.":
+    "Connexion retirée. Claude ne peut plus lire cette boutique par ce biais.",
+  "Address copied.": "Adresse copiée.",
+  "Could not load the connections. Check the internet connection and try again.": "Impossible de charger les connexions. Vérifiez la connexion internet et réessayez.",
+  "Copy failed. Select the address and copy it by hand.": "La copie a échoué. Sélectionnez l'adresse et copiez-la à la main.",
   "Back up this device's data, or clear it for a clean start.":
     "Sauvegardez les données de cet appareil, ou effacez-les pour repartir à neuf.",
   "Back up data": "Sauvegarder les données",

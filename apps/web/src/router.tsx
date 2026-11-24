@@ -30,6 +30,7 @@ import { InventoryReport } from "@/screens/InventoryReport";
 import { PrinterSettings } from "@/screens/PrinterSettings";
 import { Reconciliation } from "@/screens/Reconciliation";
 import { Reports } from "@/screens/Reports";
+import { ClaudeConnections } from "@/screens/ClaudeConnections";
 import { Staff } from "@/screens/Staff";
 import { Support } from "@/screens/Support";
 import { TaxDeclaration } from "@/screens/TaxDeclaration";
@@ -207,6 +208,7 @@ export const router = createBrowserRouter([
       { path: "/printer", element: <PrinterSettings /> },
       { path: "/data", element: <DataMaintenance /> },
       { path: "/staff", element: <Staff /> },
+      { path: "/claude", element: <ClaudeConnections /> },
       { path: "/settings", element: <CompanySettings /> },
       { path: "/support", element: <Support /> },
       // Any nav destination without a screen yet (Printer) falls back to a placeholder.
@@ -240,6 +242,7 @@ export const router = createBrowserRouter([
             "/printer",
             "/data",
             "/staff",
+            "/claude",
             "/settings",
           ].includes(i.path),
       ).map((i) => ({

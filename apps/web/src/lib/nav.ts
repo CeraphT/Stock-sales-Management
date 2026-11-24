@@ -58,6 +58,7 @@ export const NAV: NavGroup[] = [
       { label: "Customer credits", path: "/customer-credits", icon: "💳" },
       { label: "Tax declaration", path: "/tax-declaration", icon: "🧾" },
       { label: "Staff", path: "/staff", icon: "👥" },
+      { label: "Claude connections", path: "/claude", icon: "🤖" },
       { label: "Printer", path: "/printer", icon: "🖨️" },
       { label: "Data & maintenance", path: "/data", icon: "🛟" },
       { label: "Company settings", path: "/settings", icon: "🏢" },

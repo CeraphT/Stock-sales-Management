@@ -54,9 +54,14 @@ shops whose data you are comfortable sharing this way.
 
 ### Disconnecting
 
-In Claude, go to **Settings > Connectors**, open StockFlow and choose **Disconnect** or
-**Remove**. If you change your StockFlow password, the connection keeps working until
-you remove it. There is no way yet to disconnect from inside StockFlow.
+In StockFlow (web or desktop), open **Management > Claude connections**. The screen shows
+the connector address, the setup steps and every active connection: who connected,
+when, and when Claude last used it. **Remove** cuts a connection off at once. A manager
+sees and can remove everyone's connections in the shop; a cashier only their own.
+
+You can also disconnect in Claude: **Settings > Connectors**, open StockFlow, then
+**Disconnect** or **Remove**. Changing your StockFlow password does not end a connection;
+remove it in StockFlow if you need to.
 
 ## For developers
 
@@ -87,6 +92,9 @@ you remove it. There is no way yet to disconnect from inside StockFlow.
 - **Data:** `sales_summary` and `top_products` use `ReportQueries`, the same code as the
   report endpoints. Login codes and shop-picker tickets live in memory, so a restart
   during sign-in means the person signs in again.
+- **Claude connections screen:** `GET /api/companies/{id}/mcp-connections` and
+  `POST .../{grantId}/revoke` (`McpConnectionEndpoints.cs`, normal app token, audit
+  action `mcp.revoke`), shown by `ClaudeConnections.tsx` in `apps/web` and `apps/desktop`.
 - **Migration:** `AddMcpConnector` adds the `McpClients` and `McpGrants` tables.
 
 ### Settings (all optional)
@@ -123,5 +131,5 @@ The demo logins are listed at the top of `tools/mcp-dev-seed.mjs`.
 ### Not in this version
 
 - Write tools (record a sale, receive stock). Each one would need its own review.
-- A "connected apps" list in StockFlow where the owner can see and revoke connections.
+- The Claude connections screen on Android (web and desktop have it).
 - HouseBudget.

@@ -183,5 +183,34 @@ check(csales.isError && /restricted/.test(csales.text), "restricted cashier cann
 const cstock = await tool(ctoken, "stock_levels");
 check(!cstock.isError, "restricted cashier can still read stock_levels");
 
+// ---- Claude connections screen: list and revoke (normal app tokens) ---------
+async function appLogin(phone, password) {
+  const r = await fetch(`${API}/api/auth/login`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone, password, deviceId: crypto.randomUUID(), deviceName: "e2e", platform: 2 }),
+  }).then((x) => x.json());
+  return r;
+}
+const ownerApp = login; // opened the first shop (Akwa), as CompanyAdmin
+const cashierApp = await appLogin("699000102", "demo-cashier-2026");
+const connUrl = (s) => `${API}/api/companies/${s.companyId}/mcp-connections`;
+const get = (s) => fetch(connUrl(s), { headers: { Authorization: `Bearer ${s.token}` } }).then((r) => r.json());
+const revoke = (s, id) => fetch(`${connUrl(s)}/${id}/revoke`, { method: "POST", headers: { Authorization: `Bearer ${s.token}` } });
+
+const ownerList = await get(ownerApp);
+const cashierConn = ownerList.find((c) => c.userName === "Demo Cashier");
+check(ownerApp.companyId === cashierApp.companyId && Array.isArray(ownerList) && ownerList.some((c) => c.isMine) && !!cashierConn,
+  "manager sees every connection of the shop", `${ownerList.length} connection(s)`);
+const cashierList = await get(cashierApp);
+check(cashierList.every((c) => c.isMine) && cashierList.length >= 1, "cashier sees only their own connections");
+const ownerConn = ownerList.find((c) => c.isMine);
+check((await revoke(cashierApp, ownerConn.id)).status === 403, "cashier cannot remove the manager's connection");
+check((await revoke(ownerApp, cashierConn.id)).status === 204, "manager removes the cashier's connection");
+const afterRevoke = await tool(ctoken, "shop_info");
+check(afterRevoke.isError && /no longer has access/.test(afterRevoke.text), "removed connection is refused at the next tool call");
+const refreshAfter = await form("/oauth/token", { grant_type: "refresh_token", refresh_token: cashier.tokens.refresh_token, client_id: cashier.reg.client_id });
+check(refreshAfter.status === 400, "removed connection cannot refresh");
+check(!(await get(ownerApp)).some((c) => c.id === cashierConn.id), "removed connection leaves the list");
+
 console.log(failures === 0 ? "\nAll checks passed." : `\n${failures} check(s) failed.`);
 process.exit(failures === 0 ? 0 : 1);

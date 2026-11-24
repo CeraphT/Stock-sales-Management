@@ -73,6 +73,7 @@ public static class McpSetup
     public static void MapStockFlowMcp(this WebApplication app)
     {
         app.MapMcpOAuthEndpoints();
+        app.MapMcpConnectionEndpoints();
         app.MapMcp(McpConstants.McpPath).RequireAuthorization(McpConstants.Policy);
     }
 }
