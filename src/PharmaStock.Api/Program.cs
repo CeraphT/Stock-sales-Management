@@ -88,6 +88,15 @@ if (Environment.GetEnvironmentVariable("AUTO_MIGRATE") == "true")
     scope.ServiceProvider.GetRequiredService<PharmaStockDbContext>().Database.Migrate();
 }
 
+// Caddy terminates TLS and proxies plain HTTP; the API container has no public
+// port, so trust its X-Forwarded-Proto. Only the scheme is taken (client IPs keep
+// their own handling), so absolute URLs built from the request, such as the MCP
+// 401 challenge's resource_metadata, say https.
+var forwarded = new ForwardedHeadersOptions { ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto };
+forwarded.KnownNetworks.Clear();
+forwarded.KnownProxies.Clear();
+app.UseForwardedHeaders(forwarded);
+
 app.UseCors(DevClientsCors);
 app.UseAuthentication();
 app.UseAuthorization();
