@@ -152,6 +152,13 @@ html=$(cat <<HTML
 HTML
 )
 
+# ---- mfSPACE signature (same one the apps add; copied from the signature kit's
+# dist/signature-app.fr.html into /root/bin/signature/, APP_NAME already filled) ----
+SIG=/root/bin/signature/signature.fr.html
+if [ -f "$SIG" ]; then
+  html="${html%</body></html>}<div style=\"max-width:720px;margin:24px auto 0;padding:0 8px\"><!-- mfspace-signature -->$(cat "$SIG")</div></body></html>"
+fi
+
 # Preview mode: print the HTML and exit (no e-mail). Used to check the design.
 if [ "${1:-}" = "--html" ]; then printf '%s\n' "$html"; exit 0; fi
 
